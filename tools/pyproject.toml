@@ -1,19 +1,19 @@
-[tool.isort]
-profile = "black"
-combine_as_imports = true
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools", "wheel"]
 
-[tool.pylint.messages_control]
-extension-pkg-whitelist = "pydantic"
-disable = [
-  "missing-class-docstring",
-  "missing-function-docstring",
-  "missing-module-docstring",
-]
+[tool.isort]
+combine_as_imports = true
+profile = "black"
 
 [tool.mypy]
 allow_redefinition = true
-disallow_incomplete_defs= true
+disallow_incomplete_defs = true
 
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+[tool.pylint.messages_control]
+disable = [
+  "missing-class-docstring",
+  "missing-function-docstring",
+  "missing-module-docstring"
+]
+extension-pkg-whitelist = "pydantic"

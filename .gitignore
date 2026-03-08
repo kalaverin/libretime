@@ -22,6 +22,7 @@ __*__/
 !.gitignore
 !.gitkeep
 !.python-version
+!.vale.ini
 
 /dev/certs/*
 /dev/playout/*

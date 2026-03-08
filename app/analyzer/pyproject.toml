@@ -1,17 +1,6 @@
-[project]
-name = "libretime-analyzer"
-version = "4.5.0"
-requires-python = ">=3.10"
-description = "LibreTime Analyzer"
-authors = [{ name = "LibreTime Contributors" }]
-license = { text = "AGPLv3" }
-dependencies = [
-    "mutagen>=1.45.1,<1.48",
-    "pika>=1.0.0,<1.4",
-    "requests>=2.32.2,<2.33",
-    "sentry-sdk>=1.15.0,<2",
-    "typing-extensions>=4.15.0",
-]
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools", "wheel"]
 
 [dependency-groups]
 build = [
@@ -23,19 +12,30 @@ development = [
   "types-requests>=2.31.0,<3"
 ]
 
-[project.urls]
-Homepage = "https://github.com/libretime/libretime"
-"Bug Tracker" = "https://github.com/libretime/libretime/issues"
-Documentation = "https://libretime.org"
-"Source Code" = "https://github.com/libretime/libretime"
+[project]
+authors = [{name = "LibreTime Contributors"}]
+dependencies = [
+  "mutagen>=1.45.1,<1.48",
+  "pika>=1.0.0,<1.4",
+  "requests>=2.32.2,<2.33",
+  "sentry-sdk>=1.15.0,<2",
+  "typing-extensions>=4.15.0"
+]
+description = "LibreTime Analyzer"
+license = {text = "AGPLv3"}
+name = "libretime-analyzer"
+requires-python = ">=3.10"
+version = "4.5.0"
 
 [project.scripts]
 libretime-analyzer = "libretime_analyzer.main:cli"
 
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+[project.urls]
+"Bug Tracker" = "https://github.com/libretime/libretime/issues"
+Documentation = "https://libretime.org"
+Homepage = "https://github.com/libretime/libretime"
+"Source Code" = "https://github.com/libretime/libretime"
 
 [tool.setuptools.packages.find]
-where = ["."]
 include = ["libretime_*"]
+where = ["."]
