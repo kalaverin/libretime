@@ -2,7 +2,7 @@ import pytest
 
 from libretime_analyzer.pipeline.analyze_replaygain import analyze_replaygain
 
-from ..fixtures import FILES
+from tests.fixtures import FILES
 
 
 @pytest.mark.parametrize(

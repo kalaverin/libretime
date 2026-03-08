@@ -4,7 +4,7 @@ import pytest
 
 from libretime_analyzer.pipeline.analyze_metadata import analyze_metadata
 
-from ..fixtures import FILE_INVALID_DRM, FILE_INVALID_TXT, FILES_TAGGED
+from tests.fixtures import FILE_INVALID_DRM, FILE_INVALID_TXT, FILES_TAGGED
 
 
 @pytest.mark.parametrize(

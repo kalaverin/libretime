@@ -15,8 +15,8 @@ from libretime_api_client.v1 import ApiClient as LegacyClient
 from mutagen import MutagenError
 from requests import RequestException, Response
 
-from . import PACKAGE, VERSION
-from .config import config
+from libretime_worker import PACKAGE, VERSION
+from libretime_worker.config import config
 
 worker = Celery()
 logger = get_task_logger(__name__)

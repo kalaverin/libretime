@@ -3,10 +3,10 @@ from pathlib import Path
 from time import sleep
 from typing import Any, Literal, Optional, Tuple, Union
 
-from ..models import MessageFormatKind
-from ..utils import quote
-from ..version import parse_liquidsoap_version
-from ._connection import LiquidsoapConnection
+from libretime_playout.liquidsoap.models import MessageFormatKind
+from libretime_playout.liquidsoap.utils import quote
+from libretime_playout.liquidsoap.version import parse_liquidsoap_version
+from libretime_playout.liquidsoap.client._connection import LiquidsoapConnection
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
 from rest_framework import routers
 
-from .views import (
+from libretime_api.podcasts.views import (
     ImportedPodcastViewSet,
     PodcastEpisodeViewSet,
     PodcastViewSet,

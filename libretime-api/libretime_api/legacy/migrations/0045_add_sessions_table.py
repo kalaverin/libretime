@@ -2,7 +2,7 @@
 
 from django.db import migrations
 
-from ._migrations import legacy_migration_factory
+from libretime_api.legacy.migrations._migrations import legacy_migration_factory
 
 UP = """
 CREATE TABLE "sessions"

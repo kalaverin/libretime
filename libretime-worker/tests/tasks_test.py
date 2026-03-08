@@ -5,7 +5,7 @@ from requests import Response
 
 from libretime_worker.tasks import extract_filename, podcast_download
 
-from .fixtures import fixtures_path
+from tests.fixtures import fixtures_path
 
 
 @pytest.mark.parametrize(

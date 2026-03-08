@@ -5,8 +5,8 @@ from django.conf import settings
 from model_bakery import baker
 from rest_framework.test import APITestCase
 
-from ...._fixtures import AUDIO_FILENAME
-from ...models import File
+from libretime_api._fixtures import AUDIO_FILENAME
+from libretime_api.storage.models import File
 
 
 class TestFileViewSet(APITestCase):

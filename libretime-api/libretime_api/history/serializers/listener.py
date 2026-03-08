@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..models import ListenerCount, MountName, Timestamp
+from libretime_api.history.models import ListenerCount, MountName, Timestamp
 
 
 class MountNameSerializer(serializers.ModelSerializer):

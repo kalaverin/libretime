@@ -19,17 +19,17 @@ from libretime_shared.cli import cli_config_options, cli_logging_options
 from libretime_shared.config import DEFAULT_ENV_PREFIX
 from libretime_shared.logging import setup_logger
 
-from . import PACKAGE, VERSION
-from .config import CACHE_DIR, RECORD_DIR, Config
-from .history.stats import StatsCollectorThread
-from .liquidsoap.client import LiquidsoapClient
-from .liquidsoap.version import LIQUIDSOAP_MIN_VERSION
-from .message_handler import MessageListener
-from .player.events import Events, FileEvents
-from .player.fetch import PypoFetch
-from .player.file import PypoFile
-from .player.liquidsoap import Liquidsoap
-from .player.push import PypoPush
+from libretime_playout import PACKAGE, VERSION
+from libretime_playout.config import CACHE_DIR, RECORD_DIR, Config
+from libretime_playout.history.stats import StatsCollectorThread
+from libretime_playout.liquidsoap.client import LiquidsoapClient
+from libretime_playout.liquidsoap.version import LIQUIDSOAP_MIN_VERSION
+from libretime_playout.message_handler import MessageListener
+from libretime_playout.player.events import Events, FileEvents
+from libretime_playout.player.fetch import PypoFetch
+from libretime_playout.player.file import PypoFile
+from libretime_playout.player.liquidsoap import Liquidsoap
+from libretime_playout.player.push import PypoPush
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..models import Playlist, PlaylistContent
+from libretime_api.schedule.models import Playlist, PlaylistContent
 
 
 class PlaylistSerializer(serializers.ModelSerializer):

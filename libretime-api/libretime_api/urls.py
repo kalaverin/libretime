@@ -8,11 +8,11 @@ https://docs.djangoproject.com/en/3.2/topics/http/urls/
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from .core.router import urls as core_urls
-from .history.router import urls as history_urls
-from .podcasts.router import urls as podcasts_urls
-from .schedule.router import urls as schedule_urls
-from .storage.router import urls as storage_urls
+from libretime_api.core.router import urls as core_urls
+from libretime_api.history.router import urls as history_urls
+from libretime_api.podcasts.router import urls as podcasts_urls
+from libretime_api.schedule.router import urls as schedule_urls
+from libretime_api.storage.router import urls as storage_urls
 
 api_urls = []
 api_urls += core_urls

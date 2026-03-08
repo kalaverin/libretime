@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework import routers
 
-from .views import (
+from libretime_api.core.views import (
     CeleryTaskViewSet,
     InfoView,
     LoginAttemptViewSet,

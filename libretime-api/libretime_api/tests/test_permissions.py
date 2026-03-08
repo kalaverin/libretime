@@ -4,8 +4,8 @@ from django.contrib.auth.models import AnonymousUser
 from model_bakery import baker
 from rest_framework.test import APIRequestFactory, APITestCase
 
-from ..core.models import Role
-from ..permissions import IsSystemTokenOrUser
+from libretime_api.core.models import Role
+from libretime_api.permissions import IsSystemTokenOrUser
 
 
 class TestIsSystemTokenOrUser(APITestCase):

@@ -5,7 +5,7 @@ from time import sleep
 
 from requests.exceptions import RequestException
 
-from ._client import AbstractApiClient, Response
+from libretime_api_client._client import AbstractApiClient, Response
 
 logger = logging.getLogger(__name__)
 

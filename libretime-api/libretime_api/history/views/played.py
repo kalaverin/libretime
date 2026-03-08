@@ -1,12 +1,12 @@
 from rest_framework import viewsets
 
-from ..models import (
+from libretime_api.history.models import (
     PlayoutHistory,
     PlayoutHistoryMetadata,
     PlayoutHistoryTemplate,
     PlayoutHistoryTemplateField,
 )
-from ..serializers import (
+from libretime_api.history.serializers import (
     PlayoutHistoryMetadataSerializer,
     PlayoutHistorySerializer,
     PlayoutHistoryTemplateFieldSerializer,

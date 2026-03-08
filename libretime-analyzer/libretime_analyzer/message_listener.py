@@ -6,9 +6,9 @@ from queue import Queue
 
 import pika
 
-from .config import Config
-from .pipeline import Pipeline, PipelineOptions, PipelineStatus
-from .status_reporter import StatusReporter
+from libretime_analyzer.config import Config
+from libretime_analyzer.pipeline import Pipeline, PipelineOptions, PipelineStatus
+from libretime_analyzer.status_reporter import StatusReporter
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..models import Schedule
+from libretime_api.schedule.models import Schedule
 
 
 class ReadScheduleSerializer(serializers.ModelSerializer):

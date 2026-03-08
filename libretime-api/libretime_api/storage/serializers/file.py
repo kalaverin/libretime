@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..models import File
+from libretime_api.storage.models import File
 
 
 class FileSerializer(serializers.ModelSerializer):

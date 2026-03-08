@@ -4,7 +4,7 @@ from math import isclose
 from subprocess import CalledProcessError
 from typing import Any, Dict
 
-from ._ffmpeg import compute_silences, probe_duration
+from libretime_analyzer.pipeline._ffmpeg import compute_silences, probe_duration
 
 logger = logging.getLogger(__name__)
 

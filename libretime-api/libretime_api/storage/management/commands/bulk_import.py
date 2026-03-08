@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandParser
 from libretime_shared.files import compute_md5
 
-from ...models import File, Library
+from libretime_api.storage.models import File, Library
 
 logger = logging.getLogger(__name__)
 

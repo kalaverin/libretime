@@ -1,7 +1,7 @@
-from .auth import LoginAttemptSerializer, UserTokenSerializer
-from .info import InfoSerializer, VersionSerializer
-from .preference import PreferenceSerializer
-from .service import ServiceRegisterSerializer
-from .stream import StreamPreferencesSerializer, StreamStateSerializer
-from .user import UserSerializer
-from .worker import CeleryTaskSerializer, ThirdPartyTrackReferenceSerializer
+from libretime_api.core.serializers.auth import LoginAttemptSerializer, UserTokenSerializer
+from libretime_api.core.serializers.info import InfoSerializer, VersionSerializer
+from libretime_api.core.serializers.preference import PreferenceSerializer
+from libretime_api.core.serializers.service import ServiceRegisterSerializer
+from libretime_api.core.serializers.stream import StreamPreferencesSerializer, StreamStateSerializer
+from libretime_api.core.serializers.user import UserSerializer
+from libretime_api.core.serializers.worker import CeleryTaskSerializer, ThirdPartyTrackReferenceSerializer

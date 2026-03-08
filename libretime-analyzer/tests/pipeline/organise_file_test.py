@@ -5,7 +5,7 @@ import pytest
 
 from libretime_analyzer.pipeline.organise_file import organise_file
 
-from ..conftest import AUDIO_FILENAME
+from tests.conftest import AUDIO_FILENAME
 
 
 def organise_file_args_factory(filepath: Path, dest_dir: Path):

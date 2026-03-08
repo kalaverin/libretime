@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
-from ..models import ServiceRegister
-from ..serializers import ServiceRegisterSerializer
+from libretime_api.core.models import ServiceRegister
+from libretime_api.core.serializers import ServiceRegisterSerializer
 
 
 class ServiceRegisterViewSet(viewsets.ModelViewSet):

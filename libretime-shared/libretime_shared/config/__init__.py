@@ -1,6 +1,6 @@
-from ._base import DEFAULT_CONFIG_FILEPATH, DEFAULT_ENV_PREFIX, BaseConfig
-from ._fields import AnyHttpUrlStr, AnyUrlStr, StrNoLeadingSlash, StrNoTrailingSlash
-from ._models import (
+from libretime_shared.config._base import DEFAULT_CONFIG_FILEPATH, DEFAULT_ENV_PREFIX, BaseConfig
+from libretime_shared.config._fields import AnyHttpUrlStr, AnyUrlStr, StrNoLeadingSlash, StrNoTrailingSlash
+from libretime_shared.config._models import (
     AudioChannels,
     AudioFormat,
     DatabaseConfig,

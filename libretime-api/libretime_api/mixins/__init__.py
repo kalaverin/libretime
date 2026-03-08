@@ -1,1 +1,1 @@
-from .readwriteserializer import ReadWriteSerializerMixin
+from libretime_api.mixins.readwriteserializer import ReadWriteSerializerMixin

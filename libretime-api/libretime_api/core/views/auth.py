@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
-from ..models import LoginAttempt, UserToken
-from ..serializers import LoginAttemptSerializer, UserTokenSerializer
+from libretime_api.core.models import LoginAttempt, UserToken
+from libretime_api.core.serializers import LoginAttemptSerializer, UserTokenSerializer
 
 
 class UserTokenViewSet(viewsets.ModelViewSet):

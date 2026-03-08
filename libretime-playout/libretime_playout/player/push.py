@@ -6,10 +6,10 @@ from queue import Queue
 from threading import Thread
 from typing import List, Tuple
 
-from ..config import PUSH_INTERVAL, Config
-from .events import AnyEvent, Events, FileEvent
-from .liquidsoap import Liquidsoap
-from .queue import PypoLiqQueue
+from libretime_playout.config import PUSH_INTERVAL, Config
+from libretime_playout.player.events import AnyEvent, Events, FileEvent
+from libretime_playout.player.liquidsoap import Liquidsoap
+from libretime_playout.player.queue import PypoLiqQueue
 
 logger = logging.getLogger(__name__)
 

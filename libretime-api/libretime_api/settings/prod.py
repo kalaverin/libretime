@@ -1,7 +1,7 @@
 from os import getenv
 
 # pylint: disable=unused-import
-from ._internal import (
+from libretime_api.settings._internal import (
     API_VERSION,
     AUTH_PASSWORD_VALIDATORS,
     AUTH_USER_MODEL,
@@ -17,7 +17,7 @@ from ._internal import (
     WSGI_APPLICATION,
     setup_logger,
 )
-from ._schema import Config
+from libretime_api.settings._schema import Config
 
 LIBRETIME_LOG_FILEPATH = getenv("LIBRETIME_LOG_FILEPATH")
 LIBRETIME_CONFIG_FILEPATH = getenv("LIBRETIME_CONFIG_FILEPATH")

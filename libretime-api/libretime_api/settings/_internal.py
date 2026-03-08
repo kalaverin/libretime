@@ -1,7 +1,7 @@
 from os import environ, getenv
 from typing import Optional
 
-from .. import PACKAGE, VERSION
+from libretime_api import PACKAGE, VERSION
 
 API_VERSION = "2.0.0"
 

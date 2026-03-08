@@ -5,8 +5,8 @@ from typing import Dict
 from libretime_api_client.v2 import ApiClient
 from libretime_shared.datetime import time_in_milliseconds, time_in_seconds
 
-from ..liquidsoap.models import StreamPreferences
-from .events import (
+from libretime_playout.liquidsoap.models import StreamPreferences
+from libretime_playout.player.events import (
     ActionEvent,
     AnyEvent,
     EventKind,

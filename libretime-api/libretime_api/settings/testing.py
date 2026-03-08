@@ -1,6 +1,6 @@
 import os
 
-from .._fixtures import fixture_path
+from libretime_api._fixtures import fixture_path
 
 os.environ.setdefault("LIBRETIME_DEBUG", "true")
 os.environ.setdefault("LIBRETIME_GENERAL_PUBLIC_URL", "http://localhost")
@@ -9,7 +9,7 @@ os.environ.setdefault("LIBRETIME_GENERAL_SECRET_KEY", "testing")
 os.environ.setdefault("LIBRETIME_STORAGE_PATH", str(fixture_path))
 
 # pylint: disable=wrong-import-position,unused-import
-from .prod import (
+from libretime_api.settings.prod import (
     ALLOWED_HOSTS,
     API_VERSION,
     AUTH_PASSWORD_VALIDATORS,

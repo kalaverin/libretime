@@ -1,15 +1,15 @@
-from .playlist import PlaylistContentSerializer, PlaylistSerializer
-from .schedule import ReadScheduleSerializer, WriteScheduleSerializer
-from .show import (
+from libretime_api.schedule.serializers.playlist import PlaylistContentSerializer, PlaylistSerializer
+from libretime_api.schedule.serializers.schedule import ReadScheduleSerializer, WriteScheduleSerializer
+from libretime_api.schedule.serializers.show import (
     ShowDaysSerializer,
     ShowHostSerializer,
     ShowInstanceSerializer,
     ShowRebroadcastSerializer,
     ShowSerializer,
 )
-from .smart_block import (
+from libretime_api.schedule.serializers.smart_block import (
     SmartBlockContentSerializer,
     SmartBlockCriteriaSerializer,
     SmartBlockSerializer,
 )
-from .webstream import WebstreamMetadataSerializer, WebstreamSerializer
+from libretime_api.schedule.serializers.webstream import WebstreamMetadataSerializer, WebstreamSerializer

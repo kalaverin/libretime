@@ -5,11 +5,11 @@ from typing import Any, Dict, Protocol
 
 from pydantic import BaseModel
 
-from .analyze_cuepoint import analyze_cuepoint, analyze_duration
-from .analyze_metadata import analyze_metadata
-from .analyze_playability import UnplayableFileError, analyze_playability
-from .analyze_replaygain import analyze_replaygain
-from .organise_file import organise_file
+from libretime_analyzer.pipeline.analyze_cuepoint import analyze_cuepoint, analyze_duration
+from libretime_analyzer.pipeline.analyze_metadata import analyze_metadata
+from libretime_analyzer.pipeline.analyze_playability import UnplayableFileError, analyze_playability
+from libretime_analyzer.pipeline.analyze_replaygain import analyze_replaygain
+from libretime_analyzer.pipeline.organise_file import organise_file
 
 logger = logging.getLogger(__name__)
 

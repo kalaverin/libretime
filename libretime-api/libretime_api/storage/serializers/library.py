@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..models import Library
+from libretime_api.storage.models import Library
 
 
 class LibrarySerializer(serializers.ModelSerializer):

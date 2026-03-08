@@ -3,9 +3,9 @@ from typing import Optional, Tuple
 
 from jinja2 import Environment, PackageLoader
 
-from ..config import Config
-from .models import Info, StreamPreferences
-from .utils import quote
+from libretime_playout.config import Config
+from libretime_playout.liquidsoap.models import Info, StreamPreferences
+from libretime_playout.liquidsoap.utils import quote
 
 here = Path(__file__).parent
 

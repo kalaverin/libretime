@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..models import (
+from libretime_api.history.models import (
     PlayoutHistory,
     PlayoutHistoryMetadata,
     PlayoutHistoryTemplate,

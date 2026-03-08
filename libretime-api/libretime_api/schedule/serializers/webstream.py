@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..models import Webstream, WebstreamMetadata
+from libretime_api.schedule.models import Webstream, WebstreamMetadata
 
 
 class WebstreamSerializer(serializers.ModelSerializer):

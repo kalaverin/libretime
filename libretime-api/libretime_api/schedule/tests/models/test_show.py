@@ -1,4 +1,4 @@
-from ...models import Show
+from libretime_api.schedule.models import Show
 
 
 def test_show_live_enabled():

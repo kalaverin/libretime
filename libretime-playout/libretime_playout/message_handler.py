@@ -11,7 +11,7 @@ from kombu.message import Message
 from kombu.messaging import Exchange, Queue
 from kombu.mixins import ConsumerMixin
 
-from .config import Config
+from libretime_playout.config import Config
 
 logger = logging.getLogger(__name__)
 

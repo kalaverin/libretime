@@ -5,7 +5,7 @@ from django.utils import dateparse
 from model_bakery import baker
 from rest_framework.test import APITestCase
 
-from ...._fixtures import AUDIO_FILENAME
+from libretime_api._fixtures import AUDIO_FILENAME
 
 
 class TestScheduleViewSet(APITestCase):

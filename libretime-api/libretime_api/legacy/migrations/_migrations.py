@@ -2,7 +2,7 @@ from typing import Callable, Optional
 
 from django.db import DataError, connection
 
-from ._version import parse_version
+from libretime_api.legacy.migrations._version import parse_version
 
 
 def get_schema_version():

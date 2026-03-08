@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
-from ..models import LiveLog
-from ..serializers import LiveLogSerializer
+from libretime_api.history.models import LiveLog
+from libretime_api.history.serializers import LiveLogSerializer
 
 
 class LiveLogViewSet(viewsets.ModelViewSet):

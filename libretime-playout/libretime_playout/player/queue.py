@@ -5,9 +5,9 @@ from queue import Empty, Queue
 from threading import Thread
 from typing import Any, Dict
 
-from ..utils import seconds_between
-from .events import AnyEvent
-from .liquidsoap import Liquidsoap
+from libretime_playout.utils import seconds_between
+from libretime_playout.player.events import AnyEvent
+from libretime_playout.player.liquidsoap import Liquidsoap
 
 logger = logging.getLogger(__name__)
 

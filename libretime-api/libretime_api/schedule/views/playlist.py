@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
-from ..models import Playlist, PlaylistContent
-from ..serializers import PlaylistContentSerializer, PlaylistSerializer
+from libretime_api.schedule.models import Playlist, PlaylistContent
+from libretime_api.schedule.serializers import PlaylistContentSerializer, PlaylistSerializer
 
 
 class PlaylistViewSet(viewsets.ModelViewSet):

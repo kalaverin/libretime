@@ -3,9 +3,9 @@ import time
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Set
 
-from ..liquidsoap.client import LiquidsoapClient
-from ..utils import seconds_between
-from .events import ActionEvent, AnyEvent, EventKind, FileEvent, WebStreamEvent
+from libretime_playout.liquidsoap.client import LiquidsoapClient
+from libretime_playout.utils import seconds_between
+from libretime_playout.player.events import ActionEvent, AnyEvent, EventKind, FileEvent, WebStreamEvent
 
 logger = logging.getLogger(__name__)
 

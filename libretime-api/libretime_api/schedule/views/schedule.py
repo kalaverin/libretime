@@ -2,9 +2,9 @@ from django.db import models
 from django_filters import rest_framework as filters
 from rest_framework import viewsets
 
-from ...mixins import ReadWriteSerializerMixin
-from ..models import Schedule
-from ..serializers import ReadScheduleSerializer, WriteScheduleSerializer
+from libretime_api.mixins import ReadWriteSerializerMixin
+from libretime_api.schedule.models import Schedule
+from libretime_api.schedule.serializers import ReadScheduleSerializer, WriteScheduleSerializer
 
 
 class ScheduleFilter(filters.FilterSet):

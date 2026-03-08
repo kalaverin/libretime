@@ -8,10 +8,10 @@ from libretime_shared.cli import cli_config_options, cli_logging_options
 from libretime_shared.config import DEFAULT_ENV_PREFIX
 from libretime_shared.logging import setup_logger
 
-from . import PACKAGE, VERSION
-from .config import Config
-from .message_listener import MessageListener
-from .status_reporter import StatusReporter
+from libretime_analyzer import PACKAGE, VERSION
+from libretime_analyzer.config import Config
+from libretime_analyzer.message_listener import MessageListener
+from libretime_analyzer.status_reporter import StatusReporter
 
 logger = logging.getLogger(__name__)
 

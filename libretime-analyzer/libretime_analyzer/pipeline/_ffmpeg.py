@@ -4,7 +4,7 @@ from os import getenv
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-from ._utils import run_
+from libretime_analyzer.pipeline._utils import run_
 
 FFPROBE = getenv("FFPROBE_PATH", "ffprobe")
 FFMPEG = getenv("FFMPEG_PATH", "ffmpeg")

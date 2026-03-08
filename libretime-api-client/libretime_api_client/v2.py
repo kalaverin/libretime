@@ -1,4 +1,4 @@
-from ._client import AbstractApiClient, Response, default_retry
+from libretime_api_client._client import AbstractApiClient, Response, default_retry
 
 
 class ApiClient(AbstractApiClient):

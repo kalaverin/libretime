@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
-from ..models import Library
-from ..serializers import LibrarySerializer
+from libretime_api.storage.models import Library
+from libretime_api.storage.serializers import LibrarySerializer
 
 
 class LibraryViewSet(viewsets.ModelViewSet):

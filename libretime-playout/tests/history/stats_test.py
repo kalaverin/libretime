@@ -9,7 +9,7 @@ from requests.exceptions import HTTPError
 
 from libretime_playout.history.stats import AnyOutput, Stats, StatsCollector
 
-from ..fixtures import icecast_stats, shoutcast_admin
+from tests.fixtures import icecast_stats, shoutcast_admin
 
 
 @pytest.fixture(name="outputs")

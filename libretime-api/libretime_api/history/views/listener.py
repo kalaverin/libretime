@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
-from ..models import ListenerCount, MountName, Timestamp
-from ..serializers import (
+from libretime_api.history.models import ListenerCount, MountName, Timestamp
+from libretime_api.history.serializers import (
     ListenerCountSerializer,
     MountNameSerializer,
     TimestampSerializer,

@@ -23,7 +23,7 @@ from libretime_shared.cli import cli_config_options, cli_logging_options
 from libretime_shared.config import DEFAULT_ENV_PREFIX
 from libretime_shared.logging import setup_logger
 
-from ..config import Config
+from libretime_playout.config import Config
 
 logger = logging.getLogger(__name__)
 

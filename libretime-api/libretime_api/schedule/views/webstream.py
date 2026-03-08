@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
-from ..models import Webstream, WebstreamMetadata
-from ..serializers import WebstreamMetadataSerializer, WebstreamSerializer
+from libretime_api.schedule.models import Webstream, WebstreamMetadata
+from libretime_api.schedule.serializers import WebstreamMetadataSerializer, WebstreamSerializer
 
 
 class WebstreamViewSet(viewsets.ModelViewSet):

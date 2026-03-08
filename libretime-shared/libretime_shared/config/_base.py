@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, ValidationError
 from yaml import YAMLError, safe_load
 
-from ._env import EnvLoader
+from libretime_shared.config._env import EnvLoader
 
 logger = logging.getLogger(__name__)
 

@@ -4,8 +4,8 @@ from pathlib import Path
 
 from django.db import connection, migrations
 
-from . import LEGACY_SCHEMA_VERSION
-from ._migrations import get_schema_version, set_schema_version
+from libretime_api.legacy.migrations import LEGACY_SCHEMA_VERSION
+from libretime_api.legacy.migrations._migrations import get_schema_version, set_schema_version
 
 here = Path(__file__).resolve().parent
 

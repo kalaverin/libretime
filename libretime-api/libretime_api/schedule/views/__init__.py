@@ -1,15 +1,15 @@
-from .playlist import PlaylistContentViewSet, PlaylistViewSet
-from .schedule import ScheduleViewSet
-from .show import (
+from libretime_api.schedule.views.playlist import PlaylistContentViewSet, PlaylistViewSet
+from libretime_api.schedule.views.schedule import ScheduleViewSet
+from libretime_api.schedule.views.show import (
     ShowDaysViewSet,
     ShowHostViewSet,
     ShowInstanceViewSet,
     ShowRebroadcastViewSet,
     ShowViewSet,
 )
-from .smart_block import (
+from libretime_api.schedule.views.smart_block import (
     SmartBlockContentViewSet,
     SmartBlockCriteriaViewSet,
     SmartBlockViewSet,
 )
-from .webstream import WebstreamMetadataViewSet, WebstreamViewSet
+from libretime_api.schedule.views.webstream import WebstreamMetadataViewSet, WebstreamViewSet

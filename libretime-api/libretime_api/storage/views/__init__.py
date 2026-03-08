@@ -1,2 +1,2 @@
-from .file import FileViewSet
-from .library import LibraryViewSet
+from libretime_api.storage.views.file import FileViewSet
+from libretime_api.storage.views.library import LibraryViewSet

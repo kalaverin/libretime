@@ -6,7 +6,7 @@ from libretime_shared.logging import setup_logger
 
 from libretime_playout.liquidsoap.client import LiquidsoapConnection
 
-from ..conftest import LIQ_VERSION, LIQ_VERSION_STR
+from tests.liquidsoap.conftest import LIQ_VERSION, LIQ_VERSION_STR
 
 logger = logging.getLogger(__name__)
 

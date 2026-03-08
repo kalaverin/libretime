@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
-from ..models import SmartBlock, SmartBlockContent, SmartBlockCriteria
-from ..serializers import (
+from libretime_api.schedule.models import SmartBlock, SmartBlockContent, SmartBlockCriteria
+from libretime_api.schedule.serializers import (
     SmartBlockContentSerializer,
     SmartBlockCriteriaSerializer,
     SmartBlockSerializer,

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..models import ServiceRegister
+from libretime_api.core.models import ServiceRegister
 
 
 class ServiceRegisterSerializer(serializers.ModelSerializer):

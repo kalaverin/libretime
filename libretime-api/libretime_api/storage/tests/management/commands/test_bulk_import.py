@@ -9,8 +9,8 @@ import pytest
 from model_bakery import baker
 from requests_mock import Mocker
 
-from ....._fixtures import AUDIO_FILENAME, fixture_path
-from ....management.commands.bulk_import import Importer
+from libretime_api._fixtures import AUDIO_FILENAME, fixture_path
+from libretime_api.storage.management.commands.bulk_import import Importer
 
 FAKE_URL = "https://somehost.com"
 

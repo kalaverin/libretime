@@ -2,7 +2,7 @@ import logging
 from subprocess import CalledProcessError
 from typing import Any, Dict
 
-from ._liquidsoap import _liquidsoap
+from libretime_analyzer.pipeline._liquidsoap import _liquidsoap
 
 logger = logging.getLogger(__name__)
 

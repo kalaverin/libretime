@@ -3,8 +3,8 @@ import hashlib
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permission
 from django.db import models
 
-from ...permission_constants import GROUPS
-from .role import Role
+from libretime_api.permission_constants import GROUPS
+from libretime_api.core.models.role import Role
 
 
 class UserManager(BaseUserManager):

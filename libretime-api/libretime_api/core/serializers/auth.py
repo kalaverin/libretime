@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..models import LoginAttempt, UserToken
+from libretime_api.core.models import LoginAttempt, UserToken
 
 
 class UserTokenSerializer(serializers.ModelSerializer):

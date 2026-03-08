@@ -11,7 +11,7 @@ from libretime_shared.config import IcecastOutput, ShoutcastOutput
 from lxml import etree
 from requests import Session
 
-from ..config import Config
+from libretime_playout.config import Config
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
-from ..models import CeleryTask, ThirdPartyTrackReference
-from ..serializers import CeleryTaskSerializer, ThirdPartyTrackReferenceSerializer
+from libretime_api.core.models import CeleryTask, ThirdPartyTrackReference
+from libretime_api.core.serializers import CeleryTaskSerializer, ThirdPartyTrackReferenceSerializer
 
 
 class ThirdPartyTrackReferenceViewSet(viewsets.ModelViewSet):

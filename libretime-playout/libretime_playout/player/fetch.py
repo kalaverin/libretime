@@ -12,12 +12,12 @@ from libretime_api_client.v1 import ApiClient as LegacyClient
 from libretime_api_client.v2 import ApiClient
 from requests import RequestException
 
-from ..config import CACHE_DIR, POLL_INTERVAL, Config
-from ..liquidsoap.client import LiquidsoapClient
-from ..liquidsoap.models import Info, MessageFormatKind, StreamPreferences, StreamState
-from .events import Events, FileEvent, FileEvents
-from .liquidsoap import Liquidsoap
-from .schedule import get_schedule
+from libretime_playout.config import CACHE_DIR, POLL_INTERVAL, Config
+from libretime_playout.liquidsoap.client import LiquidsoapClient
+from libretime_playout.liquidsoap.models import Info, MessageFormatKind, StreamPreferences, StreamState
+from libretime_playout.player.events import Events, FileEvent, FileEvents
+from libretime_playout.player.liquidsoap import Liquidsoap
+from libretime_playout.player.schedule import get_schedule
 
 logger = logging.getLogger(__name__)
 

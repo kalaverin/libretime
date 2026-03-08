@@ -1,6 +1,6 @@
 from os import getenv
 
-from ._utils import run_
+from libretime_analyzer.pipeline._utils import run_
 
 LIQUIDSOAP = getenv("LIQUIDSOAP_PATH", "liquidsoap")
 

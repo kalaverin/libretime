@@ -9,8 +9,8 @@ from libretime_playout.liquidsoap.entrypoint import generate_entrypoint
 from libretime_playout.liquidsoap.models import Info, StreamPreferences
 from libretime_playout.liquidsoap.version import get_liquidsoap_version
 
-from .conftest import LIQ_VERSION
-from .fixtures import TEST_STREAM_CONFIGS, make_config_with_stream
+from tests.liquidsoap.conftest import LIQ_VERSION
+from tests.liquidsoap.fixtures import TEST_STREAM_CONFIGS, make_config_with_stream
 
 
 @pytest.mark.parametrize(
