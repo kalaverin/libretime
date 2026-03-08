@@ -1,0 +1,40 @@
+[project]
+name = "libretime-worker"
+version = "4.5.0"
+requires-python = ">=3.10"
+description = "LibreTime Worker"
+authors = [{ name = "LibreTime Contributors" }]
+license = { text = "MIT" }
+dependencies = [
+    "celery==4.4.7",
+    "kombu==4.6.11",
+    "mutagen>=1.45.1,<1.48",
+    "requests>=2.32.2,<2.33",
+    "sentry-sdk>=1.15.0,<2",
+]
+[dependency-groups]
+build = [
+  "setuptools",
+  "wheel"
+]
+development = [
+  "requests-mock>=1.10.0,<2",
+  "types-requests>=2.31.0,<3",
+]
+
+[project.urls]
+Homepage = "https://github.com/libretime/libretime"
+"Bug Tracker" = "https://github.com/libretime/libretime/issues"
+Documentation = "https://libretime.org"
+"Source Code" = "https://github.com/libretime/libretime"
+
+[project.scripts]
+libretime-worker = "libretime_worker.main:cli"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["libretime_*"]

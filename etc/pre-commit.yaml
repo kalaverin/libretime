@@ -1,0 +1,314 @@
+---
+default_language_version:
+  python: python3.8
+
+fail_fast: true
+
+repos:
+  - repo: local
+    hooks:
+      - id: lockfile-check
+        name: check what dependencies are being added to the lockfile
+        entry: uv lock --check
+        language: system
+        pass_filenames: false
+
+      # - id: lint-black
+      #   name: force black
+      #   entry: uv run --quiet black --quiet --line-length 79 --target-version py8
+      #     'app/' 'src/' 'tests/'
+      #   language: system
+      #   pass_filenames: false
+
+      # - id: lint-ruff
+      #   name: force ruff
+      #   entry: uv run --quiet ruff check --fix --quiet 'app/' 'src/' 'tests/'
+      #   language: system
+      #   pass_filenames: false
+
+      - id: lint-yaml
+        name: format yaml
+        entry: uv run --quiet yamlfix --config-file etc/lint/yamlfix.toml --exclude
+          '.*/**/*.yml' --exclude '.*/**/*.yaml' .
+        language: system
+        pass_filenames: false
+
+      - id: check-yaml
+        name: check yaml
+        entry: uv run --quiet yamllint --format parsable --config-file etc/lint/yamllint.yaml
+          .
+        language: system
+        pass_filenames: false
+
+      # - id: check-mypy
+      #   name: check mypy (static check)
+      #   entry: uv run --quiet mypy --cache-fine-grained --show-traceback --config
+      #     etc/lint/mypy.toml 'app/' 'src/'
+      #   language: system
+      #   pass_filenames: false
+
+      # - id: check-vulture
+      #   name: check vulture (unused code detection)
+      #   entry: uv run --quiet vulture --min-confidence 66 'app/' 'src/'
+      #   language: system
+      #   pass_filenames: false
+
+      # - id: check-pyright
+      #   name: check pyright (consistency check)
+      #   entry: uv run --quiet basedpyright --project etc/lint/pyright.json
+      #   language: system
+      #   pass_filenames: false
+
+      # - id: check-refurb
+      #   name: check refurb (bad solutions detection)
+      #   entry: uv run --quiet refurb --quiet --enable-all --python-version 3.8 --config-file
+      #     pyproject.toml --sort filename 'app/' 'src/' -- --show-traceback
+      #   language: system
+      #   pass_filenames: false
+
+      # - id: check-bandit
+      #   name: check bandit (security audit)
+      #   entry: uv run --quiet bandit --quiet --recursive --severity-level all --confidence-level
+      #     all --configfile pyproject.toml 'app/' 'src/'
+      #   language: system
+      #   pass_filenames: false
+
+      - id: check-hexora
+        name: check hexora (bad engineering pattern and malware security audit)
+        entry: uv run --quiet hexora audit 'app/'
+        language: system
+        pass_filenames: false
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: forbid-submodules
+        name: forbid git submodules
+      - id: check-executables-have-shebangs
+        name: executables must have shebangs
+      - id: check-shebang-scripts-are-executable
+        name: shebang scripts must be executable
+      - id: check-symlinks
+        name: validate symlinks
+      - id: check-json
+        name: validate json files
+        exclude: .*/
+      - id: check-toml
+        name: validate toml files
+      - id: check-yaml
+        name: validate yaml files
+      - id: check-xml
+        name: validate xml files
+      - id: check-added-large-files
+        name: prevent adding large files
+      - id: check-symlinks
+        name: validate symlinks
+      - id: destroyed-symlinks
+        name: prevent committing destroyed symlinks
+      - id: check-ast
+        name: validate python syntax
+      - id: check-case-conflict
+        name: avoid case conflicts
+      - id: check-merge-conflict
+        name: avoid merge conflict markers
+      - id: check-vcs-permalinks
+        name: validate vcs permalinks
+      - id: check-builtin-literals
+        name: avoid using builtin literals as function names
+      - id: debug-statements
+        name: avoid debug statements
+      - id: detect-private-key
+        name: avoid committing private keys
+      - id: mixed-line-ending
+        name: avoid mixed line endings
+        args: [--fix=lf]
+      - id: end-of-file-fixer
+        name: ensure file ends with correct newline
+        exclude: \.json$
+      - id: trailing-whitespace
+        name: strip trailing whitespace
+        exclude: \.ambr$
+      - id: pretty-format-json
+        name: pretty format json files
+        args:
+          - --autofix
+          - --no-ensure-ascii
+          - --no-sort-keys
+        exclude: .*/
+      - id: requirements-txt-fixer
+        name: fix requirements.txt files
+      - id: name-tests-test
+        name: enforce test file naming convention
+        exclude: ^api
+
+  - repo: https://github.com/sirosen/texthooks
+    rev: 0.7.1
+    hooks:
+      - id: fix-spaces
+        name: replace multiple spaces with a single space
+      - id: fix-ligatures
+        name: replace common ligatures
+      - id: forbid-bidi-controls
+        name: forbid bidirectional control characters
+
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: v2.16.0
+    hooks:
+      - id: pretty-format-ini
+        name: pretty format ini files
+        args:
+          - --autofix
+      - id: pretty-format-toml
+        name: pretty format toml files
+        args:
+          - --autofix
+
+  - repo: https://github.com/dannysepler/rm_unneeded_f_str
+    rev: v0.2.0
+    hooks:
+      - id: rm-unneeded-f-str
+        name: remove unneeded f-strings
+
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.10.0
+    hooks:
+      - id: python-no-eval
+        name: forbid any eval
+      - id: python-no-log-warn
+        name: use log.warning instead of log.warn
+      - id: python-check-mock-methods
+        name: use mock.method instead of mock.methodname
+      - id: python-check-blanket-noqa
+        name: avoid blanket noqa
+      - id: python-use-type-annotations
+        name: enforce type annotations
+      - id: python-check-blanket-type-ignore
+        name: avoid blanket type ignore
+
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.6
+    hooks:
+      - id: remove-crlf
+        name: remove CRLF line endings
+      - id: remove-tabs
+        name: remove tabs
+        exclude: (Makefile)$
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.21.2
+    hooks:
+      - id: pyupgrade
+        name: upgrade python syntax
+        args:
+          - --py8-plus
+
+  - repo: https://github.com/MarcoGorelli/absolufy-imports
+    rev: v0.3.1
+    hooks:
+      - id: absolufy-imports
+        name: convert relative imports to absolute imports
+
+  - repo: https://github.com/MarcoGorelli/auto-walrus
+    rev: 0.4.1
+    hooks:
+      - id: auto-walrus
+        name: convert to use the walrus operator
+        args:
+          - --line-length
+          - '79'
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.10.7
+    hooks:
+      - id: uv-lock
+        name: sync pyproject.toml and lock project dependencies to uv.lock
+
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier
+        entry: prettier --write --ignore-unknown
+        language: node
+        types: [text]
+        additional_dependencies: [prettier@3.6.2]
+
+        files: \.(md|mdx|yml|yaml|js|jsx|ts|tsx|json|css)$
+        exclude: ^(legacy/public(?!/js/airtime)|CHANGELOG.md$|.github/release-please-manifest.json)
+
+  - repo: https://github.com/adamchainz/django-upgrade
+    rev: 1.28.0
+    hooks:
+      - id: django-upgrade
+        args: [--target-version, "4.2"]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 6.0.1
+    hooks:
+      - id: isort
+        args: [--resolve-all-configs]
+
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 25.1.0
+    hooks:
+      - id: black
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
+    hooks:
+      - id: codespell
+        args: [--ignore-words=.codespellignore]
+        exclude: (^api/schema.yml|^legacy.*|yarn\.lock)$
+
+  - repo: local
+    hooks:
+      - id: shfmt
+        name: shfmt
+        language: docker_image
+        entry: mvdan/shfmt -i 2 -ci -sr -kp -w
+        types: [shell]
+
+      - id: shellcheck
+        name: shellcheck
+        language: docker_image
+        entry: koalaman/shellcheck --color=always --severity=warning
+        types: [shell]
+
+      - id: requirements.txt
+        name: requirements.txt
+        description: Generate requirements.txt
+        entry: tools/extract_requirements.py dev sentry
+        pass_filenames: false
+        language: script
+        files: setup.py$
+
+      - id: config.yml
+        name: config.yml
+        description: Update config files
+        entry: tools/update-config-files.sh
+        pass_filenames: false
+        language: script
+        files: ^installer/config.yml$
+
+      - id: legacy-migrations-version
+        name: legacy-migrations-version
+        description: Ensure valid schema version for migrations
+        entry: tools/legacy-migrations-version.sh
+        pass_filenames: false
+        language: script
+        files: ^api/libretime_api/legacy/migrations
+
+      - id: legacy-assets-checksum-update
+        name: legacy-assets-checksum-update
+        description: Update legacy assets checksum
+        entry: legacy/tools/assets-checksum-update.py
+        pass_filenames: false
+        language: script
+        files: ^legacy
+
+      - id: api-schema-update
+        name: api-schema-update
+        description: Ensure API schema is up to date
+        entry: make -C api schema
+        pass_filenames: false
+        language: system
+        files: ^api

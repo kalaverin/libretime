@@ -7,30 +7,30 @@ coverage:
 flags:
   analyzer:
     paths:
-      - analyzer/
+      - app/analyzer/
     carryforward: true
 
   api:
     paths:
-      - api/
+      - app/api/
     carryforward: true
 
   api-client:
     paths:
-      - api-client/
+      - app/api-client/
     carryforward: true
 
   playout:
     paths:
-      - playout/
+      - app/playout/
     carryforward: true
 
   shared:
     paths:
-      - shared/
+      - lib/shared/
     carryforward: true
 
   worker:
     paths:
-      - worker/
+      - app/worker/
     carryforward: true

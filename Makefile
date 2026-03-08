@@ -1,6 +1,19 @@
-.PHONY: setup
+.PHONY: default help install lint setup test
 
 SHELL = bash
+
+help:
+	@just default
+
+install:
+	@mise trust --yes mise.toml
+	@mise install
+
+lint:
+	@uv run --quiet \
+	  pre-commit run \
+	--config etc/pre-commit.yaml \
+	--all
 
 all: setup
 
