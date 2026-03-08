@@ -11,11 +11,7 @@ from libretime_shared.config._fields import (
     StrNoTrailingSlash,
 )
 
-if sys.version_info < (3, 9):
-    from backports.zoneinfo import ZoneInfo, ZoneInfoNotFoundError
-else:
-    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
-
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 # GeneralConfig
 ########################################################################################
