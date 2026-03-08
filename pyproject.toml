@@ -139,10 +139,5 @@ url = "https://uv.dush.es/root/bsd/+simple/"
 
 [tool.uv.workspace]
 members = [
-  "app/analyzer",
-  "app/api",
-  "app/api-client",
-  "app/playout",
-  "app/worker",
-  "lib/shared"
+  "libretime-*"
 ]

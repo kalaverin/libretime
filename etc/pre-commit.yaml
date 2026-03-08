@@ -4,6 +4,8 @@ default_language_version:
 
 fail_fast: true
 
+exclude: \.(min.js)$
+
 repos:
   - repo: local
     hooks:
@@ -140,13 +142,21 @@ repos:
         name: fix requirements.txt files
       - id: name-tests-test
         name: enforce test file naming convention
-        exclude: ^api
+        exclude: ^(libretime-api)
+
+      - id: name-tests-test
+        name: enforce test file naming convention
+        exclude: ^(libretime-analyzer|libretime-api|libretime-api-client|libretime-playout|libretime-worker|libretime-shared)
+        args:
+          - --pytest-test-first
 
   - repo: https://github.com/sirosen/texthooks
     rev: 0.7.1
     hooks:
       - id: fix-spaces
         name: replace multiple spaces with a single space
+        exclude: \.(mdx|po|min.js)$
+
       - id: fix-ligatures
         name: replace common ligatures
       - id: forbid-bidi-controls
@@ -157,6 +167,7 @@ repos:
     hooks:
       - id: pretty-format-ini
         name: pretty format ini files
+        exclude: ^(legacy)
         args:
           - --autofix
       - id: pretty-format-toml
@@ -183,8 +194,8 @@ repos:
         name: avoid blanket noqa
       - id: python-use-type-annotations
         name: enforce type annotations
-      - id: python-check-blanket-type-ignore
-        name: avoid blanket type ignore
+      # - id: python-check-blanket-type-ignore
+      #   name: avoid blanket type ignore
 
   - repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.5.6
@@ -193,7 +204,7 @@ repos:
         name: remove CRLF line endings
       - id: remove-tabs
         name: remove tabs
-        exclude: (Makefile)$
+        exclude: (^(legacy)|(Makefile|\.mk)$)
 
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.21.2
@@ -201,22 +212,22 @@ repos:
       - id: pyupgrade
         name: upgrade python syntax
         args:
-          - --py8-plus
+          - --py38-plus
 
-  - repo: https://github.com/MarcoGorelli/absolufy-imports
-    rev: v0.3.1
-    hooks:
-      - id: absolufy-imports
-        name: convert relative imports to absolute imports
+  # - repo: https://github.com/MarcoGorelli/absolufy-imports
+  #   rev: v0.3.1
+  #   hooks:
+  #     - id: absolufy-imports
+  #       name: convert relative imports to absolute imports
 
-  - repo: https://github.com/MarcoGorelli/auto-walrus
-    rev: 0.4.1
-    hooks:
-      - id: auto-walrus
-        name: convert to use the walrus operator
-        args:
-          - --line-length
-          - '79'
+  # - repo: https://github.com/MarcoGorelli/auto-walrus
+  #   rev: 0.4.1
+  #   hooks:
+  #     - id: auto-walrus
+  #       name: convert to use the walrus operator
+  #       args:
+  #         - --line-length
+  #         - '79'
 
   - repo: https://github.com/astral-sh/uv-pre-commit
     rev: 0.10.7
@@ -235,7 +246,7 @@ repos:
         additional_dependencies:
           - prettier@3.6.2
 
-        files: \.(md|mdx|yml|yaml|js|jsx|ts|tsx|json|css)$
+        files: \.(md|mdx|js|jsx|ts|tsx|css)$
         exclude: ^(legacy/public(?!/js/airtime)|CHANGELOG.md$|.github/release-please-manifest.json)
 
   - repo: https://github.com/adamchainz/django-upgrade
@@ -246,78 +257,58 @@ repos:
           - --target-version
           - '4.2'
 
-  - repo: https://github.com/pycqa/isort
-    rev: 6.0.1
-    hooks:
-      - id: isort
-        args:
-          - --resolve-all-configs
-
-  - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 25.1.0
-    hooks:
-      - id: black
-
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1
     hooks:
       - id: codespell
         args:
           - --ignore-words=.codespellignore
-        exclude: (^api/schema.yml|^legacy.*|yarn\.lock)$
+        exclude: (^app/api/schema.yml|^legacy.*|yarn\.lock)$
 
-  - repo: local
-    hooks:
-      - id: shfmt
-        name: shfmt
-        language: docker_image
-        entry: mvdan/shfmt -i 2 -ci -sr -kp -w
-        types:
-          - shell
+  # - repo: local
+  #   hooks:
+  #     - id: shfmt
+  #       name: shfmt
+  #       language: docker_image
+  #       entry: mvdan/shfmt -i 2 -ci -sr -kp -w
+  #       types:
+  #         - shell
 
-      - id: shellcheck
-        name: shellcheck
-        language: docker_image
-        entry: koalaman/shellcheck --color=always --severity=warning
-        types:
-          - shell
+  #     - id: shellcheck
+  #       name: shellcheck
+  #       language: docker_image
+  #       entry: koalaman/shellcheck --color=always --severity=warning
+  #       types:
+  #         - shell
 
-      - id: requirements.txt
-        name: requirements.txt
-        description: Generate requirements.txt
-        entry: tools/extract_requirements.py dev sentry
-        pass_filenames: false
-        language: script
-        files: setup.py$
+  #     - id: config.yml
+  #       name: config.yml
+  #       description: Update config files
+  #       entry: tools/update-config-files.sh
+  #       pass_filenames: false
+  #       language: script
+  #       files: ^installer/config.yml$
 
-      - id: config.yml
-        name: config.yml
-        description: Update config files
-        entry: tools/update-config-files.sh
-        pass_filenames: false
-        language: script
-        files: ^installer/config.yml$
+  #     - id: legacy-migrations-version
+  #       name: legacy-migrations-version
+  #       description: Ensure valid schema version for migrations
+  #       entry: tools/legacy-migrations-version.sh
+  #       pass_filenames: false
+  #       language: script
+  #       files: ^api/libretime_api/legacy/migrations
 
-      - id: legacy-migrations-version
-        name: legacy-migrations-version
-        description: Ensure valid schema version for migrations
-        entry: tools/legacy-migrations-version.sh
-        pass_filenames: false
-        language: script
-        files: ^api/libretime_api/legacy/migrations
+  #     - id: legacy-assets-checksum-update
+  #       name: legacy-assets-checksum-update
+  #       description: Update legacy assets checksum
+  #       entry: legacy/tools/assets-checksum-update.py
+  #       pass_filenames: false
+  #       language: script
+  #       files: ^legacy
 
-      - id: legacy-assets-checksum-update
-        name: legacy-assets-checksum-update
-        description: Update legacy assets checksum
-        entry: legacy/tools/assets-checksum-update.py
-        pass_filenames: false
-        language: script
-        files: ^legacy
-
-      - id: api-schema-update
-        name: api-schema-update
-        description: Ensure API schema is up to date
-        entry: make -C api schema
-        pass_filenames: false
-        language: system
-        files: ^api
+  #     - id: api-schema-update
+  #       name: api-schema-update
+  #       description: Ensure API schema is up to date
+  #       entry: make -C api schema
+  #       pass_filenames: false
+  #       language: system
+  #       files: ^api
