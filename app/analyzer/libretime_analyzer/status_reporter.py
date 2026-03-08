@@ -58,7 +58,8 @@ def process_http_requests(ipc_queue, http_retry_queue_path):
         # and continue because those HTTP requests are lost anyways. The pickled file will be
         # overwritten the next time the analyzer is shut down too.
         logger.error(
-            "Failed to unpickle %s. Continuing...", http_retry_queue_path,
+            "Failed to unpickle %s. Continuing...",
+            http_retry_queue_path,
         )
 
     while True:
@@ -96,7 +97,8 @@ def process_http_requests(ipc_queue, http_retry_queue_path):
             if shutdown:
                 return
             logger.exception(
-                "Unhandled exception in StatusReporter %s", exception,
+                "Unhandled exception in StatusReporter %s",
+                exception,
             )
             logger.info("Restarting StatusReporter thread")
             time.sleep(2)  # Throttle it
@@ -108,7 +110,8 @@ def send_http_request(picklable_request: PicklableHttpRequest, retry_queue):
         session = requests.Session()
         prepared_request = session.prepare_request(bare_request)
         resp = session.send(
-            prepared_request, timeout=StatusReporter._HTTP_REQUEST_TIMEOUT,
+            prepared_request,
+            timeout=StatusReporter._HTTP_REQUEST_TIMEOUT,
         )
         resp.raise_for_status()  # Raise an exception if there was an http error code returned
         logger.info("HTTP request sent successfully.")
@@ -140,7 +143,8 @@ def send_http_request(picklable_request: PicklableHttpRequest, retry_queue):
         retry_queue.append(picklable_request)  # Retry it later
     except Exception as exception:
         logger.exception(
-            "HTTP request failed with unhandled exception. %s", exception,
+            "HTTP request failed with unhandled exception. %s",
+            exception,
         )
         # Don't put the request into the retry queue, just give up on this one.
         # I'm doing this to protect against us getting some pathological request

@@ -28,7 +28,8 @@ def analyze_playability(filename: str, metadata: dict[str, Any]):
 
     except OSError as exception:  # liquidsoap was not found
         logger.warning(
-            "Failed to run: %s. Is liquidsoap installed?", exception,
+            "Failed to run: %s. Is liquidsoap installed?",
+            exception,
         )
 
     return metadata

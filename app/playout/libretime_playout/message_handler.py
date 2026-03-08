@@ -28,7 +28,10 @@ class MessageHandler(ConsumerMixin):
 
     def get_consumers(self, Consumer, channel):
         exchange = Exchange(
-            "playout", "fanout", durable=True, auto_delete=True,
+            "playout",
+            "fanout",
+            durable=True,
+            auto_delete=True,
         )
         # RabbitMQ says to avoid temporary queues with well-known names
         # https://www.rabbitmq.com/docs/queues#shared-temporary-queues
@@ -39,7 +42,9 @@ class MessageHandler(ConsumerMixin):
 
         return [
             Consumer(
-                queues, callbacks=[self.on_message], accept=["text/plain"],
+                queues,
+                callbacks=[self.on_message],
+                accept=["text/plain"],
             ),
         ]
 

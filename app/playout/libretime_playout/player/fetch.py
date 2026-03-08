@@ -99,7 +99,8 @@ class PypoFetch(Thread):
             elif command == "switch_source":
                 logger.info("switch_on_source show command received...")
                 self.liquidsoap.telnet_liquidsoap.switch_source(
-                    message["sourcename"], message["status"],
+                    message["sourcename"],
+                    message["status"],
                 )
             elif command == "disconnect_source":
                 logger.info("disconnect_on_source show command received...")
@@ -239,7 +240,10 @@ class PypoFetch(Thread):
 
     def is_file_opened(self, path: str) -> bool:
         result = run(
-            ["lsof", "--", path], stdout=PIPE, stderr=DEVNULL, check=False,
+            ["lsof", "--", path],
+            stdout=PIPE,
+            stderr=DEVNULL,
+            check=False,
         )
         return bool(result.stdout)
 
@@ -274,20 +278,24 @@ class PypoFetch(Thread):
                     logger.info("File '%s' removed", expired_filepath)
                 else:
                     logger.info(
-                        "File '%s' not removed. Still busy!", expired_filepath,
+                        "File '%s' not removed. Still busy!",
+                        expired_filepath,
                     )
             except (
                 Exception
             ) as exception:  # pylint: disable=broad-exception-caught
                 logger.exception(
-                    "Problem removing file '%s': %s", expired_file, exception,
+                    "Problem removing file '%s': %s",
+                    expired_file,
+                    exception,
                 )
 
     def manual_schedule_fetch(self) -> bool:
         try:
             self.schedule_data = get_schedule(self.api_client)
             logger.debug(
-                "Received event from API client: %s", self.schedule_data,
+                "Received event from API client: %s",
+                self.schedule_data,
             )
             self.process_schedule(self.schedule_data)
             return True
@@ -351,7 +359,8 @@ class PypoFetch(Thread):
                 # Currently we are checking every POLL_INTERVAL seconds
 
                 message = self.fetch_queue.get(
-                    block=True, timeout=self.listener_timeout,
+                    block=True,
+                    timeout=self.listener_timeout,
                 )
                 manual_fetch_needed = False
                 self.handle_message(message)
@@ -370,7 +379,8 @@ class PypoFetch(Thread):
                 Exception
             ) as exception:  # pylint: disable=broad-exception-caught
                 logger.exception(
-                    "Failed to manually fetch the schedule: %s", exception,
+                    "Failed to manually fetch the schedule: %s",
+                    exception,
                 )
 
             loops += 1

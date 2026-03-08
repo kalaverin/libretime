@@ -85,7 +85,9 @@ def webstream(app: App, media_id, data):
     Replaces: notify --webstream='#{json_str}' --media-id=#{!current_dyn_id}
     """
     logger.info(
-        "Sending currently playing webstream '%s' data '%s'", media_id, data,
+        "Sending currently playing webstream '%s' data '%s'",
+        media_id,
+        data,
     )
     app.api_client.notify_webstream_data(data, media_id)
 
@@ -101,7 +103,9 @@ def live(app: App, name, status):
     Replaces: notify --source-name=#{sourcename} --source-status=#{status}
     """
     logger.info(
-        "Sending currently playing live source '%s' status '%s'", name, status,
+        "Sending currently playing live source '%s' status '%s'",
+        name,
+        status,
     )
     app.api_client.notify_source_status(name, status)
 

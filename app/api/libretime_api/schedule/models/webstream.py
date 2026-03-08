@@ -6,7 +6,9 @@ class Webstream(models.Model):
     updated_at = models.DateTimeField(db_column="mtime")
 
     last_played_at = models.DateTimeField(
-        blank=True, null=True, db_column="lptime",
+        blank=True,
+        null=True,
+        db_column="lptime",
     )
 
     name = models.CharField(max_length=255)

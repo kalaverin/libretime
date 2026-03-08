@@ -44,7 +44,8 @@ class Podcast(models.Model):
 
 class PodcastEpisode(models.Model):
     podcast = models.ForeignKey(
-        "podcasts.Podcast", on_delete=models.DO_NOTHING,
+        "podcasts.Podcast",
+        on_delete=models.DO_NOTHING,
     )
 
     file = models.ForeignKey(
@@ -80,7 +81,8 @@ class PodcastEpisode(models.Model):
 
 class StationPodcast(models.Model):
     podcast = models.ForeignKey(
-        "podcasts.Podcast", on_delete=models.DO_NOTHING,
+        "podcasts.Podcast",
+        on_delete=models.DO_NOTHING,
     )
 
     def get_owner(self):
@@ -93,7 +95,8 @@ class StationPodcast(models.Model):
 
 class ImportedPodcast(models.Model):
     podcast = models.ForeignKey(
-        "podcasts.Podcast", on_delete=models.DO_NOTHING,
+        "podcasts.Podcast",
+        on_delete=models.DO_NOTHING,
     )
     override_album = models.BooleanField(db_column="album_override")
 

@@ -39,7 +39,9 @@ class BaseConfig(BaseModel):
             _filepath = Path(_filepath)
 
         env_loader = EnvLoader(
-            _self.model_json_schema(), _env_prefix, _env_delimiter,
+            _self.model_json_schema(),
+            _env_prefix,
+            _env_delimiter,
         )
 
         values = deep_merge_dict(
@@ -64,7 +66,8 @@ class BaseConfig(BaseModel):
 
         if not filepath.is_file():
             logger.warning(
-                "provided config filepath '%s' is not a file", filepath,
+                "provided config filepath '%s' is not a file",
+                filepath,
             )
             return {}
 
@@ -81,7 +84,8 @@ class BaseConfig(BaseModel):
 
 
 def deep_merge_dict(
-    base: dict[str, Any], *elements: dict[str, Any],
+    base: dict[str, Any],
+    *elements: dict[str, Any],
 ) -> dict[str, Any]:
     result = base.copy()
 

@@ -209,7 +209,9 @@ class ShowInstance(models.Model):
     starts_at = models.DateTimeField(db_column="starts")
     ends_at = models.DateTimeField(db_column="ends")
     filled_time = models.DurationField(
-        blank=True, null=True, db_column="time_filled",
+        blank=True,
+        null=True,
+        db_column="time_filled",
     )
 
     last_scheduled_at = models.DateTimeField(

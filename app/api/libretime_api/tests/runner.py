@@ -1,4 +1,3 @@
-
 from django.db.models import Model
 from django.test.runner import DiscoverRunner
 

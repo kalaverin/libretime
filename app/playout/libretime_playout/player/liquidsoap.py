@@ -84,7 +84,9 @@ class TelnetLiquidsoap:
         try:
             annotation = create_liquidsoap_annotation(file_event)
             self.liq_client.queue_push(
-                queue_id, annotation, file_event.show_name,
+                queue_id,
+                annotation,
+                file_event.show_name,
             )
         except OSError as exception:
             logger.exception(exception)
@@ -138,7 +140,9 @@ class TelnetLiquidsoap:
 
         try:
             logger.debug(
-                'Switching source: %s to "%s" status', sourcename, status,
+                'Switching source: %s to "%s" status',
+                sourcename,
+                status,
             )
             self.liq_client.source_switch_status(sourcename, status == "on")
         except OSError as exception:
@@ -233,7 +237,8 @@ class Liquidsoap:
 
     # pylint: disable=too-many-branches
     def verify_correct_present_media(
-        self, scheduled_now: list[AnyEvent],
+        self,
+        scheduled_now: list[AnyEvent],
     ) -> None:
         """
         verify whether Liquidsoap is currently playing the correct files.
@@ -302,7 +307,8 @@ class Liquidsoap:
 
         if to_be_removed:
             logger.info(
-                "Need to remove items from Liquidsoap: %s", to_be_removed,
+                "Need to remove items from Liquidsoap: %s",
+                to_be_removed,
             )
 
             # remove files from Liquidsoap's queue
@@ -315,7 +321,8 @@ class Liquidsoap:
 
         if to_be_added:
             logger.info(
-                "Need to add items to Liquidsoap *now*: %s", to_be_added,
+                "Need to add items to Liquidsoap *now*: %s",
+                to_be_added,
             )
 
             for item in scheduled_now_files:

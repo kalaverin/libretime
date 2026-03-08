@@ -13,7 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 def analyze_duration(
-    filepath: str, metadata: dict[str, Any],
+    filepath: str,
+    metadata: dict[str, Any],
 ) -> dict[str, Any]:
     """
     Extracts the file duration using ffmpeg.
@@ -42,7 +43,8 @@ def analyze_duration(
 
 
 def analyze_cuepoint(
-    filepath: str, metadata: dict[str, Any],
+    filepath: str,
+    metadata: dict[str, Any],
 ) -> dict[str, Any]:
     """
     Extracts the cuein and cueout times using ffmpeg.

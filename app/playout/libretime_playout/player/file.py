@@ -52,7 +52,8 @@ class PypoFile(Thread):
             try:
                 with file_event.local_filepath.open("wb") as file_fd:
                     response = self.api_client.download_file(
-                        file_event.id, stream=True,
+                        file_event.id,
+                        stream=True,
                     )
                     for chunk in response.iter_content(chunk_size=8192):
                         file_fd.write(chunk)
@@ -85,7 +86,9 @@ class PypoFile(Thread):
             )
 
     def report_file_size_and_md5_to_api(
-        self, file_path: str, file_id: int,
+        self,
+        file_path: str,
+        file_id: int,
     ) -> int:
         try:
             file_size = os.path.getsize(file_path)

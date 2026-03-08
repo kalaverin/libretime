@@ -65,7 +65,8 @@ class PypoPush(Thread):
             loops += 1
 
     def separate_present_future(
-        self, events: Events,
+        self,
+        events: Events,
     ) -> tuple[list[AnyEvent], Events]:
         now = datetime.utcnow()
 

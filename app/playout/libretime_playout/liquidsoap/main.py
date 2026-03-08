@@ -66,6 +66,8 @@ def cli(
         exec_args.append("--debug")
 
     logger.debug(
-        "liquidsoap %s using script: %s", version, entrypoint_filepath,
+        "liquidsoap %s using script: %s",
+        version,
+        entrypoint_filepath,
     )
     os.execl(*exec_args)

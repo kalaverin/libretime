@@ -41,7 +41,8 @@ class PypoLiqQueue(Thread):
                         time_until_next_play,
                     )
                     media_schedule = self.queue.get(
-                        block=True, timeout=time_until_next_play,
+                        block=True,
+                        timeout=time_until_next_play,
                     )
             except Empty:
                 # Time to push a scheduled item.

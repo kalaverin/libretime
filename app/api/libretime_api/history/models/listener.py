@@ -19,10 +19,12 @@ class Timestamp(models.Model):
 
 class ListenerCount(models.Model):
     timestamp = models.ForeignKey(
-        "history.Timestamp", on_delete=models.DO_NOTHING,
+        "history.Timestamp",
+        on_delete=models.DO_NOTHING,
     )
     mount_name = models.ForeignKey(
-        "history.MountName", on_delete=models.DO_NOTHING,
+        "history.MountName",
+        on_delete=models.DO_NOTHING,
     )
     listener_count = models.IntegerField()
 

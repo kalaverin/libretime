@@ -16,10 +16,12 @@ from pydantic_core.core_schema import (
 )
 
 StrNoTrailingSlash = Annotated[
-    str, AfterValidator(lambda x: str(x).rstrip("/")),
+    str,
+    AfterValidator(lambda x: str(x).rstrip("/")),
 ]
 StrNoLeadingSlash = Annotated[
-    str, AfterValidator(lambda x: str(x).lstrip("/")),
+    str,
+    AfterValidator(lambda x: str(x).lstrip("/")),
 ]
 
 

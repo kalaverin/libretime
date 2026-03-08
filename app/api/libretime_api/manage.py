@@ -8,10 +8,12 @@ import sys
 def main():
     """Run administrative tasks."""
     os.environ.setdefault(
-        "DJANGO_SETTINGS_MODULE", "libretime_api.settings.prod",
+        "DJANGO_SETTINGS_MODULE",
+        "libretime_api.settings.prod",
     )
     os.environ.setdefault(
-        "LIBRETIME_CONFIG_FILEPATH", "/etc/libretime/config.yml",
+        "LIBRETIME_CONFIG_FILEPATH",
+        "/etc/libretime/config.yml",
     )
     try:
         # pylint: disable=import-outside-toplevel

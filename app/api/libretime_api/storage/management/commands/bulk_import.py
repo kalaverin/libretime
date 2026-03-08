@@ -62,7 +62,10 @@ class Command(BaseCommand):
         allowed_extensions = options.get("allowed_extensions")
 
         importer = Importer(
-            url, auth_key, delete_after_upload, delete_if_exists,
+            url,
+            auth_key,
+            delete_after_upload,
+            delete_if_exists,
         )
         importer.import_dir(Path(path).resolve(), library, allowed_extensions)
 

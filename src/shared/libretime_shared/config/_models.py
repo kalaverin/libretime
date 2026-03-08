@@ -257,7 +257,11 @@ class PulseAudioSystemOutput(BaseSystemOutput):
 
 
 AnySystemOutput = Annotated[
-    ALSASystemOutput | AOSystemOutput | OSSSystemOutput | PortAudioSystemOutput | PulseAudioSystemOutput,
+    ALSASystemOutput
+    | AOSystemOutput
+    | OSSSystemOutput
+    | PortAudioSystemOutput
+    | PulseAudioSystemOutput,
     Field(discriminator="kind", default=SystemOutput.PULSEAUDIO),
 ]
 

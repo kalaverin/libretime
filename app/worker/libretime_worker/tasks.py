@@ -100,7 +100,8 @@ def podcast_download(
 
                 # The filename extension helps to determine the file type using mutagen
                 with NamedTemporaryFile(
-                    suffix=filename, delete=False,
+                    suffix=filename,
+                    delete=False,
                 ) as tmp_file:
                     for chunk in resp.iter_content(chunk_size=2048):
                         tmp_file.write(chunk)
@@ -120,7 +121,8 @@ def podcast_download(
 
             if override_album:
                 logger.debug(
-                    "overriding album name with podcast name %s", podcast_name,
+                    "overriding album name with podcast name %s",
+                    podcast_name,
                 )
                 metadata["artist"] = podcast_name
                 metadata["album"] = podcast_name
@@ -128,7 +130,8 @@ def podcast_download(
 
             elif "album" not in metadata:
                 logger.debug(
-                    "setting album name to podcast name %s", podcast_name,
+                    "setting album name to podcast name %s",
+                    podcast_name,
                 )
                 metadata["album"] = podcast_name
 

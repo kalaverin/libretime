@@ -19,7 +19,8 @@ router.register("playout-history", PlayoutHistoryViewSet)
 router.register("playout-history-metadata", PlayoutHistoryMetadataViewSet)
 router.register("playout-history-templates", PlayoutHistoryTemplateViewSet)
 router.register(
-    "playout-history-template-fields", PlayoutHistoryTemplateFieldViewSet,
+    "playout-history-template-fields",
+    PlayoutHistoryTemplateFieldViewSet,
 )
 router.register("timestamps", TimestampViewSet)
 

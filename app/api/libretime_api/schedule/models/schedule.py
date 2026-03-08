@@ -25,7 +25,9 @@ class Schedule(models.Model):
     )
 
     length = models.DurationField(
-        blank=True, null=True, db_column="clip_length",
+        blank=True,
+        null=True,
+        db_column="clip_length",
     )
     fade_in = models.TimeField(blank=True, null=True)
     fade_out = models.TimeField(blank=True, null=True)

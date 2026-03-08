@@ -268,7 +268,8 @@ class EnvLoader:
                     result[index] = value.strip()
 
         indexes = guess_env_array_indexes(
-            self._env, env_parent + self.env_delimiter,
+            self._env,
+            env_parent + self.env_delimiter,
         )
         if indexes:
             for index in indexes:

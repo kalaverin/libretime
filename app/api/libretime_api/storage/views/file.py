@@ -51,17 +51,20 @@ class FileViewSet(viewsets.ModelViewSet):
         try:
             if instance.filepath is None:
                 logger.warning(
-                    "file does not have a filepath: %d", instance.id,
+                    "file does not have a filepath: %d",
+                    instance.id,
                 )
                 return
 
             path = os.path.join(
-                settings.CONFIG.storage.path, instance.filepath,
+                settings.CONFIG.storage.path,
+                instance.filepath,
             )
 
             if not os.path.isfile(path):
                 logger.warning(
-                    "file does not exist in storage: %d", instance.id,
+                    "file does not exist in storage: %d",
+                    instance.id,
                 )
                 return
 

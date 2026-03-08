@@ -65,7 +65,9 @@ class PlaylistContent(models.Model):
     position = models.IntegerField(blank=True, null=True)
     offset = models.FloatField(db_column="trackoffset")
     length = models.DurationField(
-        blank=True, null=True, db_column="cliplength",
+        blank=True,
+        null=True,
+        db_column="cliplength",
     )
     cue_in = models.DurationField(blank=True, null=True, db_column="cuein")
     cue_out = models.DurationField(blank=True, null=True, db_column="cueout")
