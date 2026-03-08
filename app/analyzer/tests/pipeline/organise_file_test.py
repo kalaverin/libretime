@@ -18,12 +18,16 @@ def organise_file_args_factory(filepath: Path, dest_dir: Path):
 
 
 def test_organise_file(src_dir: Path, dest_dir: Path):
-    organise_file(*organise_file_args_factory(src_dir / AUDIO_FILENAME, dest_dir))
+    organise_file(
+        *organise_file_args_factory(src_dir / AUDIO_FILENAME, dest_dir)
+    )
     assert (dest_dir / AUDIO_FILENAME).exists()
 
 
 def test_organise_file_samefile(src_dir: Path):
-    organise_file(*organise_file_args_factory(src_dir / AUDIO_FILENAME, src_dir))
+    organise_file(
+        *organise_file_args_factory(src_dir / AUDIO_FILENAME, src_dir)
+    )
     assert (src_dir / AUDIO_FILENAME).exists()
 
 
@@ -42,7 +46,9 @@ def test_organise_file_duplicate_file(src_dir: Path, dest_dir: Path):
         if i == 1:
             assert full_path.name == AUDIO_FILENAME
         else:
-            assert len(full_path.name) == len(AUDIO_FILENAME) + 1 + 36  # _ + UUID size
+            assert (
+                len(full_path.name) == len(AUDIO_FILENAME) + 1 + 36
+            )  # _ + UUID size
 
 
 def test_organise_file_bad_permissions_dest_dir(src_dir: Path):

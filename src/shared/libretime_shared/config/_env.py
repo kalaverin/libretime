@@ -267,7 +267,9 @@ class EnvLoader:
                 for index, value in enumerate(values.split(",")):
                     result[index] = value.strip()
 
-        indexes = guess_env_array_indexes(self._env, env_parent + self.env_delimiter)
+        indexes = guess_env_array_indexes(
+            self._env, env_parent + self.env_delimiter
+        )
         if indexes:
             for index in indexes:
                 env_name = env_parent + self.env_delimiter + str(index)

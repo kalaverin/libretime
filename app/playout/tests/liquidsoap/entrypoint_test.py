@@ -10,7 +10,10 @@ from libretime_playout.liquidsoap.models import Info, StreamPreferences
 from libretime_playout.liquidsoap.version import get_liquidsoap_version
 
 from tests.liquidsoap.conftest import LIQ_VERSION
-from tests.liquidsoap.fixtures import TEST_STREAM_CONFIGS, make_config_with_stream
+from tests.liquidsoap.fixtures import (
+    TEST_STREAM_CONFIGS,
+    make_config_with_stream,
+)
 
 
 @pytest.mark.parametrize(
@@ -113,4 +116,7 @@ def test_liquidsoap_unsupported_output_aac(
 
     with pytest.raises(CalledProcessError) as exception:
         check_output(["liquidsoap", "--check", str(entrypoint_filepath)])
-    assert b"You must be missing an optional dependency." in exception.value.stdout
+    assert (
+        b"You must be missing an optional dependency."
+        in exception.value.stdout
+    )

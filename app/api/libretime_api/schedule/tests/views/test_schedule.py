@@ -41,9 +41,12 @@ class TestScheduleViewSet(APITestCase):
         self.assertEqual(response.status_code, 200)
         result = response.json()
         self.assertEqual(
-            dateparse.parse_datetime(result[0]["ends_at"]), schedule_item.ends_at
+            dateparse.parse_datetime(result[0]["ends_at"]),
+            schedule_item.ends_at,
         )
-        self.assertEqual(dateparse.parse_duration(result[0]["cue_out"]), file.cue_out)
+        self.assertEqual(
+            dateparse.parse_duration(result[0]["cue_out"]), file.cue_out
+        )
 
     def test_schedule_item_trunc(self):
         file = baker.make(
@@ -70,11 +73,16 @@ class TestScheduleViewSet(APITestCase):
         response = self.client.get(self.path)
         self.assertEqual(response.status_code, 200)
         result = response.json()
-        self.assertEqual(dateparse.parse_datetime(result[0]["ends_at"]), show.ends_at)
+        self.assertEqual(
+            dateparse.parse_datetime(result[0]["ends_at"]), show.ends_at
+        )
         expected = show.ends_at - schedule_item.starts_at
-        self.assertEqual(dateparse.parse_duration(result[0]["cue_out"]), expected)
+        self.assertEqual(
+            dateparse.parse_duration(result[0]["cue_out"]), expected
+        )
         self.assertNotEqual(
-            dateparse.parse_datetime(result[0]["ends_at"]), schedule_item.ends_at
+            dateparse.parse_datetime(result[0]["ends_at"]),
+            schedule_item.ends_at,
         )
 
     def test_schedule_item_invalid(self):
@@ -114,9 +122,12 @@ class TestScheduleViewSet(APITestCase):
         # The invalid item should be filtered out and not returned
         self.assertEqual(len(result), 1)
         self.assertEqual(
-            dateparse.parse_datetime(result[0]["ends_at"]), schedule_item.ends_at
+            dateparse.parse_datetime(result[0]["ends_at"]),
+            schedule_item.ends_at,
         )
-        self.assertEqual(dateparse.parse_duration(result[0]["cue_out"]), file.cue_out)
+        self.assertEqual(
+            dateparse.parse_duration(result[0]["cue_out"]), file.cue_out
+        )
 
     def test_schedule_item_range(self):
         file = baker.make(
@@ -154,7 +165,9 @@ class TestScheduleViewSet(APITestCase):
         range_start = (filter_point - timedelta(minutes=1)).isoformat(
             timespec="seconds"
         )
-        range_end = (filter_point + timedelta(minutes=1)).isoformat(timespec="seconds")
+        range_end = (filter_point + timedelta(minutes=1)).isoformat(
+            timespec="seconds"
+        )
         response = self.client.get(
             self.path,
             {"starts_after": range_start, "starts_before": range_end},
@@ -164,5 +177,6 @@ class TestScheduleViewSet(APITestCase):
         # The previous_item should be filtered out and not returned
         self.assertEqual(len(result), 1)
         self.assertEqual(
-            dateparse.parse_datetime(result[0]["starts_at"]), schedule_item.starts_at
+            dateparse.parse_datetime(result[0]["starts_at"]),
+            schedule_item.starts_at,
         )

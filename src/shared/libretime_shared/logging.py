@@ -27,7 +27,9 @@ def setup_logger(
 
     if filepath is not None:
         if rotate:
-            handlers.append(TimedRotatingFileHandler(filepath, when="midnight"))
+            handlers.append(
+                TimedRotatingFileHandler(filepath, when="midnight")
+            )
         else:
             handlers.append(logging.FileHandler(filepath))
 

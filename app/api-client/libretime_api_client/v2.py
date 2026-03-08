@@ -1,4 +1,8 @@
-from libretime_api_client._client import AbstractApiClient, Response, default_retry
+from libretime_api_client._client import (
+    AbstractApiClient,
+    Response,
+    default_retry,
+)
 
 
 class ApiClient(AbstractApiClient):
@@ -21,7 +25,9 @@ class ApiClient(AbstractApiClient):
         return self._request("GET", f"/api/v2/shows/{item_id}", **kwargs)
 
     def get_show_instance(self, item_id: int, **kwargs) -> Response:
-        return self._request("GET", f"/api/v2/show-instances/{item_id}", **kwargs)
+        return self._request(
+            "GET", f"/api/v2/show-instances/{item_id}", **kwargs
+        )
 
     def list_schedule(self, **kwargs) -> Response:
         return self._request("GET", "/api/v2/schedule", **kwargs)
@@ -36,7 +42,9 @@ class ApiClient(AbstractApiClient):
         return self._request("PATCH", f"/api/v2/files/{item_id}", **kwargs)
 
     def download_file(self, item_id: int, **kwargs) -> Response:
-        return self._request("GET", f"/api/v2/files/{item_id}/download", **kwargs)
+        return self._request(
+            "GET", f"/api/v2/files/{item_id}/download", **kwargs
+        )
 
     def get_stream_preferences(self, **kwargs) -> Response:
         return self._request("GET", "/api/v2/stream/preferences", **kwargs)

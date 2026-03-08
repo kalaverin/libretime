@@ -38,7 +38,9 @@ class BaseConfig(BaseModel):
         if _filepath is not None:
             _filepath = Path(_filepath)
 
-        env_loader = EnvLoader(_self.model_json_schema(), _env_prefix, _env_delimiter)
+        env_loader = EnvLoader(
+            _self.model_json_schema(), _env_prefix, _env_delimiter
+        )
 
         values = deep_merge_dict(
             kwargs,
@@ -61,20 +63,26 @@ class BaseConfig(BaseModel):
             return {}
 
         if not filepath.is_file():
-            logger.warning("provided config filepath '%s' is not a file", filepath)
+            logger.warning(
+                "provided config filepath '%s' is not a file", filepath
+            )
             return {}
 
         try:
             return safe_load(filepath.read_text(encoding="utf-8"))
         except YAMLError as exception:
             logger.error(
-                "config file '%s' is not a valid yaml file: %s", filepath, exception
+                "config file '%s' is not a valid yaml file: %s",
+                filepath,
+                exception,
             )
 
         return {}
 
 
-def deep_merge_dict(base: Dict[str, Any], *elements: Dict[str, Any]) -> Dict[str, Any]:
+def deep_merge_dict(
+    base: Dict[str, Any], *elements: Dict[str, Any]
+) -> Dict[str, Any]:
     result = base.copy()
 
     for element in elements:

@@ -2,7 +2,9 @@
 
 from django.db import migrations
 
-from libretime_api.legacy.migrations._migrations import legacy_migration_factory
+from libretime_api.legacy.migrations._migrations import (
+    legacy_migration_factory,
+)
 
 # This migration is currently a placeholder for 3.0.0-alpha.9.1.
 # Please do not remove it.  There are currently no actions, but it

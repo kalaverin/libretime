@@ -6,7 +6,9 @@ from typing import Any, Literal, Optional, Tuple, Union
 from libretime_playout.liquidsoap.models import MessageFormatKind
 from libretime_playout.liquidsoap.utils import quote
 from libretime_playout.liquidsoap.version import parse_liquidsoap_version
-from libretime_playout.liquidsoap.client._connection import LiquidsoapConnection
+from libretime_playout.liquidsoap.client._connection import (
+    LiquidsoapConnection,
+)
 
 logger = logging.getLogger(__name__)
 

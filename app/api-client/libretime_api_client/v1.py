@@ -63,7 +63,9 @@ class BaseApiClient(AbstractApiClient):
             **kwargs,
         )
 
-    def update_liquidsoap_status(self, msg, stream_id, boot_time, **kwargs) -> Response:
+    def update_liquidsoap_status(
+        self, msg, stream_id, boot_time, **kwargs
+    ) -> Response:
         return self._request(
             "POST",
             "/api/update-liquidsoap-status",
@@ -80,11 +82,17 @@ class BaseApiClient(AbstractApiClient):
             **kwargs,
         )
 
-    def check_live_stream_auth(self, username, password, djtype, **kwargs) -> Response:
+    def check_live_stream_auth(
+        self, username, password, djtype, **kwargs
+    ) -> Response:
         return self._request(
             "GET",
             "/api/check-live-stream-auth",
-            params={"username": username, "password": password, "djtype": djtype},
+            params={
+                "username": username,
+                "password": password,
+                "djtype": djtype,
+            },
             **kwargs,
         )
 
@@ -153,7 +161,9 @@ class ApiClient:
         which we handed to liquidsoap in get_liquidsoap_data().
         """
         try:
-            return self._base_client.notify_media_item_start_play(media_id=media_id)
+            return self._base_client.notify_media_item_start_play(
+                media_id=media_id
+            )
         except RequestException:
             return None
 

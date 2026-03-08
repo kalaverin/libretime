@@ -14,7 +14,12 @@ from requests import RequestException
 
 from libretime_playout.config import CACHE_DIR, POLL_INTERVAL, Config
 from libretime_playout.liquidsoap.client import LiquidsoapClient
-from libretime_playout.liquidsoap.models import Info, MessageFormatKind, StreamPreferences, StreamState
+from libretime_playout.liquidsoap.models import (
+    Info,
+    MessageFormatKind,
+    StreamPreferences,
+    StreamState,
+)
 from libretime_playout.player.events import Events, FileEvent, FileEvents
 from libretime_playout.player.liquidsoap import Liquidsoap
 from libretime_playout.player.schedule import get_schedule
@@ -80,13 +85,17 @@ class PypoFetch(Thread):
                 self.update_liquidsoap_stream_format(message["stream_format"])
             elif command == "update_message_offline":
                 logger.info("Updating message offline...")
-                self.update_liquidsoap_message_offline(message["message_offline"])
+                self.update_liquidsoap_message_offline(
+                    message["message_offline"]
+                )
             elif command == "update_station_name":
                 logger.info("Updating station name...")
                 self.update_liquidsoap_station_name(message["station_name"])
             elif command == "update_transition_fade":
                 logger.info("Updating transition_fade...")
-                self.update_liquidsoap_transition_fade(message["transition_fade"])
+                self.update_liquidsoap_transition_fade(
+                    message["transition_fade"]
+                )
             elif command == "switch_source":
                 logger.info("switch_on_source show command received...")
                 self.liquidsoap.telnet_liquidsoap.switch_source(
@@ -105,11 +114,15 @@ class PypoFetch(Thread):
                 self.listener_timeout = POLL_INTERVAL
             else:
                 self.listener_timeout = max(
-                    self.last_update_schedule_timestamp - time.time() + POLL_INTERVAL,
+                    self.last_update_schedule_timestamp
+                    - time.time()
+                    + POLL_INTERVAL,
                     0,
                 )
             logger.info("New timeout: %s", self.listener_timeout)
-        except Exception as exception:  # pylint: disable=broad-exception-caught
+        except (
+            Exception
+        ) as exception:  # pylint: disable=broad-exception-caught
             logger.exception(exception)
 
     # Initialize Liquidsoap environment
@@ -207,7 +220,9 @@ class PypoFetch(Thread):
                 all_events[key] = item
 
             self.media_prepare_queue.put(copy.copy(file_events))
-        except Exception as exception:  # pylint: disable=broad-exception-caught
+        except (
+            Exception
+        ) as exception:  # pylint: disable=broad-exception-caught
             logger.exception(exception)
 
         # Send the data to pypo-push
@@ -217,11 +232,15 @@ class PypoFetch(Thread):
         # cleanup
         try:
             self.cache_cleanup(events)
-        except Exception as exception:  # pylint: disable=broad-exception-caught
+        except (
+            Exception
+        ) as exception:  # pylint: disable=broad-exception-caught
             logger.exception(exception)
 
     def is_file_opened(self, path: str) -> bool:
-        result = run(["lsof", "--", path], stdout=PIPE, stderr=DEVNULL, check=False)
+        result = run(
+            ["lsof", "--", path], stdout=PIPE, stderr=DEVNULL, check=False
+        )
         return bool(result.stdout)
 
     def cache_cleanup(self, events: Events):
@@ -254,8 +273,12 @@ class PypoFetch(Thread):
                     os.remove(expired_filepath)
                     logger.info("File '%s' removed", expired_filepath)
                 else:
-                    logger.info("File '%s' not removed. Still busy!", expired_filepath)
-            except Exception as exception:  # pylint: disable=broad-exception-caught
+                    logger.info(
+                        "File '%s' not removed. Still busy!", expired_filepath
+                    )
+            except (
+                Exception
+            ) as exception:  # pylint: disable=broad-exception-caught
                 logger.exception(
                     "Problem removing file '%s': %s", expired_file, exception
                 )
@@ -263,10 +286,14 @@ class PypoFetch(Thread):
     def manual_schedule_fetch(self) -> bool:
         try:
             self.schedule_data = get_schedule(self.api_client)
-            logger.debug("Received event from API client: %s", self.schedule_data)
+            logger.debug(
+                "Received event from API client: %s", self.schedule_data
+            )
             self.process_schedule(self.schedule_data)
             return True
-        except Exception as exception:  # pylint: disable=broad-exception-caught
+        except (
+            Exception
+        ) as exception:  # pylint: disable=broad-exception-caught
             logger.exception("Unable to fetch schedule: %s", exception)
         return False
 
@@ -331,14 +358,20 @@ class PypoFetch(Thread):
             except Empty:
                 logger.info("Queue timeout. Fetching schedule manually")
                 manual_fetch_needed = True
-            except Exception as exception:  # pylint: disable=broad-exception-caught
+            except (
+                Exception
+            ) as exception:  # pylint: disable=broad-exception-caught
                 logger.exception(exception)
 
             try:
                 if manual_fetch_needed:
                     self.persistent_manual_schedule_fetch(max_attempts=5)
-            except Exception as exception:  # pylint: disable=broad-exception-caught
-                logger.exception("Failed to manually fetch the schedule: %s", exception)
+            except (
+                Exception
+            ) as exception:  # pylint: disable=broad-exception-caught
+                logger.exception(
+                    "Failed to manually fetch the schedule: %s", exception
+                )
 
             loops += 1
 

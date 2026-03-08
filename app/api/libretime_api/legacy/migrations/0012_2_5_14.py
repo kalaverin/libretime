@@ -2,7 +2,9 @@
 
 from django.db import migrations
 
-from libretime_api.legacy.migrations._migrations import legacy_migration_factory
+from libretime_api.legacy.migrations._migrations import (
+    legacy_migration_factory,
+)
 
 # SAAS-923
 # Add a partial constraint to cc_pref so that keystrings must be unique

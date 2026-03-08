@@ -2,7 +2,9 @@
 
 from django.db import migrations
 
-from libretime_api.legacy.migrations._migrations import legacy_migration_factory
+from libretime_api.legacy.migrations._migrations import (
+    legacy_migration_factory,
+)
 
 UP = """
 ALTER TABLE imported_podcast ADD COLUMN album_override boolean default 'f' NOT NULL;

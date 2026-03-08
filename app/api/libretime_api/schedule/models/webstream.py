@@ -5,7 +5,9 @@ class Webstream(models.Model):
     created_at = models.DateTimeField(db_column="utime")
     updated_at = models.DateTimeField(db_column="mtime")
 
-    last_played_at = models.DateTimeField(blank=True, null=True, db_column="lptime")
+    last_played_at = models.DateTimeField(
+        blank=True, null=True, db_column="lptime"
+    )
 
     name = models.CharField(max_length=255)
     description = models.CharField(max_length=255)
@@ -28,8 +30,14 @@ class Webstream(models.Model):
         managed = False
         db_table = "cc_webstream"
         permissions = [
-            ("change_own_webstream", "Change the webstreams where they are the owner"),
-            ("delete_own_webstream", "Delete the webstreams where they are the owner"),
+            (
+                "change_own_webstream",
+                "Change the webstreams where they are the owner",
+            ),
+            (
+                "delete_own_webstream",
+                "Delete the webstreams where they are the owner",
+            ),
         ]
 
 

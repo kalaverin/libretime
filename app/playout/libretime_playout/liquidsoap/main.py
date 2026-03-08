@@ -22,7 +22,11 @@ here = Path(__file__).parent
 @click.command(context_settings={"auto_envvar_prefix": DEFAULT_ENV_PREFIX})
 @cli_logging_options()
 @cli_config_options()
-def cli(log_level: str, log_filepath: Optional[Path], config_filepath: Optional[Path]):
+def cli(
+    log_level: str,
+    log_filepath: Optional[Path],
+    config_filepath: Optional[Path],
+):
     """
     Run liquidsoap.
     """
@@ -37,7 +41,9 @@ def cli(log_level: str, log_filepath: Optional[Path], config_filepath: Optional[
     version = get_liquidsoap_version()
 
     info = Info(**api_client.get_info().json())
-    preferences = StreamPreferences(**api_client.get_stream_preferences().json())
+    preferences = StreamPreferences(
+        **api_client.get_stream_preferences().json()
+    )
 
     entrypoint_filepath = Path.cwd() / "radio.liq"
     entrypoint_filepath.write_text(
@@ -60,5 +66,7 @@ def cli(log_level: str, log_filepath: Optional[Path], config_filepath: Optional[
     if log_level == "debug":
         exec_args.append("--debug")
 
-    logger.debug("liquidsoap %s using script: %s", version, entrypoint_filepath)
+    logger.debug(
+        "liquidsoap %s using script: %s", version, entrypoint_filepath
+    )
     os.execl(*exec_args)

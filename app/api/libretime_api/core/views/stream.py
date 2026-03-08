@@ -3,7 +3,10 @@ from rest_framework.response import Response
 
 from libretime_api.permissions import IsSystemTokenOrUser
 from libretime_api.core.models import Preference
-from libretime_api.core.serializers import StreamPreferencesSerializer, StreamStateSerializer
+from libretime_api.core.serializers import (
+    StreamPreferencesSerializer,
+    StreamStateSerializer,
+)
 
 
 class StreamPreferencesView(views.APIView):

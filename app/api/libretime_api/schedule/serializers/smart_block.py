@@ -1,6 +1,10 @@
 from rest_framework import serializers
 
-from libretime_api.schedule.models import SmartBlock, SmartBlockContent, SmartBlockCriteria
+from libretime_api.schedule.models import (
+    SmartBlock,
+    SmartBlockContent,
+    SmartBlockCriteria,
+)
 
 
 class SmartBlockSerializer(serializers.ModelSerializer):

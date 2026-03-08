@@ -1,6 +1,10 @@
 import hashlib
 
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permission
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    Permission,
+)
 from django.db import models
 
 from libretime_api.permission_constants import GROUPS
@@ -9,7 +13,9 @@ from libretime_api.core.models.role import Role
 
 class UserManager(BaseUserManager):
     # pylint: disable=too-many-positional-arguments
-    def create_user(self, role, username, password, email, first_name, last_name):
+    def create_user(
+        self, role, username, password, email, first_name, last_name
+    ):
         user = self.model(
             role=role,
             username=username,
@@ -22,7 +28,9 @@ class UserManager(BaseUserManager):
         return user
 
     # pylint: disable=too-many-positional-arguments
-    def create_superuser(self, username, password, email, first_name, last_name):
+    def create_superuser(
+        self, username, password, email, first_name, last_name
+    ):
         return self.create_user(
             Role.ADMIN,
             username,

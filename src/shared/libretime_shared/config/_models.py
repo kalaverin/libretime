@@ -5,7 +5,12 @@ from typing import List, Literal, Optional, Union
 from pydantic import BaseModel, Field, field_validator
 from typing_extensions import Annotated
 
-from libretime_shared.config._fields import AnyHttpUrlStr, AnyUrlStr, StrNoLeadingSlash, StrNoTrailingSlash
+from libretime_shared.config._fields import (
+    AnyHttpUrlStr,
+    AnyUrlStr,
+    StrNoLeadingSlash,
+    StrNoTrailingSlash,
+)
 
 if sys.version_info < (3, 9):
     from backports.zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -138,7 +143,9 @@ class BaseAudio(BaseModel):
         # the bitrate validation for each format
         bitrates = (32, 48, 64, 96, 128, 160, 192, 224, 256, 320)
         if value not in bitrates:
-            raise ValueError(f"invalid bitrate {value}, must be one of {bitrates}")
+            raise ValueError(
+                f"invalid bitrate {value}, must be one of {bitrates}"
+            )
         return value
 
 

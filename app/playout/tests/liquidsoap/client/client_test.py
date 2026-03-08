@@ -1,6 +1,9 @@
 import pytest
 
-from libretime_playout.liquidsoap.client import LiquidsoapClient, LiquidsoapClientError
+from libretime_playout.liquidsoap.client import (
+    LiquidsoapClient,
+    LiquidsoapClientError,
+)
 
 
 def test_liq_client():

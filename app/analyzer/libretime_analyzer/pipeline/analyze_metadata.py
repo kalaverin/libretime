@@ -15,7 +15,9 @@ def flatten(xss):
 
 
 def comment_get(id3, _):
-    comments = [v.text for k, v in id3.items() if "COMM" in k or "comment" in k]
+    comments = [
+        v.text for k, v in id3.items() if "COMM" in k or "comment" in k
+    ]
 
     return flatten(comments)
 

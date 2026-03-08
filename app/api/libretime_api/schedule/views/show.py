@@ -1,6 +1,12 @@
 from rest_framework import viewsets
 
-from libretime_api.schedule.models import Show, ShowDays, ShowHost, ShowInstance, ShowRebroadcast
+from libretime_api.schedule.models import (
+    Show,
+    ShowDays,
+    ShowHost,
+    ShowInstance,
+    ShowRebroadcast,
+)
 from libretime_api.schedule.serializers import (
     ShowDaysSerializer,
     ShowHostSerializer,

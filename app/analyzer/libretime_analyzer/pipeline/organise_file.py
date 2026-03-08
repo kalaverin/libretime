@@ -42,7 +42,9 @@ def organise_file(
             metadata["full_path"] = str(dest_path)
             return metadata
 
-        dest_path = dest_path.with_name(f"{dest_path.stem}_{uuid4()}{dest_path.suffix}")
+        dest_path = dest_path.with_name(
+            f"{dest_path.stem}_{uuid4()}{dest_path.suffix}"
+        )
         logger.warning("found existing file, using new filepath %s", dest_path)
 
     # Import

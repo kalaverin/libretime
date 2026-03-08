@@ -39,7 +39,9 @@ class StatsCollector:
     def get_output_url(self, output: AnyOutput) -> str:
         if output.kind == "icecast":
             return f"http://{output.host}:{output.port}/admin/stats.xml"
-        return f"http://{output.host}:{output.port}/admin.cgi?sid=1&mode=viewxml"
+        return (
+            f"http://{output.host}:{output.port}/admin.cgi?sid=1&mode=viewxml"
+        )
 
     def collect_output_stats(
         self,
@@ -153,6 +155,8 @@ class StatsCollectorThread(Thread):
         while True:
             try:
                 self._collector.collect(self._config.stream.outputs.merged)
-            except Exception as exception:  # pylint: disable=broad-exception-caught
+            except (
+                Exception
+            ) as exception:  # pylint: disable=broad-exception-caught
                 logger.exception(exception)
             sleep(120)

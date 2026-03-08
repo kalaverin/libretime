@@ -35,7 +35,11 @@ def parse_version(version: str):
     pre_version = match.group("pre_n")
     if pre_version:
         pre_version_list = pre_version.split(".")
-        pre_major = int(pre_version_list.pop(0)) if len(pre_version_list) else 0
-        pre_minor = int(pre_version_list.pop(0)) if len(pre_version_list) else 0
+        pre_major = (
+            int(pre_version_list.pop(0)) if len(pre_version_list) else 0
+        )
+        pre_minor = (
+            int(pre_version_list.pop(0)) if len(pre_version_list) else 0
+        )
 
     return (major, minor, patch, pre, pre_major, pre_minor)

@@ -2,7 +2,9 @@
 
 from django.db import migrations
 
-from libretime_api.legacy.migrations._migrations import legacy_migration_factory
+from libretime_api.legacy.migrations._migrations import (
+    legacy_migration_factory,
+)
 
 UP = """
 DROP SEQUENCE IF EXISTS schedule_group_id_seq CASCADE;

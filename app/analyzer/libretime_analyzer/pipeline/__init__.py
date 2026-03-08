@@ -1,1 +1,5 @@
-from libretime_analyzer.pipeline.pipeline import Pipeline, PipelineOptions, PipelineStatus
+from libretime_analyzer.pipeline.pipeline import (
+    Pipeline,
+    PipelineOptions,
+    PipelineStatus,
+)

@@ -27,7 +27,9 @@ def test_probe_replaygain(filepath, replaygain):
 def test_compute_replaygain(filepath, replaygain):
     tolerance = 0.8
 
-    assert compute_replaygain(filepath) == pytest.approx(replaygain, abs=tolerance)
+    assert compute_replaygain(filepath) == pytest.approx(
+        replaygain, abs=tolerance
+    )
 
 
 # Be sure to test a matrix of integer / float, positive / negative values
@@ -71,7 +73,9 @@ def test_silence_detect_re(line, expected):
 @pytest.mark.parametrize(
     "filepath,length,cuein,cueout",
     map(
-        lambda i: pytest.param(i.path, i.length, i.cuein, i.cueout, id=i.path.name),
+        lambda i: pytest.param(
+            i.path, i.length, i.cuein, i.cueout, id=i.path.name
+        ),
         FILES,
     ),
 )

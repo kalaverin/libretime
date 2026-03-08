@@ -27,7 +27,9 @@ class MessageHandler(ConsumerMixin):
         self.fetch_queue = fetch_queue
 
     def get_consumers(self, Consumer, channel):
-        exchange = Exchange("playout", "fanout", durable=True, auto_delete=True)
+        exchange = Exchange(
+            "playout", "fanout", durable=True, auto_delete=True
+        )
         # RabbitMQ says to avoid temporary queues with well-known names
         # https://www.rabbitmq.com/docs/queues#shared-temporary-queues
         # A server named queue that expires is used so that if the service
@@ -36,7 +38,9 @@ class MessageHandler(ConsumerMixin):
         queues = [Queue("", exchange=exchange, expires=30.0)]
 
         return [
-            Consumer(queues, callbacks=[self.on_message], accept=["text/plain"]),
+            Consumer(
+                queues, callbacks=[self.on_message], accept=["text/plain"]
+            ),
         ]
 
     def on_message(self, body, message: Message) -> None:
@@ -65,7 +69,9 @@ class MessageHandler(ConsumerMixin):
             else:
                 logger.warning("invalid command: %s", command)
 
-        except Exception as exception:  # pylint: disable=broad-exception-caught
+        except (
+            Exception
+        ) as exception:  # pylint: disable=broad-exception-caught
             logger.exception(exception)
 
         message.ack()
@@ -86,7 +92,9 @@ class MessageListener:
             with Connection(
                 self.config.rabbitmq.url,
                 heartbeat=5,
-                transport_options={"client_properties": {"connection_name": "playout"}},
+                transport_options={
+                    "client_properties": {"connection_name": "playout"}
+                },
             ) as connection:
                 handler = MessageHandler(
                     connection=connection,

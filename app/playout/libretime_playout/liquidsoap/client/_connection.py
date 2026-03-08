@@ -44,7 +44,11 @@ class LiquidsoapConnection:
         self._timeout = timeout
 
     def address(self) -> str:
-        return f"{self._host}:{self._port}" if self._path is None else str(self._path)
+        return (
+            f"{self._host}:{self._port}"
+            if self._path is None
+            else str(self._path)
+        )
 
     def __enter__(self):
         self.connect()

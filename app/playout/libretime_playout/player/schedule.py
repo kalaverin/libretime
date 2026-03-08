@@ -35,7 +35,9 @@ def insert_event(events: Events, event_key: str, event: AnyEvent) -> None:
 
 
 def get_schedule(api_client: ApiClient) -> Events:
-    stream_preferences = StreamPreferences(**api_client.get_stream_preferences().json())
+    stream_preferences = StreamPreferences(
+        **api_client.get_stream_preferences().json()
+    )
 
     current_time = datetime.utcnow()
     end_time = current_time + timedelta(days=1)
@@ -61,7 +63,9 @@ def get_schedule(api_client: ApiClient) -> Events:
         show = api_client.get_show(show_instance["show"]).json()
 
         if show["live_enabled"]:
-            show_instance["starts_at"] = event_isoparse(show_instance["starts_at"])
+            show_instance["starts_at"] = event_isoparse(
+                show_instance["starts_at"]
+            )
             show_instance["ends_at"] = event_isoparse(show_instance["ends_at"])
             generate_live_events(events, show_instance, stream_preferences)
 
@@ -129,7 +133,9 @@ def generate_file_events(
         show_name=show["name"],
         # Extra data
         fade_in=time_in_milliseconds(time.fromisoformat(schedule["fade_in"])),
-        fade_out=time_in_milliseconds(time.fromisoformat(schedule["fade_out"])),
+        fade_out=time_in_milliseconds(
+            time.fromisoformat(schedule["fade_out"])
+        ),
         cue_in=time_in_seconds(time.fromisoformat(schedule["cue_in"])),
         cue_out=time_in_seconds(time.fromisoformat(schedule["cue_out"])),
         # File data

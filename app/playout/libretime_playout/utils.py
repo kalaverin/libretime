@@ -23,6 +23,8 @@ mimetypes.init([str(here / "mime.types")])
 def mime_guess_extension(mime: str) -> str:
     extension = mimetypes.guess_extension(mime, strict=False)
     if extension is None:
-        logger.warning("could not determine file extension from mime: %s", mime)
+        logger.warning(
+            "could not determine file extension from mime: %s", mime
+        )
         return ""
     return extension

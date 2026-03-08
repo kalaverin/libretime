@@ -62,7 +62,9 @@ class Command(BaseCommand):
         library = options.get("library", None)
         allowed_extensions = options.get("allowed_extensions")
 
-        importer = Importer(url, auth_key, delete_after_upload, delete_if_exists)
+        importer = Importer(
+            url, auth_key, delete_after_upload, delete_if_exists
+        )
         importer.import_dir(Path(path).resolve(), library, allowed_extensions)
 
 
@@ -95,7 +97,9 @@ class Importer:
                 ],
                 timeout=30,
                 cookies=(
-                    {"tt_upload": str(library_id)} if library_id is not None else {}
+                    {"tt_upload": str(library_id)}
+                    if library_id is not None
+                    else {}
                 ),
             )
             resp.raise_for_status()
@@ -153,7 +157,9 @@ class Importer:
             try:
                 library_id = Library.objects.get(code=library).id
             except Library.DoesNotExist as exc:
-                raise ValueError(f"provided library {library} does not exist") from exc
+                raise ValueError(
+                    f"provided library {library} does not exist"
+                ) from exc
         else:
             library_id = None
 

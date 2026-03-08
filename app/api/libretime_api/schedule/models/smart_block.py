@@ -64,7 +64,9 @@ class SmartBlockContent(models.Model):
 
     position = models.IntegerField(blank=True, null=True)
     offset = models.FloatField(db_column="trackoffset")
-    length = models.DurationField(blank=True, null=True, db_column="cliplength")
+    length = models.DurationField(
+        blank=True, null=True, db_column="cliplength"
+    )
     cue_in = models.DurationField(blank=True, null=True, db_column="cuein")
     cue_out = models.DurationField(blank=True, null=True, db_column="cueout")
     fade_in = models.TimeField(blank=True, null=True, db_column="fadein")
@@ -89,7 +91,9 @@ class SmartBlockContent(models.Model):
 
 
 class SmartBlockCriteria(models.Model):
-    block = models.ForeignKey("schedule.SmartBlock", on_delete=models.DO_NOTHING)
+    block = models.ForeignKey(
+        "schedule.SmartBlock", on_delete=models.DO_NOTHING
+    )
     group = models.IntegerField(
         blank=True,
         null=True,

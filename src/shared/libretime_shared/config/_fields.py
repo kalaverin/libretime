@@ -10,11 +10,18 @@ from pydantic import (
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import Url
-from pydantic_core.core_schema import CoreSchema, no_info_after_validator_function
+from pydantic_core.core_schema import (
+    CoreSchema,
+    no_info_after_validator_function,
+)
 from typing_extensions import Annotated
 
-StrNoTrailingSlash = Annotated[str, AfterValidator(lambda x: str(x).rstrip("/"))]
-StrNoLeadingSlash = Annotated[str, AfterValidator(lambda x: str(x).lstrip("/"))]
+StrNoTrailingSlash = Annotated[
+    str, AfterValidator(lambda x: str(x).rstrip("/"))
+]
+StrNoLeadingSlash = Annotated[
+    str, AfterValidator(lambda x: str(x).lstrip("/"))
+]
 
 
 class AnyUrlStr(str):

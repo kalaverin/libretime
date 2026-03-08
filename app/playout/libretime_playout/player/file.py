@@ -52,7 +52,9 @@ class PypoFile(Thread):
         try:
             try:
                 with file_event.local_filepath.open("wb") as file_fd:
-                    response = self.api_client.download_file(file_event.id, stream=True)
+                    response = self.api_client.download_file(
+                        file_event.id, stream=True
+                    )
                     for chunk in response.iter_content(chunk_size=8192):
                         file_fd.write(chunk)
 
@@ -73,7 +75,9 @@ class PypoFile(Thread):
                 )
 
             file_event.file_ready = True
-        except Exception as exception:  # pylint: disable=broad-exception-caught
+        except (
+            Exception
+        ) as exception:  # pylint: disable=broad-exception-caught
             logger.exception(
                 "could not copy file %s to %s: %s",
                 file_event.id,
@@ -81,7 +85,9 @@ class PypoFile(Thread):
                 exception,
             )
 
-    def report_file_size_and_md5_to_api(self, file_path: str, file_id: int) -> int:
+    def report_file_size_and_md5_to_api(
+        self, file_path: str, file_id: int
+    ) -> int:
         try:
             file_size = os.path.getsize(file_path)
 
@@ -108,9 +114,14 @@ class PypoFile(Thread):
                 file_id,
                 json={"filesize": file_size, "md5": md5_hash},
             )
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        except (
+            requests.exceptions.ConnectionError,
+            requests.exceptions.Timeout,
+        ):
             logger.exception(error_msg)
-        except Exception as exception:  # pylint: disable=broad-exception-caught
+        except (
+            Exception
+        ) as exception:  # pylint: disable=broad-exception-caught
             logger.exception("%s: %s", error_msg, exception)
 
         return file_size
@@ -163,10 +174,14 @@ class PypoFile(Thread):
                     except Empty:
                         pass
 
-                file_event = self.get_highest_priority_file_event(self.file_events)
+                file_event = self.get_highest_priority_file_event(
+                    self.file_events
+                )
                 if file_event is not None:
                     self.copy_file(file_event)
-            except Exception as exception:  # pylint: disable=broad-exception-caught
+            except (
+                Exception
+            ) as exception:  # pylint: disable=broad-exception-caught
                 logger.exception(exception)
                 raise exception
 
@@ -176,7 +191,9 @@ class PypoFile(Thread):
         """
         try:
             self.main()
-        except Exception as exception:  # pylint: disable=broad-exception-caught
+        except (
+            Exception
+        ) as exception:  # pylint: disable=broad-exception-caught
             logger.exception(exception)
             time.sleep(5)
 

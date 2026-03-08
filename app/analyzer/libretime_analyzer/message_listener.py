@@ -7,7 +7,11 @@ from queue import Queue
 import pika
 
 from libretime_analyzer.config import Config
-from libretime_analyzer.pipeline import Pipeline, PipelineOptions, PipelineStatus
+from libretime_analyzer.pipeline import (
+    Pipeline,
+    PipelineOptions,
+    PipelineStatus,
+)
 from libretime_analyzer.status_reporter import StatusReporter
 
 logger = logging.getLogger(__name__)
@@ -76,7 +80,9 @@ class MessageListener:
         )
 
         logger.info(" Listening for messages...")
-        self._channel.basic_consume(QUEUE, self.msg_received_callback, auto_ack=False)
+        self._channel.basic_consume(
+            QUEUE, self.msg_received_callback, auto_ack=False
+        )
 
     def wait_for_messages(self):
         """Wait until we've received a RabbitMQ message."""
@@ -100,7 +106,9 @@ class MessageListener:
         Here we parse the message, spin up an analyzer process, and report the
         metadata back to the Airtime web application (or report an error).
         """
-        logger.info("Received '%s' on routing_key '%s'", body, method_frame.routing_key)
+        logger.info(
+            "Received '%s' on routing_key '%s'", body, method_frame.routing_key
+        )
 
         audio_file_path = ""
         # final_file_path = ""
@@ -128,10 +136,14 @@ class MessageListener:
                 options,
             )
 
-            callback_url = f"{self.config.general.public_url}/rest/media/{file_id}"
+            callback_url = (
+                f"{self.config.general.public_url}/rest/media/{file_id}"
+            )
             callback_api_key = self.config.general.api_key
 
-            StatusReporter.report_success(callback_url, callback_api_key, metadata)
+            StatusReporter.report_success(
+                callback_url, callback_api_key, metadata
+            )
 
         except KeyError:
             logger.exception("A mandatory field was missing from the message.")

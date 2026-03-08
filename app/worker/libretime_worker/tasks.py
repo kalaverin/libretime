@@ -99,7 +99,9 @@ def podcast_download(
                 filename = extract_filename(resp)
 
                 # The filename extension helps to determine the file type using mutagen
-                with NamedTemporaryFile(suffix=filename, delete=False) as tmp_file:
+                with NamedTemporaryFile(
+                    suffix=filename, delete=False
+                ) as tmp_file:
                     for chunk in resp.iter_content(chunk_size=2048):
                         tmp_file.write(chunk)
 
@@ -117,13 +119,17 @@ def podcast_download(
                 )
 
             if override_album:
-                logger.debug("overriding album name with podcast name %s", podcast_name)
+                logger.debug(
+                    "overriding album name with podcast name %s", podcast_name
+                )
                 metadata["artist"] = podcast_name
                 metadata["album"] = podcast_name
                 metadata["title"] = episode_title
 
             elif "album" not in metadata:
-                logger.debug("setting album name to podcast name %s", podcast_name)
+                logger.debug(
+                    "setting album name to podcast name %s", podcast_name
+                )
                 metadata["album"] = podcast_name
 
             metadata.save()

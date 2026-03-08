@@ -31,13 +31,21 @@ class Podcast(models.Model):
         managed = False
         db_table = "podcast"
         permissions = [
-            ("change_own_podcast", "Change the podcasts where they are the owner"),
-            ("delete_own_podcast", "Delete the podcasts where they are the owner"),
+            (
+                "change_own_podcast",
+                "Change the podcasts where they are the owner",
+            ),
+            (
+                "delete_own_podcast",
+                "Delete the podcasts where they are the owner",
+            ),
         ]
 
 
 class PodcastEpisode(models.Model):
-    podcast = models.ForeignKey("podcasts.Podcast", on_delete=models.DO_NOTHING)
+    podcast = models.ForeignKey(
+        "podcasts.Podcast", on_delete=models.DO_NOTHING
+    )
 
     file = models.ForeignKey(
         "storage.File",
@@ -71,7 +79,9 @@ class PodcastEpisode(models.Model):
 
 
 class StationPodcast(models.Model):
-    podcast = models.ForeignKey("podcasts.Podcast", on_delete=models.DO_NOTHING)
+    podcast = models.ForeignKey(
+        "podcasts.Podcast", on_delete=models.DO_NOTHING
+    )
 
     def get_owner(self):
         return self.podcast.owner
@@ -82,7 +92,9 @@ class StationPodcast(models.Model):
 
 
 class ImportedPodcast(models.Model):
-    podcast = models.ForeignKey("podcasts.Podcast", on_delete=models.DO_NOTHING)
+    podcast = models.ForeignKey(
+        "podcasts.Podcast", on_delete=models.DO_NOTHING
+    )
     override_album = models.BooleanField(db_column="album_override")
 
     auto_ingest = models.BooleanField()

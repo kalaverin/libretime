@@ -5,7 +5,10 @@ from pathlib import Path
 from django.db import connection, migrations
 
 from libretime_api.legacy.migrations import LEGACY_SCHEMA_VERSION
-from libretime_api.legacy.migrations._migrations import get_schema_version, set_schema_version
+from libretime_api.legacy.migrations._migrations import (
+    get_schema_version,
+    set_schema_version,
+)
 
 here = Path(__file__).resolve().parent
 
@@ -19,7 +22,9 @@ def create_schema(_apps, _schema_editor):
 
     with connection.cursor() as cursor:
         for migration_filename in ("schema.sql", "data.sql"):
-            raw = (here / "sql" / migration_filename).read_text(encoding="utf-8")
+            raw = (here / "sql" / migration_filename).read_text(
+                encoding="utf-8"
+            )
             cursor.execute(raw)
 
             set_schema_version(cursor, LEGACY_SCHEMA_VERSION)

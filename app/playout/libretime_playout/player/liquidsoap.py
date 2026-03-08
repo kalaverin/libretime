@@ -5,7 +5,13 @@ from typing import Dict, List, Optional, Set
 
 from libretime_playout.liquidsoap.client import LiquidsoapClient
 from libretime_playout.utils import seconds_between
-from libretime_playout.player.events import ActionEvent, AnyEvent, EventKind, FileEvent, WebStreamEvent
+from libretime_playout.player.events import (
+    ActionEvent,
+    AnyEvent,
+    EventKind,
+    FileEvent,
+    WebStreamEvent,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -30,14 +36,24 @@ def create_liquidsoap_annotation(file_event: FileEvent) -> str:
     # the metadata we get from LibreTime. (You can modify metadata in LibreTime's library,
     # which doesn't get saved back to the file.)
     if file_event.artist_name:
-        value = file_event.artist_name.replace('"', '\\"').strip().replace("\n", " ")
+        value = (
+            file_event.artist_name.replace('"', '\\"')
+            .strip()
+            .replace("\n", " ")
+        )
         annotations["artist"] = value
 
     if file_event.track_title:
-        value = file_event.track_title.replace('"', '\\"').strip().replace("\n", " ")
+        value = (
+            file_event.track_title.replace('"', '\\"')
+            .strip()
+            .replace("\n", " ")
+        )
         annotations["title"] = value
 
-    annotations_str = ",".join(f'{key}="{value}"' for key, value in annotations.items())
+    annotations_str = ",".join(
+        f'{key}="{value}"' for key, value in annotations.items()
+    )
 
     return "annotate:" + annotations_str + ":" + str(file_event.local_filepath)
 
@@ -68,7 +84,9 @@ class TelnetLiquidsoap:
     def queue_push(self, queue_id: int, file_event: FileEvent):
         try:
             annotation = create_liquidsoap_annotation(file_event)
-            self.liq_client.queue_push(queue_id, annotation, file_event.show_name)
+            self.liq_client.queue_push(
+                queue_id, annotation, file_event.show_name
+            )
         except OSError as exception:
             logger.exception(exception)
 
@@ -120,7 +138,9 @@ class TelnetLiquidsoap:
             raise ValueError(f"invalid source name: {sourcename}")
 
         try:
-            logger.debug('Switching source: %s to "%s" status', sourcename, status)
+            logger.debug(
+                'Switching source: %s to "%s" status', sourcename, status
+            )
             self.liq_client.source_switch_status(sourcename, status == "on")
         except OSError as exception:
             logger.exception(exception)
@@ -180,7 +200,10 @@ class Liquidsoap:
         if event.type == EventKind.WEB_STREAM_BUFFER_START:
             self.telnet_liquidsoap.start_web_stream_buffer(event)
         elif event.type == EventKind.WEB_STREAM_OUTPUT_START:
-            if event.row_id != self.telnet_liquidsoap.current_prebuffering_stream_id:
+            if (
+                event.row_id
+                != self.telnet_liquidsoap.current_prebuffering_stream_id
+            ):
                 # this is called if the stream wasn't scheduled sufficiently ahead of
                 # time so that the prebuffering stage could take effect. Let's do the
                 # prebuffering now.
@@ -210,7 +233,9 @@ class Liquidsoap:
         return available_queue
 
     # pylint: disable=too-many-branches
-    def verify_correct_present_media(self, scheduled_now: List[AnyEvent]) -> None:
+    def verify_correct_present_media(
+        self, scheduled_now: List[AnyEvent]
+    ) -> None:
         """
         verify whether Liquidsoap is currently playing the correct files.
         if we find an item that Liquidsoap is not playing, then push it
@@ -277,15 +302,22 @@ class Liquidsoap:
         to_be_added.update(schedule_ids - liq_queue_ids)
 
         if to_be_removed:
-            logger.info("Need to remove items from Liquidsoap: %s", to_be_removed)
+            logger.info(
+                "Need to remove items from Liquidsoap: %s", to_be_removed
+            )
 
             # remove files from Liquidsoap's queue
             for queue_id, queue_item in self.liq_queue_tracker.items():
-                if queue_item is not None and queue_item.row_id in to_be_removed:
+                if (
+                    queue_item is not None
+                    and queue_item.row_id in to_be_removed
+                ):
                     self.stop(queue_id)
 
         if to_be_added:
-            logger.info("Need to add items to Liquidsoap *now*: %s", to_be_added)
+            logger.info(
+                "Need to add items to Liquidsoap *now*: %s", to_be_added
+            )
 
             for item in scheduled_now_files:
                 if item.row_id in to_be_added:
@@ -299,7 +331,9 @@ class Liquidsoap:
 
         logger.debug("scheduled now webstream: %s", scheduled_now_webstream)
         if scheduled_now_webstream:
-            if int(current_stream_id) != int(scheduled_now_webstream[0].row_id):
+            if int(current_stream_id) != int(
+                scheduled_now_webstream[0].row_id
+            ):
                 self.play(scheduled_now_webstream[0])
         elif current_stream_id != "-1":
             # something is playing and it shouldn't be.

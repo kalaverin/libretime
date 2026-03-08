@@ -4,7 +4,10 @@ from rest_framework import viewsets
 
 from libretime_api.mixins import ReadWriteSerializerMixin
 from libretime_api.schedule.models import Schedule
-from libretime_api.schedule.serializers import ReadScheduleSerializer, WriteScheduleSerializer
+from libretime_api.schedule.serializers import (
+    ReadScheduleSerializer,
+    WriteScheduleSerializer,
+)
 
 
 class ScheduleFilter(filters.FilterSet):
@@ -19,7 +22,9 @@ class ScheduleFilter(filters.FilterSet):
     def overbooked_filter(self, queryset, name, value):
         # TODO: deduplicate code using the overbooked property
         if value:
-            return queryset.filter(starts_at__gte=models.F("instance__ends_at"))
+            return queryset.filter(
+                starts_at__gte=models.F("instance__ends_at")
+            )
         return queryset.filter(starts_at__lt=models.F("instance__ends_at"))
 
     class Meta:

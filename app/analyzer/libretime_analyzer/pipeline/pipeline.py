@@ -5,9 +5,15 @@ from typing import Any, Dict, Protocol
 
 from pydantic import BaseModel
 
-from libretime_analyzer.pipeline.analyze_cuepoint import analyze_cuepoint, analyze_duration
+from libretime_analyzer.pipeline.analyze_cuepoint import (
+    analyze_cuepoint,
+    analyze_duration,
+)
 from libretime_analyzer.pipeline.analyze_metadata import analyze_metadata
-from libretime_analyzer.pipeline.analyze_playability import UnplayableFileError, analyze_playability
+from libretime_analyzer.pipeline.analyze_playability import (
+    UnplayableFileError,
+    analyze_playability,
+)
 from libretime_analyzer.pipeline.analyze_replaygain import analyze_replaygain
 from libretime_analyzer.pipeline.organise_file import organise_file
 

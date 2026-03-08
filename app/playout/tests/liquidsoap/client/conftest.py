@@ -9,7 +9,10 @@ from typing import Generator, Protocol
 import pytest
 from libretime_shared.logging import setup_logger
 
-from libretime_playout.liquidsoap.client import LiquidsoapClient, LiquidsoapConnection
+from libretime_playout.liquidsoap.client import (
+    LiquidsoapClient,
+    LiquidsoapConnection,
+)
 
 logger = logging.getLogger(__name__)
 

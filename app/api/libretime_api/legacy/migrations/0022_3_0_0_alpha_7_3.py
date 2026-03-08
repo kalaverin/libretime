@@ -2,7 +2,9 @@
 
 from django.db import migrations
 
-from libretime_api.legacy.migrations._migrations import legacy_migration_factory
+from libretime_api.legacy.migrations._migrations import (
+    legacy_migration_factory,
+)
 
 UP = """
 ALTER TABLE podcast_episodes ALTER COLUMN episode_description TYPE text;

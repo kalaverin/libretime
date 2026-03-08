@@ -7,7 +7,10 @@ from tests.fixtures import FILES
 
 @pytest.mark.parametrize(
     "filepath,replaygain",
-    map(lambda i: pytest.param(str(i.path), i.replaygain, id=i.path.name), FILES),
+    map(
+        lambda i: pytest.param(str(i.path), i.replaygain, id=i.path.name),
+        FILES,
+    ),
 )
 def test_analyze_replaygain(filepath, replaygain):
     tolerance = 0.8

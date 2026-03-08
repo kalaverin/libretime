@@ -18,7 +18,9 @@ BROKER_URL = config.rabbitmq.url
 CELERY_RESULT_BACKEND = "amqp"  # Use RabbitMQ as the celery backend
 CELERY_RESULT_PERSISTENT = True  # Persist through a broker restart
 CELERY_TASK_RESULT_EXPIRES = 900  # Expire task results after 15 minutes
-CELERY_RESULT_EXCHANGE = "celeryresults"  # Default exchange - needed due to php-celery
+CELERY_RESULT_EXCHANGE = (
+    "celeryresults"  # Default exchange - needed due to php-celery
+)
 CELERY_QUEUES = (
     Queue("celery", exchange=Exchange("celery"), routing_key="celery"),
     Queue("podcast", exchange=Exchange("podcast"), routing_key="podcast"),

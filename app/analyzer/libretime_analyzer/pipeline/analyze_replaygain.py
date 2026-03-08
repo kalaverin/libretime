@@ -1,7 +1,10 @@
 from subprocess import CalledProcessError
 from typing import Any, Dict
 
-from libretime_analyzer.pipeline._ffmpeg import compute_replaygain, probe_replaygain
+from libretime_analyzer.pipeline._ffmpeg import (
+    compute_replaygain,
+    probe_replaygain,
+)
 
 
 def analyze_replaygain(filepath: str, metadata: Dict[str, Any]):

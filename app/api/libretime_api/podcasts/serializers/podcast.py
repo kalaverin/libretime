@@ -1,6 +1,11 @@
 from rest_framework import serializers
 
-from libretime_api.podcasts.models import ImportedPodcast, Podcast, PodcastEpisode, StationPodcast
+from libretime_api.podcasts.models import (
+    ImportedPodcast,
+    Podcast,
+    PodcastEpisode,
+    StationPodcast,
+)
 
 
 class PodcastSerializer(serializers.ModelSerializer):

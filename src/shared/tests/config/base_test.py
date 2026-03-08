@@ -352,7 +352,11 @@ FIXTURE_CONFIG_JSON_SCHEMA = {
         },
     },
     "properties": {
-        "public_url": {"format": "uri", "title": "Public Url", "type": "string"},
+        "public_url": {
+            "format": "uri",
+            "title": "Public Url",
+            "type": "string",
+        },
         "api_key": {"title": "Api Key", "type": "string"},
         "allowed_hosts": {
             "default": [],

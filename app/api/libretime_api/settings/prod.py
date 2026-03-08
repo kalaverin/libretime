@@ -40,7 +40,9 @@ public_url_origin = (
     else CONFIG.general.public_url
 )
 
-CORS_ALLOWED_ORIGINS = [public_url_origin] + CONFIG.general.allowed_cors_origins
+CORS_ALLOWED_ORIGINS = [
+    public_url_origin
+] + CONFIG.general.allowed_cors_origins
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases

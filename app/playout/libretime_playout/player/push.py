@@ -44,15 +44,17 @@ class PypoPush(Thread):
         while True:
             try:
                 events = self.queue.get(block=True)
-            except Exception as exception:  # pylint: disable=broad-exception-caught
+            except (
+                Exception
+            ) as exception:  # pylint: disable=broad-exception-caught
                 logger.exception(exception)
                 raise exception
 
             logger.debug(events)
             # separate media_schedule list into currently_playing and
             # scheduled_for_future lists
-            currently_playing, scheduled_for_future = self.separate_present_future(
-                events
+            currently_playing, scheduled_for_future = (
+                self.separate_present_future(events)
             )
 
             self.liquidsoap.verify_correct_present_media(currently_playing)
@@ -63,7 +65,9 @@ class PypoPush(Thread):
                 loops = 0
             loops += 1
 
-    def separate_present_future(self, events: Events) -> Tuple[List[AnyEvent], Events]:
+    def separate_present_future(
+        self, events: Events
+    ) -> Tuple[List[AnyEvent], Events]:
         now = datetime.utcnow()
 
         present: List[AnyEvent] = []
@@ -92,6 +96,8 @@ class PypoPush(Thread):
         while True:
             try:
                 self.main()
-            except Exception as exception:  # pylint: disable=broad-exception-caught
+            except (
+                Exception
+            ) as exception:  # pylint: disable=broad-exception-caught
                 logger.exception(exception)
                 time.sleep(5)
