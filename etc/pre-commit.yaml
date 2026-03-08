@@ -263,7 +263,7 @@ repos:
       - id: codespell
         args:
           - --ignore-words=.codespellignore
-        exclude: (^app/api/schema.yml|^legacy.*|yarn\.lock)$
+        exclude: (^libretime-api/schema.yml|^legacy.*|yarn\.lock)$
 
   # - repo: local
   #   hooks:
