@@ -19,9 +19,9 @@ follow_imports_for_stubs = true
 # many modules have no stubs, skip these errors
 ignore_missing_imports = true
 plugins = [
-  "pydantic.mypy"
   "mypy_django_plugin.main",
   "mypy_drf_plugin.main",
+  "pydantic.mypy"
 ]
 
 [[tool.mypy.overrides]]

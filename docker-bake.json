@@ -1,7 +1,14 @@
 {
   "group": {
     "default": {
-      "targets": ["analyzer", "playout", "api", "worker", "legacy", "nginx"]
+      "targets": [
+        "analyzer",
+        "playout",
+        "api",
+        "worker",
+        "legacy",
+        "nginx"
+      ]
     }
   },
   "target": {

@@ -1,6 +1,6 @@
 ---
 default_language_version:
-  python: python3.8
+  python: python3.10
 
 fail_fast: true
 
@@ -121,7 +121,8 @@ repos:
         name: avoid committing private keys
       - id: mixed-line-ending
         name: avoid mixed line endings
-        args: [--fix=lf]
+        args:
+          - --fix=lf
       - id: end-of-file-fixer
         name: ensure file ends with correct newline
         exclude: \.json$
@@ -229,8 +230,10 @@ repos:
         name: prettier
         entry: prettier --write --ignore-unknown
         language: node
-        types: [text]
-        additional_dependencies: [prettier@3.6.2]
+        types:
+          - text
+        additional_dependencies:
+          - prettier@3.6.2
 
         files: \.(md|mdx|yml|yaml|js|jsx|ts|tsx|json|css)$
         exclude: ^(legacy/public(?!/js/airtime)|CHANGELOG.md$|.github/release-please-manifest.json)
@@ -239,13 +242,16 @@ repos:
     rev: 1.28.0
     hooks:
       - id: django-upgrade
-        args: [--target-version, "4.2"]
+        args:
+          - --target-version
+          - '4.2'
 
   - repo: https://github.com/pycqa/isort
     rev: 6.0.1
     hooks:
       - id: isort
-        args: [--resolve-all-configs]
+        args:
+          - --resolve-all-configs
 
   - repo: https://github.com/psf/black-pre-commit-mirror
     rev: 25.1.0
@@ -256,7 +262,8 @@ repos:
     rev: v2.4.1
     hooks:
       - id: codespell
-        args: [--ignore-words=.codespellignore]
+        args:
+          - --ignore-words=.codespellignore
         exclude: (^api/schema.yml|^legacy.*|yarn\.lock)$
 
   - repo: local
@@ -265,13 +272,15 @@ repos:
         name: shfmt
         language: docker_image
         entry: mvdan/shfmt -i 2 -ci -sr -kp -w
-        types: [shell]
+        types:
+          - shell
 
       - id: shellcheck
         name: shellcheck
         language: docker_image
         entry: koalaman/shellcheck --color=always --severity=warning
-        types: [shell]
+        types:
+          - shell
 
       - id: requirements.txt
         name: requirements.txt
