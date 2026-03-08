@@ -39,5 +39,5 @@ disallow_untyped_calls = true
 disallow_untyped_defs = true
 
 [tool.setuptools.packages.find]
-include = ["libretime_*"]
+include = ["libretime_shared"]
 where = ["."]

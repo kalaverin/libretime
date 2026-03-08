@@ -62,5 +62,5 @@ django_settings_module = "libretime_api.settings.testing"
 DJANGO_SETTINGS_MODULE = "libretime_api.settings.testing"
 
 [tool.setuptools.packages.find]
-include = ["libretime_*"]
+include = ["libretime_api"]
 where = ["."]
