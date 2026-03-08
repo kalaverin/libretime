@@ -1,8 +1,11 @@
+---
 openapi: 3.0.3
+
 info:
   title: LibreTime API
   version: 2.0.0
   description: Radio Broadcast & Automation Platform
+
 paths:
   /api/v2/celery-tasks:
     get:
@@ -13,14 +16,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/CeleryTask"
-          description: ""
+                  $ref: '#/components/schemas/CeleryTask'
+          description: ''
     post:
       operationId: celery_tasks_create
       tags:
@@ -29,24 +32,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CeleryTask"
+              $ref: '#/components/schemas/CeleryTask'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/CeleryTask"
+              $ref: '#/components/schemas/CeleryTask'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/CeleryTask"
+              $ref: '#/components/schemas/CeleryTask'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CeleryTask"
-          description: ""
+                $ref: '#/components/schemas/CeleryTask'
+          description: ''
   /api/v2/celery-tasks/{id}:
     get:
       operationId: celery_tasks_retrieve
@@ -63,12 +66,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CeleryTask"
-          description: ""
+                $ref: '#/components/schemas/CeleryTask'
+          description: ''
     put:
       operationId: celery_tasks_update
       parameters:
@@ -84,24 +87,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CeleryTask"
+              $ref: '#/components/schemas/CeleryTask'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/CeleryTask"
+              $ref: '#/components/schemas/CeleryTask'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/CeleryTask"
+              $ref: '#/components/schemas/CeleryTask'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CeleryTask"
-          description: ""
+                $ref: '#/components/schemas/CeleryTask'
+          description: ''
     patch:
       operationId: celery_tasks_partial_update
       parameters:
@@ -117,23 +120,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedCeleryTask"
+              $ref: '#/components/schemas/PatchedCeleryTask'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedCeleryTask"
+              $ref: '#/components/schemas/PatchedCeleryTask'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedCeleryTask"
+              $ref: '#/components/schemas/PatchedCeleryTask'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CeleryTask"
-          description: ""
+                $ref: '#/components/schemas/CeleryTask'
+          description: ''
     delete:
       operationId: celery_tasks_destroy
       parameters:
@@ -149,7 +152,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/files:
     get:
@@ -169,14 +172,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/File"
-          description: ""
+                  $ref: '#/components/schemas/File'
+          description: ''
     post:
       operationId: files_create
       tags:
@@ -185,24 +188,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/File"
+              $ref: '#/components/schemas/File'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/File"
+              $ref: '#/components/schemas/File'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/File"
+              $ref: '#/components/schemas/File'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/File"
-          description: ""
+                $ref: '#/components/schemas/File'
+          description: ''
   /api/v2/files/{id}:
     get:
       operationId: files_retrieve
@@ -219,12 +222,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/File"
-          description: ""
+                $ref: '#/components/schemas/File'
+          description: ''
     put:
       operationId: files_update
       parameters:
@@ -240,24 +243,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/File"
+              $ref: '#/components/schemas/File'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/File"
+              $ref: '#/components/schemas/File'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/File"
+              $ref: '#/components/schemas/File'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/File"
-          description: ""
+                $ref: '#/components/schemas/File'
+          description: ''
     patch:
       operationId: files_partial_update
       parameters:
@@ -273,23 +276,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedFile"
+              $ref: '#/components/schemas/PatchedFile'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedFile"
+              $ref: '#/components/schemas/PatchedFile'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedFile"
+              $ref: '#/components/schemas/PatchedFile'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/File"
-          description: ""
+                $ref: '#/components/schemas/File'
+          description: ''
     delete:
       operationId: files_destroy
       parameters:
@@ -305,7 +308,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/files/{id}/download:
     get:
@@ -323,12 +326,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/File"
-          description: ""
+                $ref: '#/components/schemas/File'
+          description: ''
   /api/v2/imported-podcasts:
     get:
       operationId: imported_podcasts_list
@@ -338,14 +341,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ImportedPodcast"
-          description: ""
+                  $ref: '#/components/schemas/ImportedPodcast'
+          description: ''
     post:
       operationId: imported_podcasts_create
       tags:
@@ -354,24 +357,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ImportedPodcast"
+              $ref: '#/components/schemas/ImportedPodcast'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/ImportedPodcast"
+              $ref: '#/components/schemas/ImportedPodcast'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/ImportedPodcast"
+              $ref: '#/components/schemas/ImportedPodcast'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ImportedPodcast"
-          description: ""
+                $ref: '#/components/schemas/ImportedPodcast'
+          description: ''
   /api/v2/imported-podcasts/{id}:
     get:
       operationId: imported_podcasts_retrieve
@@ -388,12 +391,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ImportedPodcast"
-          description: ""
+                $ref: '#/components/schemas/ImportedPodcast'
+          description: ''
     put:
       operationId: imported_podcasts_update
       parameters:
@@ -409,24 +412,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ImportedPodcast"
+              $ref: '#/components/schemas/ImportedPodcast'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/ImportedPodcast"
+              $ref: '#/components/schemas/ImportedPodcast'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/ImportedPodcast"
+              $ref: '#/components/schemas/ImportedPodcast'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ImportedPodcast"
-          description: ""
+                $ref: '#/components/schemas/ImportedPodcast'
+          description: ''
     patch:
       operationId: imported_podcasts_partial_update
       parameters:
@@ -442,23 +445,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedImportedPodcast"
+              $ref: '#/components/schemas/PatchedImportedPodcast'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedImportedPodcast"
+              $ref: '#/components/schemas/PatchedImportedPodcast'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedImportedPodcast"
+              $ref: '#/components/schemas/PatchedImportedPodcast'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ImportedPodcast"
-          description: ""
+                $ref: '#/components/schemas/ImportedPodcast'
+          description: ''
     delete:
       operationId: imported_podcasts_destroy
       parameters:
@@ -474,7 +477,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/info:
     get:
@@ -486,12 +489,12 @@ paths:
         - basicAuth: []
         - {}
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Info"
-          description: ""
+                $ref: '#/components/schemas/Info'
+          description: ''
   /api/v2/libraries:
     get:
       operationId: libraries_list
@@ -501,14 +504,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Library"
-          description: ""
+                  $ref: '#/components/schemas/Library'
+          description: ''
     post:
       operationId: libraries_create
       tags:
@@ -517,24 +520,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Library"
+              $ref: '#/components/schemas/Library'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/Library"
+              $ref: '#/components/schemas/Library'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/Library"
+              $ref: '#/components/schemas/Library'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Library"
-          description: ""
+                $ref: '#/components/schemas/Library'
+          description: ''
   /api/v2/libraries/{id}:
     get:
       operationId: libraries_retrieve
@@ -551,12 +554,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Library"
-          description: ""
+                $ref: '#/components/schemas/Library'
+          description: ''
     put:
       operationId: libraries_update
       parameters:
@@ -572,24 +575,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Library"
+              $ref: '#/components/schemas/Library'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/Library"
+              $ref: '#/components/schemas/Library'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/Library"
+              $ref: '#/components/schemas/Library'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Library"
-          description: ""
+                $ref: '#/components/schemas/Library'
+          description: ''
     patch:
       operationId: libraries_partial_update
       parameters:
@@ -605,23 +608,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedLibrary"
+              $ref: '#/components/schemas/PatchedLibrary'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedLibrary"
+              $ref: '#/components/schemas/PatchedLibrary'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedLibrary"
+              $ref: '#/components/schemas/PatchedLibrary'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Library"
-          description: ""
+                $ref: '#/components/schemas/Library'
+          description: ''
     delete:
       operationId: libraries_destroy
       parameters:
@@ -637,7 +640,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/listener-counts:
     get:
@@ -648,14 +651,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ListenerCount"
-          description: ""
+                  $ref: '#/components/schemas/ListenerCount'
+          description: ''
     post:
       operationId: listener_counts_create
       tags:
@@ -664,24 +667,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ListenerCount"
+              $ref: '#/components/schemas/ListenerCount'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/ListenerCount"
+              $ref: '#/components/schemas/ListenerCount'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/ListenerCount"
+              $ref: '#/components/schemas/ListenerCount'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ListenerCount"
-          description: ""
+                $ref: '#/components/schemas/ListenerCount'
+          description: ''
   /api/v2/listener-counts/{id}:
     get:
       operationId: listener_counts_retrieve
@@ -698,12 +701,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ListenerCount"
-          description: ""
+                $ref: '#/components/schemas/ListenerCount'
+          description: ''
     put:
       operationId: listener_counts_update
       parameters:
@@ -719,24 +722,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ListenerCount"
+              $ref: '#/components/schemas/ListenerCount'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/ListenerCount"
+              $ref: '#/components/schemas/ListenerCount'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/ListenerCount"
+              $ref: '#/components/schemas/ListenerCount'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ListenerCount"
-          description: ""
+                $ref: '#/components/schemas/ListenerCount'
+          description: ''
     patch:
       operationId: listener_counts_partial_update
       parameters:
@@ -752,23 +755,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedListenerCount"
+              $ref: '#/components/schemas/PatchedListenerCount'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedListenerCount"
+              $ref: '#/components/schemas/PatchedListenerCount'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedListenerCount"
+              $ref: '#/components/schemas/PatchedListenerCount'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ListenerCount"
-          description: ""
+                $ref: '#/components/schemas/ListenerCount'
+          description: ''
     delete:
       operationId: listener_counts_destroy
       parameters:
@@ -784,7 +787,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/live-logs:
     get:
@@ -795,14 +798,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/LiveLog"
-          description: ""
+                  $ref: '#/components/schemas/LiveLog'
+          description: ''
     post:
       operationId: live_logs_create
       tags:
@@ -811,24 +814,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LiveLog"
+              $ref: '#/components/schemas/LiveLog'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/LiveLog"
+              $ref: '#/components/schemas/LiveLog'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/LiveLog"
+              $ref: '#/components/schemas/LiveLog'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LiveLog"
-          description: ""
+                $ref: '#/components/schemas/LiveLog'
+          description: ''
   /api/v2/live-logs/{id}:
     get:
       operationId: live_logs_retrieve
@@ -845,12 +848,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LiveLog"
-          description: ""
+                $ref: '#/components/schemas/LiveLog'
+          description: ''
     put:
       operationId: live_logs_update
       parameters:
@@ -866,24 +869,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LiveLog"
+              $ref: '#/components/schemas/LiveLog'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/LiveLog"
+              $ref: '#/components/schemas/LiveLog'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/LiveLog"
+              $ref: '#/components/schemas/LiveLog'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LiveLog"
-          description: ""
+                $ref: '#/components/schemas/LiveLog'
+          description: ''
     patch:
       operationId: live_logs_partial_update
       parameters:
@@ -899,23 +902,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedLiveLog"
+              $ref: '#/components/schemas/PatchedLiveLog'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedLiveLog"
+              $ref: '#/components/schemas/PatchedLiveLog'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedLiveLog"
+              $ref: '#/components/schemas/PatchedLiveLog'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LiveLog"
-          description: ""
+                $ref: '#/components/schemas/LiveLog'
+          description: ''
     delete:
       operationId: live_logs_destroy
       parameters:
@@ -931,7 +934,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/login-attempts:
     get:
@@ -942,14 +945,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/LoginAttempt"
-          description: ""
+                  $ref: '#/components/schemas/LoginAttempt'
+          description: ''
     post:
       operationId: login_attempts_create
       tags:
@@ -958,24 +961,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LoginAttempt"
+              $ref: '#/components/schemas/LoginAttempt'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/LoginAttempt"
+              $ref: '#/components/schemas/LoginAttempt'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/LoginAttempt"
+              $ref: '#/components/schemas/LoginAttempt'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LoginAttempt"
-          description: ""
+                $ref: '#/components/schemas/LoginAttempt'
+          description: ''
   /api/v2/login-attempts/{ip}:
     get:
       operationId: login_attempts_retrieve
@@ -992,12 +995,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LoginAttempt"
-          description: ""
+                $ref: '#/components/schemas/LoginAttempt'
+          description: ''
     put:
       operationId: login_attempts_update
       parameters:
@@ -1013,24 +1016,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LoginAttempt"
+              $ref: '#/components/schemas/LoginAttempt'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/LoginAttempt"
+              $ref: '#/components/schemas/LoginAttempt'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/LoginAttempt"
+              $ref: '#/components/schemas/LoginAttempt'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LoginAttempt"
-          description: ""
+                $ref: '#/components/schemas/LoginAttempt'
+          description: ''
     patch:
       operationId: login_attempts_partial_update
       parameters:
@@ -1046,23 +1049,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedLoginAttempt"
+              $ref: '#/components/schemas/PatchedLoginAttempt'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedLoginAttempt"
+              $ref: '#/components/schemas/PatchedLoginAttempt'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedLoginAttempt"
+              $ref: '#/components/schemas/PatchedLoginAttempt'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LoginAttempt"
-          description: ""
+                $ref: '#/components/schemas/LoginAttempt'
+          description: ''
     delete:
       operationId: login_attempts_destroy
       parameters:
@@ -1078,7 +1081,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/mount-names:
     get:
@@ -1089,14 +1092,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/MountName"
-          description: ""
+                  $ref: '#/components/schemas/MountName'
+          description: ''
     post:
       operationId: mount_names_create
       tags:
@@ -1105,24 +1108,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/MountName"
+              $ref: '#/components/schemas/MountName'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/MountName"
+              $ref: '#/components/schemas/MountName'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/MountName"
+              $ref: '#/components/schemas/MountName'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MountName"
-          description: ""
+                $ref: '#/components/schemas/MountName'
+          description: ''
   /api/v2/mount-names/{id}:
     get:
       operationId: mount_names_retrieve
@@ -1139,12 +1142,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MountName"
-          description: ""
+                $ref: '#/components/schemas/MountName'
+          description: ''
     put:
       operationId: mount_names_update
       parameters:
@@ -1160,24 +1163,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/MountName"
+              $ref: '#/components/schemas/MountName'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/MountName"
+              $ref: '#/components/schemas/MountName'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/MountName"
+              $ref: '#/components/schemas/MountName'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MountName"
-          description: ""
+                $ref: '#/components/schemas/MountName'
+          description: ''
     patch:
       operationId: mount_names_partial_update
       parameters:
@@ -1193,23 +1196,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedMountName"
+              $ref: '#/components/schemas/PatchedMountName'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedMountName"
+              $ref: '#/components/schemas/PatchedMountName'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedMountName"
+              $ref: '#/components/schemas/PatchedMountName'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MountName"
-          description: ""
+                $ref: '#/components/schemas/MountName'
+          description: ''
     delete:
       operationId: mount_names_destroy
       parameters:
@@ -1225,7 +1228,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/playlist-contents:
     get:
@@ -1236,14 +1239,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/PlaylistContent"
-          description: ""
+                  $ref: '#/components/schemas/PlaylistContent'
+          description: ''
     post:
       operationId: playlist_contents_create
       tags:
@@ -1252,24 +1255,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PlaylistContent"
+              $ref: '#/components/schemas/PlaylistContent'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PlaylistContent"
+              $ref: '#/components/schemas/PlaylistContent'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PlaylistContent"
+              $ref: '#/components/schemas/PlaylistContent'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlaylistContent"
-          description: ""
+                $ref: '#/components/schemas/PlaylistContent'
+          description: ''
   /api/v2/playlist-contents/{id}:
     get:
       operationId: playlist_contents_retrieve
@@ -1286,12 +1289,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlaylistContent"
-          description: ""
+                $ref: '#/components/schemas/PlaylistContent'
+          description: ''
     put:
       operationId: playlist_contents_update
       parameters:
@@ -1307,24 +1310,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PlaylistContent"
+              $ref: '#/components/schemas/PlaylistContent'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PlaylistContent"
+              $ref: '#/components/schemas/PlaylistContent'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PlaylistContent"
+              $ref: '#/components/schemas/PlaylistContent'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlaylistContent"
-          description: ""
+                $ref: '#/components/schemas/PlaylistContent'
+          description: ''
     patch:
       operationId: playlist_contents_partial_update
       parameters:
@@ -1340,23 +1343,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedPlaylistContent"
+              $ref: '#/components/schemas/PatchedPlaylistContent'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedPlaylistContent"
+              $ref: '#/components/schemas/PatchedPlaylistContent'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedPlaylistContent"
+              $ref: '#/components/schemas/PatchedPlaylistContent'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlaylistContent"
-          description: ""
+                $ref: '#/components/schemas/PlaylistContent'
+          description: ''
     delete:
       operationId: playlist_contents_destroy
       parameters:
@@ -1372,7 +1375,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/playlists:
     get:
@@ -1383,14 +1386,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Playlist"
-          description: ""
+                  $ref: '#/components/schemas/Playlist'
+          description: ''
     post:
       operationId: playlists_create
       tags:
@@ -1399,24 +1402,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Playlist"
+              $ref: '#/components/schemas/Playlist'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/Playlist"
+              $ref: '#/components/schemas/Playlist'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/Playlist"
+              $ref: '#/components/schemas/Playlist'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Playlist"
-          description: ""
+                $ref: '#/components/schemas/Playlist'
+          description: ''
   /api/v2/playlists/{id}:
     get:
       operationId: playlists_retrieve
@@ -1433,12 +1436,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Playlist"
-          description: ""
+                $ref: '#/components/schemas/Playlist'
+          description: ''
     put:
       operationId: playlists_update
       parameters:
@@ -1454,24 +1457,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Playlist"
+              $ref: '#/components/schemas/Playlist'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/Playlist"
+              $ref: '#/components/schemas/Playlist'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/Playlist"
+              $ref: '#/components/schemas/Playlist'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Playlist"
-          description: ""
+                $ref: '#/components/schemas/Playlist'
+          description: ''
     patch:
       operationId: playlists_partial_update
       parameters:
@@ -1487,23 +1490,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedPlaylist"
+              $ref: '#/components/schemas/PatchedPlaylist'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedPlaylist"
+              $ref: '#/components/schemas/PatchedPlaylist'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedPlaylist"
+              $ref: '#/components/schemas/PatchedPlaylist'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Playlist"
-          description: ""
+                $ref: '#/components/schemas/Playlist'
+          description: ''
     delete:
       operationId: playlists_destroy
       parameters:
@@ -1519,7 +1522,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/playout-history:
     get:
@@ -1530,14 +1533,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/PlayoutHistory"
-          description: ""
+                  $ref: '#/components/schemas/PlayoutHistory'
+          description: ''
     post:
       operationId: playout_history_create
       tags:
@@ -1546,24 +1549,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PlayoutHistory"
+              $ref: '#/components/schemas/PlayoutHistory'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PlayoutHistory"
+              $ref: '#/components/schemas/PlayoutHistory'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PlayoutHistory"
+              $ref: '#/components/schemas/PlayoutHistory'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayoutHistory"
-          description: ""
+                $ref: '#/components/schemas/PlayoutHistory'
+          description: ''
   /api/v2/playout-history-metadata:
     get:
       operationId: playout_history_metadata_list
@@ -1573,14 +1576,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/PlayoutHistoryMetadata"
-          description: ""
+                  $ref: '#/components/schemas/PlayoutHistoryMetadata'
+          description: ''
     post:
       operationId: playout_history_metadata_create
       tags:
@@ -1589,24 +1592,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryMetadata"
+              $ref: '#/components/schemas/PlayoutHistoryMetadata'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryMetadata"
+              $ref: '#/components/schemas/PlayoutHistoryMetadata'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryMetadata"
+              $ref: '#/components/schemas/PlayoutHistoryMetadata'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayoutHistoryMetadata"
-          description: ""
+                $ref: '#/components/schemas/PlayoutHistoryMetadata'
+          description: ''
   /api/v2/playout-history-metadata/{id}:
     get:
       operationId: playout_history_metadata_retrieve
@@ -1623,12 +1626,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayoutHistoryMetadata"
-          description: ""
+                $ref: '#/components/schemas/PlayoutHistoryMetadata'
+          description: ''
     put:
       operationId: playout_history_metadata_update
       parameters:
@@ -1644,24 +1647,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryMetadata"
+              $ref: '#/components/schemas/PlayoutHistoryMetadata'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryMetadata"
+              $ref: '#/components/schemas/PlayoutHistoryMetadata'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryMetadata"
+              $ref: '#/components/schemas/PlayoutHistoryMetadata'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayoutHistoryMetadata"
-          description: ""
+                $ref: '#/components/schemas/PlayoutHistoryMetadata'
+          description: ''
     patch:
       operationId: playout_history_metadata_partial_update
       parameters:
@@ -1677,23 +1680,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedPlayoutHistoryMetadata"
+              $ref: '#/components/schemas/PatchedPlayoutHistoryMetadata'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedPlayoutHistoryMetadata"
+              $ref: '#/components/schemas/PatchedPlayoutHistoryMetadata'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedPlayoutHistoryMetadata"
+              $ref: '#/components/schemas/PatchedPlayoutHistoryMetadata'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayoutHistoryMetadata"
-          description: ""
+                $ref: '#/components/schemas/PlayoutHistoryMetadata'
+          description: ''
     delete:
       operationId: playout_history_metadata_destroy
       parameters:
@@ -1709,7 +1712,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/playout-history-template-fields:
     get:
@@ -1720,14 +1723,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/PlayoutHistoryTemplateField"
-          description: ""
+                  $ref: '#/components/schemas/PlayoutHistoryTemplateField'
+          description: ''
     post:
       operationId: playout_history_template_fields_create
       tags:
@@ -1736,24 +1739,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryTemplateField"
+              $ref: '#/components/schemas/PlayoutHistoryTemplateField'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryTemplateField"
+              $ref: '#/components/schemas/PlayoutHistoryTemplateField'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryTemplateField"
+              $ref: '#/components/schemas/PlayoutHistoryTemplateField'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayoutHistoryTemplateField"
-          description: ""
+                $ref: '#/components/schemas/PlayoutHistoryTemplateField'
+          description: ''
   /api/v2/playout-history-template-fields/{id}:
     get:
       operationId: playout_history_template_fields_retrieve
@@ -1762,8 +1765,7 @@ paths:
           name: id
           schema:
             type: integer
-          description:
-            A unique integer value identifying this playout history template
+          description: A unique integer value identifying this playout history template
             field.
           required: true
       tags:
@@ -1772,12 +1774,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayoutHistoryTemplateField"
-          description: ""
+                $ref: '#/components/schemas/PlayoutHistoryTemplateField'
+          description: ''
     put:
       operationId: playout_history_template_fields_update
       parameters:
@@ -1785,8 +1787,7 @@ paths:
           name: id
           schema:
             type: integer
-          description:
-            A unique integer value identifying this playout history template
+          description: A unique integer value identifying this playout history template
             field.
           required: true
       tags:
@@ -1795,24 +1796,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryTemplateField"
+              $ref: '#/components/schemas/PlayoutHistoryTemplateField'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryTemplateField"
+              $ref: '#/components/schemas/PlayoutHistoryTemplateField'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryTemplateField"
+              $ref: '#/components/schemas/PlayoutHistoryTemplateField'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayoutHistoryTemplateField"
-          description: ""
+                $ref: '#/components/schemas/PlayoutHistoryTemplateField'
+          description: ''
     patch:
       operationId: playout_history_template_fields_partial_update
       parameters:
@@ -1820,8 +1821,7 @@ paths:
           name: id
           schema:
             type: integer
-          description:
-            A unique integer value identifying this playout history template
+          description: A unique integer value identifying this playout history template
             field.
           required: true
       tags:
@@ -1830,23 +1830,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedPlayoutHistoryTemplateField"
+              $ref: '#/components/schemas/PatchedPlayoutHistoryTemplateField'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedPlayoutHistoryTemplateField"
+              $ref: '#/components/schemas/PatchedPlayoutHistoryTemplateField'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedPlayoutHistoryTemplateField"
+              $ref: '#/components/schemas/PatchedPlayoutHistoryTemplateField'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayoutHistoryTemplateField"
-          description: ""
+                $ref: '#/components/schemas/PlayoutHistoryTemplateField'
+          description: ''
     delete:
       operationId: playout_history_template_fields_destroy
       parameters:
@@ -1854,8 +1854,7 @@ paths:
           name: id
           schema:
             type: integer
-          description:
-            A unique integer value identifying this playout history template
+          description: A unique integer value identifying this playout history template
             field.
           required: true
       tags:
@@ -1864,7 +1863,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/playout-history-templates:
     get:
@@ -1875,14 +1874,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/PlayoutHistoryTemplate"
-          description: ""
+                  $ref: '#/components/schemas/PlayoutHistoryTemplate'
+          description: ''
     post:
       operationId: playout_history_templates_create
       tags:
@@ -1891,24 +1890,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryTemplate"
+              $ref: '#/components/schemas/PlayoutHistoryTemplate'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryTemplate"
+              $ref: '#/components/schemas/PlayoutHistoryTemplate'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryTemplate"
+              $ref: '#/components/schemas/PlayoutHistoryTemplate'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayoutHistoryTemplate"
-          description: ""
+                $ref: '#/components/schemas/PlayoutHistoryTemplate'
+          description: ''
   /api/v2/playout-history-templates/{id}:
     get:
       operationId: playout_history_templates_retrieve
@@ -1925,12 +1924,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayoutHistoryTemplate"
-          description: ""
+                $ref: '#/components/schemas/PlayoutHistoryTemplate'
+          description: ''
     put:
       operationId: playout_history_templates_update
       parameters:
@@ -1946,24 +1945,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryTemplate"
+              $ref: '#/components/schemas/PlayoutHistoryTemplate'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryTemplate"
+              $ref: '#/components/schemas/PlayoutHistoryTemplate'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PlayoutHistoryTemplate"
+              $ref: '#/components/schemas/PlayoutHistoryTemplate'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayoutHistoryTemplate"
-          description: ""
+                $ref: '#/components/schemas/PlayoutHistoryTemplate'
+          description: ''
     patch:
       operationId: playout_history_templates_partial_update
       parameters:
@@ -1979,23 +1978,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedPlayoutHistoryTemplate"
+              $ref: '#/components/schemas/PatchedPlayoutHistoryTemplate'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedPlayoutHistoryTemplate"
+              $ref: '#/components/schemas/PatchedPlayoutHistoryTemplate'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedPlayoutHistoryTemplate"
+              $ref: '#/components/schemas/PatchedPlayoutHistoryTemplate'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayoutHistoryTemplate"
-          description: ""
+                $ref: '#/components/schemas/PlayoutHistoryTemplate'
+          description: ''
     delete:
       operationId: playout_history_templates_destroy
       parameters:
@@ -2011,7 +2010,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/playout-history/{id}:
     get:
@@ -2029,12 +2028,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayoutHistory"
-          description: ""
+                $ref: '#/components/schemas/PlayoutHistory'
+          description: ''
     put:
       operationId: playout_history_update
       parameters:
@@ -2050,24 +2049,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PlayoutHistory"
+              $ref: '#/components/schemas/PlayoutHistory'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PlayoutHistory"
+              $ref: '#/components/schemas/PlayoutHistory'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PlayoutHistory"
+              $ref: '#/components/schemas/PlayoutHistory'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayoutHistory"
-          description: ""
+                $ref: '#/components/schemas/PlayoutHistory'
+          description: ''
     patch:
       operationId: playout_history_partial_update
       parameters:
@@ -2083,23 +2082,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedPlayoutHistory"
+              $ref: '#/components/schemas/PatchedPlayoutHistory'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedPlayoutHistory"
+              $ref: '#/components/schemas/PatchedPlayoutHistory'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedPlayoutHistory"
+              $ref: '#/components/schemas/PatchedPlayoutHistory'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayoutHistory"
-          description: ""
+                $ref: '#/components/schemas/PlayoutHistory'
+          description: ''
     delete:
       operationId: playout_history_destroy
       parameters:
@@ -2115,7 +2114,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/podcast-episodes:
     get:
@@ -2126,14 +2125,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/PodcastEpisode"
-          description: ""
+                  $ref: '#/components/schemas/PodcastEpisode'
+          description: ''
     post:
       operationId: podcast_episodes_create
       tags:
@@ -2142,24 +2141,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PodcastEpisode"
+              $ref: '#/components/schemas/PodcastEpisode'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PodcastEpisode"
+              $ref: '#/components/schemas/PodcastEpisode'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PodcastEpisode"
+              $ref: '#/components/schemas/PodcastEpisode'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PodcastEpisode"
-          description: ""
+                $ref: '#/components/schemas/PodcastEpisode'
+          description: ''
   /api/v2/podcast-episodes/{id}:
     get:
       operationId: podcast_episodes_retrieve
@@ -2176,12 +2175,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PodcastEpisode"
-          description: ""
+                $ref: '#/components/schemas/PodcastEpisode'
+          description: ''
     put:
       operationId: podcast_episodes_update
       parameters:
@@ -2197,24 +2196,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PodcastEpisode"
+              $ref: '#/components/schemas/PodcastEpisode'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PodcastEpisode"
+              $ref: '#/components/schemas/PodcastEpisode'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PodcastEpisode"
+              $ref: '#/components/schemas/PodcastEpisode'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PodcastEpisode"
-          description: ""
+                $ref: '#/components/schemas/PodcastEpisode'
+          description: ''
     patch:
       operationId: podcast_episodes_partial_update
       parameters:
@@ -2230,23 +2229,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedPodcastEpisode"
+              $ref: '#/components/schemas/PatchedPodcastEpisode'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedPodcastEpisode"
+              $ref: '#/components/schemas/PatchedPodcastEpisode'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedPodcastEpisode"
+              $ref: '#/components/schemas/PatchedPodcastEpisode'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PodcastEpisode"
-          description: ""
+                $ref: '#/components/schemas/PodcastEpisode'
+          description: ''
     delete:
       operationId: podcast_episodes_destroy
       parameters:
@@ -2262,7 +2261,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/podcasts:
     get:
@@ -2273,14 +2272,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Podcast"
-          description: ""
+                  $ref: '#/components/schemas/Podcast'
+          description: ''
     post:
       operationId: podcasts_create
       tags:
@@ -2289,24 +2288,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Podcast"
+              $ref: '#/components/schemas/Podcast'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/Podcast"
+              $ref: '#/components/schemas/Podcast'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/Podcast"
+              $ref: '#/components/schemas/Podcast'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Podcast"
-          description: ""
+                $ref: '#/components/schemas/Podcast'
+          description: ''
   /api/v2/podcasts/{id}:
     get:
       operationId: podcasts_retrieve
@@ -2323,12 +2322,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Podcast"
-          description: ""
+                $ref: '#/components/schemas/Podcast'
+          description: ''
     put:
       operationId: podcasts_update
       parameters:
@@ -2344,24 +2343,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Podcast"
+              $ref: '#/components/schemas/Podcast'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/Podcast"
+              $ref: '#/components/schemas/Podcast'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/Podcast"
+              $ref: '#/components/schemas/Podcast'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Podcast"
-          description: ""
+                $ref: '#/components/schemas/Podcast'
+          description: ''
     patch:
       operationId: podcasts_partial_update
       parameters:
@@ -2377,23 +2376,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedPodcast"
+              $ref: '#/components/schemas/PatchedPodcast'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedPodcast"
+              $ref: '#/components/schemas/PatchedPodcast'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedPodcast"
+              $ref: '#/components/schemas/PatchedPodcast'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Podcast"
-          description: ""
+                $ref: '#/components/schemas/Podcast'
+          description: ''
     delete:
       operationId: podcasts_destroy
       parameters:
@@ -2409,7 +2408,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/preferences:
     get:
@@ -2420,14 +2419,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Preference"
-          description: ""
+                  $ref: '#/components/schemas/Preference'
+          description: ''
     post:
       operationId: preferences_create
       tags:
@@ -2436,24 +2435,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Preference"
+              $ref: '#/components/schemas/Preference'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/Preference"
+              $ref: '#/components/schemas/Preference'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/Preference"
+              $ref: '#/components/schemas/Preference'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Preference"
-          description: ""
+                $ref: '#/components/schemas/Preference'
+          description: ''
   /api/v2/preferences/{id}:
     get:
       operationId: preferences_retrieve
@@ -2470,12 +2469,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Preference"
-          description: ""
+                $ref: '#/components/schemas/Preference'
+          description: ''
     put:
       operationId: preferences_update
       parameters:
@@ -2491,24 +2490,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Preference"
+              $ref: '#/components/schemas/Preference'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/Preference"
+              $ref: '#/components/schemas/Preference'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/Preference"
+              $ref: '#/components/schemas/Preference'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Preference"
-          description: ""
+                $ref: '#/components/schemas/Preference'
+          description: ''
     patch:
       operationId: preferences_partial_update
       parameters:
@@ -2524,23 +2523,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedPreference"
+              $ref: '#/components/schemas/PatchedPreference'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedPreference"
+              $ref: '#/components/schemas/PatchedPreference'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedPreference"
+              $ref: '#/components/schemas/PatchedPreference'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Preference"
-          description: ""
+                $ref: '#/components/schemas/Preference'
+          description: ''
     delete:
       operationId: preferences_destroy
       parameters:
@@ -2556,7 +2555,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/schedule:
     get:
@@ -2606,14 +2605,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ReadSchedule"
-          description: ""
+                  $ref: '#/components/schemas/ReadSchedule'
+          description: ''
     post:
       operationId: schedule_create
       description: |-
@@ -2628,24 +2627,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/WriteSchedule"
+              $ref: '#/components/schemas/WriteSchedule'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/WriteSchedule"
+              $ref: '#/components/schemas/WriteSchedule'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/WriteSchedule"
+              $ref: '#/components/schemas/WriteSchedule'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/WriteSchedule"
-          description: ""
+                $ref: '#/components/schemas/WriteSchedule'
+          description: ''
   /api/v2/schedule/{id}:
     get:
       operationId: schedule_retrieve
@@ -2668,12 +2667,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ReadSchedule"
-          description: ""
+                $ref: '#/components/schemas/ReadSchedule'
+          description: ''
     put:
       operationId: schedule_update
       description: |-
@@ -2695,24 +2694,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ReadSchedule"
+              $ref: '#/components/schemas/ReadSchedule'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/ReadSchedule"
+              $ref: '#/components/schemas/ReadSchedule'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/ReadSchedule"
+              $ref: '#/components/schemas/ReadSchedule'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ReadSchedule"
-          description: ""
+                $ref: '#/components/schemas/ReadSchedule'
+          description: ''
     patch:
       operationId: schedule_partial_update
       description: |-
@@ -2734,23 +2733,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedReadSchedule"
+              $ref: '#/components/schemas/PatchedReadSchedule'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedReadSchedule"
+              $ref: '#/components/schemas/PatchedReadSchedule'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedReadSchedule"
+              $ref: '#/components/schemas/PatchedReadSchedule'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ReadSchedule"
-          description: ""
+                $ref: '#/components/schemas/ReadSchedule'
+          description: ''
     delete:
       operationId: schedule_destroy
       description: |-
@@ -2772,7 +2771,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/schema:
     get:
@@ -2900,7 +2899,7 @@ paths:
         - basicAuth: []
         - {}
       responses:
-        "200":
+        '200':
           content:
             application/vnd.oai.openapi:
               schema:
@@ -2918,7 +2917,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: {}
-          description: ""
+          description: ''
   /api/v2/service-registers:
     get:
       operationId: service_registers_list
@@ -2928,14 +2927,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ServiceRegister"
-          description: ""
+                  $ref: '#/components/schemas/ServiceRegister'
+          description: ''
     post:
       operationId: service_registers_create
       tags:
@@ -2944,24 +2943,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ServiceRegister"
+              $ref: '#/components/schemas/ServiceRegister'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/ServiceRegister"
+              $ref: '#/components/schemas/ServiceRegister'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/ServiceRegister"
+              $ref: '#/components/schemas/ServiceRegister'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ServiceRegister"
-          description: ""
+                $ref: '#/components/schemas/ServiceRegister'
+          description: ''
   /api/v2/service-registers/{name}:
     get:
       operationId: service_registers_retrieve
@@ -2978,12 +2977,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ServiceRegister"
-          description: ""
+                $ref: '#/components/schemas/ServiceRegister'
+          description: ''
     put:
       operationId: service_registers_update
       parameters:
@@ -2999,24 +2998,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ServiceRegister"
+              $ref: '#/components/schemas/ServiceRegister'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/ServiceRegister"
+              $ref: '#/components/schemas/ServiceRegister'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/ServiceRegister"
+              $ref: '#/components/schemas/ServiceRegister'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ServiceRegister"
-          description: ""
+                $ref: '#/components/schemas/ServiceRegister'
+          description: ''
     patch:
       operationId: service_registers_partial_update
       parameters:
@@ -3032,23 +3031,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedServiceRegister"
+              $ref: '#/components/schemas/PatchedServiceRegister'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedServiceRegister"
+              $ref: '#/components/schemas/PatchedServiceRegister'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedServiceRegister"
+              $ref: '#/components/schemas/PatchedServiceRegister'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ServiceRegister"
-          description: ""
+                $ref: '#/components/schemas/ServiceRegister'
+          description: ''
     delete:
       operationId: service_registers_destroy
       parameters:
@@ -3064,7 +3063,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/show-days:
     get:
@@ -3075,14 +3074,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ShowDays"
-          description: ""
+                  $ref: '#/components/schemas/ShowDays'
+          description: ''
     post:
       operationId: show_days_create
       tags:
@@ -3091,24 +3090,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ShowDays"
+              $ref: '#/components/schemas/ShowDays'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/ShowDays"
+              $ref: '#/components/schemas/ShowDays'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/ShowDays"
+              $ref: '#/components/schemas/ShowDays'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ShowDays"
-          description: ""
+                $ref: '#/components/schemas/ShowDays'
+          description: ''
   /api/v2/show-days/{id}:
     get:
       operationId: show_days_retrieve
@@ -3125,12 +3124,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ShowDays"
-          description: ""
+                $ref: '#/components/schemas/ShowDays'
+          description: ''
     put:
       operationId: show_days_update
       parameters:
@@ -3146,24 +3145,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ShowDays"
+              $ref: '#/components/schemas/ShowDays'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/ShowDays"
+              $ref: '#/components/schemas/ShowDays'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/ShowDays"
+              $ref: '#/components/schemas/ShowDays'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ShowDays"
-          description: ""
+                $ref: '#/components/schemas/ShowDays'
+          description: ''
     patch:
       operationId: show_days_partial_update
       parameters:
@@ -3179,23 +3178,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedShowDays"
+              $ref: '#/components/schemas/PatchedShowDays'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedShowDays"
+              $ref: '#/components/schemas/PatchedShowDays'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedShowDays"
+              $ref: '#/components/schemas/PatchedShowDays'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ShowDays"
-          description: ""
+                $ref: '#/components/schemas/ShowDays'
+          description: ''
     delete:
       operationId: show_days_destroy
       parameters:
@@ -3211,7 +3210,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/show-hosts:
     get:
@@ -3222,14 +3221,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ShowHost"
-          description: ""
+                  $ref: '#/components/schemas/ShowHost'
+          description: ''
     post:
       operationId: show_hosts_create
       tags:
@@ -3238,24 +3237,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ShowHost"
+              $ref: '#/components/schemas/ShowHost'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/ShowHost"
+              $ref: '#/components/schemas/ShowHost'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/ShowHost"
+              $ref: '#/components/schemas/ShowHost'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ShowHost"
-          description: ""
+                $ref: '#/components/schemas/ShowHost'
+          description: ''
   /api/v2/show-hosts/{id}:
     get:
       operationId: show_hosts_retrieve
@@ -3272,12 +3271,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ShowHost"
-          description: ""
+                $ref: '#/components/schemas/ShowHost'
+          description: ''
     put:
       operationId: show_hosts_update
       parameters:
@@ -3293,24 +3292,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ShowHost"
+              $ref: '#/components/schemas/ShowHost'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/ShowHost"
+              $ref: '#/components/schemas/ShowHost'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/ShowHost"
+              $ref: '#/components/schemas/ShowHost'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ShowHost"
-          description: ""
+                $ref: '#/components/schemas/ShowHost'
+          description: ''
     patch:
       operationId: show_hosts_partial_update
       parameters:
@@ -3326,23 +3325,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedShowHost"
+              $ref: '#/components/schemas/PatchedShowHost'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedShowHost"
+              $ref: '#/components/schemas/PatchedShowHost'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedShowHost"
+              $ref: '#/components/schemas/PatchedShowHost'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ShowHost"
-          description: ""
+                $ref: '#/components/schemas/ShowHost'
+          description: ''
     delete:
       operationId: show_hosts_destroy
       parameters:
@@ -3358,7 +3357,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/show-instances:
     get:
@@ -3369,14 +3368,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ShowInstance"
-          description: ""
+                  $ref: '#/components/schemas/ShowInstance'
+          description: ''
     post:
       operationId: show_instances_create
       tags:
@@ -3385,24 +3384,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ShowInstance"
+              $ref: '#/components/schemas/ShowInstance'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/ShowInstance"
+              $ref: '#/components/schemas/ShowInstance'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/ShowInstance"
+              $ref: '#/components/schemas/ShowInstance'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ShowInstance"
-          description: ""
+                $ref: '#/components/schemas/ShowInstance'
+          description: ''
   /api/v2/show-instances/{id}:
     get:
       operationId: show_instances_retrieve
@@ -3419,12 +3418,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ShowInstance"
-          description: ""
+                $ref: '#/components/schemas/ShowInstance'
+          description: ''
     put:
       operationId: show_instances_update
       parameters:
@@ -3440,24 +3439,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ShowInstance"
+              $ref: '#/components/schemas/ShowInstance'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/ShowInstance"
+              $ref: '#/components/schemas/ShowInstance'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/ShowInstance"
+              $ref: '#/components/schemas/ShowInstance'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ShowInstance"
-          description: ""
+                $ref: '#/components/schemas/ShowInstance'
+          description: ''
     patch:
       operationId: show_instances_partial_update
       parameters:
@@ -3473,23 +3472,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedShowInstance"
+              $ref: '#/components/schemas/PatchedShowInstance'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedShowInstance"
+              $ref: '#/components/schemas/PatchedShowInstance'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedShowInstance"
+              $ref: '#/components/schemas/PatchedShowInstance'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ShowInstance"
-          description: ""
+                $ref: '#/components/schemas/ShowInstance'
+          description: ''
     delete:
       operationId: show_instances_destroy
       parameters:
@@ -3505,7 +3504,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/show-rebroadcasts:
     get:
@@ -3516,14 +3515,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ShowRebroadcast"
-          description: ""
+                  $ref: '#/components/schemas/ShowRebroadcast'
+          description: ''
     post:
       operationId: show_rebroadcasts_create
       tags:
@@ -3532,24 +3531,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ShowRebroadcast"
+              $ref: '#/components/schemas/ShowRebroadcast'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/ShowRebroadcast"
+              $ref: '#/components/schemas/ShowRebroadcast'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/ShowRebroadcast"
+              $ref: '#/components/schemas/ShowRebroadcast'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ShowRebroadcast"
-          description: ""
+                $ref: '#/components/schemas/ShowRebroadcast'
+          description: ''
   /api/v2/show-rebroadcasts/{id}:
     get:
       operationId: show_rebroadcasts_retrieve
@@ -3566,12 +3565,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ShowRebroadcast"
-          description: ""
+                $ref: '#/components/schemas/ShowRebroadcast'
+          description: ''
     put:
       operationId: show_rebroadcasts_update
       parameters:
@@ -3587,24 +3586,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ShowRebroadcast"
+              $ref: '#/components/schemas/ShowRebroadcast'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/ShowRebroadcast"
+              $ref: '#/components/schemas/ShowRebroadcast'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/ShowRebroadcast"
+              $ref: '#/components/schemas/ShowRebroadcast'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ShowRebroadcast"
-          description: ""
+                $ref: '#/components/schemas/ShowRebroadcast'
+          description: ''
     patch:
       operationId: show_rebroadcasts_partial_update
       parameters:
@@ -3620,23 +3619,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedShowRebroadcast"
+              $ref: '#/components/schemas/PatchedShowRebroadcast'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedShowRebroadcast"
+              $ref: '#/components/schemas/PatchedShowRebroadcast'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedShowRebroadcast"
+              $ref: '#/components/schemas/PatchedShowRebroadcast'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ShowRebroadcast"
-          description: ""
+                $ref: '#/components/schemas/ShowRebroadcast'
+          description: ''
     delete:
       operationId: show_rebroadcasts_destroy
       parameters:
@@ -3652,7 +3651,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/shows:
     get:
@@ -3663,14 +3662,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Show"
-          description: ""
+                  $ref: '#/components/schemas/Show'
+          description: ''
     post:
       operationId: shows_create
       tags:
@@ -3679,24 +3678,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Show"
+              $ref: '#/components/schemas/Show'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/Show"
+              $ref: '#/components/schemas/Show'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/Show"
+              $ref: '#/components/schemas/Show'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Show"
-          description: ""
+                $ref: '#/components/schemas/Show'
+          description: ''
   /api/v2/shows/{id}:
     get:
       operationId: shows_retrieve
@@ -3713,12 +3712,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Show"
-          description: ""
+                $ref: '#/components/schemas/Show'
+          description: ''
     put:
       operationId: shows_update
       parameters:
@@ -3734,24 +3733,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Show"
+              $ref: '#/components/schemas/Show'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/Show"
+              $ref: '#/components/schemas/Show'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/Show"
+              $ref: '#/components/schemas/Show'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Show"
-          description: ""
+                $ref: '#/components/schemas/Show'
+          description: ''
     patch:
       operationId: shows_partial_update
       parameters:
@@ -3767,23 +3766,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedShow"
+              $ref: '#/components/schemas/PatchedShow'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedShow"
+              $ref: '#/components/schemas/PatchedShow'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedShow"
+              $ref: '#/components/schemas/PatchedShow'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Show"
-          description: ""
+                $ref: '#/components/schemas/Show'
+          description: ''
     delete:
       operationId: shows_destroy
       parameters:
@@ -3799,7 +3798,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/smart-block-contents:
     get:
@@ -3810,14 +3809,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/SmartBlockContent"
-          description: ""
+                  $ref: '#/components/schemas/SmartBlockContent'
+          description: ''
     post:
       operationId: smart_block_contents_create
       tags:
@@ -3826,24 +3825,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SmartBlockContent"
+              $ref: '#/components/schemas/SmartBlockContent'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/SmartBlockContent"
+              $ref: '#/components/schemas/SmartBlockContent'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/SmartBlockContent"
+              $ref: '#/components/schemas/SmartBlockContent'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SmartBlockContent"
-          description: ""
+                $ref: '#/components/schemas/SmartBlockContent'
+          description: ''
   /api/v2/smart-block-contents/{id}:
     get:
       operationId: smart_block_contents_retrieve
@@ -3860,12 +3859,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SmartBlockContent"
-          description: ""
+                $ref: '#/components/schemas/SmartBlockContent'
+          description: ''
     put:
       operationId: smart_block_contents_update
       parameters:
@@ -3881,24 +3880,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SmartBlockContent"
+              $ref: '#/components/schemas/SmartBlockContent'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/SmartBlockContent"
+              $ref: '#/components/schemas/SmartBlockContent'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/SmartBlockContent"
+              $ref: '#/components/schemas/SmartBlockContent'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SmartBlockContent"
-          description: ""
+                $ref: '#/components/schemas/SmartBlockContent'
+          description: ''
     patch:
       operationId: smart_block_contents_partial_update
       parameters:
@@ -3914,23 +3913,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedSmartBlockContent"
+              $ref: '#/components/schemas/PatchedSmartBlockContent'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedSmartBlockContent"
+              $ref: '#/components/schemas/PatchedSmartBlockContent'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedSmartBlockContent"
+              $ref: '#/components/schemas/PatchedSmartBlockContent'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SmartBlockContent"
-          description: ""
+                $ref: '#/components/schemas/SmartBlockContent'
+          description: ''
     delete:
       operationId: smart_block_contents_destroy
       parameters:
@@ -3946,7 +3945,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/smart-block-criteria:
     get:
@@ -3957,14 +3956,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/SmartBlockCriteria"
-          description: ""
+                  $ref: '#/components/schemas/SmartBlockCriteria'
+          description: ''
     post:
       operationId: smart_block_criteria_create
       tags:
@@ -3973,24 +3972,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SmartBlockCriteria"
+              $ref: '#/components/schemas/SmartBlockCriteria'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/SmartBlockCriteria"
+              $ref: '#/components/schemas/SmartBlockCriteria'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/SmartBlockCriteria"
+              $ref: '#/components/schemas/SmartBlockCriteria'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SmartBlockCriteria"
-          description: ""
+                $ref: '#/components/schemas/SmartBlockCriteria'
+          description: ''
   /api/v2/smart-block-criteria/{id}:
     get:
       operationId: smart_block_criteria_retrieve
@@ -4007,12 +4006,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SmartBlockCriteria"
-          description: ""
+                $ref: '#/components/schemas/SmartBlockCriteria'
+          description: ''
     put:
       operationId: smart_block_criteria_update
       parameters:
@@ -4028,24 +4027,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SmartBlockCriteria"
+              $ref: '#/components/schemas/SmartBlockCriteria'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/SmartBlockCriteria"
+              $ref: '#/components/schemas/SmartBlockCriteria'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/SmartBlockCriteria"
+              $ref: '#/components/schemas/SmartBlockCriteria'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SmartBlockCriteria"
-          description: ""
+                $ref: '#/components/schemas/SmartBlockCriteria'
+          description: ''
     patch:
       operationId: smart_block_criteria_partial_update
       parameters:
@@ -4061,23 +4060,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedSmartBlockCriteria"
+              $ref: '#/components/schemas/PatchedSmartBlockCriteria'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedSmartBlockCriteria"
+              $ref: '#/components/schemas/PatchedSmartBlockCriteria'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedSmartBlockCriteria"
+              $ref: '#/components/schemas/PatchedSmartBlockCriteria'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SmartBlockCriteria"
-          description: ""
+                $ref: '#/components/schemas/SmartBlockCriteria'
+          description: ''
     delete:
       operationId: smart_block_criteria_destroy
       parameters:
@@ -4093,7 +4092,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/smart-blocks:
     get:
@@ -4104,14 +4103,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/SmartBlock"
-          description: ""
+                  $ref: '#/components/schemas/SmartBlock'
+          description: ''
     post:
       operationId: smart_blocks_create
       tags:
@@ -4120,24 +4119,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SmartBlock"
+              $ref: '#/components/schemas/SmartBlock'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/SmartBlock"
+              $ref: '#/components/schemas/SmartBlock'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/SmartBlock"
+              $ref: '#/components/schemas/SmartBlock'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SmartBlock"
-          description: ""
+                $ref: '#/components/schemas/SmartBlock'
+          description: ''
   /api/v2/smart-blocks/{id}:
     get:
       operationId: smart_blocks_retrieve
@@ -4154,12 +4153,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SmartBlock"
-          description: ""
+                $ref: '#/components/schemas/SmartBlock'
+          description: ''
     put:
       operationId: smart_blocks_update
       parameters:
@@ -4175,24 +4174,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SmartBlock"
+              $ref: '#/components/schemas/SmartBlock'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/SmartBlock"
+              $ref: '#/components/schemas/SmartBlock'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/SmartBlock"
+              $ref: '#/components/schemas/SmartBlock'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SmartBlock"
-          description: ""
+                $ref: '#/components/schemas/SmartBlock'
+          description: ''
     patch:
       operationId: smart_blocks_partial_update
       parameters:
@@ -4208,23 +4207,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedSmartBlock"
+              $ref: '#/components/schemas/PatchedSmartBlock'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedSmartBlock"
+              $ref: '#/components/schemas/PatchedSmartBlock'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedSmartBlock"
+              $ref: '#/components/schemas/PatchedSmartBlock'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SmartBlock"
-          description: ""
+                $ref: '#/components/schemas/SmartBlock'
+          description: ''
     delete:
       operationId: smart_blocks_destroy
       parameters:
@@ -4240,7 +4239,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/station-podcasts:
     get:
@@ -4251,14 +4250,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/StationPodcast"
-          description: ""
+                  $ref: '#/components/schemas/StationPodcast'
+          description: ''
     post:
       operationId: station_podcasts_create
       tags:
@@ -4267,24 +4266,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/StationPodcast"
+              $ref: '#/components/schemas/StationPodcast'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/StationPodcast"
+              $ref: '#/components/schemas/StationPodcast'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/StationPodcast"
+              $ref: '#/components/schemas/StationPodcast'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/StationPodcast"
-          description: ""
+                $ref: '#/components/schemas/StationPodcast'
+          description: ''
   /api/v2/station-podcasts/{id}:
     get:
       operationId: station_podcasts_retrieve
@@ -4301,12 +4300,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/StationPodcast"
-          description: ""
+                $ref: '#/components/schemas/StationPodcast'
+          description: ''
     put:
       operationId: station_podcasts_update
       parameters:
@@ -4322,24 +4321,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/StationPodcast"
+              $ref: '#/components/schemas/StationPodcast'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/StationPodcast"
+              $ref: '#/components/schemas/StationPodcast'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/StationPodcast"
+              $ref: '#/components/schemas/StationPodcast'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/StationPodcast"
-          description: ""
+                $ref: '#/components/schemas/StationPodcast'
+          description: ''
     patch:
       operationId: station_podcasts_partial_update
       parameters:
@@ -4355,23 +4354,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedStationPodcast"
+              $ref: '#/components/schemas/PatchedStationPodcast'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedStationPodcast"
+              $ref: '#/components/schemas/PatchedStationPodcast'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedStationPodcast"
+              $ref: '#/components/schemas/PatchedStationPodcast'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/StationPodcast"
-          description: ""
+                $ref: '#/components/schemas/StationPodcast'
+          description: ''
     delete:
       operationId: station_podcasts_destroy
       parameters:
@@ -4387,7 +4386,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/stream/preferences:
     get:
@@ -4398,12 +4397,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/StreamPreferences"
-          description: ""
+                $ref: '#/components/schemas/StreamPreferences'
+          description: ''
   /api/v2/stream/state:
     get:
       operationId: stream_state_retrieve
@@ -4413,12 +4412,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/StreamState"
-          description: ""
+                $ref: '#/components/schemas/StreamState'
+          description: ''
   /api/v2/third-party-track-references:
     get:
       operationId: third_party_track_references_list
@@ -4428,14 +4427,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ThirdPartyTrackReference"
-          description: ""
+                  $ref: '#/components/schemas/ThirdPartyTrackReference'
+          description: ''
     post:
       operationId: third_party_track_references_create
       tags:
@@ -4444,24 +4443,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ThirdPartyTrackReference"
+              $ref: '#/components/schemas/ThirdPartyTrackReference'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/ThirdPartyTrackReference"
+              $ref: '#/components/schemas/ThirdPartyTrackReference'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/ThirdPartyTrackReference"
+              $ref: '#/components/schemas/ThirdPartyTrackReference'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ThirdPartyTrackReference"
-          description: ""
+                $ref: '#/components/schemas/ThirdPartyTrackReference'
+          description: ''
   /api/v2/third-party-track-references/{id}:
     get:
       operationId: third_party_track_references_retrieve
@@ -4470,7 +4469,8 @@ paths:
           name: id
           schema:
             type: integer
-          description: A unique integer value identifying this third party track reference.
+          description: A unique integer value identifying this third party track
+            reference.
           required: true
       tags:
         - third-party-track-references
@@ -4478,12 +4478,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ThirdPartyTrackReference"
-          description: ""
+                $ref: '#/components/schemas/ThirdPartyTrackReference'
+          description: ''
     put:
       operationId: third_party_track_references_update
       parameters:
@@ -4491,7 +4491,8 @@ paths:
           name: id
           schema:
             type: integer
-          description: A unique integer value identifying this third party track reference.
+          description: A unique integer value identifying this third party track
+            reference.
           required: true
       tags:
         - third-party-track-references
@@ -4499,24 +4500,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ThirdPartyTrackReference"
+              $ref: '#/components/schemas/ThirdPartyTrackReference'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/ThirdPartyTrackReference"
+              $ref: '#/components/schemas/ThirdPartyTrackReference'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/ThirdPartyTrackReference"
+              $ref: '#/components/schemas/ThirdPartyTrackReference'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ThirdPartyTrackReference"
-          description: ""
+                $ref: '#/components/schemas/ThirdPartyTrackReference'
+          description: ''
     patch:
       operationId: third_party_track_references_partial_update
       parameters:
@@ -4524,7 +4525,8 @@ paths:
           name: id
           schema:
             type: integer
-          description: A unique integer value identifying this third party track reference.
+          description: A unique integer value identifying this third party track
+            reference.
           required: true
       tags:
         - third-party-track-references
@@ -4532,23 +4534,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedThirdPartyTrackReference"
+              $ref: '#/components/schemas/PatchedThirdPartyTrackReference'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedThirdPartyTrackReference"
+              $ref: '#/components/schemas/PatchedThirdPartyTrackReference'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedThirdPartyTrackReference"
+              $ref: '#/components/schemas/PatchedThirdPartyTrackReference'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ThirdPartyTrackReference"
-          description: ""
+                $ref: '#/components/schemas/ThirdPartyTrackReference'
+          description: ''
     delete:
       operationId: third_party_track_references_destroy
       parameters:
@@ -4556,7 +4558,8 @@ paths:
           name: id
           schema:
             type: integer
-          description: A unique integer value identifying this third party track reference.
+          description: A unique integer value identifying this third party track
+            reference.
           required: true
       tags:
         - third-party-track-references
@@ -4564,7 +4567,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/timestamps:
     get:
@@ -4575,14 +4578,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Timestamp"
-          description: ""
+                  $ref: '#/components/schemas/Timestamp'
+          description: ''
     post:
       operationId: timestamps_create
       tags:
@@ -4591,24 +4594,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Timestamp"
+              $ref: '#/components/schemas/Timestamp'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/Timestamp"
+              $ref: '#/components/schemas/Timestamp'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/Timestamp"
+              $ref: '#/components/schemas/Timestamp'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Timestamp"
-          description: ""
+                $ref: '#/components/schemas/Timestamp'
+          description: ''
   /api/v2/timestamps/{id}:
     get:
       operationId: timestamps_retrieve
@@ -4625,12 +4628,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Timestamp"
-          description: ""
+                $ref: '#/components/schemas/Timestamp'
+          description: ''
     put:
       operationId: timestamps_update
       parameters:
@@ -4646,24 +4649,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Timestamp"
+              $ref: '#/components/schemas/Timestamp'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/Timestamp"
+              $ref: '#/components/schemas/Timestamp'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/Timestamp"
+              $ref: '#/components/schemas/Timestamp'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Timestamp"
-          description: ""
+                $ref: '#/components/schemas/Timestamp'
+          description: ''
     patch:
       operationId: timestamps_partial_update
       parameters:
@@ -4679,23 +4682,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedTimestamp"
+              $ref: '#/components/schemas/PatchedTimestamp'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedTimestamp"
+              $ref: '#/components/schemas/PatchedTimestamp'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedTimestamp"
+              $ref: '#/components/schemas/PatchedTimestamp'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Timestamp"
-          description: ""
+                $ref: '#/components/schemas/Timestamp'
+          description: ''
     delete:
       operationId: timestamps_destroy
       parameters:
@@ -4711,7 +4714,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/user-tokens:
     get:
@@ -4722,14 +4725,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/UserToken"
-          description: ""
+                  $ref: '#/components/schemas/UserToken'
+          description: ''
     post:
       operationId: user_tokens_create
       tags:
@@ -4738,24 +4741,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserToken"
+              $ref: '#/components/schemas/UserToken'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/UserToken"
+              $ref: '#/components/schemas/UserToken'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/UserToken"
+              $ref: '#/components/schemas/UserToken'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserToken"
-          description: ""
+                $ref: '#/components/schemas/UserToken'
+          description: ''
   /api/v2/user-tokens/{id}:
     get:
       operationId: user_tokens_retrieve
@@ -4772,12 +4775,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserToken"
-          description: ""
+                $ref: '#/components/schemas/UserToken'
+          description: ''
     put:
       operationId: user_tokens_update
       parameters:
@@ -4793,24 +4796,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserToken"
+              $ref: '#/components/schemas/UserToken'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/UserToken"
+              $ref: '#/components/schemas/UserToken'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/UserToken"
+              $ref: '#/components/schemas/UserToken'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserToken"
-          description: ""
+                $ref: '#/components/schemas/UserToken'
+          description: ''
     patch:
       operationId: user_tokens_partial_update
       parameters:
@@ -4826,23 +4829,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedUserToken"
+              $ref: '#/components/schemas/PatchedUserToken'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedUserToken"
+              $ref: '#/components/schemas/PatchedUserToken'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedUserToken"
+              $ref: '#/components/schemas/PatchedUserToken'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserToken"
-          description: ""
+                $ref: '#/components/schemas/UserToken'
+          description: ''
     delete:
       operationId: user_tokens_destroy
       parameters:
@@ -4858,7 +4861,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/users:
     get:
@@ -4869,14 +4872,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/User"
-          description: ""
+                  $ref: '#/components/schemas/User'
+          description: ''
     post:
       operationId: users_create
       tags:
@@ -4885,24 +4888,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/User"
+              $ref: '#/components/schemas/User'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/User"
+              $ref: '#/components/schemas/User'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/User"
+              $ref: '#/components/schemas/User'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
-          description: ""
+                $ref: '#/components/schemas/User'
+          description: ''
   /api/v2/users/{id}:
     get:
       operationId: users_retrieve
@@ -4919,12 +4922,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
-          description: ""
+                $ref: '#/components/schemas/User'
+          description: ''
     put:
       operationId: users_update
       parameters:
@@ -4940,24 +4943,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/User"
+              $ref: '#/components/schemas/User'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/User"
+              $ref: '#/components/schemas/User'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/User"
+              $ref: '#/components/schemas/User'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
-          description: ""
+                $ref: '#/components/schemas/User'
+          description: ''
     patch:
       operationId: users_partial_update
       parameters:
@@ -4973,23 +4976,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedUser"
+              $ref: '#/components/schemas/PatchedUser'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedUser"
+              $ref: '#/components/schemas/PatchedUser'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedUser"
+              $ref: '#/components/schemas/PatchedUser'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
-          description: ""
+                $ref: '#/components/schemas/User'
+          description: ''
     delete:
       operationId: users_destroy
       parameters:
@@ -5005,7 +5008,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/version:
     get:
@@ -5017,12 +5020,12 @@ paths:
         - basicAuth: []
         - {}
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Version"
-          description: ""
+                $ref: '#/components/schemas/Version'
+          description: ''
   /api/v2/webstream-metadata:
     get:
       operationId: webstream_metadata_list
@@ -5032,14 +5035,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/WebstreamMetadata"
-          description: ""
+                  $ref: '#/components/schemas/WebstreamMetadata'
+          description: ''
     post:
       operationId: webstream_metadata_create
       tags:
@@ -5048,24 +5051,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/WebstreamMetadata"
+              $ref: '#/components/schemas/WebstreamMetadata'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/WebstreamMetadata"
+              $ref: '#/components/schemas/WebstreamMetadata'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/WebstreamMetadata"
+              $ref: '#/components/schemas/WebstreamMetadata'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/WebstreamMetadata"
-          description: ""
+                $ref: '#/components/schemas/WebstreamMetadata'
+          description: ''
   /api/v2/webstream-metadata/{id}:
     get:
       operationId: webstream_metadata_retrieve
@@ -5082,12 +5085,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/WebstreamMetadata"
-          description: ""
+                $ref: '#/components/schemas/WebstreamMetadata'
+          description: ''
     put:
       operationId: webstream_metadata_update
       parameters:
@@ -5103,24 +5106,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/WebstreamMetadata"
+              $ref: '#/components/schemas/WebstreamMetadata'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/WebstreamMetadata"
+              $ref: '#/components/schemas/WebstreamMetadata'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/WebstreamMetadata"
+              $ref: '#/components/schemas/WebstreamMetadata'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/WebstreamMetadata"
-          description: ""
+                $ref: '#/components/schemas/WebstreamMetadata'
+          description: ''
     patch:
       operationId: webstream_metadata_partial_update
       parameters:
@@ -5136,23 +5139,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedWebstreamMetadata"
+              $ref: '#/components/schemas/PatchedWebstreamMetadata'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedWebstreamMetadata"
+              $ref: '#/components/schemas/PatchedWebstreamMetadata'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedWebstreamMetadata"
+              $ref: '#/components/schemas/PatchedWebstreamMetadata'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/WebstreamMetadata"
-          description: ""
+                $ref: '#/components/schemas/WebstreamMetadata'
+          description: ''
     delete:
       operationId: webstream_metadata_destroy
       parameters:
@@ -5168,7 +5171,7 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
   /api/v2/webstreams:
     get:
@@ -5179,14 +5182,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Webstream"
-          description: ""
+                  $ref: '#/components/schemas/Webstream'
+          description: ''
     post:
       operationId: webstreams_create
       tags:
@@ -5195,24 +5198,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Webstream"
+              $ref: '#/components/schemas/Webstream'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/Webstream"
+              $ref: '#/components/schemas/Webstream'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/Webstream"
+              $ref: '#/components/schemas/Webstream'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Webstream"
-          description: ""
+                $ref: '#/components/schemas/Webstream'
+          description: ''
   /api/v2/webstreams/{id}:
     get:
       operationId: webstreams_retrieve
@@ -5229,12 +5232,12 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Webstream"
-          description: ""
+                $ref: '#/components/schemas/Webstream'
+          description: ''
     put:
       operationId: webstreams_update
       parameters:
@@ -5250,24 +5253,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Webstream"
+              $ref: '#/components/schemas/Webstream'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/Webstream"
+              $ref: '#/components/schemas/Webstream'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/Webstream"
+              $ref: '#/components/schemas/Webstream'
         required: true
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Webstream"
-          description: ""
+                $ref: '#/components/schemas/Webstream'
+          description: ''
     patch:
       operationId: webstreams_partial_update
       parameters:
@@ -5283,23 +5286,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedWebstream"
+              $ref: '#/components/schemas/PatchedWebstream'
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedWebstream"
+              $ref: '#/components/schemas/PatchedWebstream'
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedWebstream"
+              $ref: '#/components/schemas/PatchedWebstream'
       security:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Webstream"
-          description: ""
+                $ref: '#/components/schemas/Webstream'
+          description: ''
     delete:
       operationId: webstreams_destroy
       parameters:
@@ -5315,13 +5318,14 @@ paths:
         - cookieAuth: []
         - basicAuth: []
       responses:
-        "204":
+        '204':
           description: No response body
+
 components:
   schemas:
     BlankEnum:
       enum:
-        - ""
+        - ''
     CeleryTask:
       type: object
       properties:
@@ -5357,7 +5361,7 @@ components:
           readOnly: true
         import_status:
           allOf:
-            - $ref: "#/components/schemas/FileImportStatusEnum"
+            - $ref: '#/components/schemas/FileImportStatusEnum'
           minimum: -2147483648
           maximum: 2147483647
         filepath:
@@ -5738,7 +5742,6 @@ components:
         - mount_name
     NullEnum:
       enum:
-        - null
     PatchedCeleryTask:
       type: object
       properties:
@@ -5769,7 +5772,7 @@ components:
           readOnly: true
         import_status:
           allOf:
-            - $ref: "#/components/schemas/FileImportStatusEnum"
+            - $ref: '#/components/schemas/FileImportStatusEnum'
           minimum: -2147483648
           maximum: 2147483647
         filepath:
@@ -6137,7 +6140,7 @@ components:
           readOnly: true
         kind:
           allOf:
-            - $ref: "#/components/schemas/PlaylistContentKindEnum"
+            - $ref: '#/components/schemas/PlaylistContentKindEnum'
           minimum: -32768
           maximum: 32767
         position:
@@ -6380,7 +6383,7 @@ components:
           minimum: -2147483648
         position_status:
           allOf:
-            - $ref: "#/components/schemas/PositionStatusEnum"
+            - $ref: '#/components/schemas/PositionStatusEnum'
           minimum: -32768
           maximum: 32767
         broadcasted:
@@ -6491,18 +6494,18 @@ components:
           minimum: -32768
           maximum: 32767
           oneOf:
-            - $ref: "#/components/schemas/RecordEnabledEnum"
-            - $ref: "#/components/schemas/NullEnum"
+            - $ref: '#/components/schemas/RecordEnabledEnum'
+            - $ref: '#/components/schemas/NullEnum'
         week_day:
           nullable: true
           minimum: -32768
           maximum: 32767
           oneOf:
-            - $ref: "#/components/schemas/WeekDayEnum"
-            - $ref: "#/components/schemas/NullEnum"
+            - $ref: '#/components/schemas/WeekDayEnum'
+            - $ref: '#/components/schemas/NullEnum'
         repeat_kind:
           allOf:
-            - $ref: "#/components/schemas/RepeatKindEnum"
+            - $ref: '#/components/schemas/RepeatKindEnum'
           minimum: -32768
           maximum: 32767
         repeat_next_on:
@@ -6561,8 +6564,8 @@ components:
           minimum: -32768
           maximum: 32767
           oneOf:
-            - $ref: "#/components/schemas/RecordEnabledEnum"
-            - $ref: "#/components/schemas/NullEnum"
+            - $ref: '#/components/schemas/RecordEnabledEnum'
+            - $ref: '#/components/schemas/NullEnum'
         show:
           type: integer
         instance:
@@ -6612,9 +6615,9 @@ components:
         kind:
           nullable: true
           oneOf:
-            - $ref: "#/components/schemas/SmartBlockKindEnum"
-            - $ref: "#/components/schemas/BlankEnum"
-            - $ref: "#/components/schemas/NullEnum"
+            - $ref: '#/components/schemas/SmartBlockKindEnum'
+            - $ref: '#/components/schemas/BlankEnum'
+            - $ref: '#/components/schemas/NullEnum'
         owner:
           type: integer
           nullable: true
@@ -6729,7 +6732,7 @@ components:
           type: integer
           readOnly: true
         role:
-          $ref: "#/components/schemas/RoleEnum"
+          $ref: '#/components/schemas/RoleEnum'
         username:
           type: string
           maxLength: 255
@@ -6871,7 +6874,7 @@ components:
           readOnly: true
         kind:
           allOf:
-            - $ref: "#/components/schemas/PlaylistContentKindEnum"
+            - $ref: '#/components/schemas/PlaylistContentKindEnum'
           minimum: -32768
           maximum: 32767
         position:
@@ -7176,7 +7179,7 @@ components:
           minimum: -2147483648
         position_status:
           allOf:
-            - $ref: "#/components/schemas/PositionStatusEnum"
+            - $ref: '#/components/schemas/PositionStatusEnum'
           minimum: -32768
           maximum: 32767
         broadcasted:
@@ -7209,8 +7212,8 @@ components:
         - 1
       type: integer
       description: |-
-        * `0` - No
-        * `1` - Yes
+        * `0` - false
+        * `1` - true
     RepeatKindEnum:
       enum:
         - 0
@@ -7343,18 +7346,18 @@ components:
           minimum: -32768
           maximum: 32767
           oneOf:
-            - $ref: "#/components/schemas/RecordEnabledEnum"
-            - $ref: "#/components/schemas/NullEnum"
+            - $ref: '#/components/schemas/RecordEnabledEnum'
+            - $ref: '#/components/schemas/NullEnum'
         week_day:
           nullable: true
           minimum: -32768
           maximum: 32767
           oneOf:
-            - $ref: "#/components/schemas/WeekDayEnum"
-            - $ref: "#/components/schemas/NullEnum"
+            - $ref: '#/components/schemas/WeekDayEnum'
+            - $ref: '#/components/schemas/NullEnum'
         repeat_kind:
           allOf:
-            - $ref: "#/components/schemas/RepeatKindEnum"
+            - $ref: '#/components/schemas/RepeatKindEnum'
           minimum: -32768
           maximum: 32767
         repeat_next_on:
@@ -7425,8 +7428,8 @@ components:
           minimum: -32768
           maximum: 32767
           oneOf:
-            - $ref: "#/components/schemas/RecordEnabledEnum"
-            - $ref: "#/components/schemas/NullEnum"
+            - $ref: '#/components/schemas/RecordEnabledEnum'
+            - $ref: '#/components/schemas/NullEnum'
         show:
           type: integer
         instance:
@@ -7489,9 +7492,9 @@ components:
         kind:
           nullable: true
           oneOf:
-            - $ref: "#/components/schemas/SmartBlockKindEnum"
-            - $ref: "#/components/schemas/BlankEnum"
-            - $ref: "#/components/schemas/NullEnum"
+            - $ref: '#/components/schemas/SmartBlockKindEnum'
+            - $ref: '#/components/schemas/BlankEnum'
+            - $ref: '#/components/schemas/NullEnum'
         owner:
           type: integer
           nullable: true
@@ -7685,7 +7688,7 @@ components:
           type: integer
           readOnly: true
         role:
-          $ref: "#/components/schemas/RoleEnum"
+          $ref: '#/components/schemas/RoleEnum'
         username:
           type: string
           maxLength: 255
@@ -7873,7 +7876,7 @@ components:
           minimum: -2147483648
         position_status:
           allOf:
-            - $ref: "#/components/schemas/PositionStatusEnum"
+            - $ref: '#/components/schemas/PositionStatusEnum'
           minimum: -32768
           maximum: 32767
         broadcasted:

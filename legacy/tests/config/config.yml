@@ -1,3 +1,4 @@
+---
 general:
   dev_env: testing
   public_url: http://localhost

@@ -1,3 +1,4 @@
+---
 services:
   postgres:
     image: postgres:15
@@ -5,7 +6,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-libretime}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-libretime} # Change me !
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-libretime}  # Change me !
     healthcheck:
       test: pg_isready -U libretime
 
@@ -14,7 +15,7 @@ services:
     environment:
       RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_DEFAULT_VHOST:-/libretime}
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-libretime}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-libretime} # Change me !
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-libretime}  # Change me !
     healthcheck:
       test: nc -z 127.0.0.1 5672
 
@@ -111,9 +112,9 @@ services:
     ports:
       - 8000:8000
     environment:
-      ICECAST_SOURCE_PASSWORD: ${ICECAST_SOURCE_PASSWORD:-hackme} # Change me !
-      ICECAST_ADMIN_PASSWORD: ${ICECAST_ADMIN_PASSWORD:-hackme} # Change me !
-      ICECAST_RELAY_PASSWORD: ${ICECAST_RELAY_PASSWORD:-hackme} # Change me !
+      ICECAST_SOURCE_PASSWORD: ${ICECAST_SOURCE_PASSWORD:-hackme}  # Change me !
+      ICECAST_ADMIN_PASSWORD: ${ICECAST_ADMIN_PASSWORD:-hackme}  # Change me !
+      ICECAST_RELAY_PASSWORD: ${ICECAST_RELAY_PASSWORD:-hackme}  # Change me !
 
 volumes:
   postgres_data: {}

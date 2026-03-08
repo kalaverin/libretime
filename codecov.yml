@@ -1,8 +1,8 @@
 ---
 coverage:
   status:
-    project: off
-    patch: off
+    project: false
+    patch: false
 
 flags:
   analyzer:

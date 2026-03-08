@@ -21,10 +21,10 @@ rules:
   comments-indentation:
     level: warning
   document-end: disable
-  document-start: disable
+  document-start: enable
   empty-lines:
     max: 2
-  empty-values: enable
+  empty-values: disable
   hyphens: enable
   indentation:
     spaces: 2
@@ -32,7 +32,7 @@ rules:
   key-duplicates: enable
   key-ordering: disable
   line-length:
-    max: 1000
+    max: 119
     level: warning
   new-line-at-end-of-file: enable
   new-lines: enable

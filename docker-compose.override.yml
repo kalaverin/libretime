@@ -1,3 +1,4 @@
+---
 #
 # This file is used for development. It it not intended for production!
 # See https://libretime.org/docs/developer-manual/development/environment/#docker-compose
@@ -57,7 +58,7 @@ services:
       - ./api:/src
     command: /usr/local/bin/libretime-api runserver 0.0.0.0:9001
     environment:
-      LIBRETIME_DEBUG: "true"
+      LIBRETIME_DEBUG: 'true'
 
   legacy:
     build:

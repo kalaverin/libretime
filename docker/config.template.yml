@@ -1,3 +1,4 @@
+---
 # See https://libretime.org/docs/admin-manual/setup/configuration/
 
 general:
@@ -88,10 +89,10 @@ email:
   encryption:
   # The username to use for the SMTP server.
   # > default is ""
-  user: ""
+  user: ''
   # The password to use for the SMTP server.
   # > default is ""
-  password: ""
+  password: ''
   # Timeout in seconds for blocking operations like the connection attempt.
   timeout:
   # The path to a PEM-formatted certificate chain file to use for the connection.
@@ -134,7 +135,8 @@ liquidsoap:
 
   # Input harbor listen address.
   # > default is ["0.0.0.0"]
-  harbor_listen_address: ["0.0.0.0"]
+  harbor_listen_address:
+    - 0.0.0.0
 
   # Input harbor tls certificate path.
   harbor_ssl_certificate:
@@ -210,9 +212,9 @@ stream:
           format: ogg
           bitrate: 128
 
-      - # Whether the output is enabled.
-        # > default is false
-        enabled: false
+      # Whether the output is enabled.
+      # > default is false
+      - enabled: false
         # Output public url, If not defined, the value will be generated from
         # the [general.public_url] hostname, the output port and mount.
         public_url:
@@ -271,9 +273,9 @@ stream:
     # Shoutcast output streams.
     # > max items is 1
     shoutcast:
-      - # Whether the output is enabled.
-        # > default is false
-        enabled: false
+      # Whether the output is enabled.
+      # > default is false
+      - enabled: false
         # Output public url. If not defined, the value will be generated from
         # the [general.public_url] hostname and the output port.
         public_url:
@@ -320,9 +322,9 @@ stream:
     # System outputs.
     # > max items is 1
     system:
-      - # Whether the output is enabled.
-        # > default is false
-        enabled: false
+      # Whether the output is enabled.
+      # > default is false
+      - enabled: false
         # System output kind.
         # > must be one of (alsa, ao, oss, portaudio, pulseaudio)
         # > default is pulseaudio
