@@ -15,15 +15,15 @@ Main case:
 
 import logging
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 import click
+
 from libretime_api_client.v1 import ApiClient as LegacyClient
+from libretime_playout.config import Config
 from libretime_shared.cli import cli_config_options, cli_logging_options
 from libretime_shared.config import DEFAULT_ENV_PREFIX
 from libretime_shared.logging import setup_logger
-
-from libretime_playout.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -51,8 +51,8 @@ pass_app = click.make_pass_decorator(App)
 def cli(
     ctx: click.Context,
     log_level: str,
-    log_filepath: Optional[Path],
-    config_filepath: Optional[Path],
+    log_filepath: Path | None,
+    config_filepath: Path | None,
 ):
     """
     A gateway between Liquidsoap and the API.
@@ -85,7 +85,7 @@ def webstream(app: App, media_id, data):
     Replaces: notify --webstream='#{json_str}' --media-id=#{!current_dyn_id}
     """
     logger.info(
-        "Sending currently playing webstream '%s' data '%s'", media_id, data
+        "Sending currently playing webstream '%s' data '%s'", media_id, data,
     )
     app.api_client.notify_webstream_data(data, media_id)
 
@@ -101,7 +101,7 @@ def live(app: App, name, status):
     Replaces: notify --source-name=#{sourcename} --source-status=#{status}
     """
     logger.info(
-        "Sending currently playing live source '%s' status '%s'", name, status
+        "Sending currently playing live source '%s' status '%s'", name, status,
     )
     app.api_client.notify_source_status(name, status)
 

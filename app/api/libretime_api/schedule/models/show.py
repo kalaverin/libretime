@@ -79,7 +79,7 @@ class Show(models.Model):
     )
 
     override_intro_playlist = models.BooleanField(
-        db_column="override_intro_playlist"
+        db_column="override_intro_playlist",
     )
 
     outro_playlist = models.ForeignKey(
@@ -92,7 +92,7 @@ class Show(models.Model):
     )
 
     override_outro_playlist = models.BooleanField(
-        db_column="override_outro_playlist"
+        db_column="override_outro_playlist",
     )
 
     hosts = models.ManyToManyField(  # type: ignore[var-annotated]
@@ -209,7 +209,7 @@ class ShowInstance(models.Model):
     starts_at = models.DateTimeField(db_column="starts")
     ends_at = models.DateTimeField(db_column="ends")
     filled_time = models.DurationField(
-        blank=True, null=True, db_column="time_filled"
+        blank=True, null=True, db_column="time_filled",
     )
 
     last_scheduled_at = models.DateTimeField(

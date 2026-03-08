@@ -45,7 +45,7 @@ class TestScheduleViewSet(APITestCase):
             schedule_item.ends_at,
         )
         self.assertEqual(
-            dateparse.parse_duration(result[0]["cue_out"]), file.cue_out
+            dateparse.parse_duration(result[0]["cue_out"]), file.cue_out,
         )
 
     def test_schedule_item_trunc(self):
@@ -74,11 +74,11 @@ class TestScheduleViewSet(APITestCase):
         self.assertEqual(response.status_code, 200)
         result = response.json()
         self.assertEqual(
-            dateparse.parse_datetime(result[0]["ends_at"]), show.ends_at
+            dateparse.parse_datetime(result[0]["ends_at"]), show.ends_at,
         )
         expected = show.ends_at - schedule_item.starts_at
         self.assertEqual(
-            dateparse.parse_duration(result[0]["cue_out"]), expected
+            dateparse.parse_duration(result[0]["cue_out"]), expected,
         )
         self.assertNotEqual(
             dateparse.parse_datetime(result[0]["ends_at"]),
@@ -126,7 +126,7 @@ class TestScheduleViewSet(APITestCase):
             schedule_item.ends_at,
         )
         self.assertEqual(
-            dateparse.parse_duration(result[0]["cue_out"]), file.cue_out
+            dateparse.parse_duration(result[0]["cue_out"]), file.cue_out,
         )
 
     def test_schedule_item_range(self):
@@ -163,10 +163,10 @@ class TestScheduleViewSet(APITestCase):
         )
         self.client.credentials(HTTP_AUTHORIZATION=f"Api-Key {self.token}")
         range_start = (filter_point - timedelta(minutes=1)).isoformat(
-            timespec="seconds"
+            timespec="seconds",
         )
         range_end = (filter_point + timedelta(minutes=1)).isoformat(
-            timespec="seconds"
+            timespec="seconds",
         )
         response = self.client.get(
             self.path,

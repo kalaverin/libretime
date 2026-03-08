@@ -12,7 +12,7 @@ from tests.fixtures import FILES
     "filepath,length,cuein,cueout",
     map(
         lambda i: pytest.param(
-            str(i.path), i.length, i.cuein, i.cueout, id=i.path.name
+            str(i.path), i.length, i.cuein, i.cueout, id=i.path.name,
         ),
         FILES,
     ),

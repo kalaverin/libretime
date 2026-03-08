@@ -30,6 +30,6 @@ class Migration(migrations.Migration):
             code=legacy_migration_factory(
                 target="2.5.11",
                 before=update_disk_usage,
-            )
-        )
+            ),
+        ),
     ]

@@ -1,18 +1,19 @@
 import logging
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 from random import randint
 from subprocess import PIPE, STDOUT, Popen
 from time import sleep
-from typing import Generator, Protocol
+from typing import Protocol
 
 import pytest
-from libretime_shared.logging import setup_logger
-
 from libretime_playout.liquidsoap.client import (
     LiquidsoapClient,
     LiquidsoapConnection,
 )
+
+from libretime_shared.logging import setup_logger
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,6 @@
 import logging
 import socket
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -15,17 +14,17 @@ class InvalidConnection(Exception):
 class LiquidsoapConnection:
     _host: str
     _port: int
-    _path: Optional[Path] = None
+    _path: Path | None = None
     _timeout: int
 
-    _sock: Optional[socket.socket] = None
+    _sock: socket.socket | None = None
     _eof = b"END"
 
     def __init__(
         self,
         host: str = "localhost",
         port: int = 0,
-        path: Optional[Path] = None,
+        path: Path | None = None,
         timeout: int = 5,
     ):
         """
@@ -91,7 +90,7 @@ class LiquidsoapConnection:
 
     def write(self, *messages: str):
         if self._sock is None:
-            raise InvalidConnection()
+            raise InvalidConnection
 
         for message in messages:
             logger.debug("sending %s", message)
@@ -102,7 +101,7 @@ class LiquidsoapConnection:
 
     def read(self) -> str:
         if self._sock is None:
-            raise InvalidConnection()
+            raise InvalidConnection
 
         chunks = []
         while True:

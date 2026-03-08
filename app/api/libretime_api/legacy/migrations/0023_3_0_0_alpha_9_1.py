@@ -30,6 +30,6 @@ class Migration(migrations.Migration):
             code=legacy_migration_factory(
                 target="3.0.0-alpha.9.1",
                 sql=UP,
-            )
-        )
+            ),
+        ),
     ]

@@ -1,10 +1,8 @@
 import logging
 import time
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Set
 
 from libretime_playout.liquidsoap.client import LiquidsoapClient
-from libretime_playout.utils import seconds_between
 from libretime_playout.player.events import (
     ActionEvent,
     AnyEvent,
@@ -12,6 +10,7 @@ from libretime_playout.player.events import (
     FileEvent,
     WebStreamEvent,
 )
+from libretime_playout.utils import seconds_between
 
 logger = logging.getLogger(__name__)
 
@@ -59,12 +58,12 @@ def create_liquidsoap_annotation(file_event: FileEvent) -> str:
 
 
 class TelnetLiquidsoap:
-    current_prebuffering_stream_id: Optional[int] = None
+    current_prebuffering_stream_id: int | None = None
 
     def __init__(
         self,
         liq_client: LiquidsoapClient,
-        queues: List[int],
+        queues: list[int],
     ):
         self.liq_client = liq_client
         self.queues = queues
@@ -85,7 +84,7 @@ class TelnetLiquidsoap:
         try:
             annotation = create_liquidsoap_annotation(file_event)
             self.liq_client.queue_push(
-                queue_id, annotation, file_event.show_name
+                queue_id, annotation, file_event.show_name,
             )
         except OSError as exception:
             logger.exception(exception)
@@ -139,7 +138,7 @@ class TelnetLiquidsoap:
 
         try:
             logger.debug(
-                'Switching source: %s to "%s" status', sourcename, status
+                'Switching source: %s to "%s" status', sourcename, status,
             )
             self.liq_client.source_switch_status(sourcename, status == "on")
         except OSError as exception:
@@ -148,7 +147,7 @@ class TelnetLiquidsoap:
 
 class Liquidsoap:
     def __init__(self, liq_client: LiquidsoapClient):
-        self.liq_queue_tracker: Dict[int, Optional[FileEvent]] = {
+        self.liq_queue_tracker: dict[int, FileEvent | None] = {
             0: None,
             1: None,
             2: None,
@@ -228,13 +227,13 @@ class Liquidsoap:
                 available_queue = queue_id
 
         if available_queue is None:
-            raise NoQueueAvailableException()
+            raise NoQueueAvailableException
 
         return available_queue
 
     # pylint: disable=too-many-branches
     def verify_correct_present_media(
-        self, scheduled_now: List[AnyEvent]
+        self, scheduled_now: list[AnyEvent],
     ) -> None:
         """
         verify whether Liquidsoap is currently playing the correct files.
@@ -258,27 +257,27 @@ class Liquidsoap:
         },
         """
 
-        scheduled_now_files: List[FileEvent] = [
+        scheduled_now_files: list[FileEvent] = [
             x for x in scheduled_now if x.type == EventKind.FILE  # type: ignore
         ]
 
-        scheduled_now_webstream: List[WebStreamEvent] = [
+        scheduled_now_webstream: list[WebStreamEvent] = [
             x  # type: ignore
             for x in scheduled_now
             if x.type == EventKind.WEB_STREAM_OUTPUT_START
         ]
 
-        schedule_ids: Set[int] = {x.row_id for x in scheduled_now_files}
+        schedule_ids: set[int] = {x.row_id for x in scheduled_now_files}
 
-        row_id_map: Dict[int, FileEvent] = {}
-        liq_queue_ids: Set[int] = set()
+        row_id_map: dict[int, FileEvent] = {}
+        liq_queue_ids: set[int] = set()
         for queue_item in self.liq_queue_tracker.values():
             if queue_item is not None and not queue_item.ended():
                 liq_queue_ids.add(queue_item.row_id)
                 row_id_map[queue_item.row_id] = queue_item
 
-        to_be_removed: Set[int] = set()
-        to_be_added: Set[int] = set()
+        to_be_removed: set[int] = set()
+        to_be_added: set[int] = set()
 
         # Iterate over the new files, and compare them to currently scheduled
         # tracks. If already in liquidsoap queue still need to make sure they don't
@@ -303,7 +302,7 @@ class Liquidsoap:
 
         if to_be_removed:
             logger.info(
-                "Need to remove items from Liquidsoap: %s", to_be_removed
+                "Need to remove items from Liquidsoap: %s", to_be_removed,
             )
 
             # remove files from Liquidsoap's queue
@@ -316,7 +315,7 @@ class Liquidsoap:
 
         if to_be_added:
             logger.info(
-                "Need to add items to Liquidsoap *now*: %s", to_be_added
+                "Need to add items to Liquidsoap *now*: %s", to_be_added,
             )
 
             for item in scheduled_now_files:
@@ -332,7 +331,7 @@ class Liquidsoap:
         logger.debug("scheduled now webstream: %s", scheduled_now_webstream)
         if scheduled_now_webstream:
             if int(current_stream_id) != int(
-                scheduled_now_webstream[0].row_id
+                scheduled_now_webstream[0].row_id,
             ):
                 self.play(scheduled_now_webstream[0])
         elif current_stream_id != "-1":

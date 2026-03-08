@@ -3,7 +3,7 @@ import os
 from email.message import EmailMessage
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any, Dict, Optional
+from typing import Any
 from urllib.parse import urlsplit
 
 import mutagen
@@ -11,10 +11,10 @@ import requests
 from celery import Celery, signals
 from celery.schedules import crontab
 from celery.utils.log import get_task_logger
-from libretime_api_client.v1 import ApiClient as LegacyClient
 from mutagen import MutagenError
 from requests import RequestException, Response
 
+from libretime_api_client.v1 import ApiClient as LegacyClient
 from libretime_worker import PACKAGE, VERSION
 from libretime_worker.config import config
 
@@ -70,7 +70,7 @@ class PodcastDownloadException(Exception):
 def podcast_download(
     episode_id: int,
     episode_url: str,
-    episode_title: Optional[str],
+    episode_title: str | None,
     podcast_name: str,
     override_album: bool,
 ):
@@ -87,7 +87,7 @@ def podcast_download(
     Returns:
         Status of the podcast download as JSON string.
     """
-    result: Dict[str, Any] = {"episodeid": episode_id}
+    result: dict[str, Any] = {"episodeid": episode_id}
     tmp_file = None
 
     try:
@@ -100,14 +100,14 @@ def podcast_download(
 
                 # The filename extension helps to determine the file type using mutagen
                 with NamedTemporaryFile(
-                    suffix=filename, delete=False
+                    suffix=filename, delete=False,
                 ) as tmp_file:
                     for chunk in resp.iter_content(chunk_size=2048):
                         tmp_file.write(chunk)
 
         except RequestException as exception:
             raise PodcastDownloadException(
-                f"could not download podcast episode {episode_id}: {exception}"
+                f"could not download podcast episode {episode_id}: {exception}",
             ) from exception
 
         # Save metadata to podcast episode file
@@ -115,12 +115,12 @@ def podcast_download(
             metadata = mutagen.File(tmp_file.name, easy=True)
             if metadata is None:
                 raise PodcastDownloadException(
-                    f"could not determine podcast episode {episode_id} file type"
+                    f"could not determine podcast episode {episode_id} file type",
                 )
 
             if override_album:
                 logger.debug(
-                    "overriding album name with podcast name %s", podcast_name
+                    "overriding album name with podcast name %s", podcast_name,
                 )
                 metadata["artist"] = podcast_name
                 metadata["album"] = podcast_name
@@ -128,7 +128,7 @@ def podcast_download(
 
             elif "album" not in metadata:
                 logger.debug(
-                    "setting album name to podcast name %s", podcast_name
+                    "setting album name to podcast name %s", podcast_name,
                 )
                 metadata["album"] = podcast_name
 
@@ -137,7 +137,7 @@ def podcast_download(
 
         except (MutagenError, TypeError) as exception:
             raise PodcastDownloadException(
-                f"could not save podcast episode {episode_id} metadata: {exception}"
+                f"could not save podcast episode {episode_id} metadata: {exception}",
             ) from exception
 
         # Upload podcast episode file
@@ -156,7 +156,7 @@ def podcast_download(
 
         except RequestException as exception:
             raise PodcastDownloadException(
-                f"could not upload podcast episode {episode_id}: {exception}"
+                f"could not upload podcast episode {episode_id}: {exception}",
             ) from exception
 
     except PodcastDownloadException as exception:

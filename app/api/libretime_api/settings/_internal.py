@@ -1,5 +1,4 @@
 from os import environ, getenv
-from typing import Optional
 
 from libretime_api import PACKAGE, VERSION
 
@@ -93,7 +92,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/3.2/topics/logging/#configuring-logging
 
 
-def setup_logger(log_filepath: Optional[str]):
+def setup_logger(log_filepath: str | None):
     logging_handlers = {
         "console": {
             "level": "INFO",

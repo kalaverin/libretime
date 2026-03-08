@@ -67,21 +67,21 @@ class MessageListener:
                     self.config.rabbitmq.user,
                     self.config.rabbitmq.password,
                 ),
-            )
+            ),
         )
         self._channel = self._connection.channel()
         self._channel.exchange_declare(
-            exchange=EXCHANGE, exchange_type=EXCHANGE_TYPE, durable=True
+            exchange=EXCHANGE, exchange_type=EXCHANGE_TYPE, durable=True,
         )
         self._channel.queue_declare(queue=QUEUE, durable=True)
 
         self._channel.queue_bind(
-            exchange=EXCHANGE, queue=QUEUE, routing_key=ROUTING_KEY
+            exchange=EXCHANGE, queue=QUEUE, routing_key=ROUTING_KEY,
         )
 
         logger.info(" Listening for messages...")
         self._channel.basic_consume(
-            QUEUE, self.msg_received_callback, auto_ack=False
+            QUEUE, self.msg_received_callback, auto_ack=False,
         )
 
     def wait_for_messages(self):
@@ -107,7 +107,7 @@ class MessageListener:
         metadata back to the Airtime web application (or report an error).
         """
         logger.info(
-            "Received '%s' on routing_key '%s'", body, method_frame.routing_key
+            "Received '%s' on routing_key '%s'", body, method_frame.routing_key,
         )
 
         audio_file_path = ""
@@ -142,7 +142,7 @@ class MessageListener:
             callback_api_key = self.config.general.api_key
 
             StatusReporter.report_success(
-                callback_url, callback_api_key, metadata
+                callback_url, callback_api_key, metadata,
             )
 
         except KeyError:

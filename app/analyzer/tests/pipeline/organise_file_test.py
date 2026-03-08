@@ -19,14 +19,14 @@ def organise_file_args_factory(filepath: Path, dest_dir: Path):
 
 def test_organise_file(src_dir: Path, dest_dir: Path):
     organise_file(
-        *organise_file_args_factory(src_dir / AUDIO_FILENAME, dest_dir)
+        *organise_file_args_factory(src_dir / AUDIO_FILENAME, dest_dir),
     )
     assert (dest_dir / AUDIO_FILENAME).exists()
 
 
 def test_organise_file_samefile(src_dir: Path):
     organise_file(
-        *organise_file_args_factory(src_dir / AUDIO_FILENAME, src_dir)
+        *organise_file_args_factory(src_dir / AUDIO_FILENAME, src_dir),
     )
     assert (src_dir / AUDIO_FILENAME).exists()
 
@@ -38,7 +38,7 @@ def test_organise_file_duplicate_file(src_dir: Path, dest_dir: Path):
         shutil.copy(src_dir / AUDIO_FILENAME, src_dir / filename)
 
         metadata = organise_file(
-            *organise_file_args_factory(src_dir / filename, dest_dir)
+            *organise_file_args_factory(src_dir / filename, dest_dir),
         )
 
         full_path = Path(metadata["full_path"])
@@ -58,5 +58,5 @@ def test_organise_file_bad_permissions_dest_dir(src_dir: Path):
             *organise_file_args_factory(
                 src_dir / AUDIO_FILENAME,
                 Path("/sys/foobar"),
-            )
+            ),
         )

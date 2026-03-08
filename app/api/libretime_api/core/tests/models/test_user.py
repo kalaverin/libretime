@@ -1,7 +1,7 @@
 from rest_framework.test import APITestCase
 
-from libretime_api.permission_constants import GROUPS
 from libretime_api.core.models import Role, User
+from libretime_api.permission_constants import GROUPS
 
 
 class TestUserManager(APITestCase):

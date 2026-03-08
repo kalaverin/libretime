@@ -6,12 +6,12 @@ from pathlib import Path
 from queue import Empty, Queue
 from subprocess import DEVNULL, PIPE, run
 from threading import Thread, Timer
-from typing import Any, Dict, Union
+from typing import Any
+
+from requests import RequestException
 
 from libretime_api_client.v1 import ApiClient as LegacyClient
 from libretime_api_client.v2 import ApiClient
-from requests import RequestException
-
 from libretime_playout.config import CACHE_DIR, POLL_INTERVAL, Config
 from libretime_playout.liquidsoap.client import LiquidsoapClient
 from libretime_playout.liquidsoap.models import (
@@ -38,7 +38,7 @@ class PypoFetch(Thread):
     # pylint: disable=too-many-arguments
     def __init__(
         self,
-        fetch_queue: "Queue[Dict[str, Any]]",
+        fetch_queue: "Queue[dict[str, Any]]",
         push_queue: "Queue[Events]",
         file_queue: "Queue[FileEvents]",
         liq_client: LiquidsoapClient,
@@ -70,7 +70,7 @@ class PypoFetch(Thread):
     # Handle a message from RabbitMQ, put it into our yucky global var.
     # Hopefully there is a better way to do this.
 
-    def handle_message(self, message: Dict[str, Any]) -> None:
+    def handle_message(self, message: dict[str, Any]) -> None:
         try:
             command = message["event_type"]
             logger.debug("handling event %s: %s", command, message)
@@ -86,7 +86,7 @@ class PypoFetch(Thread):
             elif command == "update_message_offline":
                 logger.info("Updating message offline...")
                 self.update_liquidsoap_message_offline(
-                    message["message_offline"]
+                    message["message_offline"],
                 )
             elif command == "update_station_name":
                 logger.info("Updating station name...")
@@ -94,17 +94,17 @@ class PypoFetch(Thread):
             elif command == "update_transition_fade":
                 logger.info("Updating transition_fade...")
                 self.update_liquidsoap_transition_fade(
-                    message["transition_fade"]
+                    message["transition_fade"],
                 )
             elif command == "switch_source":
                 logger.info("switch_on_source show command received...")
                 self.liquidsoap.telnet_liquidsoap.switch_source(
-                    message["sourcename"], message["status"]
+                    message["sourcename"], message["status"],
                 )
             elif command == "disconnect_source":
                 logger.info("disconnect_on_source show command received...")
                 self.liquidsoap.telnet_liquidsoap.disconnect_source(
-                    message["sourcename"]
+                    message["sourcename"],
                 )
             else:
                 logger.info("Unknown command: %s", command)
@@ -131,7 +131,7 @@ class PypoFetch(Thread):
         try:
             info = Info(**self.api_client.get_info().json())
             preferences = StreamPreferences(
-                **self.api_client.get_stream_preferences().json()
+                **self.api_client.get_stream_preferences().json(),
             )
             state = StreamState(**self.api_client.get_stream_state().json())
 
@@ -171,7 +171,7 @@ class PypoFetch(Thread):
 
     def update_liquidsoap_stream_format(
         self,
-        stream_format: Union[MessageFormatKind, int],
+        stream_format: MessageFormatKind | int,
     ) -> None:
         try:
             self.liq_client.settings_update(message_format=stream_format)
@@ -239,7 +239,7 @@ class PypoFetch(Thread):
 
     def is_file_opened(self, path: str) -> bool:
         result = run(
-            ["lsof", "--", path], stdout=PIPE, stderr=DEVNULL, check=False
+            ["lsof", "--", path], stdout=PIPE, stderr=DEVNULL, check=False,
         )
         return bool(result.stdout)
 
@@ -274,20 +274,20 @@ class PypoFetch(Thread):
                     logger.info("File '%s' removed", expired_filepath)
                 else:
                     logger.info(
-                        "File '%s' not removed. Still busy!", expired_filepath
+                        "File '%s' not removed. Still busy!", expired_filepath,
                     )
             except (
                 Exception
             ) as exception:  # pylint: disable=broad-exception-caught
                 logger.exception(
-                    "Problem removing file '%s': %s", expired_file, exception
+                    "Problem removing file '%s': %s", expired_file, exception,
                 )
 
     def manual_schedule_fetch(self) -> bool:
         try:
             self.schedule_data = get_schedule(self.api_client)
             logger.debug(
-                "Received event from API client: %s", self.schedule_data
+                "Received event from API client: %s", self.schedule_data,
             )
             self.process_schedule(self.schedule_data)
             return True
@@ -351,7 +351,7 @@ class PypoFetch(Thread):
                 # Currently we are checking every POLL_INTERVAL seconds
 
                 message = self.fetch_queue.get(
-                    block=True, timeout=self.listener_timeout
+                    block=True, timeout=self.listener_timeout,
                 )
                 manual_fetch_needed = False
                 self.handle_message(message)
@@ -370,7 +370,7 @@ class PypoFetch(Thread):
                 Exception
             ) as exception:  # pylint: disable=broad-exception-caught
                 logger.exception(
-                    "Failed to manually fetch the schedule: %s", exception
+                    "Failed to manually fetch the schedule: %s", exception,
                 )
 
             loops += 1

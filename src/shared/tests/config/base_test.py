@@ -1,11 +1,10 @@
 from os import environ
 from pathlib import Path
-from typing import List, Union
+from typing import Annotated
 from unittest import mock
 
 from pydantic import BaseModel, Field
 from pytest import mark, raises
-from typing_extensions import Annotated
 
 from libretime_shared.config import (
     AnyHttpUrlStr,
@@ -17,7 +16,7 @@ from libretime_shared.config import (
 )
 
 AnyOutput = Annotated[
-    Union[IcecastOutput, ShoutcastOutput],
+    IcecastOutput | ShoutcastOutput,
     Field(discriminator="kind"),
 ]
 
@@ -26,10 +25,10 @@ AnyOutput = Annotated[
 class FixtureConfig(BaseConfig):
     public_url: AnyHttpUrlStr
     api_key: str
-    allowed_hosts: List[str] = []
+    allowed_hosts: list[str] = []
     database: DatabaseConfig
     rabbitmq: RabbitMQConfig = RabbitMQConfig()
-    outputs: List[AnyOutput]
+    outputs: list[AnyOutput]
 
 
 FIXTURE_CONFIG_JSON_SCHEMA = {
@@ -532,9 +531,8 @@ def test_base_config_required_submodel(tmp_path: Path):
         assert config.required.with_default == "changed"
 
     # Raise validation error
-    with mock.patch.dict(environ, {}):
-        with raises(SystemExit):
-            FixtureWithRequiredSubmodelConfig(None)
+    with mock.patch.dict(environ, {}), raises(SystemExit):
+        FixtureWithRequiredSubmodelConfig(None)
 
 
 def test_base_config_from_init() -> None:
@@ -574,6 +572,5 @@ def test_load_config_error(tmp_path: Path, raw, exception):
     config_filepath = tmp_path / "config.yml"
     config_filepath.write_text(raw)
 
-    with raises(exception):
-        with mock.patch.dict(environ, {}):
-            FixtureConfig(config_filepath)
+    with raises(exception), mock.patch.dict(environ, {}):
+        FixtureConfig(config_filepath)

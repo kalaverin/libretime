@@ -23,7 +23,7 @@ class ScheduleFilter(filters.FilterSet):
         # TODO: deduplicate code using the overbooked property
         if value:
             return queryset.filter(
-                starts_at__gte=models.F("instance__ends_at")
+                starts_at__gte=models.F("instance__ends_at"),
             )
         return queryset.filter(starts_at__lt=models.F("instance__ends_at"))
 

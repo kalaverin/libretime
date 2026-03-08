@@ -1,13 +1,12 @@
 from datetime import datetime
-from typing import List
 from unittest.mock import Mock, call
 
 import pytest
-from libretime_shared.config import IcecastOutput, ShoutcastOutput
+from libretime_playout.history.stats import AnyOutput, Stats, StatsCollector
 from lxml.etree import XMLSyntaxError
 from requests.exceptions import HTTPError
 
-from libretime_playout.history.stats import AnyOutput, Stats, StatsCollector
+from libretime_shared.config import IcecastOutput, ShoutcastOutput
 
 from tests.fixtures import icecast_stats, shoutcast_admin
 
@@ -28,14 +27,14 @@ def outputs_fixture():
                 **default_output,
                 "mount": "main.mp3",
                 "audio": {"format": "mp3", "bitrate": 256},
-            }
+            },
         ),
     ]
 
 
 def test_stats_collector_collect_server_stats(
     requests_mock,
-    outputs: List[AnyOutput],
+    outputs: list[AnyOutput],
 ):
     requests_mock.get(
         "http://localhost:8000/admin/stats.xml",
@@ -56,7 +55,7 @@ def test_stats_collector_collect_server_stats(
 
 def test_stats_collector_collect_server_stats_unauthorized(
     requests_mock,
-    outputs: List[AnyOutput],
+    outputs: list[AnyOutput],
 ):
     requests_mock.get(
         "http://localhost:8000/admin/stats.xml",
@@ -72,7 +71,7 @@ def test_stats_collector_collect_server_stats_unauthorized(
 
 def test_stats_collector_collect_server_stats_invalid_xml(
     requests_mock,
-    outputs: List[AnyOutput],
+    outputs: list[AnyOutput],
 ):
     requests_mock.get(
         "http://localhost:8000/admin/stats.xml",
@@ -88,7 +87,7 @@ def test_stats_collector_collect_server_stats_invalid_xml(
 
 def test_stats_collector_collect(
     requests_mock,
-    outputs: List[AnyOutput],
+    outputs: list[AnyOutput],
 ):
     requests_mock.get(
         "http://localhost:8000/admin/stats.xml",
@@ -113,7 +112,7 @@ def test_stats_collector_collect(
                     "host": "example.com",
                     "mount": "disabled.ogg",
                     "audio": {"format": "ogg", "bitrate": 256},
-                }
+                },
             ),
             ShoutcastOutput(
                 **{
@@ -122,9 +121,9 @@ def test_stats_collector_collect(
                     "kind": "shoutcast",
                     "host": "shoutcast.com",
                     "audio": {"format": "mp3", "bitrate": 256},
-                }
+                },
             ),
-        ]
+        ],
     )
 
     collector = StatsCollector(legacy_client)
@@ -149,7 +148,7 @@ def test_stats_collector_collect(
                         "num_listeners": 1,
                         "mount_name": "shoutcast",
                     },
-                ]
-            )
-        ]
+                ],
+            ),
+        ],
     )

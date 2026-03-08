@@ -28,7 +28,7 @@ def test_compute_replaygain(filepath, replaygain):
     tolerance = 0.8
 
     assert compute_replaygain(filepath) == pytest.approx(
-        replaygain, abs=tolerance
+        replaygain, abs=tolerance,
     )
 
 
@@ -74,7 +74,7 @@ def test_silence_detect_re(line, expected):
     "filepath,length,cuein,cueout",
     map(
         lambda i: pytest.param(
-            i.path, i.length, i.cuein, i.cueout, id=i.path.name
+            i.path, i.length, i.cuein, i.cueout, id=i.path.name,
         ),
         FILES,
     ),

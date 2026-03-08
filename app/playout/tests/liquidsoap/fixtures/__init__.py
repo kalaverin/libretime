@@ -12,7 +12,7 @@ def make_config(**kwargs) -> Config:
                 "secret_key": "some_secret_key",
             },
             **kwargs,
-        }
+        },
     )
 
 
@@ -20,7 +20,7 @@ def make_config_with_stream(**kwargs) -> Config:
     return make_config(stream=kwargs)
 
 
-TEST_STREAM_CONFIGS: List[Config] = [
+TEST_STREAM_CONFIGS: list[Config] = [
     make_config(),
     make_config(
         liquidsoap={
@@ -51,7 +51,7 @@ TEST_STREAM_CONFIGS: List[Config] = [
                     "audio": {"format": "mp3", "bitrate": 256},
                 },
             ],
-        }
+        },
     ),
     make_config_with_stream(
         outputs={
@@ -66,7 +66,7 @@ TEST_STREAM_CONFIGS: List[Config] = [
                     "genre": "various",
                 },
             ],
-        }
+        },
     ),
     make_config_with_stream(
         outputs={
@@ -85,12 +85,12 @@ TEST_STREAM_CONFIGS: List[Config] = [
                     "audio": {"format": "mp3", "bitrate": 256},
                 },
             ],
-        }
+        },
     ),
     make_config_with_stream(
         outputs={
             "system": [{"enabled": True, "kind": "pulseaudio"}],
-        }
+        },
     ),
     make_config_with_stream(
         outputs={
@@ -99,13 +99,13 @@ TEST_STREAM_CONFIGS: List[Config] = [
                     "enabled": True,
                     "kind": "pulseaudio",
                     "device": "alsa_output.pci-0000_00_sink",
-                }
+                },
             ],
-        }
+        },
     ),
     make_config_with_stream(
         outputs={
             "system": [{"enabled": False, "kind": "alsa"}],
-        }
+        },
     ),
 ]

@@ -58,7 +58,7 @@ def process_http_requests(ipc_queue, http_retry_queue_path):
         # and continue because those HTTP requests are lost anyways. The pickled file will be
         # overwritten the next time the analyzer is shut down too.
         logger.error(
-            "Failed to unpickle %s. Continuing...", http_retry_queue_path
+            "Failed to unpickle %s. Continuing...", http_retry_queue_path,
         )
 
     while True:
@@ -96,7 +96,7 @@ def process_http_requests(ipc_queue, http_retry_queue_path):
             if shutdown:
                 return
             logger.exception(
-                "Unhandled exception in StatusReporter %s", exception
+                "Unhandled exception in StatusReporter %s", exception,
             )
             logger.info("Restarting StatusReporter thread")
             time.sleep(2)  # Throttle it
@@ -108,7 +108,7 @@ def send_http_request(picklable_request: PicklableHttpRequest, retry_queue):
         session = requests.Session()
         prepared_request = session.prepare_request(bare_request)
         resp = session.send(
-            prepared_request, timeout=StatusReporter._HTTP_REQUEST_TIMEOUT
+            prepared_request, timeout=StatusReporter._HTTP_REQUEST_TIMEOUT,
         )
         resp.raise_for_status()  # Raise an exception if there was an http error code returned
         logger.info("HTTP request sent successfully.")
@@ -116,7 +116,7 @@ def send_http_request(picklable_request: PicklableHttpRequest, retry_queue):
         if exception.response.status_code == 422:
             # Do no retry the request if there was a metadata validation error
             logger.exception(
-                f"HTTP request failed due to an HTTP exception: {exception}"
+                f"HTTP request failed due to an HTTP exception: {exception}",
             )
         else:
             # The request failed with an error 500 probably, so let's check if Airtime and/or
@@ -125,7 +125,7 @@ def send_http_request(picklable_request: PicklableHttpRequest, retry_queue):
             logger.exception("HTTP request failed: %s", exception)
             parsed_url = urlparse(exception.response.request.url)
             if is_web_server_broken(
-                parsed_url.scheme + "://" + parsed_url.netloc
+                parsed_url.scheme + "://" + parsed_url.netloc,
             ):
                 # If the web server is having problems, retry the request later:
                 retry_queue.append(picklable_request)
@@ -140,7 +140,7 @@ def send_http_request(picklable_request: PicklableHttpRequest, retry_queue):
         retry_queue.append(picklable_request)  # Retry it later
     except Exception as exception:
         logger.exception(
-            "HTTP request failed with unhandled exception. %s", exception
+            "HTTP request failed with unhandled exception. %s", exception,
         )
         # Don't put the request into the retry queue, just give up on this one.
         # I'm doing this to protect against us getting some pathological request
@@ -207,7 +207,7 @@ class StatusReporter:
                 url=callback_url,
                 api_key=callback_api_key,
                 data=put_payload,
-            )
+            ),
         )
 
     @classmethod
@@ -231,5 +231,5 @@ class StatusReporter:
                 url=callback_url,
                 api_key=callback_api_key,
                 data=put_payload,
-            )
+            ),
         )

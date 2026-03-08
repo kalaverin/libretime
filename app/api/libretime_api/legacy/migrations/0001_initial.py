@@ -23,7 +23,7 @@ def create_schema(_apps, _schema_editor):
     with connection.cursor() as cursor:
         for migration_filename in ("schema.sql", "data.sql"):
             raw = (here / "sql" / migration_filename).read_text(
-                encoding="utf-8"
+                encoding="utf-8",
             )
             cursor.execute(raw)
 

@@ -19,6 +19,6 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             code=legacy_migration_factory(
                 target="3.0.0-beta.0.1",
-            )
-        )
+            ),
+        ),
     ]

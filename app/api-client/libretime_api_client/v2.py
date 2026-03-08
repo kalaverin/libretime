@@ -26,7 +26,7 @@ class ApiClient(AbstractApiClient):
 
     def get_show_instance(self, item_id: int, **kwargs) -> Response:
         return self._request(
-            "GET", f"/api/v2/show-instances/{item_id}", **kwargs
+            "GET", f"/api/v2/show-instances/{item_id}", **kwargs,
         )
 
     def list_schedule(self, **kwargs) -> Response:
@@ -43,7 +43,7 @@ class ApiClient(AbstractApiClient):
 
     def download_file(self, item_id: int, **kwargs) -> Response:
         return self._request(
-            "GET", f"/api/v2/files/{item_id}/download", **kwargs
+            "GET", f"/api/v2/files/{item_id}/download", **kwargs,
         )
 
     def get_stream_preferences(self, **kwargs) -> Response:

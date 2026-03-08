@@ -79,5 +79,5 @@ class Migration(migrations.Migration):
                 sql=DOWN,
                 reverse=True,
             ),
-        )
+        ),
     ]

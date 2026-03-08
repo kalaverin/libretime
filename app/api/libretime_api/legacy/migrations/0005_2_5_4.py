@@ -41,7 +41,7 @@ def promote_admin_to_superadmin(cursor):
             """)
         if cursor.rowcount == 0:
             raise RuntimeError(
-                "Failed to find any users of type 'admin' ('A')"
+                "Failed to find any users of type 'admin' ('A')",
             )
 
     # Ignoring the sourcefabric_admin user
@@ -56,6 +56,6 @@ class Migration(migrations.Migration):
             code=legacy_migration_factory(
                 target="2.5.4",
                 before=promote_admin_to_superadmin,
-            )
-        )
+            ),
+        ),
     ]

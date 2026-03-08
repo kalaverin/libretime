@@ -2,8 +2,6 @@ import random
 from datetime import datetime
 
 import pytest
-from libretime_api_client.v2 import ApiClient
-
 from libretime_playout.liquidsoap.models import StreamPreferences
 from libretime_playout.player.events import (
     ActionEvent,
@@ -18,6 +16,8 @@ from libretime_playout.player.schedule import (
     generate_webstream_events,
     get_schedule,
 )
+
+from libretime_api_client.v2 import ApiClient
 
 
 @pytest.fixture(name="api_client")
@@ -314,7 +314,7 @@ def test_generate_file_events(stream_preferences: StreamPreferences):
 
     result = {}
     generate_file_events(
-        result, schedule_1, FILE_2, SHOW_1, stream_preferences
+        result, schedule_1, FILE_2, SHOW_1, stream_preferences,
     )
     assert result == {
         "2022-09-05-11-00-00": FileEvent(
@@ -335,13 +335,13 @@ def test_generate_file_events(stream_preferences: StreamPreferences):
             replay_gain=11.46 - 3.5,
             filesize=10000,
             file_ready=False,
-        )
+        ),
     }
 
     result = {}
     stream_preferences.replay_gain_enabled = False
     generate_file_events(
-        result, schedule_1, FILE_2, SHOW_1, stream_preferences
+        result, schedule_1, FILE_2, SHOW_1, stream_preferences,
     )
     assert result == {
         "2022-09-05-11-00-00": FileEvent(
@@ -362,7 +362,7 @@ def test_generate_file_events(stream_preferences: StreamPreferences):
             replay_gain=None,
             filesize=10000,
             file_ready=False,
-        )
+        ),
     }
 
 
@@ -441,16 +441,16 @@ def test_get_schedule(schedule, requests_mock, api_client: ApiClient):
     requests_mock.get(f"{base_url}/api/v2/shows/3", json=SHOW_3)
     requests_mock.get(f"{base_url}/api/v2/shows/4", json=SHOW_4)
     requests_mock.get(
-        f"{base_url}/api/v2/show-instances/1", json=SHOW_INSTANCE_1
+        f"{base_url}/api/v2/show-instances/1", json=SHOW_INSTANCE_1,
     )
     requests_mock.get(
-        f"{base_url}/api/v2/show-instances/2", json=SHOW_INSTANCE_2
+        f"{base_url}/api/v2/show-instances/2", json=SHOW_INSTANCE_2,
     )
     requests_mock.get(
-        f"{base_url}/api/v2/show-instances/3", json=SHOW_INSTANCE_3
+        f"{base_url}/api/v2/show-instances/3", json=SHOW_INSTANCE_3,
     )
     requests_mock.get(
-        f"{base_url}/api/v2/show-instances/4", json=SHOW_INSTANCE_4
+        f"{base_url}/api/v2/show-instances/4", json=SHOW_INSTANCE_4,
     )
     requests_mock.get(f"{base_url}/api/v2/files/1", json=FILE_1)
     requests_mock.get(f"{base_url}/api/v2/files/2", json=FILE_2)

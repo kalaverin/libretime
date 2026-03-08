@@ -1,7 +1,7 @@
 import logging
 from enum import Enum
 from queue import Queue
-from typing import Any, Dict, Protocol
+from typing import Any, Protocol
 
 from pydantic import BaseModel
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 class Step(Protocol):
     @staticmethod
-    def __call__(filename: str, metadata: Dict[str, Any]): ...
+    def __call__(filename: str, metadata: dict[str, Any]): ...
 
 
 class PipelineStatus(int, Enum):
@@ -71,19 +71,19 @@ class Pipeline:
                 raise TypeError(
                     "audio_file_path must be unicode. Was of type "
                     + type(audio_file_path).__name__
-                    + " instead."
+                    + " instead.",
                 )
             if not isinstance(import_directory, str):
                 raise TypeError(
                     "import_directory must be unicode. Was of type "
                     + type(import_directory).__name__
-                    + " instead."
+                    + " instead.",
                 )
             if not isinstance(original_filename, str):
                 raise TypeError(
                     "original_filename must be unicode. Was of type "
                     + type(original_filename).__name__
-                    + " instead."
+                    + " instead.",
                 )
 
             # Analyze the audio file we were told to analyze:

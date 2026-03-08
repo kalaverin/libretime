@@ -124,6 +124,6 @@ class Migration(migrations.Migration):
             code=legacy_migration_factory(
                 target="2.5.16",
                 sql=UP,
-            )
-        )
+            ),
+        ),
     ]

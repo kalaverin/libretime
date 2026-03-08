@@ -25,6 +25,6 @@ class InfoView(APIView):
             data.model_dump(
                 include={
                     "station_name",
-                }
-            )
+                },
+            ),
         )

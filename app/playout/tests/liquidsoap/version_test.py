@@ -2,7 +2,6 @@ from os import getenv
 
 import distro
 import pytest
-
 from libretime_playout.liquidsoap.version import (
     get_liquidsoap_version,
     parse_liquidsoap_version,

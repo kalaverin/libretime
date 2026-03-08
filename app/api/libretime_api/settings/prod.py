@@ -2,19 +2,6 @@ from os import getenv
 
 # pylint: disable=unused-import
 from libretime_api.settings._internal import (
-    API_VERSION,
-    AUTH_PASSWORD_VALIDATORS,
-    AUTH_USER_MODEL,
-    DEBUG,
-    DEFAULT_AUTO_FIELD,
-    INSTALLED_APPS,
-    MIDDLEWARE,
-    REST_FRAMEWORK,
-    ROOT_URLCONF,
-    SPECTACULAR_SETTINGS,
-    STATIC_URL,
-    TEMPLATES,
-    WSGI_APPLICATION,
     setup_logger,
 )
 from libretime_api.settings._schema import Config
@@ -41,7 +28,7 @@ public_url_origin = (
 )
 
 CORS_ALLOWED_ORIGINS = [
-    public_url_origin
+    public_url_origin,
 ] + CONFIG.general.allowed_cors_origins
 
 # Database
@@ -55,7 +42,7 @@ DATABASES = {
         "NAME": CONFIG.database.name,
         "USER": CONFIG.database.user,
         "PASSWORD": CONFIG.database.password,
-    }
+    },
 }
 
 

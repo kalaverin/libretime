@@ -9,16 +9,13 @@ import time
 from datetime import datetime
 from pathlib import Path
 from queue import Queue
-from typing import Any, Dict, Optional
+from typing import Any
 
 import click
 import requests
+
 from libretime_api_client.v1 import ApiClient as LegacyClient
 from libretime_api_client.v2 import ApiClient
-from libretime_shared.cli import cli_config_options, cli_logging_options
-from libretime_shared.config import DEFAULT_ENV_PREFIX
-from libretime_shared.logging import setup_logger
-
 from libretime_playout import PACKAGE, VERSION
 from libretime_playout.config import CACHE_DIR, RECORD_DIR, Config
 from libretime_playout.history.stats import StatsCollectorThread
@@ -30,6 +27,9 @@ from libretime_playout.player.fetch import PypoFetch
 from libretime_playout.player.file import PypoFile
 from libretime_playout.player.liquidsoap import Liquidsoap
 from libretime_playout.player.push import PypoPush
+from libretime_shared.cli import cli_config_options, cli_logging_options
+from libretime_shared.config import DEFAULT_ENV_PREFIX
+from libretime_shared.logging import setup_logger
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ def wait_for_legacy(legacy_client: LegacyClient) -> None:
 def wait_for_liquidsoap(liq_client: LiquidsoapClient) -> None:
     logger.debug("Checking if Liquidsoap is running")
     liq_version = liq_client.wait_for_version()
-    if not LIQUIDSOAP_MIN_VERSION <= liq_version:
+    if not liq_version >= LIQUIDSOAP_MIN_VERSION:
         raise RuntimeError(f"Invalid liquidsoap version {liq_version}")
 
 
@@ -68,8 +68,8 @@ def wait_for_liquidsoap(liq_client: LiquidsoapClient) -> None:
 @cli_config_options()
 def cli(
     log_level: str,
-    log_filepath: Optional[Path],
-    config_filepath: Optional[Path],
+    log_filepath: Path | None,
+    config_filepath: Path | None,
 ) -> None:
     """
     Run playout.
@@ -115,22 +115,22 @@ def cli(
         LiquidsoapClient(
             host=config.playout.liquidsoap_host,
             port=config.playout.liquidsoap_port,
-        )
+        ),
     )
 
-    fetch_queue: "Queue[Dict[str, Any]]" = Queue()
-    push_queue: "Queue[Events]" = Queue()
+    fetch_queue: Queue[dict[str, Any]] = Queue()
+    push_queue: Queue[Events] = Queue()
     # This queue is shared between pypo-fetch and pypo-file, where pypo-file
     # is the consumer. Pypo-fetch will send every schedule it gets to pypo-file
     # and pypo will parse this schedule to determine which file has the highest
     # priority, and retrieve it.
-    file_queue: "Queue[FileEvents]" = Queue()
+    file_queue: Queue[FileEvents] = Queue()
 
     liquidsoap = Liquidsoap(
         LiquidsoapClient(
             host=config.playout.liquidsoap_host,
             port=config.playout.liquidsoap_port,
-        )
+        ),
     )
 
     PypoFile(file_queue, api_client).start()

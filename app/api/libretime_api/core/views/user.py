@@ -1,8 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import viewsets
 
-from libretime_api.permissions import IsAdminOrOwnUser
 from libretime_api.core.serializers import UserSerializer
+from libretime_api.permissions import IsAdminOrOwnUser
 
 
 class UserViewSet(viewsets.ModelViewSet):

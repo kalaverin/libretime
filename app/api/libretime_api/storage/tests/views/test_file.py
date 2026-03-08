@@ -43,7 +43,7 @@ class TestFileViewSet(APITestCase):
 
         self.assertEqual(response.status_code, 204)
         remove_mock.assert_called_with(
-            os.path.join(settings.CONFIG.storage.path, file.filepath)
+            os.path.join(settings.CONFIG.storage.path, file.filepath),
         )
 
     def test_destroy_no_file(self):

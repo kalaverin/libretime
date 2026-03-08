@@ -2,9 +2,9 @@ import logging
 from textwrap import dedent
 
 import pytest
-from libretime_shared.logging import setup_logger
-
 from libretime_playout.liquidsoap.client import LiquidsoapConnection
+
+from libretime_shared.logging import setup_logger
 
 from tests.liquidsoap.conftest import LIQ_VERSION, LIQ_VERSION_STR
 
@@ -85,12 +85,10 @@ def test_liq_conn_help(liq_conn: LiquidsoapConnection):
 def test_liq_conn_raises():
     liq_conn = LiquidsoapConnection(host="localhost", port=12345)
 
-    with pytest.raises(OSError):
-        with liq_conn:
-            pass
+    with pytest.raises(OSError), liq_conn:
+        pass
 
     liq_conn = LiquidsoapConnection(path="/somewhere/invalid")
 
-    with pytest.raises(OSError):
-        with liq_conn:
-            pass
+    with pytest.raises(OSError), liq_conn:
+        pass

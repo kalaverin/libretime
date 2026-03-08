@@ -2,7 +2,7 @@ import logging
 from datetime import timedelta
 from math import isclose
 from subprocess import CalledProcessError
-from typing import Any, Dict
+from typing import Any
 
 from libretime_analyzer.pipeline._ffmpeg import (
     compute_silences,
@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 def analyze_duration(
-    filepath: str, metadata: Dict[str, Any]
-) -> Dict[str, Any]:
+    filepath: str, metadata: dict[str, Any],
+) -> dict[str, Any]:
     """
     Extracts the file duration using ffmpeg.
     """
@@ -28,7 +28,7 @@ def analyze_duration(
         ):
             logger.warning(
                 f"existing duration {metadata['length_seconds']} differs "
-                f"from the probed duration {duration}."
+                f"from the probed duration {duration}.",
             )
 
         metadata["length_seconds"] = duration
@@ -42,8 +42,8 @@ def analyze_duration(
 
 
 def analyze_cuepoint(
-    filepath: str, metadata: Dict[str, Any]
-) -> Dict[str, Any]:
+    filepath: str, metadata: dict[str, Any],
+) -> dict[str, Any]:
     """
     Extracts the cuein and cueout times using ffmpeg.
 
@@ -64,7 +64,7 @@ def analyze_cuepoint(
             # Sanity check
             if silence[0] >= silence[1]:
                 raise ValueError(
-                    f"silence starts ({silence[0]}) after ending ({silence[1]})"
+                    f"silence starts ({silence[0]}) after ending ({silence[1]})",
                 )
 
             # Is this really the first silence ?

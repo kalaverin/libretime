@@ -3,11 +3,11 @@ from collections import deque
 from datetime import datetime
 from queue import Empty, Queue
 from threading import Thread
-from typing import Any, Dict
+from typing import Any
 
-from libretime_playout.utils import seconds_between
 from libretime_playout.player.events import AnyEvent
 from libretime_playout.player.liquidsoap import Liquidsoap
+from libretime_playout.utils import seconds_between
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class PypoLiqQueue(Thread):
 
     def __init__(
         self,
-        future_queue: "Queue[Dict[str, Any]]",
+        future_queue: "Queue[dict[str, Any]]",
         liquidsoap: Liquidsoap,
     ):
         Thread.__init__(self)
@@ -41,7 +41,7 @@ class PypoLiqQueue(Thread):
                         time_until_next_play,
                     )
                     media_schedule = self.queue.get(
-                        block=True, timeout=time_until_next_play
+                        block=True, timeout=time_until_next_play,
                     )
             except Empty:
                 # Time to push a scheduled item.
@@ -64,7 +64,7 @@ class PypoLiqQueue(Thread):
                 for i in keys:
                     schedule_deque.append(media_schedule[i])
 
-                if len(keys):
+                if keys:
                     time_until_next_play = seconds_between(
                         datetime.utcnow(),
                         media_schedule[keys[0]].start,

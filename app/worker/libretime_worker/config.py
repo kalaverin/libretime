@@ -1,6 +1,7 @@
 from os import getenv
 
 from kombu import Exchange, Queue
+
 from libretime_shared.config import BaseConfig, GeneralConfig, RabbitMQConfig
 
 

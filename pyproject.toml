@@ -113,7 +113,7 @@ section-order = [
 ]
 
 [tool.ruff.lint.isort.sections]
-local-project = ["app", "lib", "tests"]
+local-project = ["app", "src", "tests"]
 
 [tool.ruff.lint.per-file-ignores]
 "*" = []
@@ -139,5 +139,6 @@ url = "https://uv.dush.es/root/bsd/+simple/"
 
 [tool.uv.workspace]
 members = [
-  "libretime-*"
+  "app/*",
+  "src/*"
 ]

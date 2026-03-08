@@ -1,13 +1,12 @@
 import logging
 from pathlib import Path
-from typing import List, Optional
 
 import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandParser
-from libretime_shared.files import compute_md5
 
 from libretime_api.storage.models import File, Library
+from libretime_shared.files import compute_md5
 
 logger = logging.getLogger(__name__)
 
@@ -59,11 +58,11 @@ class Command(BaseCommand):
         delete_if_exists = options.get("delete_if_exists", False)
 
         path = options.get("path")
-        library = options.get("library", None)
+        library = options.get("library")
         allowed_extensions = options.get("allowed_extensions")
 
         importer = Importer(
-            url, auth_key, delete_after_upload, delete_if_exists
+            url, auth_key, delete_after_upload, delete_if_exists,
         )
         importer.import_dir(Path(path).resolve(), library, allowed_extensions)
 
@@ -87,7 +86,7 @@ class Importer:
 
         return File.objects.filter(md5=file_md5).exists()
 
-    def _upload_file(self, filepath: Path, library_id: Optional[int]) -> None:
+    def _upload_file(self, filepath: Path, library_id: int | None) -> None:
         try:
             resp = requests.post(
                 f"{self.url}/rest/media",
@@ -111,7 +110,7 @@ class Importer:
         logger.info("deleting %s", filepath)
         filepath.unlink()
 
-    def _handle_file(self, filepath: Path, library_id: Optional[int]) -> None:
+    def _handle_file(self, filepath: Path, library_id: int | None) -> None:
         logger.debug("handling file %s", filepath)
 
         if not filepath.is_file():
@@ -131,8 +130,8 @@ class Importer:
     def _walk_dir(
         self,
         path: Path,
-        library_id: Optional[int],
-        allowed_extensions: List[str],
+        library_id: int | None,
+        allowed_extensions: list[str],
     ) -> None:
         if not path.is_dir():
             raise ValueError(f"provided path {path} is not a directory")
@@ -150,15 +149,15 @@ class Importer:
     def import_dir(
         self,
         path: Path,
-        library: Optional[str],
-        allowed_extensions: List[str],
+        library: str | None,
+        allowed_extensions: list[str],
     ) -> None:
         if library is not None:
             try:
                 library_id = Library.objects.get(code=library).id
             except Library.DoesNotExist as exc:
                 raise ValueError(
-                    f"provided library {library} does not exist"
+                    f"provided library {library} does not exist",
                 ) from exc
         else:
             library_id = None

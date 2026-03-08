@@ -1,4 +1,3 @@
-from typing import List, Type
 
 from django.db.models import Model
 from django.test.runner import DiscoverRunner
@@ -11,7 +10,7 @@ class ManagedModelTestRunner(DiscoverRunner):
     to execute the SQL manually to create them.
     """
 
-    unmanaged_models: List[Type[Model]] = []
+    unmanaged_models: list[type[Model]] = []
 
     def setup_test_environment(self, *args, **kwargs):
         # pylint: disable=import-outside-toplevel

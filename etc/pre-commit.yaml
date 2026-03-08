@@ -15,18 +15,18 @@ repos:
         language: system
         pass_filenames: false
 
-      # - id: lint-black
-      #   name: force black
-      #   entry: uv run --quiet black --quiet --line-length 79 --target-version py8
-      #     'app/' 'src/' 'tests/'
-      #   language: system
-      #   pass_filenames: false
+      - id: lint-black
+        name: force black
+        entry: uv run --quiet black --quiet --line-length 79 --target-version py38
+          'app/' 'src/'
+        language: system
+        pass_filenames: false
 
-      # - id: lint-ruff
-      #   name: force ruff
-      #   entry: uv run --quiet ruff check --fix --quiet 'app/' 'src/' 'tests/'
-      #   language: system
-      #   pass_filenames: false
+      - id: lint-ruff
+        name: force ruff
+        entry: uv run --quiet ruff check --fix --quiet 'app/' 'src/'
+        language: system
+        pass_filenames: false
 
       - id: lint-yaml
         name: format yaml
@@ -146,7 +146,7 @@ repos:
 
       - id: name-tests-test
         name: enforce test file naming convention
-        exclude: ^(libretime-analyzer|libretime-api|libretime-api-client|libretime-playout|libretime-worker|libretime-shared)
+        exclude: ^(app/analyzer|app/api|app/api-client|app/playout|app/worker|src/shared)
         args:
           - --pytest-test-first
 
@@ -263,7 +263,7 @@ repos:
       - id: codespell
         args:
           - --ignore-words=.codespellignore
-        exclude: (^libretime-api/schema.yml|^legacy.*|yarn\.lock)$
+        exclude: (^app/api/schema.yml|^legacy.*|yarn\.lock)$
 
   # - repo: local
   #   hooks:

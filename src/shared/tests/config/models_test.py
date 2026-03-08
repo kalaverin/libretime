@@ -71,7 +71,7 @@ def test_stream_config():
             "icecast": [icecast_output],
             "shoutcast": [shoutcast_output],
             "system": [system_output],
-        }
+        },
     )
     assert len(config.outputs.icecast) == 1
     assert len(config.outputs.shoutcast) == 1

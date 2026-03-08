@@ -3,15 +3,15 @@ from dataclasses import dataclass
 from datetime import datetime
 from threading import Thread
 from time import sleep
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Union
 
 import requests
-from libretime_api_client.v1 import ApiClient as LegacyClient
-from libretime_shared.config import IcecastOutput, ShoutcastOutput
 from lxml import etree
 from requests import Session
 
+from libretime_api_client.v1 import ApiClient as LegacyClient
 from libretime_playout.config import Config
+from libretime_shared.config import IcecastOutput, ShoutcastOutput
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ class StatsCollector:
     def collect_output_stats(
         self,
         output: AnyOutput,
-    ) -> Dict[str, Stats]:
+    ) -> dict[str, Stats]:
         response = self._session.get(
             url=self.get_output_url(output),
             auth=(output.admin_user, output.admin_password or ""),
@@ -89,16 +89,16 @@ class StatsCollector:
 
     def collect(
         self,
-        outputs: List[AnyOutput],
+        outputs: list[AnyOutput],
         *,
-        _timestamp: Optional[datetime] = None,
+        _timestamp: datetime | None = None,
     ) -> None:
         if _timestamp is None:
             _timestamp = datetime.utcnow()
 
-        stats: List[Dict[str, Any]] = []
+        stats: list[dict[str, Any]] = []
         stats_timestamp = _timestamp.strftime("%Y-%m-%d %H:%M:%S")
-        cache: Dict[str, Dict[str, Stats]] = {}
+        cache: dict[str, dict[str, Stats]] = {}
 
         for output_id, output in enumerate(outputs, start=1):
             if (
@@ -120,7 +120,7 @@ class StatsCollector:
                 ) as exception:
                     logger.exception(exception)
                     self._legacy_client.update_stream_setting_table(
-                        {output_id: str(exception)}
+                        {output_id: str(exception)},
                     )
                     continue
 
@@ -134,7 +134,7 @@ class StatsCollector:
                         "timestamp": stats_timestamp,
                         "num_listeners": output_stats[mount].listeners,
                         "mount_name": mount,
-                    }
+                    },
                 )
 
         if stats:

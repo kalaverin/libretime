@@ -30,7 +30,7 @@ class File(models.Model):
     filepath = models.TextField(blank=True, null=True)
     size = models.IntegerField(db_column="filesize")
     exists = models.BooleanField(
-        blank=True, null=True, db_column="file_exists"
+        blank=True, null=True, db_column="file_exists",
     )
     mime = models.CharField(max_length=255)
     md5 = models.CharField(max_length=32, blank=True, null=True)
@@ -38,16 +38,16 @@ class File(models.Model):
     hidden = models.BooleanField(blank=True, null=True)
     accessed = models.IntegerField(db_column="currentlyaccessing")
     scheduled = models.BooleanField(
-        blank=True, null=True, db_column="is_scheduled"
+        blank=True, null=True, db_column="is_scheduled",
     )
     part_of_list = models.BooleanField(
-        blank=True, null=True, db_column="is_playlist"
+        blank=True, null=True, db_column="is_playlist",
     )
 
     created_at = models.DateTimeField(blank=True, null=True, db_column="utime")
     updated_at = models.DateTimeField(blank=True, null=True, db_column="mtime")
     last_played_at = models.DateTimeField(
-        blank=True, null=True, db_column="lptime"
+        blank=True, null=True, db_column="lptime",
     )
 
     edited_by = models.ForeignKey(
@@ -85,14 +85,14 @@ class File(models.Model):
     artist_name = models.CharField(max_length=512, blank=True, null=True)
     artist_url = models.CharField(max_length=512, blank=True, null=True)  # ?
     original_artist = models.CharField(
-        max_length=512, blank=True, null=True
+        max_length=512, blank=True, null=True,
     )  # ?
     album_title = models.CharField(max_length=512, blank=True, null=True)
     track_title = models.CharField(max_length=512, blank=True, null=True)
     genre = models.CharField(max_length=64, blank=True, null=True)
     mood = models.CharField(max_length=64, blank=True, null=True)
     date = models.CharField(
-        max_length=16, blank=True, null=True, db_column="year"
+        max_length=16, blank=True, null=True, db_column="year",
     )
     track_number = models.IntegerField(blank=True, null=True)
     disc_number = models.CharField(max_length=8, blank=True, null=True)  # ?
@@ -115,7 +115,7 @@ class File(models.Model):
     lyrics = models.TextField(blank=True, null=True)  # ?
     lyricist = models.CharField(max_length=512, blank=True, null=True)  # ?
     original_lyricist = models.CharField(
-        max_length=512, blank=True, null=True
+        max_length=512, blank=True, null=True,
     )  # ?
 
     subject = models.CharField(max_length=512, blank=True, null=True)  # ?
@@ -124,28 +124,28 @@ class File(models.Model):
     url = models.CharField(max_length=1024, blank=True, null=True)  # ?
     info_url = models.CharField(max_length=512, blank=True, null=True)  # ?
     audio_source_url = models.CharField(
-        max_length=512, blank=True, null=True
+        max_length=512, blank=True, null=True,
     )  # ?
     buy_this_url = models.CharField(max_length=512, blank=True, null=True)  # ?
     catalog_number = models.CharField(
-        max_length=512, blank=True, null=True
+        max_length=512, blank=True, null=True,
     )  # ?
 
     radio_station_name = models.CharField(
-        max_length=512, blank=True, null=True
+        max_length=512, blank=True, null=True,
     )  # ?
     radio_station_url = models.CharField(
-        max_length=512, blank=True, null=True
+        max_length=512, blank=True, null=True,
     )  # ?
 
     report_datetime = models.CharField(
-        max_length=32, blank=True, null=True
+        max_length=32, blank=True, null=True,
     )  # ?
     report_location = models.CharField(
-        max_length=512, blank=True, null=True
+        max_length=512, blank=True, null=True,
     )  # ?
     report_organization = models.CharField(
-        max_length=512, blank=True, null=True
+        max_length=512, blank=True, null=True,
     )  # ?
 
     def get_owner(self):

@@ -7,14 +7,14 @@ from django.contrib.auth.models import (
 )
 from django.db import models
 
-from libretime_api.permission_constants import GROUPS
 from libretime_api.core.models.role import Role
+from libretime_api.permission_constants import GROUPS
 
 
 class UserManager(BaseUserManager):
     # pylint: disable=too-many-positional-arguments
     def create_user(
-        self, role, username, password, email, first_name, last_name
+        self, role, username, password, email, first_name, last_name,
     ):
         user = self.model(
             role=role,
@@ -29,7 +29,7 @@ class UserManager(BaseUserManager):
 
     # pylint: disable=too-many-positional-arguments
     def create_superuser(
-        self, username, password, email, first_name, last_name
+        self, username, password, email, first_name, last_name,
     ):
         return self.create_user(
             Role.ADMIN,

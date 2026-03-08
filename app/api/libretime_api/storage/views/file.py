@@ -39,7 +39,7 @@ class FileViewSet(viewsets.ModelViewSet):
         # HTTP headers must be USASCII encoded, or Nginx might not find the file and
         # will return a 404.
         redirect_uri = filepath_to_uri(
-            os.path.join("/api/_media", instance.filepath)
+            os.path.join("/api/_media", instance.filepath),
         )
         response["X-Accel-Redirect"] = redirect_uri
         return response
@@ -51,22 +51,22 @@ class FileViewSet(viewsets.ModelViewSet):
         try:
             if instance.filepath is None:
                 logger.warning(
-                    "file does not have a filepath: %d", instance.id
+                    "file does not have a filepath: %d", instance.id,
                 )
                 return
 
             path = os.path.join(
-                settings.CONFIG.storage.path, instance.filepath
+                settings.CONFIG.storage.path, instance.filepath,
             )
 
             if not os.path.isfile(path):
                 logger.warning(
-                    "file does not exist in storage: %d", instance.id
+                    "file does not exist in storage: %d", instance.id,
                 )
                 return
 
             remove(path)
         except OSError as exception:
             raise APIException(
-                "could not delete file from storage"
+                "could not delete file from storage",
             ) from exception

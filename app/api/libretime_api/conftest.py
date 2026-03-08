@@ -3,7 +3,7 @@ from django.conf import settings
 from rest_framework.test import APIClient
 
 
-@pytest.fixture()
+@pytest.fixture
 def api_client():
     obj = APIClient()
     obj.credentials(

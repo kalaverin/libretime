@@ -3,7 +3,7 @@ import logging
 from queue import Queue as ThreadQueue
 from signal import SIGTERM, signal
 from time import sleep
-from typing import Any, Dict
+from typing import Any
 
 # For RabbitMQ
 from kombu.connection import Connection
@@ -20,7 +20,7 @@ class MessageHandler(ConsumerMixin):
     def __init__(
         self,
         connection: Connection,
-        fetch_queue: "ThreadQueue[Dict[str, Any]]",
+        fetch_queue: "ThreadQueue[dict[str, Any]]",
     ):
         self.connection = connection
 
@@ -28,7 +28,7 @@ class MessageHandler(ConsumerMixin):
 
     def get_consumers(self, Consumer, channel):
         exchange = Exchange(
-            "playout", "fanout", durable=True, auto_delete=True
+            "playout", "fanout", durable=True, auto_delete=True,
         )
         # RabbitMQ says to avoid temporary queues with well-known names
         # https://www.rabbitmq.com/docs/queues#shared-temporary-queues
@@ -39,7 +39,7 @@ class MessageHandler(ConsumerMixin):
 
         return [
             Consumer(
-                queues, callbacks=[self.on_message], accept=["text/plain"]
+                queues, callbacks=[self.on_message], accept=["text/plain"],
             ),
         ]
 
@@ -82,7 +82,7 @@ class MessageListener:
     def __init__(
         self,
         config: Config,
-        fetch_queue: "ThreadQueue[Dict[str, Any]]",
+        fetch_queue: "ThreadQueue[dict[str, Any]]",
     ) -> None:
         self.config = config
         self.fetch_queue = fetch_queue
@@ -93,7 +93,7 @@ class MessageListener:
                 self.config.rabbitmq.url,
                 heartbeat=5,
                 transport_options={
-                    "client_properties": {"connection_name": "playout"}
+                    "client_properties": {"connection_name": "playout"},
                 },
             ) as connection:
                 handler = MessageHandler(
@@ -102,7 +102,7 @@ class MessageListener:
                 )
 
                 def shutdown(_signum, _frame):
-                    raise SystemExit()
+                    raise SystemExit
 
                 signal(SIGTERM, shutdown)
 

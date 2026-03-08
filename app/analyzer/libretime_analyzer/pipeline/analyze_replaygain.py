@@ -1,5 +1,5 @@
 from subprocess import CalledProcessError
-from typing import Any, Dict
+from typing import Any
 
 from libretime_analyzer.pipeline._ffmpeg import (
     compute_replaygain,
@@ -7,7 +7,7 @@ from libretime_analyzer.pipeline._ffmpeg import (
 )
 
 
-def analyze_replaygain(filepath: str, metadata: Dict[str, Any]):
+def analyze_replaygain(filepath: str, metadata: dict[str, Any]):
     """
     Extracts the Replaygain loudness normalization factor of a track using ffmpeg.
     """

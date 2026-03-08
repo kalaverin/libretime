@@ -1,9 +1,8 @@
 import sys
 from enum import Enum
-from typing import List, Literal, Optional, Union
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, field_validator
-from typing_extensions import Annotated
 
 from libretime_shared.config._fields import (
     AnyHttpUrlStr,
@@ -30,7 +29,7 @@ class GeneralConfig(BaseModel):
 
     timezone: str = "UTC"
 
-    allowed_cors_origins: List[AnyHttpUrlStr] = []
+    allowed_cors_origins: list[AnyHttpUrlStr] = []
 
     @field_validator("timezone")
     @classmethod
@@ -98,7 +97,7 @@ class RabbitMQConfig(BaseModel):
 
 class BaseInput(BaseModel):
     enabled: bool = True
-    public_url: Optional[AnyUrlStr] = None
+    public_url: AnyUrlStr | None = None
 
 
 class InputKind(str, Enum):
@@ -144,7 +143,7 @@ class BaseAudio(BaseModel):
         bitrates = (32, 48, 64, 96, 128, 160, 192, 224, 256, 320)
         if value not in bitrates:
             raise ValueError(
-                f"invalid bitrate {value}, must be one of {bitrates}"
+                f"invalid bitrate {value}, must be one of {bitrates}",
             )
         return value
 
@@ -166,7 +165,7 @@ class AudioMP3(BaseAudio):
 
 class AudioOGG(BaseAudio):
     format: Literal[AudioFormat.OGG] = AudioFormat.OGG
-    enable_metadata: Optional[bool] = False
+    enable_metadata: bool | None = False
 
 
 class AudioOpus(BaseAudio):
@@ -176,7 +175,7 @@ class AudioOpus(BaseAudio):
 class IcecastOutput(BaseModel):
     kind: Literal["icecast"] = "icecast"
     enabled: bool = False
-    public_url: Optional[AnyUrlStr] = None
+    public_url: AnyUrlStr | None = None
 
     host: str = "localhost"
     port: int = 8000
@@ -184,17 +183,17 @@ class IcecastOutput(BaseModel):
     source_user: str = "source"
     source_password: str
     admin_user: str = "admin"
-    admin_password: Optional[str] = None
+    admin_password: str | None = None
 
     audio: Annotated[
-        Union[AudioAAC, AudioMP3, AudioOGG, AudioOpus],
+        AudioAAC | AudioMP3 | AudioOGG | AudioOpus,
         Field(discriminator="format"),
     ]
 
-    name: Optional[str] = None
-    description: Optional[str] = None
-    website: Optional[str] = None
-    genre: Optional[str] = None
+    name: str | None = None
+    description: str | None = None
+    website: str | None = None
+    genre: str | None = None
 
     mobile: bool = False
 
@@ -202,23 +201,23 @@ class IcecastOutput(BaseModel):
 class ShoutcastOutput(BaseModel):
     kind: Literal["shoutcast"] = "shoutcast"
     enabled: bool = False
-    public_url: Optional[AnyUrlStr] = None
+    public_url: AnyUrlStr | None = None
 
     host: str = "localhost"
     port: int = 8000
     source_user: str = "source"
     source_password: str
     admin_user: str = "admin"
-    admin_password: Optional[str] = None
+    admin_password: str | None = None
 
     audio: Annotated[
-        Union[AudioAAC, AudioMP3],
+        AudioAAC | AudioMP3,
         Field(discriminator="format"),
     ]
 
-    name: Optional[str] = None
-    website: Optional[str] = None
-    genre: Optional[str] = None
+    name: str | None = None
+    website: str | None = None
+    genre: str | None = None
 
     mobile: bool = False
 
@@ -237,7 +236,7 @@ class BaseSystemOutput(BaseModel):
 
 class ALSASystemOutput(BaseSystemOutput):
     kind: Literal[SystemOutput.ALSA] = SystemOutput.ALSA
-    device: Optional[str] = None
+    device: str | None = None
 
 
 class AOSystemOutput(BaseSystemOutput):
@@ -254,29 +253,23 @@ class PortAudioSystemOutput(BaseSystemOutput):
 
 class PulseAudioSystemOutput(BaseSystemOutput):
     kind: Literal[SystemOutput.PULSEAUDIO] = SystemOutput.PULSEAUDIO
-    device: Optional[str] = None
+    device: str | None = None
 
 
 AnySystemOutput = Annotated[
-    Union[
-        ALSASystemOutput,
-        AOSystemOutput,
-        OSSSystemOutput,
-        PortAudioSystemOutput,
-        PulseAudioSystemOutput,
-    ],
+    ALSASystemOutput | AOSystemOutput | OSSSystemOutput | PortAudioSystemOutput | PulseAudioSystemOutput,
     Field(discriminator="kind", default=SystemOutput.PULSEAUDIO),
 ]
 
 
 # pylint: disable=too-few-public-methods
 class Outputs(BaseModel):
-    icecast: List[IcecastOutput] = Field([], max_length=3)
-    shoutcast: List[ShoutcastOutput] = Field([], max_length=1)
-    system: List[AnySystemOutput] = Field([], max_length=1)
+    icecast: list[IcecastOutput] = Field([], max_length=3)
+    shoutcast: list[ShoutcastOutput] = Field([], max_length=1)
+    system: list[AnySystemOutput] = Field([], max_length=1)
 
     @property
-    def merged(self) -> List[Union[IcecastOutput, ShoutcastOutput]]:
+    def merged(self) -> list[IcecastOutput | ShoutcastOutput]:
         return self.icecast + self.shoutcast
 
 

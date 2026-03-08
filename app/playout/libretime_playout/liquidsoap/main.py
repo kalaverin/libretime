@@ -1,18 +1,17 @@
 import logging
 import os
 from pathlib import Path
-from typing import Optional
 
 import click
-from libretime_api_client.v2 import ApiClient
-from libretime_shared.cli import cli_config_options, cli_logging_options
-from libretime_shared.config import DEFAULT_ENV_PREFIX
-from libretime_shared.logging import setup_logger
 
+from libretime_api_client.v2 import ApiClient
 from libretime_playout.config import Config
 from libretime_playout.liquidsoap.entrypoint import generate_entrypoint
 from libretime_playout.liquidsoap.models import Info, StreamPreferences
 from libretime_playout.liquidsoap.version import get_liquidsoap_version
+from libretime_shared.cli import cli_config_options, cli_logging_options
+from libretime_shared.config import DEFAULT_ENV_PREFIX
+from libretime_shared.logging import setup_logger
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +23,8 @@ here = Path(__file__).parent
 @cli_config_options()
 def cli(
     log_level: str,
-    log_filepath: Optional[Path],
-    config_filepath: Optional[Path],
+    log_filepath: Path | None,
+    config_filepath: Path | None,
 ):
     """
     Run liquidsoap.
@@ -42,7 +41,7 @@ def cli(
 
     info = Info(**api_client.get_info().json())
     preferences = StreamPreferences(
-        **api_client.get_stream_preferences().json()
+        **api_client.get_stream_preferences().json(),
     )
 
     entrypoint_filepath = Path.cwd() / "radio.liq"
@@ -67,6 +66,6 @@ def cli(
         exec_args.append("--debug")
 
     logger.debug(
-        "liquidsoap %s using script: %s", version, entrypoint_filepath
+        "liquidsoap %s using script: %s", version, entrypoint_filepath,
     )
     os.execl(*exec_args)

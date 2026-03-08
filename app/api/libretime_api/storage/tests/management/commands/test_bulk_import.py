@@ -2,7 +2,6 @@
 
 from pathlib import Path
 from shutil import copy
-from typing import Tuple
 from unittest.mock import MagicMock
 
 import pytest
@@ -52,12 +51,12 @@ def _importer(requests_mock: Mocker):
     obj._upload_file = MagicMock(wraps=obj._upload_file)
     obj._delete_file = MagicMock(wraps=obj._delete_file)
 
-    yield obj
+    return obj
 
 
 @pytest.mark.django_db
 def test_importer(
-    import_paths: Tuple[Path, Path],
+    import_paths: tuple[Path, Path],
     importer: MockImporter,
     library,
 ):
@@ -70,7 +69,7 @@ def test_importer(
 
 @pytest.mark.django_db
 def test_importer_and_delete(
-    import_paths: Tuple[Path, Path],
+    import_paths: tuple[Path, Path],
     importer: MockImporter,
     library,
 ):
@@ -84,7 +83,7 @@ def test_importer_and_delete(
 
 @pytest.mark.django_db
 def test_importer_existing_file(
-    import_paths: Tuple[Path, Path],
+    import_paths: tuple[Path, Path],
     importer: MockImporter,
     library,
 ):
@@ -99,7 +98,7 @@ def test_importer_existing_file(
 
 @pytest.mark.django_db
 def test_importer_existing_file_and_delete(
-    import_paths: Tuple[Path, Path],
+    import_paths: tuple[Path, Path],
     importer: MockImporter,
     library,
 ):
@@ -115,7 +114,7 @@ def test_importer_existing_file_and_delete(
 
 @pytest.mark.django_db
 def test_importer_missing_library(
-    import_paths: Tuple[Path, Path],
+    import_paths: tuple[Path, Path],
     importer: MockImporter,
 ):
     with pytest.raises(

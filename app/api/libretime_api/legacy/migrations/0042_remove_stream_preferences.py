@@ -43,6 +43,6 @@ class Migration(migrations.Migration):
             code=legacy_migration_factory(
                 target="42",
                 sql=UP,
-            )
-        )
+            ),
+        ),
     ]

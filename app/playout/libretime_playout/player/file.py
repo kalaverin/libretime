@@ -4,11 +4,10 @@ import os
 import time
 from queue import Empty, Queue
 from threading import Thread
-from typing import Optional
 
 import requests
-from libretime_api_client.v2 import ApiClient
 
+from libretime_api_client.v2 import ApiClient
 from libretime_playout.player.events import FileEvent, FileEvents
 
 logger = logging.getLogger(__name__)
@@ -53,7 +52,7 @@ class PypoFile(Thread):
             try:
                 with file_event.local_filepath.open("wb") as file_fd:
                     response = self.api_client.download_file(
-                        file_event.id, stream=True
+                        file_event.id, stream=True,
                     )
                     for chunk in response.iter_content(chunk_size=8192):
                         file_fd.write(chunk)
@@ -62,7 +61,7 @@ class PypoFile(Thread):
                 file_event.local_filepath.unlink(missing_ok=True)
 
                 raise RuntimeError(
-                    f"could not download file {file_event.id}"
+                    f"could not download file {file_event.id}",
                 ) from exception
 
             # make file world readable and owner writable
@@ -86,7 +85,7 @@ class PypoFile(Thread):
             )
 
     def report_file_size_and_md5_to_api(
-        self, file_path: str, file_id: int
+        self, file_path: str, file_id: int,
     ) -> int:
         try:
             file_size = os.path.getsize(file_path)
@@ -129,7 +128,7 @@ class PypoFile(Thread):
     def get_highest_priority_file_event(
         self,
         file_events: FileEvents,
-    ) -> Optional[FileEvent]:
+    ) -> FileEvent | None:
         """
         Get highest priority file event in the queue. Currently the highest
         priority is decided by how close the start time is to "now".
@@ -175,7 +174,7 @@ class PypoFile(Thread):
                         pass
 
                 file_event = self.get_highest_priority_file_event(
-                    self.file_events
+                    self.file_events,
                 )
                 if file_event is not None:
                     self.copy_file(file_event)

@@ -1,17 +1,16 @@
 import logging
 import os
 from pathlib import Path
-from typing import Optional
 
 import click
-from libretime_shared.cli import cli_config_options, cli_logging_options
-from libretime_shared.config import DEFAULT_ENV_PREFIX
-from libretime_shared.logging import setup_logger
 
 from libretime_analyzer import PACKAGE, VERSION
 from libretime_analyzer.config import Config
 from libretime_analyzer.message_listener import MessageListener
 from libretime_analyzer.status_reporter import StatusReporter
+from libretime_shared.cli import cli_config_options, cli_logging_options
+from libretime_shared.config import DEFAULT_ENV_PREFIX
+from libretime_shared.logging import setup_logger
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +30,8 @@ DEFAULT_RETRY_QUEUE_FILEPATH = Path("retry_queue")
 )
 def cli(
     log_level: str,
-    log_filepath: Optional[Path],
-    config_filepath: Optional[Path],
+    log_filepath: Path | None,
+    config_filepath: Path | None,
     retry_queue_filepath: Path,
 ):
     """

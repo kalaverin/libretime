@@ -1,4 +1,6 @@
-from typing import Literal, Optional
+from typing import Literal
+
+from pydantic import BaseModel
 
 from libretime_shared.config import (
     BaseConfig,
@@ -7,7 +9,6 @@ from libretime_shared.config import (
     RabbitMQConfig,
     StorageConfig,
 )
-from pydantic import BaseModel
 
 
 class EmailConfig(BaseModel):
@@ -17,10 +18,10 @@ class EmailConfig(BaseModel):
     port: int = 25
     user: str = ""
     password: str = ""
-    encryption: Optional[Literal["ssl/tls", "starttls"]] = None
-    timeout: Optional[int] = None
-    key_file: Optional[str] = None
-    cert_file: Optional[str] = None
+    encryption: Literal["ssl/tls", "starttls"] | None = None
+    timeout: int | None = None
+    key_file: str | None = None
+    cert_file: str | None = None
 
 
 class Config(BaseConfig):
