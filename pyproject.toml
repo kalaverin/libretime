@@ -93,9 +93,7 @@ exclude = []
 extend = "etc/lint/ruff.toml"
 
 [tool.ruff.lint.isort]
-combine-as-imports = true
 detect-same-package = true
-lines-after-imports = 1
 lines-between-types = 1
 order-by-type = true
 split-on-trailing-comma = true

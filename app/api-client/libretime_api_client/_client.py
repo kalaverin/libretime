@@ -1,6 +1,7 @@
 import logging
 
-from requests import Response, Session as BaseSession
+from requests import Response
+from requests import Session as BaseSession
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
 from urllib3.util import Retry
