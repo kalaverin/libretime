@@ -8,7 +8,6 @@ from libretime_shared.config import DEFAULT_ENV_PREFIX
 from libretime_worker.config import __name__ as config_module
 from libretime_worker.tasks import worker
 
-
 @click.command(context_settings={"auto_envvar_prefix": DEFAULT_ENV_PREFIX})
 @cli_logging_options()
 def cli(log_level: str, log_filepath: Path | None):

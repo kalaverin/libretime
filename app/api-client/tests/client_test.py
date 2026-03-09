@@ -2,7 +2,6 @@ import pytest
 
 from libretime_api_client._client import Session
 
-
 @pytest.mark.parametrize(
     "base_url, url, expected",
     [

@@ -1,6 +1,5 @@
 from rest_framework.test import APIClient
 
-
 # pylint: disable=invalid-name,unused-argument
 def test_version_get(db, api_client: APIClient):
     response = api_client.get("/api/v2/version")

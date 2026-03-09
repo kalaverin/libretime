@@ -15,7 +15,6 @@ from libretime_playout.liquidsoap.entrypoint import generate_entrypoint
 from libretime_playout.liquidsoap.models import Info, StreamPreferences
 from libretime_playout.liquidsoap.version import get_liquidsoap_version
 
-
 logger = logging.getLogger(__name__)
 
 here = Path(__file__).parent

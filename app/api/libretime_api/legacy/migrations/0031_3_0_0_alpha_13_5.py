@@ -6,7 +6,6 @@ from libretime_api.legacy.migrations._migrations import (
     legacy_migration_factory,
 )
 
-
 UP = """
 INSERT INTO "cc_pref" ("keystr", "valstr") VALUES ('default_stream_mount_point', 'airtime_128');
 """

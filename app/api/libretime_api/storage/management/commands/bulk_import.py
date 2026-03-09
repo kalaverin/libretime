@@ -10,7 +10,6 @@ from libretime_shared.files import compute_md5
 
 from libretime_api.storage.models import File, Library
 
-
 logger = logging.getLogger(__name__)
 
 DEFAULT_ALLOWED_EXTENSIONS = [

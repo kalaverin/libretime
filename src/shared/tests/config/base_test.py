@@ -14,7 +14,6 @@ from libretime_shared.config import (
 from pydantic import BaseModel, Field
 from pytest import mark, raises
 
-
 AnyOutput = Annotated[
     IcecastOutput | ShoutcastOutput,
     Field(discriminator="kind"),

@@ -10,7 +10,6 @@ from libretime_analyzer.pipeline.analyze_playability import (
 
 from tests.fixtures import FILE_INVALID_DRM, FILES
 
-
 @pytest.mark.parametrize(
     "filepath",
     map(lambda i: str(i.path), FILES),

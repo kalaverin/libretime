@@ -18,7 +18,6 @@ from libretime_analyzer.pipeline.analyze_playability import (
 from libretime_analyzer.pipeline.analyze_replaygain import analyze_replaygain
 from libretime_analyzer.pipeline.organise_file import organise_file
 
-
 logger = logging.getLogger(__name__)
 
 

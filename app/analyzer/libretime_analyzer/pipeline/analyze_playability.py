@@ -5,7 +5,6 @@ from typing import Any
 
 from libretime_analyzer.pipeline._liquidsoap import _liquidsoap
 
-
 logger = logging.getLogger(__name__)
 
 

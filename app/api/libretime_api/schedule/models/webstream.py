@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class Webstream(models.Model):
     created_at = models.DateTimeField(db_column="utime")
     updated_at = models.DateTimeField(db_column="mtime")

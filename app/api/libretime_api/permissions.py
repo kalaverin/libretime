@@ -6,7 +6,6 @@ from rest_framework.request import Request
 
 from libretime_api.core.models import Role
 
-
 REQUEST_PERMISSION_TYPE_MAP = {
     "GET": "view",
     "HEAD": "view",

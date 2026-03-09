@@ -6,7 +6,6 @@ from libretime_api.legacy.migrations._migrations import (
     legacy_migration_factory,
 )
 
-
 UP = """
 ALTER TABLE "cc_files" ADD COLUMN "track_type_id" INTEGER;
 ALTER TABLE "cc_files" ADD CONSTRAINT "cc_files_track_type_fkey"

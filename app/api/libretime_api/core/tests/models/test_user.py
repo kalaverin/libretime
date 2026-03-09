@@ -3,7 +3,6 @@ from rest_framework.test import APITestCase
 from libretime_api.core.models import Role, User
 from libretime_api.permission_constants import GROUPS
 
-
 class TestUserManager(APITestCase):
     def test_create_user(self):
         user = User.objects.create_user(

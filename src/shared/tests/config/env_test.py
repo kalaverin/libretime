@@ -8,7 +8,6 @@ from libretime_shared.config import BaseConfig
 from libretime_shared.config._env import EnvLoader
 from pydantic import BaseModel
 
-
 ENV_SCHEMA_OBJ_WITH_STR = {
     "type": "object",
     "properties": {"a_str": {"type": "string"}},

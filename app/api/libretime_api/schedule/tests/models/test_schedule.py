@@ -4,7 +4,6 @@ from django.test import TestCase
 
 from libretime_api.schedule.models import Schedule, ShowInstance
 
-
 class TestSchedule(TestCase):
     @classmethod
     def setUpTestData(cls):

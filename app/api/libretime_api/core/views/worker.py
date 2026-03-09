@@ -6,7 +6,6 @@ from libretime_api.core.serializers import (
     ThirdPartyTrackReferenceSerializer,
 )
 
-
 class ThirdPartyTrackReferenceViewSet(viewsets.ModelViewSet):
     queryset = ThirdPartyTrackReference.objects.all()
     serializer_class = ThirdPartyTrackReferenceSerializer

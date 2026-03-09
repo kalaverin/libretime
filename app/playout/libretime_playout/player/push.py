@@ -11,7 +11,6 @@ from libretime_playout.player.events import AnyEvent, Events, FileEvent
 from libretime_playout.player.liquidsoap import Liquidsoap
 from libretime_playout.player.queue import PypoLiqQueue
 
-
 logger = logging.getLogger(__name__)
 
 

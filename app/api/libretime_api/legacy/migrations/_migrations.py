@@ -4,7 +4,6 @@ from django.db import DataError, connection
 
 from libretime_api.legacy.migrations._version import parse_version
 
-
 def get_schema_version():
     """
     Get the schema version from a legacy database.

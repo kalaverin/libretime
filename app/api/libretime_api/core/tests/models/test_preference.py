@@ -1,6 +1,5 @@
 from libretime_api.core.models.preference import Preference
 
-
 # pylint: disable=invalid-name,unused-argument
 def test_preference_get_site_preferences(db):
     result = Preference.get_site_preferences()

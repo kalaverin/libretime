@@ -12,7 +12,6 @@ from libretime_api_client.v2 import ApiClient
 
 from libretime_playout.player.events import FileEvent, FileEvents
 
-
 logger = logging.getLogger(__name__)
 
 

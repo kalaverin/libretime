@@ -14,7 +14,6 @@ from libretime_api.podcasts.router import urls as podcasts_urls
 from libretime_api.schedule.router import urls as schedule_urls
 from libretime_api.storage.router import urls as storage_urls
 
-
 api_urls = []
 api_urls += core_urls
 api_urls += history_urls

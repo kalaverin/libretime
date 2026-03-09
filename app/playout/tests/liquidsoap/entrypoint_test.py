@@ -15,7 +15,6 @@ from tests.liquidsoap.fixtures import (
     make_config_with_stream,
 )
 
-
 @pytest.mark.parametrize(
     "version",
     [pytest.param((1, 4, 4), id="1.4")],

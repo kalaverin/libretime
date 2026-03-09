@@ -1,6 +1,5 @@
 from libretime_api.core.models.role import Role
 
-
 GUEST_PERMISSIONS = [
     "view_schedule",
     "view_show",

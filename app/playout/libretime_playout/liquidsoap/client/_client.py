@@ -11,7 +11,6 @@ from libretime_playout.liquidsoap.models import MessageFormatKind
 from libretime_playout.liquidsoap.utils import quote
 from libretime_playout.liquidsoap.version import parse_liquidsoap_version
 
-
 logger = logging.getLogger(__name__)
 
 

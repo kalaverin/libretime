@@ -27,7 +27,6 @@ from libretime_shared.logging import setup_logger
 
 from libretime_playout.config import Config
 
-
 logger = logging.getLogger(__name__)
 
 

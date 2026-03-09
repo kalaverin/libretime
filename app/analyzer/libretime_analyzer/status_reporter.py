@@ -12,7 +12,6 @@ import requests
 
 from requests.exceptions import HTTPError
 
-
 logger = logging.getLogger(__name__)
 
 

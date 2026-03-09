@@ -8,7 +8,6 @@ from libretime_shared.logging import setup_logger
 
 from tests.fixtures import fixtures_path
 
-
 setup_logger("debug")
 
 AUDIO_FILENAME = "s1-stereo-tagged.mp3"

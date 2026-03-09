@@ -6,7 +6,6 @@ from libretime_api.legacy.migrations._migrations import (
     legacy_migration_factory,
 )
 
-
 UP = """
 ALTER TABLE "cc_files" DROP CONSTRAINT "cc_music_dirs_folder_fkey";
 ALTER TABLE "cc_files" DROP COLUMN "directory";

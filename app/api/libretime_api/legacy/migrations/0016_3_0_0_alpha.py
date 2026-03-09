@@ -6,7 +6,6 @@ from libretime_api.legacy.migrations._migrations import (
     legacy_migration_factory,
 )
 
-
 UP = """
 ALTER TABLE cc_show ADD COLUMN has_autoplaylist boolean default 'f' NOT NULL;
 ALTER TABLE cc_show ADD COLUMN autoplaylist_id integer DEFAULT NULL;

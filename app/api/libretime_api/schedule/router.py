@@ -16,7 +16,6 @@ from libretime_api.schedule.views import (
     WebstreamViewSet,
 )
 
-
 router = routers.DefaultRouter(trailing_slash=False)
 router.register("playlist-contents", PlaylistContentViewSet)
 router.register("playlists", PlaylistViewSet)

@@ -9,7 +9,6 @@ from libretime_shared.config import (
 )
 from pydantic import BaseModel, model_validator
 
-
 CACHE_DIR = Path.cwd() / "scheduler"
 RECORD_DIR = Path.cwd() / "recorder"
 

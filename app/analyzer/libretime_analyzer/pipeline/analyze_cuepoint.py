@@ -10,7 +10,6 @@ from libretime_analyzer.pipeline._ffmpeg import (
     probe_duration,
 )
 
-
 logger = logging.getLogger(__name__)
 
 

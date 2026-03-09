@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-
 # pylint: disable=abstract-method
 class StreamPreferencesSerializer(serializers.Serializer):
     input_fade_transition = serializers.FloatField(read_only=True)

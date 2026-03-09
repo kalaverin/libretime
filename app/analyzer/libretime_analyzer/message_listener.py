@@ -15,7 +15,6 @@ from libretime_analyzer.pipeline import (
 )
 from libretime_analyzer.status_reporter import StatusReporter
 
-
 logger = logging.getLogger(__name__)
 
 EXCHANGE = "airtime-uploads"

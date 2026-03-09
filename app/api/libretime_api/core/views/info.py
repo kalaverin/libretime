@@ -6,7 +6,6 @@ from rest_framework.views import APIView
 from libretime_api.core.models import Preference
 from libretime_api.core.serializers import InfoSerializer, VersionSerializer
 
-
 class VersionView(APIView):
     permission_classes = [AllowAny]
     serializer_class = VersionSerializer

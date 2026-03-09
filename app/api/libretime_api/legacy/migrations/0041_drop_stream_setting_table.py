@@ -6,7 +6,6 @@ from libretime_api.legacy.migrations._migrations import (
     legacy_migration_factory,
 )
 
-
 UP = """
 drop table if exists "cc_stream_setting" cascade;
 """

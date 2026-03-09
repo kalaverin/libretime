@@ -15,7 +15,6 @@ from libretime_api.core.views import (
     VersionView,
 )
 
-
 router = routers.DefaultRouter(trailing_slash=False)
 router.register("login-attempts", LoginAttemptViewSet)
 router.register("preferences", PreferenceViewSet)

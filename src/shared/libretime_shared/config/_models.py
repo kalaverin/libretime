@@ -11,7 +11,6 @@ from libretime_shared.config._fields import (
     StrNoTrailingSlash,
 )
 
-
 # GeneralConfig
 ########################################################################################
 

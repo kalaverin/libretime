@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class Podcast(models.Model):
     url = models.CharField(max_length=4096)
     title = models.CharField(max_length=4096)

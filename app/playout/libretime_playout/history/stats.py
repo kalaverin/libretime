@@ -15,7 +15,6 @@ from requests import Session
 
 from libretime_playout.config import Config
 
-
 logger = logging.getLogger(__name__)
 
 AnyOutput = Union[IcecastOutput, ShoutcastOutput]

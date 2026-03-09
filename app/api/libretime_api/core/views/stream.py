@@ -8,7 +8,6 @@ from libretime_api.core.serializers import (
 )
 from libretime_api.permissions import IsSystemTokenOrUser
 
-
 class StreamPreferencesView(views.APIView):
     permission_classes = [IsSystemTokenOrUser]
     serializer_class = StreamPreferencesSerializer

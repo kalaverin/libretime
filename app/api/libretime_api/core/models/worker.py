@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class ThirdPartyTrackReference(models.Model):
     service = models.CharField(max_length=256)
     foreign_id = models.CharField(

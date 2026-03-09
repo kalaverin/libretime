@@ -10,7 +10,6 @@ from libretime_playout.player.events import AnyEvent
 from libretime_playout.player.liquidsoap import Liquidsoap
 from libretime_playout.utils import seconds_between
 
-
 logger = logging.getLogger(__name__)
 
 

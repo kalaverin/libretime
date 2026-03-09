@@ -11,7 +11,6 @@ from libretime_api.history.views import (
     TimestampViewSet,
 )
 
-
 router = routers.DefaultRouter(trailing_slash=False)
 router.register("listener-counts", ListenerCountViewSet)
 router.register("live-logs", LiveLogViewSet)

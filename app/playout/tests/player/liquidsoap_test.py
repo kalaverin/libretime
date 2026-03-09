@@ -9,7 +9,6 @@ from libretime_playout.player.liquidsoap import (
     create_liquidsoap_annotation,
 )
 
-
 @patch("libretime_playout.player.events.CACHE_DIR", Path("/fake"))
 def test_create_liquidsoap_annotation():
     file_event = FileEvent(

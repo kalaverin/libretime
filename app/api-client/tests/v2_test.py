@@ -2,7 +2,6 @@ import pytest
 
 from libretime_api_client.v2 import ApiClient
 
-
 @pytest.mark.parametrize(
     "base_url",
     [

@@ -20,7 +20,6 @@ from requests import RequestException, Response
 from libretime_worker import PACKAGE, VERSION
 from libretime_worker.config import config
 
-
 worker = Celery()
 logger = get_task_logger(__name__)
 

@@ -4,7 +4,6 @@ import mimetypes
 from datetime import datetime
 from pathlib import Path
 
-
 logger = logging.getLogger(__name__)
 
 here = Path(__file__).parent

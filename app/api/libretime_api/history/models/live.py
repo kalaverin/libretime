@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class LiveLog(models.Model):
     state = models.CharField(max_length=32)
     start_time = models.DateTimeField()

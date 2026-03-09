@@ -10,7 +10,6 @@ from libretime_api.legacy.migrations._migrations import (
     set_schema_version,
 )
 
-
 here = Path(__file__).resolve().parent
 
 

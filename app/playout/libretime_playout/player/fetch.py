@@ -25,7 +25,6 @@ from libretime_playout.player.events import Events, FileEvent, FileEvents
 from libretime_playout.player.liquidsoap import Liquidsoap
 from libretime_playout.player.schedule import get_schedule
 
-
 logger = logging.getLogger(__name__)
 
 here = Path(__file__).parent

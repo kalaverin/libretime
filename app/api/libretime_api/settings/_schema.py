@@ -9,7 +9,6 @@ from libretime_shared.config import (
 )
 from pydantic import BaseModel
 
-
 class EmailConfig(BaseModel):
     from_email: str = "no-reply@libretime.org"
 

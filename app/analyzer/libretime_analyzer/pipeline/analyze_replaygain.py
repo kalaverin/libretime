@@ -6,7 +6,6 @@ from libretime_analyzer.pipeline._ffmpeg import (
     probe_replaygain,
 )
 
-
 def analyze_replaygain(filepath: str, metadata: dict[str, Any]):
     """
     Extracts the Replaygain loudness normalization factor of a track using ffmpeg.

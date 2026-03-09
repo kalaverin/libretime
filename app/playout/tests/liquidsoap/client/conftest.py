@@ -16,7 +16,6 @@ from libretime_playout.liquidsoap.client import (
 )
 from libretime_shared.logging import setup_logger
 
-
 logger = logging.getLogger(__name__)
 
 setup_logger("debug")

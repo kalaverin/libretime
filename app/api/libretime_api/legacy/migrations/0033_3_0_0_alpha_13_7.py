@@ -6,7 +6,6 @@ from libretime_api.legacy.migrations._migrations import (
     legacy_migration_factory,
 )
 
-
 UP = """
 DROP TABLE IF EXISTS "cc_perms" CASCADE;
 """

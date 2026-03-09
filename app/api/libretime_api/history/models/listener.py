@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class MountName(models.Model):
     mount_name = models.CharField(max_length=1024)
 

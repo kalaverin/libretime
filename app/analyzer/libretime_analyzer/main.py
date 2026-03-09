@@ -14,7 +14,6 @@ from libretime_analyzer.config import Config
 from libretime_analyzer.message_listener import MessageListener
 from libretime_analyzer.status_reporter import StatusReporter
 
-
 logger = logging.getLogger(__name__)
 
 DEFAULT_RETRY_QUEUE_FILEPATH = Path("retry_queue")

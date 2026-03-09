@@ -9,7 +9,6 @@ import mutagen
 from libretime_shared.files import compute_md5
 from mutagen.easyid3 import EasyID3
 
-
 logger = logging.getLogger(__name__)
 
 

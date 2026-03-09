@@ -13,7 +13,6 @@ from libretime_api.podcasts.serializers import (
     StationPodcastSerializer,
 )
 
-
 class PodcastViewSet(viewsets.ModelViewSet):
     queryset = Podcast.objects.all()
     serializer_class = PodcastSerializer

@@ -8,7 +8,6 @@ from requests.exceptions import RequestException
 
 from libretime_api_client._client import AbstractApiClient, Response
 
-
 logger = logging.getLogger(__name__)
 
 

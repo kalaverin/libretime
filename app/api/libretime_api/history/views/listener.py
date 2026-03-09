@@ -7,7 +7,6 @@ from libretime_api.history.serializers import (
     TimestampSerializer,
 )
 
-
 class MountNameViewSet(viewsets.ModelViewSet):
     queryset = MountName.objects.all()
     serializer_class = MountNameSerializer

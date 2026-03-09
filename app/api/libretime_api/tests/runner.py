@@ -1,7 +1,6 @@
 from django.db.models import Model
 from django.test.runner import DiscoverRunner
 
-
 class ManagedModelTestRunner(DiscoverRunner):
     """
     Test runner that automatically makes all unmanaged models in your Django

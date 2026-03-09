@@ -2,7 +2,6 @@ from os import environ, getenv
 
 from libretime_api import PACKAGE, VERSION
 
-
 API_VERSION = "2.0.0"
 
 # SECURITY WARNING: don't run with debug turned on in production!

@@ -6,7 +6,6 @@ from libretime_api.legacy.migrations._migrations import (
     legacy_migration_factory,
 )
 
-
 UP = """
 ALTER TABLE cc_show ADD COLUMN override_intro_playlist boolean default 'f' NOT NULL;
 ALTER TABLE cc_show ADD COLUMN intro_playlist_id integer DEFAULT NULL;

@@ -9,7 +9,6 @@ from libretime_shared.logging import setup_logger
 
 from tests.liquidsoap.conftest import LIQ_VERSION, LIQ_VERSION_STR
 
-
 logger = logging.getLogger(__name__)
 
 setup_logger("debug")

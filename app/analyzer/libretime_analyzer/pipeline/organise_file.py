@@ -4,7 +4,6 @@ import shutil
 from pathlib import Path
 from uuid import uuid4
 
-
 logger = logging.getLogger(__name__)
 
 MAX_DIR_LEN = 48

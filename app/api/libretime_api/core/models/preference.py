@@ -3,7 +3,6 @@ from enum import Enum
 from django.db import models
 from pydantic import BaseModel
 
-
 class SitePreferences(BaseModel):
     station_name: str
 

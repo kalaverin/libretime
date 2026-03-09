@@ -11,7 +11,6 @@ from libretime_api.schedule.serializers import (
     SmartBlockSerializer,
 )
 
-
 class SmartBlockViewSet(viewsets.ModelViewSet):
     queryset = SmartBlock.objects.all()
     serializer_class = SmartBlockSerializer

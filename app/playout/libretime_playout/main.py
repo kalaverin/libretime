@@ -33,7 +33,6 @@ from libretime_playout.player.file import PypoFile
 from libretime_playout.player.liquidsoap import Liquidsoap
 from libretime_playout.player.push import PypoPush
 
-
 logger = logging.getLogger(__name__)
 
 

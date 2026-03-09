@@ -14,7 +14,6 @@ from kombu.mixins import ConsumerMixin
 
 from libretime_playout.config import Config
 
-
 logger = logging.getLogger(__name__)
 
 

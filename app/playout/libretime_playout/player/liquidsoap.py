@@ -13,7 +13,6 @@ from libretime_playout.player.events import (
 )
 from libretime_playout.utils import seconds_between
 
-
 logger = logging.getLogger(__name__)
 
 

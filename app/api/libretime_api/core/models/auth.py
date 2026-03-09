@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class UserToken(models.Model):
     user = models.ForeignKey(
         "core.User",
