@@ -4,8 +4,8 @@ from textwrap import dedent
 
 import pytest
 
-from libretime_playout.liquidsoap.client import LiquidsoapConnection
-from libretime_shared.logging import setup_logger
+from playout.liquidsoap.client import LiquidsoapConnection
+from sdk.logging import setup_logger
 
 from tests.liquidsoap.conftest import LIQ_VERSION, LIQ_VERSION_STR
 

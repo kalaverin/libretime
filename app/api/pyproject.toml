@@ -33,7 +33,7 @@ dependencies = [
 ]
 description = "LibreTime API"
 license = {text = "AGPLv3"}
-name = "libretime-api"
+name = "api"
 requires-python = ">=3.10"
 version = "4.5.0"
 
@@ -48,10 +48,10 @@ Homepage = "https://github.com/libretime/libretime"
 
 [ruff.lint.isort]
 known-first-party = [
-  "libretime_analyzer",
-  "libretime_api_client",
-  "libretime_shared",
-  "libretime_worker"
+  "analyzer",
+  "api_client",
+  "shared",
+  "worker"
 ]
 known-third-party = [
   "django",
@@ -73,10 +73,10 @@ omit = [
   "*/tests/*"
 ]
 plugins = ["django_coverage_plugin"]
-source = ["libretime_api"]
+source = ["api"]
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "libretime_api.settings.testing"
+DJANGO_SETTINGS_MODULE = "api.settings.testing"
 
 [tool.setuptools]
-packages = ["libretime_api"]
+packages = ["api"]

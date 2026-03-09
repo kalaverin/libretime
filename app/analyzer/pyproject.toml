@@ -23,12 +23,12 @@ dependencies = [
 ]
 description = "LibreTime Analyzer"
 license = {text = "AGPLv3"}
-name = "libretime-analyzer"
+name = "analyzer"
 requires-python = ">=3.10"
 version = "4.5.0"
 
 [project.scripts]
-libretime-analyzer = "libretime_analyzer.main:cli"
+libretime-analyzer = "analyzer.main:cli"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/libretime/libretime/issues"
@@ -38,10 +38,10 @@ Homepage = "https://github.com/libretime/libretime"
 
 [ruff.lint.isort]
 known-first-party = [
-  "libretime_api",
-  "libretime_api_client",
-  "libretime_shared",
-  "libretime_worker"
+  "api",
+  "api_client",
+  "shared",
+  "worker"
 ]
 known-third-party = [
   "mutagen",
@@ -51,4 +51,4 @@ known-third-party = [
 ]
 
 [tool.setuptools]
-packages = ["libretime_analyzer"]
+packages = ["analyzer"]

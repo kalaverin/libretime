@@ -1,6 +1,6 @@
 import pytest
 
-from libretime_analyzer.pipeline.analyze_replaygain import analyze_replaygain
+from analyzer.pipeline.analyze_replaygain import analyze_replaygain
 
 from tests.fixtures import FILES
 

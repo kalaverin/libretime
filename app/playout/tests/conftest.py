@@ -1,7 +1,7 @@
 import pytest
 
-from libretime_playout.config import Config
-from libretime_playout.liquidsoap.models import StreamPreferences
+from playout.config import Config
+from playout.liquidsoap.models import StreamPreferences
 
 
 @pytest.fixture

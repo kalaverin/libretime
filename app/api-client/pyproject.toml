@@ -21,7 +21,7 @@ dependencies = [
 ]
 description = "LibreTime API Client"
 license = {text = "AGPLv3"}
-name = "libretime-api-client"
+name = "api-client"
 requires-python = ">=3.10"
 version = "4.5.0"
 
@@ -33,10 +33,10 @@ Homepage = "https://github.com/libretime/libretime"
 
 [ruff.lint.isort]
 known-first-party = [
-  "libretime_analyzer",
-  "libretime_api",
-  "libretime_shared",
-  "libretime_worker"
+  "analyzer",
+  "api",
+  "shared",
+  "worker",
 ]
 known-third-party = [
   "python_dateutil",
@@ -44,4 +44,4 @@ known-third-party = [
 ]
 
 [tool.setuptools]
-packages = ["libretime_api_client"]
+packages = ["api_client"]

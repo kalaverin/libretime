@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from libretime_shared.logging import setup_logger
+from sdk.logging import setup_logger
 
 from tests.fixtures import fixtures_path
 

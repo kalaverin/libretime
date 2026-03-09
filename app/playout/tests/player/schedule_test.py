@@ -4,16 +4,16 @@ from datetime import datetime
 
 import pytest
 
-from libretime_api_client.v2 import ApiClient
-from libretime_playout.liquidsoap.models import StreamPreferences
-from libretime_playout.player.events import (
+from api_client.v2 import ApiClient
+from playout.liquidsoap.models import StreamPreferences
+from playout.player.events import (
     ActionEvent,
     EventKind,
     FileEvent,
     WebStreamEvent,
     event_isoparse,
 )
-from libretime_playout.player.schedule import (
+from playout.player.schedule import (
     generate_file_events,
     generate_live_events,
     generate_webstream_events,

@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from libretime_analyzer.pipeline.analyze_metadata import analyze_metadata
+from analyzer.pipeline.analyze_metadata import analyze_metadata
 
 from tests.fixtures import FILE_INVALID_DRM, FILE_INVALID_TXT, FILES_TAGGED
 

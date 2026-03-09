@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from libretime_analyzer.pipeline.organise_file import organise_file
+from analyzer.pipeline.organise_file import organise_file
 
 from tests.conftest import AUDIO_FILENAME
 

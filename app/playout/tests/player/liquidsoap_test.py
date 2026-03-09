@@ -3,8 +3,8 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dateutil.tz import tzutc
-from libretime_playout.player.events import EventKind, FileEvent
-from libretime_playout.player.liquidsoap import (
+from playout.player.events import EventKind, FileEvent
+from playout.player.liquidsoap import (
     Liquidsoap,
     create_liquidsoap_annotation,
 )

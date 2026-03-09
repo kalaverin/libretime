@@ -4,7 +4,7 @@ from queue import Queue
 
 import pytest
 
-from libretime_analyzer.pipeline import Pipeline, PipelineOptions
+from analyzer.pipeline import Pipeline, PipelineOptions
 
 from tests.conftest import AUDIO_FILENAME, AUDIO_IMPORT_DEST
 

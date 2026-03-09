@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from libretime_worker.tasks import extract_filename, podcast_download
 from requests import Response
+from worker.tasks import extract_filename, podcast_download
 
 from tests.fixtures import fixtures_path
 

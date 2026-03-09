@@ -1,6 +1,6 @@
 from typing import List
 
-from libretime_playout.config import Config
+from playout.config import Config
 
 
 def make_config(**kwargs) -> Config:

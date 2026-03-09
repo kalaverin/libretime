@@ -1,6 +1,6 @@
 import pytest
 
-from libretime_api_client.v2 import ApiClient
+from api_client.v2 import ApiClient
 
 
 @pytest.mark.parametrize(

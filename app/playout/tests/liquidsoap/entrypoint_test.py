@@ -4,10 +4,10 @@ from unittest import mock
 
 import pytest
 
-from libretime_playout.config import Config
-from libretime_playout.liquidsoap.entrypoint import generate_entrypoint
-from libretime_playout.liquidsoap.models import Info, StreamPreferences
-from libretime_playout.liquidsoap.version import get_liquidsoap_version
+from playout.config import Config
+from playout.liquidsoap.entrypoint import generate_entrypoint
+from playout.liquidsoap.models import Info, StreamPreferences
+from playout.liquidsoap.version import get_liquidsoap_version
 
 from tests.liquidsoap.conftest import LIQ_VERSION
 from tests.liquidsoap.fixtures import (

@@ -1,6 +1,6 @@
 import pytest
 
-from libretime_analyzer.pipeline.analyze_cuepoint import (
+from analyzer.pipeline.analyze_cuepoint import (
     analyze_cuepoint,
     analyze_duration,
 )

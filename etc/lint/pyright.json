@@ -16,11 +16,11 @@
     {
       "root": "../../",
       "extraPaths": [
-        "../../analyzer/",
-        "../../api/",
-        "../../api-client/",
-        "../../playout/",
-        "../../worker/",
+        "../../app/analyzer/",
+        "../../app/api/",
+        "../../app/api-client/",
+        "../../app/playout/",
+        "../../app/worker/",
         "../../src/shared/"
       ]
     }

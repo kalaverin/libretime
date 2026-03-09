@@ -3,10 +3,10 @@ from unittest.mock import Mock, call
 
 import pytest
 
-from libretime_playout.history.stats import AnyOutput, Stats, StatsCollector
-from libretime_shared.config import IcecastOutput, ShoutcastOutput
 from lxml.etree import XMLSyntaxError
+from playout.history.stats import AnyOutput, Stats, StatsCollector
 from requests.exceptions import HTTPError
+from sdk.config import IcecastOutput, ShoutcastOutput
 
 from tests.fixtures import icecast_stats, shoutcast_admin
 

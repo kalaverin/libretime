@@ -32,7 +32,7 @@ dependencies = [
 ]
 description = "LibreTime Playout"
 license = {text = "AGPLv3"}
-name = "libretime-playout"
+name = "playout"
 requires-python = ">=3.10"
 version = "4.5.0"
 
@@ -49,11 +49,11 @@ Homepage = "https://github.com/libretime/libretime"
 
 [ruff.lint.isort]
 known-first-party = [
-  "libretime_analyzer",
-  "libretime_api",
-  "libretime_api_client",
-  "libretime_shared",
-  "libretime_worker"
+  "analyzer",
+  "api",
+  "api_client",
+  "shared",
+  "worker",
 ]
 known-third-party = [
   "jinja2",
@@ -70,6 +70,5 @@ known-third-party = [
 [tool.mypy]
 check_untyped_defs = true
 
-[tool.setuptools.packages.find]
-include = ["libretime_playout"]
-where = ["."]
+[tool.setuptools]
+packages = ["playout"]
