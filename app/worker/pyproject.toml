@@ -42,7 +42,7 @@ known-first-party = [
   "api",
   "api_client",
   "playout",
-  "shared",
+  "shared"
 ]
 known-third-party = [
   "celery",

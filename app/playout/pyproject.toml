@@ -53,7 +53,7 @@ known-first-party = [
   "api",
   "api_client",
   "shared",
-  "worker",
+  "worker"
 ]
 known-third-party = [
   "jinja2",
@@ -64,7 +64,7 @@ known-third-party = [
   "python_dateutil",
   "requests",
   "sentry_sdk",
-  "typing_extensions",
+  "typing_extensions"
 ]
 
 [tool.mypy]

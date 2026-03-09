@@ -36,7 +36,7 @@ known-first-party = [
   "analyzer",
   "api",
   "shared",
-  "worker",
+  "worker"
 ]
 known-third-party = [
   "python_dateutil",

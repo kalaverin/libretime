@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser
+from collections.abc import Iterator
 from configparser import ConfigParser
 from os import PathLike
 from pathlib import Path
-from typing import List, Optional, Set
-from collections.abc import Iterator
 
 DEFAULT_PACKAGES_FILENAME = "packages.ini"
 FORMATS = ("list", "line")
@@ -30,7 +29,7 @@ def load_packages(
     packages = set()
     exclude = set(exclude or [])
     for section, entries in manager.items():
-        if not development and section == DEVELOPMENT_SECTION or section in exclude:
+        if (not development and section == DEVELOPMENT_SECTION) or section in exclude:
             continue
 
         for package, distributions in entries.items():
@@ -66,7 +65,7 @@ def list_packages(
         raw = package_file.read_text()
         packages.update(load_packages(raw, distribution, development, exclude))
 
-    return set(sorted(packages))
+    return set(packages)
 
 
 def run():

@@ -2,11 +2,12 @@
 # pylint: disable=invalid-name
 
 import logging
+
 from argparse import ArgumentParser
+from collections.abc import Generator
 from os import environ
 from subprocess import check_output
-from typing import Any, List, Tuple
-from collections.abc import Generator
+from typing import Any
 
 from requests import Session
 
@@ -26,7 +27,7 @@ EXCLUDED_CONTRIBUTORS = {
 
 def extract_date_range(commit_range: str) -> tuple[str, str]:
     output = check_output(
-        ["git", "log", "--reverse", "--format=%cI", commit_range], text=True
+        ["git", "log", "--reverse", "--format=%cI", commit_range], text=True,
     )
     lines = output.splitlines()
     return lines[0], lines[-1]

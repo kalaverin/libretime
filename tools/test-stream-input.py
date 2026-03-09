@@ -2,6 +2,7 @@
 # pylint: disable=invalid-name
 
 import subprocess
+
 from argparse import (
     ArgumentDefaultsHelpFormatter,
     ArgumentParser,
@@ -21,7 +22,7 @@ def run():
     parser = ArgumentParser(
         description="Send a sine wave sound to an icecast mount or liquidsoap input harbor.",
         formatter_class=lambda prog: ArgumentParserFormatter(
-            prog, max_help_position=60
+            prog, max_help_position=60,
         ),
     )
     parser.add_argument(

@@ -142,11 +142,11 @@ repos:
         name: fix requirements.txt files
       - id: name-tests-test
         name: enforce test file naming convention
-        exclude: ^(app/api)
+        # exclude: ^(app/api/)
 
       - id: name-tests-test
         name: enforce test file naming convention
-        exclude: ^(app/analyzer|app/api|app/api-client|app/playout|app/worker|src/shared)
+        # exclude: ^(app/analyzer|app/api/api|app/api-client|app/playout|app/worker|src/sdk)
         args:
           - --pytest-test-first
 

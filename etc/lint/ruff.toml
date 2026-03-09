@@ -4,7 +4,7 @@ exclude = [
 ]
 line-length = 79
 output-format = "full"
-target-version = "py38"
+target-version = "py310"
 
 [lint]
 ignore = [
