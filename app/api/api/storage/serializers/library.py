@@ -10,7 +10,6 @@ from api.storage.models import Library
 @final
 class LibrarySerializer(serializers.ModelSerializer[Any]):
 
-    @final
     class Meta:
         model: type[models.Model] = Library
         fields: str = "__all__"

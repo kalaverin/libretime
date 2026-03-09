@@ -10,7 +10,6 @@ from api.storage.models import File
 @final
 class FileSerializer(serializers.ModelSerializer[Any]):
 
-    @final
     class Meta:
         model: type[models.Model] = File
         fields: str = "__all__"

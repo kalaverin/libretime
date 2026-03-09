@@ -1,40 +1,45 @@
-from typing import final
+from typing import Any, final
 
-from django.db import models
+from django.db.models import (
+    AutoField,
+    BooleanField,
+    CharField,
+    Model,
+)
 
 
 @final
-class Library(models.Model):
-    @final
+class Library(Model):
+
     class Meta:
         managed: bool = False
         db_table: str = "cc_track_types"
 
-    name = models.CharField(
+    name: CharField[Any, Any] = CharField(
         max_length=255,
         blank=True,
         null=True,
         db_column="type_name",
     )
 
-    code = models.CharField(max_length=16, unique=True)
+    code: CharField[Any, Any] = CharField(max_length=16, unique=True)
 
-    description = models.CharField(
+    description: CharField[Any, Any] = CharField(
         max_length=255,
         blank=True,
         null=True,
     )
 
-    enabled = models.BooleanField(
+    enabled: BooleanField[Any, Any] = BooleanField(
         blank=True,
         default=True,
         db_column="visibility",
     )
 
-    analyze_cue_points = models.BooleanField(
+    analyze_cue_points: BooleanField[Any, Any] = BooleanField(
         blank=True,
         default=True,
         db_column="analyze_cue_points",
     )
 
-    id = models.AutoField(primary_key=True)
+    id: AutoField[Any, Any] = AutoField(primary_key=True)

@@ -17,3 +17,17 @@ from api.core.serializers.worker import (
     CeleryTaskSerializer,
     ThirdPartyTrackReferenceSerializer,
 )
+
+__all__ = (
+    "CeleryTaskSerializer",
+    "InfoSerializer",
+    "LoginAttemptSerializer",
+    "PreferenceSerializer",
+    "ServiceRegisterSerializer",
+    "StreamPreferencesSerializer",
+    "StreamStateSerializer",
+    "ThirdPartyTrackReferenceSerializer",
+    "UserSerializer",
+    "UserTokenSerializer",
+    "VersionSerializer",
+)

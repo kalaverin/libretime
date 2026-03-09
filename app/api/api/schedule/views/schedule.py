@@ -1,8 +1,9 @@
-from typing import final
+from typing import Any, final
 
 from django.db import models
 from django_filters import rest_framework as filters
 from rest_framework import viewsets
+from rest_framework.serializers import Serializer
 
 from api.mixins import ReadWriteSerializerMixin
 from api.schedule.models import Schedule
@@ -14,6 +15,11 @@ from api.schedule.serializers import (
 
 @final
 class ScheduleFilter(filters.FilterSet):
+
+    @final
+    class Meta:
+        model: type[models.Model] = Schedule
+        fields: tuple[()] = ()
 
     starts = filters.DateTimeFromToRangeFilter(field_name="starts_at")
     ends = filters.DateTimeFromToRangeFilter(field_name="ends_at")
@@ -31,16 +37,12 @@ class ScheduleFilter(filters.FilterSet):
             )
         return queryset.filter(starts_at__lt=models.F("instance__ends_at"))
 
-    class Meta:
-        model = Schedule
-        fields = []  # type: ignore
-
 
 @final
-class ScheduleViewSet(ReadWriteSerializerMixin, viewsets.ModelViewSet):
+class ScheduleViewSet(ReadWriteSerializerMixin, viewsets.ModelViewSet[Any]):
 
     queryset = Schedule.objects.all()
-    read_serializer_class = ReadScheduleSerializer
-    write_serializer_class = WriteScheduleSerializer
-    filterset_class = ScheduleFilter
+    read_serializer_class: type[Serializer[Any]] = ReadScheduleSerializer
+    write_serializer_class: type[Serializer[Any]] = WriteScheduleSerializer
+    filterset_class: type[filters.FilterSet] = ScheduleFilter
     model_permission_name: str = "schedule"

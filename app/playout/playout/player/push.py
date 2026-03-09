@@ -6,6 +6,8 @@ from datetime import UTC, datetime
 from queue import Queue
 from threading import Thread
 
+from typiing_extensions import final, override
+
 from playout.config import PUSH_INTERVAL, Config
 from playout.player.events import AnyEvent, Events, FileEvent
 from playout.player.liquidsoap import Liquidsoap
@@ -14,25 +16,30 @@ from playout.player.queue import PypoLiqQueue
 logger = logging.getLogger(__name__)
 
 
+@final
 class PypoPush(Thread):
-    name = "push"
-    daemon = True
+
+    name: str = "push"
+    daemon: bool = True
 
     def __init__(
         self,
-        push_queue: "Queue[Events]",
+        push_queue: Queue[Events],
         liquidsoap: Liquidsoap,
         config: Config,
-    ):
+    ) -> None:
         Thread.__init__(self)
-        self.queue = push_queue
+        self.queue: Queue[Events] = push_queue
 
-        self.config = config
+        self.config: Config = config
 
         self.future_scheduled_queue: Queue[Events] = Queue()
-        self.liquidsoap = liquidsoap
+        self.liquidsoap: Liquidsoap = liquidsoap
 
-        self.plq = PypoLiqQueue(self.future_scheduled_queue, self.liquidsoap)
+        self.plq: PypoLiqQueue = PypoLiqQueue(
+            self.future_scheduled_queue,
+            self.liquidsoap,
+        )
         self.plq.start()
 
     def main(self) -> None:
@@ -93,12 +100,11 @@ class PypoPush(Thread):
 
         return present, future
 
+    @override
     def run(self) -> None:
         while True:
             try:
                 self.main()
-            except (
-                Exception
-            ) as exception:  # pylint: disable=broad-exception-caught
-                logger.exception(exception)
+            except Exception as e:
+                logger.exception(e)
                 time.sleep(5)

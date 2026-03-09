@@ -11,6 +11,7 @@ from django_filters import rest_framework as filters
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
+from rest_framework.request import Request
 from typing_extensions import override
 
 from api.schedule.models import Schedule
@@ -38,7 +39,7 @@ class FileViewSet(viewsets.ModelViewSet[Any]):
     filterset_fields: tuple[str, ...] = ("md5", "genre")
 
     @action(detail=True, methods=["GET"])
-    def download(self, request, pk=None) -> HttpResponse:
+    def download(self, _: Request, __: Any = None) -> HttpResponse:
         instance: File = self.get_object()
 
         response = HttpResponse()

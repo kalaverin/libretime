@@ -1,6 +1,7 @@
-from typing import final
+from typing import Any, final
 
-from rest_framework import serializers
+from django.db.models import Model
+from rest_framework.serializers import ModelSerializer
 
 from api.schedule.models import (
     SmartBlock,
@@ -10,24 +11,24 @@ from api.schedule.models import (
 
 
 @final
-class SmartBlockSerializer(serializers.ModelSerializer):
-    @final
+class SmartBlockSerializer(ModelSerializer[Any]):
+
     class Meta:
-        model = SmartBlock
+        model: type[Model] = SmartBlock
         fields: str = "__all__"
 
 
 @final
-class SmartBlockContentSerializer(serializers.ModelSerializer):
-    @final
+class SmartBlockContentSerializer(ModelSerializer[Any]):
+
     class Meta:
-        model = SmartBlockContent
+        model: type[Model] = SmartBlockContent
         fields: str = "__all__"
 
 
 @final
-class SmartBlockCriteriaSerializer(serializers.ModelSerializer):
-    @final
+class SmartBlockCriteriaSerializer(ModelSerializer[Any]):
+
     class Meta:
-        model = SmartBlockCriteria
+        model: type[Model] = SmartBlockCriteria
         fields: str = "__all__"

@@ -1,4 +1,7 @@
-from rest_framework import serializers
+from typing import Any
+
+from django.db.models import Model
+from rest_framework.serializers import ModelSerializer
 
 from api.podcasts.models import (
     ImportedPodcast,
@@ -8,25 +11,29 @@ from api.podcasts.models import (
 )
 
 
-class PodcastSerializer(serializers.ModelSerializer):
+class PodcastSerializer(ModelSerializer[Any]):
+
     class Meta:
-        model = Podcast
-        fields = "__all__"
+        model: type[Model] = Podcast
+        fields: str = "__all__"
 
 
-class PodcastEpisodeSerializer(serializers.ModelSerializer):
+class PodcastEpisodeSerializer(ModelSerializer[Any]):
+
     class Meta:
-        model = PodcastEpisode
-        fields = "__all__"
+        model: type[Model] = PodcastEpisode
+        fields: str = "__all__"
 
 
-class StationPodcastSerializer(serializers.ModelSerializer):
+class StationPodcastSerializer(ModelSerializer[Any]):
+
     class Meta:
-        model = StationPodcast
-        fields = "__all__"
+        model: type[Model] = StationPodcast
+        fields: str = "__all__"
 
 
-class ImportedPodcastSerializer(serializers.ModelSerializer):
+class ImportedPodcastSerializer(ModelSerializer[Any]):
+
     class Meta:
-        model = ImportedPodcast
-        fields = "__all__"
+        model: type[Model] = ImportedPodcast
+        fields: str = "__all__"

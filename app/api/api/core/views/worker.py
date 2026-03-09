@@ -1,4 +1,7 @@
+from typing import Any, final
+
 from rest_framework import viewsets
+from rest_framework.serializers import Serializer
 
 from api.core.models import CeleryTask, ThirdPartyTrackReference
 from api.core.serializers import (
@@ -7,13 +10,19 @@ from api.core.serializers import (
 )
 
 
-class ThirdPartyTrackReferenceViewSet(viewsets.ModelViewSet):
+@final
+class ThirdPartyTrackReferenceViewSet(viewsets.ModelViewSet[Any]):
+
     queryset = ThirdPartyTrackReference.objects.all()
-    serializer_class = ThirdPartyTrackReferenceSerializer
-    model_permission_name = "thirdpartytrackreference"
+    serializer_class: type[Serializer[Any]] = (
+        ThirdPartyTrackReferenceSerializer
+    )
+    model_permission_name: str = "thirdpartytrackreference"
 
 
-class CeleryTaskViewSet(viewsets.ModelViewSet):
+@final
+class CeleryTaskViewSet(viewsets.ModelViewSet[Any]):
+
     queryset = CeleryTask.objects.all()
-    serializer_class = CeleryTaskSerializer
-    model_permission_name = "celerytask"
+    serializer_class: type[Serializer[Any]] = CeleryTaskSerializer
+    model_permission_name: str = "celerytask"

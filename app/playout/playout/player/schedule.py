@@ -1,4 +1,4 @@
-from datetime import datetime, time, timedelta
+from datetime import UTC, datetime, time, timedelta
 from operator import itemgetter
 
 from api_client import v2

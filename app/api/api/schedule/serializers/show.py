@@ -1,4 +1,8 @@
-from rest_framework import serializers
+from typing import Any
+
+from django.db.models import Model
+from rest_framework.serializers import ModelSerializer
+from typing_extensions import final
 
 from api.schedule.models import (
     Show,
@@ -9,9 +13,11 @@ from api.schedule.models import (
 )
 
 
-class ShowSerializer(serializers.ModelSerializer):
+@final
+class ShowSerializer(ModelSerializer[Any]):
+
     class Meta:
-        model = Show
+        model: type[Model] = Show
         fields: tuple[str, ...] = (
             "id",
             "name",
@@ -35,32 +41,32 @@ class ShowSerializer(serializers.ModelSerializer):
 
 
 @final
-class ShowDaysSerializer(serializers.ModelSerializer):
-    @final
+class ShowDaysSerializer(ModelSerializer[Any]):
+
     class Meta:
-        model = ShowDays
+        model: type[Model] = ShowDays
         fields: str = "__all__"
 
 
 @final
-class ShowHostSerializer(serializers.ModelSerializer):
-    @final
+class ShowHostSerializer(ModelSerializer[Any]):
+
     class Meta:
-        model = ShowHost
+        model: type[Model] = ShowHost
         fields: str = "__all__"
 
 
 @final
-class ShowInstanceSerializer(serializers.ModelSerializer):
-    @final
+class ShowInstanceSerializer(ModelSerializer[Any]):
+
     class Meta:
-        model = ShowInstance
+        model: type[Model] = ShowInstance
         fields: str = "__all__"
 
 
 @final
-class ShowRebroadcastSerializer(serializers.ModelSerializer):
-    @final
+class ShowRebroadcastSerializer(ModelSerializer[Any]):
+
     class Meta:
-        model = ShowRebroadcast
+        model: type[Model] = ShowRebroadcast
         fields: str = "__all__"

@@ -1,21 +1,22 @@
-from typing import final
+from typing import Any, final
 
-from rest_framework import serializers
+from django.db.models import Model
+from rest_framework.serializers import ModelSerializer
 
 from api.schedule.models import Webstream, WebstreamMetadata
 
 
 @final
-class WebstreamSerializer(serializers.ModelSerializer):
-    @final
+class WebstreamSerializer(ModelSerializer[Any]):
+
     class Meta:
-        model = Webstream
+        model: type[Model] = Webstream
         fields: str = "__all__"
 
 
 @final
-class WebstreamMetadataSerializer(serializers.ModelSerializer):
-    @final
+class WebstreamMetadataSerializer(ModelSerializer[Any]):
+
     class Meta:
-        model = WebstreamMetadata
+        model: type[Model] = WebstreamMetadata
         fields: str = "__all__"

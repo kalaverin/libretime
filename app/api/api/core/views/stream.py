@@ -1,20 +1,29 @@
+from typing import Any, final
+
 from rest_framework import views
+from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.serializers import Serializer
 
 from api.core.models import Preference
 from api.core.serializers import (
     StreamPreferencesSerializer,
     StreamStateSerializer,
 )
-from api.permissions import IsSystemTokenOrUser
+from api.permissions import (
+    IsSystemTokenOrUser,
+    PermissionsType,
+)
 
 
+@final
 class StreamPreferencesView(views.APIView):
-    permission_classes = [IsSystemTokenOrUser]
-    serializer_class = StreamPreferencesSerializer
-    model_permission_name = "streamsetting"
 
-    def get(self, request):
+    serializer_class: type[Serializer[Any]] = StreamPreferencesSerializer
+    permission_classes: PermissionsType = (IsSystemTokenOrUser,)
+    model_permission_name: str = "streamsetting"
+
+    def get(self, _: Request) -> Response:
         data = Preference.get_stream_preferences()
         return Response(
             data.model_dump(
@@ -29,12 +38,14 @@ class StreamPreferencesView(views.APIView):
         )
 
 
+@final
 class StreamStateView(views.APIView):
-    permission_classes = [IsSystemTokenOrUser]
-    serializer_class = StreamStateSerializer
-    model_permission_name = "streamsetting"
 
-    def get(self, request):
+    serializer_class: type[Serializer[Any]] = StreamStateSerializer
+    permission_classes: PermissionsType = (IsSystemTokenOrUser,)
+    model_permission_name: str = "streamsetting"
+
+    def get(self, _: Request) -> Response:
         data = Preference.get_stream_state()
         return Response(
             data.model_dump(

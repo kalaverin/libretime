@@ -1,9 +1,13 @@
+from collections.abc import Sequence
 from contextlib import suppress
 from secrets import compare_digest
+from typing import Any
 
 from django.conf import settings
 from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
+from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 from typing_extensions import override
 
 from api.core.models import Role
@@ -19,7 +23,11 @@ REQUEST_PERMISSION_TYPE_MAP = {
 }
 
 
-def get_own_obj(request, view) -> str:
+PermissionsType = Sequence[type[BasePermission]]
+
+
+def get_own_obj(request: Request, view: ModelViewSet[Any]) -> str:
+
     user = request.user
     if user is None or user.role != Role.HOST or request.method == "GET":
         return ""
@@ -37,12 +45,16 @@ def get_own_obj(request, view) -> str:
     return ""
 
 
-def get_permission_for_view(request, view) -> str | None:
+def get_permission_for_view(
+    request: Request,
+    view: ModelViewSet[Any],
+) -> str | None:
 
     with suppress(AttributeError):
         permission_type = REQUEST_PERMISSION_TYPE_MAP[request.method]
         if view.__class__.__name__ == "APIRootView":
             return f"{permission_type}_apiroot"
+
         model = view.model_permission_name
         own_obj = get_own_obj(request, view)
         return f"{permission_type}_{own_obj}{model}"
@@ -68,11 +80,16 @@ class IsAdminOrOwnUser(BasePermission):
     """
 
     @override
-    def has_permission(self, request, view) -> bool:
+    def has_permission(self, request: Request, view: APIView) -> bool:
         return bool(request.user.is_superuser())
 
     @override
-    def has_object_permission(self, request, view, obj) -> bool:
+    def has_object_permission(
+        self,
+        request: Request,
+        view: APIView,
+        obj: Any,
+    ) -> bool:
         if request.user.is_superuser():
             return True
         return obj.username == request.user
@@ -90,7 +107,7 @@ class IsSystemTokenOrUser(BasePermission):
     """
 
     @override
-    def has_permission(self, request, view) -> bool:
+    def has_permission(self, request: Request, view: APIView) -> bool:
 
         if request.user and request.user.is_authenticated:
             perm = get_permission_for_view(request, view)
@@ -106,7 +123,12 @@ class IsSystemTokenOrUser(BasePermission):
         return check_authorization_header(request)
 
     @override
-    def has_object_permission(self, request, view, obj) -> bool:
+    def has_object_permission(
+        self,
+        request: Request,
+        view: APIView,
+        obj: Any,
+    ) -> bool:
 
         if request.user and request.user.is_authenticated:
             perm = get_permission_for_view(request, view)

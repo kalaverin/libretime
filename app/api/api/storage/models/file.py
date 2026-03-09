@@ -1,10 +1,22 @@
-from typing import final
+from typing import Any, final
 
 from django.db import models
+from django.db.models import (
+    DO_NOTHING,
+    BooleanField,
+    CharField,
+    DateTimeField,
+    DecimalField,
+    DurationField,
+    ForeignKey,
+    IntegerField,
+    Model,
+    TextField,
+)
 
 
 @final
-class File(models.Model):
+class File(Model):
 
     class Meta:
         managed: bool = False
@@ -14,65 +26,71 @@ class File(models.Model):
             ("delete_own_file", "Delete the files where they are the owner"),
         )
 
-    library = models.ForeignKey(
-        "storage.Library",
-        models.DO_NOTHING,
-        blank=True,
-        null=True,
-        db_column="track_type_id",
-    )
-
-    owner = models.ForeignKey(
-        "core.User",
-        models.DO_NOTHING,
-        blank=True,
-        null=True,
-    )
-
     class ImportStatus(models.IntegerChoices):
         SUCCESS = 0, "Success"
         PENDING = 1, "Pending"
         FAILED = 2, "Failed"
 
-    import_status = models.IntegerField(
+    library: ForeignKey[Any, Any] = ForeignKey(
+        "storage.Library",
+        DO_NOTHING,
+        blank=True,
+        null=True,
+        db_column="track_type_id",
+    )
+
+    owner: ForeignKey[Any, Any] = ForeignKey(
+        "core.User",
+        DO_NOTHING,
+        blank=True,
+        null=True,
+    )
+
+    import_status: IntegerField[Any, Any] = IntegerField(
         choices=ImportStatus.choices,
         default=ImportStatus.PENDING,
     )
 
-    filepath = models.TextField(blank=True, null=True)
-    size = models.IntegerField(db_column="filesize")
-    exists = models.BooleanField(
+    filepath: TextField[Any, Any] = TextField(blank=True, null=True)
+    size: IntegerField[Any, Any] = IntegerField(db_column="filesize")
+    exists: BooleanField[Any, Any] = BooleanField(
         blank=True,
         null=True,
         db_column="file_exists",
     )
-    mime = models.CharField(max_length=255)
-    md5 = models.CharField(max_length=32, blank=True, null=True)
+    mime: CharField[Any, Any] = CharField(max_length=255)
+    md5: CharField[Any, Any] = CharField(max_length=32, blank=True, null=True)
 
-    hidden = models.BooleanField(blank=True, null=True)
-    accessed = models.IntegerField(db_column="currentlyaccessing")
-    scheduled = models.BooleanField(
+    hidden: BooleanField[Any, Any] = BooleanField(blank=True, null=True)
+    accessed: IntegerField[Any, Any] = IntegerField(
+        db_column="currentlyaccessing",
+    )
+    scheduled: BooleanField[Any, Any] = BooleanField(
         blank=True,
         null=True,
         db_column="is_scheduled",
     )
-    part_of_list = models.BooleanField(
+    part_of_list: BooleanField[Any, Any] = BooleanField(
         blank=True,
         null=True,
         db_column="is_playlist",
     )
 
-    created_at = models.DateTimeField(blank=True, null=True, db_column="utime")
-    updated_at = models.DateTimeField(blank=True, null=True, db_column="mtime")
-    last_played_at = models.DateTimeField(
+    created_at: DateTimeField[Any, Any] = DateTimeField(
+        blank=True, null=True, db_column="utime",
+    )
+    updated_at: DateTimeField[Any, Any] = DateTimeField(
+        blank=True, null=True, db_column="mtime",
+    )
+    last_played_at: DateTimeField[Any, Any] = DateTimeField(
         blank=True,
         null=True,
         db_column="lptime",
     )
 
-    edited_by = models.ForeignKey(
+    edited_by: ForeignKey[Any, Any] = ForeignKey(
         "core.User",
-        on_delete=models.DO_NOTHING,
+        on_delete=DO_NOTHING,
         blank=True,
         null=True,
         related_name="edited_files",
@@ -80,110 +98,164 @@ class File(models.Model):
     )
 
     # Audio
-    bit_rate = models.IntegerField(blank=True, null=True)
-    sample_rate = models.IntegerField(blank=True, null=True)
-    format = models.CharField(max_length=128, blank=True, null=True)  # ?
-    channels = models.IntegerField(blank=True, null=True)
-    length = models.DurationField(blank=True, null=True)
+    bit_rate: IntegerField[Any, Any] = IntegerField(blank=True, null=True)
+    sample_rate: IntegerField[Any, Any] = IntegerField(blank=True, null=True)
+    format: CharField[Any, Any] = CharField(
+        max_length=128, blank=True, null=True,
+    )  # ?
+    channels: IntegerField[Any, Any] = IntegerField(blank=True, null=True)
+    length: DurationField[Any, Any] = DurationField(blank=True, null=True)
 
-    bpm = models.IntegerField(blank=True, null=True)  # ?
-    replay_gain = models.DecimalField(
+    bpm: IntegerField[Any, Any] = IntegerField(blank=True, null=True)  # ?
+    replay_gain: DecimalField[Any, Any] = DecimalField(
         max_digits=8,
         decimal_places=2,
         blank=True,
         null=True,
     )
-    cue_in = models.DurationField(blank=True, null=True, db_column="cuein")
-    cue_out = models.DurationField(blank=True, null=True, db_column="cueout")
+    cue_in: DurationField[Any, Any] = DurationField(
+        blank=True, null=True, db_column="cuein",
+    )
+    cue_out: DurationField[Any, Any] = DurationField(
+        blank=True, null=True, db_column="cueout",
+    )
 
     # Metadata
-    name = models.CharField(max_length=255)  # ?
-    description = models.CharField(max_length=512, blank=True, null=True)  # ?
+    name: CharField[Any, Any] = CharField(max_length=255)  # ?
+    description: CharField[Any, Any] = CharField(
+        max_length=512, blank=True, null=True,
+    )  # ?
 
-    artwork = models.CharField(max_length=512, blank=True, null=True)
+    artwork: CharField[Any, Any] = CharField(
+        max_length=512, blank=True, null=True,
+    )
 
-    artist_name = models.CharField(max_length=512, blank=True, null=True)
-    artist_url = models.CharField(max_length=512, blank=True, null=True)  # ?
-    original_artist = models.CharField(
+    artist_name: CharField[Any, Any] = CharField(
+        max_length=512, blank=True, null=True,
+    )
+    artist_url: CharField[Any, Any] = CharField(
+        max_length=512, blank=True, null=True,
+    )  # ?
+    original_artist: CharField[Any, Any] = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
-    album_title = models.CharField(max_length=512, blank=True, null=True)
-    track_title = models.CharField(max_length=512, blank=True, null=True)
-    genre = models.CharField(max_length=64, blank=True, null=True)
-    mood = models.CharField(max_length=64, blank=True, null=True)
-    date = models.CharField(
+    album_title: CharField[Any, Any] = CharField(
+        max_length=512, blank=True, null=True,
+    )
+    track_title: CharField[Any, Any] = CharField(
+        max_length=512, blank=True, null=True,
+    )
+    genre: CharField[Any, Any] = CharField(
+        max_length=64, blank=True, null=True,
+    )
+    mood: CharField[Any, Any] = CharField(max_length=64, blank=True, null=True)
+    date: CharField[Any, Any] = CharField(
         max_length=16,
         blank=True,
         null=True,
         db_column="year",
     )
-    track_number = models.IntegerField(blank=True, null=True)
-    disc_number = models.CharField(max_length=8, blank=True, null=True)  # ?
-    comment = models.TextField(blank=True, null=True, db_column="comments")
-    language = models.CharField(max_length=512, blank=True, null=True)
-    label = models.CharField(max_length=512, blank=True, null=True)
-    copyright = models.CharField(max_length=512, blank=True, null=True)
-    composer = models.CharField(max_length=512, blank=True, null=True)
-    conductor = models.CharField(max_length=512, blank=True, null=True)
-    orchestra = models.CharField(max_length=512, blank=True, null=True)  # ?
-    encoder = models.CharField(max_length=64, blank=True, null=True)
-    encoded_by = models.CharField(max_length=255, blank=True, null=True)  # ?
-    isrc = models.CharField(
+    track_number: IntegerField[Any, Any] = IntegerField(blank=True, null=True)
+    disc_number: CharField[Any, Any] = CharField(
+        max_length=8, blank=True, null=True,
+    )  # ?
+    comment: TextField[Any, Any] = TextField(
+        blank=True, null=True, db_column="comments",
+    )
+    language: CharField[Any, Any] = CharField(
+        max_length=512, blank=True, null=True,
+    )
+    label: CharField[Any, Any] = CharField(
+        max_length=512, blank=True, null=True,
+    )
+    copyright: CharField[Any, Any] = CharField(
+        max_length=512, blank=True, null=True,
+    )
+    composer: CharField[Any, Any] = CharField(
+        max_length=512, blank=True, null=True,
+    )
+    conductor: CharField[Any, Any] = CharField(
+        max_length=512, blank=True, null=True,
+    )
+    orchestra: CharField[Any, Any] = CharField(
+        max_length=512, blank=True, null=True,
+    )  # ?
+    encoder: CharField[Any, Any] = CharField(
+        max_length=64, blank=True, null=True,
+    )
+    encoded_by: CharField[Any, Any] = CharField(
+        max_length=255, blank=True, null=True,
+    )  # ?
+    isrc: CharField[Any, Any] = CharField(
         max_length=512,
         blank=True,
         null=True,
         db_column="isrc_number",
     )
 
-    lyrics = models.TextField(blank=True, null=True)  # ?
-    lyricist = models.CharField(max_length=512, blank=True, null=True)  # ?
-    original_lyricist = models.CharField(
+    lyrics: TextField[Any, Any] = TextField(blank=True, null=True)  # ?
+    lyricist: CharField[Any, Any] = CharField(
+        max_length=512, blank=True, null=True,
+    )  # ?
+    original_lyricist: CharField[Any, Any] = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
 
-    subject = models.CharField(max_length=512, blank=True, null=True)  # ?
-    contributor = models.CharField(max_length=512, blank=True, null=True)  # ?
-    rating = models.CharField(max_length=8, blank=True, null=True)  # ?
-    url = models.CharField(max_length=1024, blank=True, null=True)  # ?
-    info_url = models.CharField(max_length=512, blank=True, null=True)  # ?
-    audio_source_url = models.CharField(
+    subject: CharField[Any, Any] = CharField(
+        max_length=512, blank=True, null=True,
+    )  # ?
+    contributor: CharField[Any, Any] = CharField(
+        max_length=512, blank=True, null=True,
+    )  # ?
+    rating: CharField[Any, Any] = CharField(
+        max_length=8, blank=True, null=True,
+    )  # ?
+    url: CharField[Any, Any] = CharField(
+        max_length=1024, blank=True, null=True,
+    )  # ?
+    info_url: CharField[Any, Any] = CharField(
+        max_length=512, blank=True, null=True,
+    )  # ?
+    audio_source_url: CharField[Any, Any] = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
-    buy_this_url = models.CharField(max_length=512, blank=True, null=True)  # ?
-    catalog_number = models.CharField(
+    buy_this_url: CharField[Any, Any] = CharField(
+        max_length=512, blank=True, null=True,
+    )  # ?
+    catalog_number: CharField[Any, Any] = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
 
-    radio_station_name = models.CharField(
+    radio_station_name: CharField[Any, Any] = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
-    radio_station_url = models.CharField(
+    radio_station_url: CharField[Any, Any] = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
 
-    report_datetime = models.CharField(
+    report_datetime: CharField[Any, Any] = CharField(
         max_length=32,
         blank=True,
         null=True,
     )  # ?
-    report_location = models.CharField(
+    report_location: CharField[Any, Any] = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
-    report_organization = models.CharField(
+    report_organization: CharField[Any, Any] = CharField(
         max_length=512,
         blank=True,
         null=True,

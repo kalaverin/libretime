@@ -65,23 +65,23 @@ class TelnetLiquidsoap:
         self,
         liq_client: LiquidsoapClient,
         queues: list[int],
-    ):
-        self.liq_client = liq_client
-        self.queues = queues
+    ) -> None:
+        self.liq_client: LiquidsoapClient = liq_client
+        self.queues: list[int] = queues
 
-    def queue_clear_all(self):
+    def queue_clear_all(self) -> None:
         try:
             self.liq_client.queues_remove(*self.queues)
         except OSError as exception:
             logger.exception(exception)
 
-    def queue_remove(self, queue_id: int):
+    def queue_remove(self, queue_id: int) -> None:
         try:
             self.liq_client.queues_remove(queue_id)
         except OSError as exception:
             logger.exception(exception)
 
-    def queue_push(self, queue_id: int, file_event: FileEvent):
+    def queue_push(self, queue_id: int, file_event: FileEvent) -> None:
         try:
             annotation = create_liquidsoap_annotation(file_event)
             self.liq_client.queue_push(
@@ -92,19 +92,19 @@ class TelnetLiquidsoap:
         except OSError as exception:
             logger.exception(exception)
 
-    def stop_web_stream_buffer(self):
+    def stop_web_stream_buffer(self) -> None:
         try:
             self.liq_client.web_stream_stop_buffer()
         except OSError as exception:
             logger.exception(exception)
 
-    def stop_web_stream_output(self):
+    def stop_web_stream_output(self) -> None:
         try:
             self.liq_client.web_stream_stop()
         except OSError as exception:
             logger.exception(exception)
 
-    def start_web_stream(self):
+    def start_web_stream(self) -> None:
         try:
             self.liq_client.web_stream_start()
             self.current_prebuffering_stream_id = None
@@ -125,7 +125,7 @@ class TelnetLiquidsoap:
             logger.exception(exception)
             return "-1"
 
-    def disconnect_source(self, sourcename):
+    def disconnect_source(self, sourcename) -> None:
         if sourcename not in ("master_dj", "live_dj"):
             raise ValueError(f"invalid source name: {sourcename}")
 
@@ -135,7 +135,7 @@ class TelnetLiquidsoap:
         except OSError as exception:
             logger.exception(exception)
 
-    def switch_source(self, sourcename, status):
+    def switch_source(self, sourcename, status) -> None:
         if sourcename not in ("master_dj", "live_dj", "scheduled_play"):
             raise ValueError(f"invalid source name: {sourcename}")
 
@@ -151,7 +151,7 @@ class TelnetLiquidsoap:
 
 
 class Liquidsoap:
-    def __init__(self, liq_client: LiquidsoapClient):
+    def __init__(self, liq_client: LiquidsoapClient) -> None:
         self.liq_queue_tracker: dict[int, FileEvent | None] = {
             0: None,
             1: None,
@@ -159,21 +159,25 @@ class Liquidsoap:
             3: None,
         }
 
-        self.liq_client = liq_client
-        self.telnet_liquidsoap = TelnetLiquidsoap(
+        self.liq_client: LiquidsoapClient = liq_client
+        self.telnet_liquidsoap: TelnetLiquidsoap = TelnetLiquidsoap(
             liq_client,
-            list(self.liq_queue_tracker.keys()),
+            list(self.liq_queue_tracker),
         )
 
     def play(self, event: AnyEvent) -> None:
+
         if isinstance(event, FileEvent):
             self.handle_file_type(event)
+
         elif isinstance(event, ActionEvent):
             self.handle_event_type(event)
+
         elif isinstance(event, WebStreamEvent):
             self.handle_web_stream_type(event)
+
         else:
-            raise UnknownEvent(str(event))
+            raise UnknownEventError(str(event))
 
     def handle_file_type(self, file_event: FileEvent) -> None:
         """
@@ -201,8 +205,10 @@ class Liquidsoap:
             )
 
     def handle_web_stream_type(self, event: WebStreamEvent) -> None:
+
         if event.type == EventKind.WEB_STREAM_BUFFER_START:
             self.telnet_liquidsoap.start_web_stream_buffer(event)
+
         elif event.type == EventKind.WEB_STREAM_OUTPUT_START:
             if (
                 event.row_id
@@ -213,14 +219,18 @@ class Liquidsoap:
                 # prebuffering now.
                 self.telnet_liquidsoap.start_web_stream_buffer(event)
             self.telnet_liquidsoap.start_web_stream()
+
         elif event.type == EventKind.WEB_STREAM_BUFFER_END:
             self.telnet_liquidsoap.stop_web_stream_buffer()
+
         elif event.type == EventKind.WEB_STREAM_OUTPUT_END:
             self.telnet_liquidsoap.stop_web_stream_output()
 
     def handle_event_type(self, event: ActionEvent) -> None:
+
         if event.event_type == "kick_out":
             self.telnet_liquidsoap.disconnect_source("live_dj")
+
         elif event.event_type == "switch_off":
             self.telnet_liquidsoap.switch_source("live_dj", "off")
 
@@ -232,11 +242,10 @@ class Liquidsoap:
                 available_queue = queue_id
 
         if available_queue is None:
-            raise NoQueueAvailableException
+            raise NoQueueAvailableError
 
         return available_queue
 
-    # pylint: disable=too-many-branches
     def verify_correct_present_media(
         self,
         scheduled_now: list[AnyEvent],
@@ -369,9 +378,7 @@ class Liquidsoap:
         self.telnet_liquidsoap.queue_clear_all()
 
 
-class UnknownEvent(Exception):
-    pass
+class UnknownEventError(Exception): ...
 
 
-class NoQueueAvailableException(Exception):
-    pass
+class NoQueueAvailableError(Exception): ...

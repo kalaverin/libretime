@@ -1,4 +1,7 @@
+from typing import Any, final
+
 from rest_framework import viewsets
+from rest_framework.serializers import Serializer
 
 from api.history.models import (
     PlayoutHistory,
@@ -14,25 +17,35 @@ from api.history.serializers import (
 )
 
 
-class PlayoutHistoryViewSet(viewsets.ModelViewSet):
+@final
+class PlayoutHistoryViewSet(viewsets.ModelViewSet[Any]):
+
     queryset = PlayoutHistory.objects.all()
-    serializer_class = PlayoutHistorySerializer
-    model_permission_name = "playouthistory"
+    serializer_class: type[Serializer[Any]] = PlayoutHistorySerializer
+    model_permission_name: str = "playouthistory"
 
 
-class PlayoutHistoryMetadataViewSet(viewsets.ModelViewSet):
+@final
+class PlayoutHistoryMetadataViewSet(viewsets.ModelViewSet[Any]):
+
     queryset = PlayoutHistoryMetadata.objects.all()
-    serializer_class = PlayoutHistoryMetadataSerializer
-    model_permission_name = "playouthistorymetadata"
+    serializer_class: type[Serializer[Any]] = PlayoutHistoryMetadataSerializer
+    model_permission_name: str = "playouthistorymetadata"
 
 
-class PlayoutHistoryTemplateViewSet(viewsets.ModelViewSet):
+@final
+class PlayoutHistoryTemplateViewSet(viewsets.ModelViewSet[Any]):
+
     queryset = PlayoutHistoryTemplate.objects.all()
-    serializer_class = PlayoutHistoryTemplateSerializer
-    model_permission_name = "playouthistorytemplate"
+    serializer_class: type[Serializer[Any]] = PlayoutHistoryTemplateSerializer
+    model_permission_name: str = "playouthistorytemplate"
 
 
-class PlayoutHistoryTemplateFieldViewSet(viewsets.ModelViewSet):
+@final
+class PlayoutHistoryTemplateFieldViewSet(viewsets.ModelViewSet[Any]):
+
     queryset = PlayoutHistoryTemplateField.objects.all()
-    serializer_class = PlayoutHistoryTemplateFieldSerializer
-    model_permission_name = "playouthistorytemplatefield"
+    serializer_class: type[Serializer[Any]] = (
+        PlayoutHistoryTemplateFieldSerializer
+    )
+    model_permission_name: str = "playouthistorytemplatefield"

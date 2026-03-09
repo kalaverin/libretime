@@ -1,19 +1,22 @@
-from typing import final
+from typing import Any, final
 
-from rest_framework import serializers
+from django.db.models import Model
+from rest_framework.serializers import ModelSerializer
 
 from api.schedule.models import Playlist, PlaylistContent
 
 
 @final
-class PlaylistSerializer(serializers.ModelSerializer):
+class PlaylistSerializer(ModelSerializer[Any]):
+
     class Meta:
-        model = Playlist
+        model: type[Model] = Playlist
         fields: str = "__all__"
 
 
 @final
-class PlaylistContentSerializer(serializers.ModelSerializer):
+class PlaylistContentSerializer(ModelSerializer[Any]):
+
     class Meta:
-        model = PlaylistContent
+        model: type[Model] = PlaylistContent
         fields: str = "__all__"

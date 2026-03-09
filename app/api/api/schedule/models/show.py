@@ -1,49 +1,73 @@
-from django.db import models
+from typing import Any
+
+from django.db.models import (
+    DO_NOTHING,
+    BooleanField,
+    CharField,
+    DateField,
+    DateTimeField,
+    DurationField,
+    ForeignKey,
+    IntegerChoices,
+    ManyToManyField,
+    Model,
+    SmallIntegerField,
+    TimeField,
+)
 
 
-class Show(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.CharField(max_length=8192, blank=True, null=True)
-    genre = models.CharField(max_length=255, blank=True, null=True)
-    url = models.CharField(max_length=255, blank=True, null=True)
+class Show(Model):
 
-    image = models.CharField(
+    class Meta:
+        managed: bool = False
+        db_table: str = "cc_show"
+
+    name: CharField[Any, Any] = CharField(max_length=255)
+    description: CharField[Any, Any] = CharField(
+        max_length=8192, blank=True, null=True,
+    )
+    genre: CharField[Any, Any] = CharField(
+        max_length=255, blank=True, null=True,
+    )
+    url: CharField[Any, Any] = CharField(max_length=255, blank=True, null=True)
+
+    image: CharField[Any, Any] = CharField(
         max_length=255,
         blank=True,
         null=True,
         db_column="image_path",
     )
-    foreground_color = models.CharField(
+    foreground_color: CharField[Any, Any] = CharField(
         max_length=6,
         blank=True,
         null=True,
         db_column="color",
     )
-    background_color = models.CharField(
+    background_color: CharField[Any, Any] = CharField(
         max_length=6,
         blank=True,
         null=True,
     )
 
-    live_auth_registered = models.BooleanField(
+    live_auth_registered: BooleanField[Any, Any] = BooleanField(
         default=False,
         blank=True,
         null=True,
         db_column="live_stream_using_airtime_auth",
     )
-    live_auth_custom = models.BooleanField(
+    live_auth_custom: BooleanField[Any, Any] = BooleanField(
         default=False,
         blank=True,
         null=True,
         db_column="live_stream_using_custom_auth",
     )
-    live_auth_custom_user = models.CharField(
+    live_auth_custom_user: CharField[Any, Any] = CharField(
         max_length=255,
         blank=True,
         null=True,
         db_column="live_stream_user",
     )
-    live_auth_custom_password = models.CharField(
+    live_auth_custom_password: CharField[Any, Any] = CharField(
         max_length=255,
         blank=True,
         null=True,
@@ -56,46 +80,50 @@ class Show(models.Model):
 
     # A show is linkable if it has never been linked before. Once
     # a show becomes unlinked it can not be linked again.
-    linked = models.BooleanField()
-    linkable = models.BooleanField(db_column="is_linkable")
+    linked: BooleanField[Any, Any] = BooleanField()
+    linkable: BooleanField[Any, Any] = BooleanField(db_column="is_linkable")
 
-    auto_playlist = models.ForeignKey(
+    auto_playlist: ForeignKey[Any, Any] = ForeignKey(
         "schedule.Playlist",
-        on_delete=models.DO_NOTHING,
+        on_delete=DO_NOTHING,
         blank=True,
         null=True,
         db_column="autoplaylist_id",
     )
-    auto_playlist_enabled = models.BooleanField(db_column="has_autoplaylist")
-    auto_playlist_repeat = models.BooleanField(db_column="autoplaylist_repeat")
+    auto_playlist_enabled: BooleanField[Any, Any] = BooleanField(
+        db_column="has_autoplaylist",
+    )
+    auto_playlist_repeat: BooleanField[Any, Any] = BooleanField(
+        db_column="autoplaylist_repeat",
+    )
 
-    intro_playlist = models.ForeignKey(
+    intro_playlist: ForeignKey[Any, Any] = ForeignKey(
         "schedule.Playlist",
-        on_delete=models.DO_NOTHING,
+        on_delete=DO_NOTHING,
         blank=True,
         null=True,
         db_column="intro_playlist_id",
         related_name="intro_playlist",
     )
 
-    override_intro_playlist = models.BooleanField(
+    override_intro_playlist: BooleanField[Any, Any] = BooleanField(
         db_column="override_intro_playlist",
     )
 
-    outro_playlist = models.ForeignKey(
+    outro_playlist: ForeignKey[Any, Any] = ForeignKey(
         "schedule.Playlist",
-        on_delete=models.DO_NOTHING,
+        on_delete=DO_NOTHING,
         blank=True,
         null=True,
         db_column="outro_playlist_id",
         related_name="outro_playlist",
     )
 
-    override_outro_playlist = models.BooleanField(
+    override_outro_playlist: BooleanField[Any, Any] = BooleanField(
         db_column="override_outro_playlist",
     )
 
-    hosts = models.ManyToManyField(  # type: ignore[var-annotated]
+    hosts: ManyToManyField[Any, Any] = ManyToManyField(
         "core.User",
         through="ShowHost",
     )
@@ -103,58 +131,37 @@ class Show(models.Model):
     def get_owner(self):
         return self.hosts.all()
 
+
+class ShowHost(Model):
+
     class Meta:
-        managed = False
-        db_table = "cc_show"
+        managed: bool = False
+        db_table: str = "cc_show_hosts"
 
-
-class ShowHost(models.Model):
-    show = models.ForeignKey(
+    show: ForeignKey[Any, Any] = ForeignKey(
         "schedule.Show",
-        on_delete=models.DO_NOTHING,
+        on_delete=DO_NOTHING,
     )
-    user = models.ForeignKey(
+    user: ForeignKey[Any, Any] = ForeignKey(
         "core.User",
-        on_delete=models.DO_NOTHING,
+        on_delete=DO_NOTHING,
         db_column="subjs_id",
     )
 
-    class Meta:
-        managed = False
-        db_table = "cc_show_hosts"
-
 
 # TODO: Replace record choices with a boolean
-class Record(models.IntegerChoices):
+class Record(IntegerChoices):
     NO = 0, "No"
     YES = 1, "Yes"
 
 
-class ShowDays(models.Model):
-    show = models.ForeignKey("schedule.Show", on_delete=models.DO_NOTHING)
+class ShowDays(Model):
 
-    first_show_on = models.DateField(
-        db_column="first_show",
-    )
-    last_show_on = models.DateField(
-        blank=True,
-        null=True,
-        db_column="last_show",
-    )
-    start_time = models.TimeField()
+    class Meta:
+        managed: bool = False
+        db_table: str = "cc_show_days"
 
-    timezone = models.CharField(max_length=1024)
-    duration = models.CharField(max_length=1024)
-
-    record_enabled = models.SmallIntegerField(
-        choices=Record.choices,
-        default=Record.NO,
-        blank=True,
-        null=True,
-        db_column="record",
-    )
-
-    class WeekDay(models.IntegerChoices):
+    class WeekDay(IntegerChoices):
         MONDAY = 0, "Monday"
         TUESDAY = 1, "Tuesday"
         WEDNESDAY = 2, "Wednesday"
@@ -163,25 +170,50 @@ class ShowDays(models.Model):
         SATURDAY = 5, "Saturday"
         SUNDAY = 6, "Sunday"
 
-    week_day = models.SmallIntegerField(
-        choices=WeekDay.choices,
-        blank=True,
-        null=True,
-        db_column="day",
-    )
-
-    class RepeatKind(models.IntegerChoices):
+    class RepeatKind(IntegerChoices):
         WEEKLY = 0, "Every week"
         WEEKLY_2 = 1, "Every 2 weeks"
         WEEKLY_3 = 4, "Every 3 weeks"
         WEEKLY_4 = 5, "Every 4 weeks"
         MONTHLY = 2, "Every month"
 
-    repeat_kind = models.SmallIntegerField(
+    show: ForeignKey[Any, Any] = ForeignKey(
+        "schedule.Show", on_delete=DO_NOTHING,
+    )
+
+    first_show_on: DateField[Any, Any] = DateField(
+        db_column="first_show",
+    )
+    last_show_on: DateField[Any, Any] = DateField(
+        blank=True,
+        null=True,
+        db_column="last_show",
+    )
+    start_time: TimeField[Any, Any] = TimeField()
+
+    timezone: CharField[Any, Any] = CharField(max_length=1024)
+    duration: CharField[Any, Any] = CharField(max_length=1024)
+
+    record_enabled: SmallIntegerField[Any, Any] = SmallIntegerField(
+        choices=Record.choices,
+        default=Record.NO,
+        blank=True,
+        null=True,
+        db_column="record",
+    )
+
+    week_day: SmallIntegerField[Any, Any] = SmallIntegerField(
+        choices=WeekDay.choices,
+        blank=True,
+        null=True,
+        db_column="day",
+    )
+
+    repeat_kind: SmallIntegerField[Any, Any] = SmallIntegerField(
         choices=RepeatKind.choices,
         db_column="repeat_type",
     )
-    repeat_next_on = models.DateField(
+    repeat_next_on: DateField[Any, Any] = DateField(
         blank=True,
         null=True,
         db_column="next_pop_date",
@@ -190,52 +222,63 @@ class ShowDays(models.Model):
     def get_owner(self):
         return self.show.get_owner()
 
+
+class ShowInstance(Model):
+
     class Meta:
-        managed = False
-        db_table = "cc_show_days"
+        managed: bool = False
+        db_table: str = "cc_show_instances"
 
+    created_at: DateTimeField[Any, Any] = DateTimeField(db_column="created")
 
-class ShowInstance(models.Model):
-    created_at = models.DateTimeField(db_column="created")
-
-    show = models.ForeignKey("schedule.Show", on_delete=models.DO_NOTHING)
-    instance = models.ForeignKey(
+    show: ForeignKey[Any, Any] = ForeignKey(
+        "schedule.Show", on_delete=DO_NOTHING,
+    )
+    instance: ForeignKey[Any, Any] = ForeignKey(
         "self",
-        on_delete=models.DO_NOTHING,
+        on_delete=DO_NOTHING,
         blank=True,
         null=True,
     )
 
-    starts_at = models.DateTimeField(db_column="starts")
-    ends_at = models.DateTimeField(db_column="ends")
-    filled_time = models.DurationField(
+    starts_at: DateTimeField[Any, Any] = DateTimeField(db_column="starts")
+    ends_at: DateTimeField[Any, Any] = DateTimeField(db_column="ends")
+    filled_time: DurationField[Any, Any] = DurationField(
         blank=True,
         null=True,
         db_column="time_filled",
     )
 
-    last_scheduled_at = models.DateTimeField(
+    last_scheduled_at: DateTimeField[Any, Any] = DateTimeField(
         blank=True,
         null=True,
         db_column="last_scheduled",
     )
 
-    description = models.CharField(max_length=8192, blank=True, null=True)
-    modified = models.BooleanField(db_column="modified_instance")
-    rebroadcast = models.SmallIntegerField(blank=True, null=True)
+    description: CharField[Any, Any] = CharField(
+        max_length=8192, blank=True, null=True,
+    )
+    modified: BooleanField[Any, Any] = BooleanField(
+        db_column="modified_instance",
+    )
+    rebroadcast: SmallIntegerField[Any, Any] = SmallIntegerField(
+        blank=True, null=True,
+    )
 
-    auto_playlist_built = models.BooleanField(db_column="autoplaylist_built")
+    auto_playlist_built: BooleanField[Any, Any] = BooleanField(
+        db_column="autoplaylist_built",
+    )
 
-    record_enabled = models.SmallIntegerField(
+    record_enabled: SmallIntegerField[Any, Any] = SmallIntegerField(
         choices=Record.choices,
         default=Record.NO,
         blank=True,
         null=True,
         db_column="record",
     )
-    record_file = models.ForeignKey(
+    record_file: ForeignKey[Any, Any] = ForeignKey(
         "storage.File",
-        on_delete=models.DO_NOTHING,
+        on_delete=DO_NOTHING,
         blank=True,
         null=True,
         db_column="file_id",
@@ -244,19 +287,18 @@ class ShowInstance(models.Model):
     def get_owner(self):
         return self.show.get_owner()
 
+
+class ShowRebroadcast(Model):
+
     class Meta:
-        managed = False
-        db_table = "cc_show_instances"
+        managed: bool = False
+        db_table: str = "cc_show_rebroadcast"
 
-
-class ShowRebroadcast(models.Model):
-    show = models.ForeignKey("schedule.Show", on_delete=models.DO_NOTHING)
-    day_offset = models.CharField(max_length=1024)
-    start_time = models.TimeField()
+    show: ForeignKey[Any, Any] = ForeignKey(
+        "schedule.Show", on_delete=DO_NOTHING,
+    )
+    day_offset: CharField[Any, Any] = CharField(max_length=1024)
+    start_time: TimeField[Any, Any] = TimeField()
 
     def get_owner(self):
         return self.show.get_owner()
-
-    class Meta:
-        managed = False
-        db_table = "cc_show_rebroadcast"

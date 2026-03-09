@@ -4,27 +4,34 @@ from collections import deque
 from datetime import UTC, datetime
 from queue import Empty, Queue
 from threading import Thread
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from playout.player.events import AnyEvent
+from typing_extensions import final, override
+
 from playout.player.liquidsoap import Liquidsoap
 from playout.utils import seconds_between
+
+if TYPE_CHECKING:
+    from playout.player.events import AnyEvent
 
 logger = logging.getLogger(__name__)
 
 
+@final
 class PypoLiqQueue(Thread):
-    name = "liquidsoap_queue"
-    daemon = True
+
+    name: str = "liquidsoap_queue"
+    daemon: bool = True
 
     def __init__(
         self,
-        future_queue: "Queue[dict[str, Any]]",
+        future_queue: Queue[dict[str, Any]],
         liquidsoap: Liquidsoap,
-    ):
+    ) -> None:
         Thread.__init__(self)
-        self.queue = future_queue
-        self.liquidsoap = liquidsoap
+
+        self.queue: Queue[dict[str, Any]] = future_queue
+        self.liquidsoap: Liquidsoap = liquidsoap
 
     def main(self) -> None:
         time_until_next_play = None
@@ -45,6 +52,7 @@ class PypoLiqQueue(Thread):
                         block=True,
                         timeout=time_until_next_play,
                     )
+
             except Empty:
                 # Time to push a scheduled item.
                 media_item = schedule_deque.popleft()
@@ -56,6 +64,7 @@ class PypoLiqQueue(Thread):
                     )
                 else:
                     time_until_next_play = None
+
             else:
                 logger.info("New schedule received")
 
@@ -75,6 +84,7 @@ class PypoLiqQueue(Thread):
                 else:
                     time_until_next_play = None
 
+    @override
     def run(self) -> None:
         try:
             self.main()

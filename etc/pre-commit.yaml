@@ -35,12 +35,14 @@ repos:
           'app/' 'src/'
         language: system
         pass_filenames: false
+        exclude: /migrations/
 
       - id: lint-ruff
         name: force ruff
         entry: uv run --quiet ruff check --fix --quiet 'app/' 'src/'
         language: system
         pass_filenames: false
+        exclude: /migrations/
 
       - id: check-mypy
         name: check mypy (static check)

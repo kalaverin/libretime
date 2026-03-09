@@ -1,47 +1,70 @@
-from django.db import models
+from datetime import datetime, timedelta
+from typing import Any
+
+from django.db.models import (
+    DO_NOTHING,
+    BooleanField,
+    DateTimeField,
+    DurationField,
+    ForeignKey,
+    IntegerChoices,
+    IntegerField,
+    Model,
+    SmallIntegerField,
+    TimeField,
+)
 from django.utils.timezone import now
 
 
-class Schedule(models.Model):
-    starts_at = models.DateTimeField(db_column="starts")
-    ends_at = models.DateTimeField(db_column="ends")
+class Schedule(Model):
 
-    instance = models.ForeignKey(
+    class Meta:
+        managed: bool = False
+        db_table: str = "cc_schedule"
+        permissions: tuple[tuple[str, str], ...] = (
+            ("change_own_schedule", "Change the content on their shows"),
+            ("delete_own_schedule", "Delete the content on their shows"),
+        )
+
+    starts_at: DateTimeField[Any, Any] = DateTimeField(db_column="starts")
+    ends_at: DateTimeField[Any, Any] = DateTimeField(db_column="ends")
+
+    instance: ForeignKey[Any, Any] = ForeignKey(
         "schedule.ShowInstance",
-        on_delete=models.DO_NOTHING,
+        on_delete=DO_NOTHING,
     )
 
-    file = models.ForeignKey(
+    file: ForeignKey[Any, Any] = ForeignKey(
         "storage.File",
-        on_delete=models.DO_NOTHING,
+        on_delete=DO_NOTHING,
         blank=True,
         null=True,
     )
-    stream = models.ForeignKey(
+    stream: ForeignKey[Any, Any] = ForeignKey(
         "schedule.Webstream",
-        on_delete=models.DO_NOTHING,
+        on_delete=DO_NOTHING,
         blank=True,
         null=True,
     )
 
-    length = models.DurationField(
+    length: DurationField[Any, Any] = DurationField(
         blank=True,
         null=True,
         db_column="clip_length",
     )
-    fade_in = models.TimeField(blank=True, null=True)
-    fade_out = models.TimeField(blank=True, null=True)
-    cue_in = models.DurationField()
-    cue_out = models.DurationField()
+    fade_in: TimeField[Any, Any] = TimeField(blank=True, null=True)
+    fade_out: TimeField[Any, Any] = TimeField(blank=True, null=True)
+    cue_in: DurationField[Any, Any] = DurationField()
+    cue_out: DurationField[Any, Any] = DurationField()
 
-    class PositionStatus(models.IntegerChoices):
+    class PositionStatus(IntegerChoices):
         FILLER = -1, "Filler"  # Used to fill a show that already started
         OUTSIDE = 0, "Outside"  # Is outside the show time frame
         INSIDE = 1, "Inside"  # Is inside the show time frame
         BOUNDARY = 2, "Boundary"  # Is at the boundary of the show time frame
 
-    position = models.IntegerField()
-    position_status = models.SmallIntegerField(
+    position: IntegerField[Any, Any] = IntegerField()
+    position_status: SmallIntegerField[Any, Any] = SmallIntegerField(
         choices=PositionStatus.choices,
         default=PositionStatus.INSIDE,
         db_column="playout_status",
@@ -49,8 +72,8 @@ class Schedule(models.Model):
 
     # Broadcasted is set to 1 when a live source is not
     # on. Used for the playout history.
-    broadcasted = models.SmallIntegerField()
-    played = models.BooleanField(
+    broadcasted: SmallIntegerField[Any, Any] = SmallIntegerField()
+    played: BooleanField[Any, Any] = BooleanField(
         blank=True,
         null=True,
         db_column="media_item_played",
@@ -69,7 +92,7 @@ class Schedule(models.Model):
     def get_owner(self):
         return self.instance.get_owner()
 
-    def get_cue_out(self):
+    def get_cue_out(self) -> timedelta:
         """
         Returns a scheduled item cue out that is based on the current show
         instance.
@@ -96,7 +119,7 @@ class Schedule(models.Model):
             return self.instance.ends_at - self.starts_at
         return self.cue_out
 
-    def get_ends_at(self):
+    def get_ends_at(self) -> datetime:
         """
         Returns a scheduled item ends that is based on the current show
         instance.
@@ -121,17 +144,10 @@ class Schedule(models.Model):
         return self.ends_at
 
     @staticmethod
-    def is_file_scheduled_in_the_future(file_id):
-        count = Schedule.objects.filter(
-            file_id=file_id,
-            ends_at__gt=now(),
-        ).count()
-        return count > 0
-
-    class Meta:
-        managed = False
-        db_table = "cc_schedule"
-        permissions = [
-            ("change_own_schedule", "Change the content on their shows"),
-            ("delete_own_schedule", "Delete the content on their shows"),
-        ]
+    def is_file_scheduled_in_the_future(file_id: str) -> bool:
+        return bool(
+            Schedule.objects.filter(
+                file_id=file_id,
+                ends_at__gt=now(),
+            ).count(),
+        )

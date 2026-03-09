@@ -1,4 +1,7 @@
+from typing import Any, final
+
 from rest_framework import viewsets
+from rest_framework.serializers import Serializer
 
 from api.podcasts.models import (
     ImportedPodcast,
@@ -14,25 +17,33 @@ from api.podcasts.serializers import (
 )
 
 
-class PodcastViewSet(viewsets.ModelViewSet):
+@final
+class PodcastViewSet(viewsets.ModelViewSet[Any]):
+
     queryset = Podcast.objects.all()
-    serializer_class = PodcastSerializer
-    model_permission_name = "podcast"
+    serializer_class: type[Serializer[Any]] = PodcastSerializer
+    model_permission_name: str = "podcast"
 
 
-class PodcastEpisodeViewSet(viewsets.ModelViewSet):
+@final
+class PodcastEpisodeViewSet(viewsets.ModelViewSet[Any]):
+
     queryset = PodcastEpisode.objects.all()
-    serializer_class = PodcastEpisodeSerializer
-    model_permission_name = "podcastepisode"
+    serializer_class: type[Serializer[Any]] = PodcastEpisodeSerializer
+    model_permission_name: str = "podcastepisode"
 
 
-class StationPodcastViewSet(viewsets.ModelViewSet):
+@final
+class StationPodcastViewSet(viewsets.ModelViewSet[Any]):
+
     queryset = StationPodcast.objects.all()
-    serializer_class = StationPodcastSerializer
-    model_permission_name = "station"
+    serializer_class: type[Serializer[Any]] = StationPodcastSerializer
+    model_permission_name: str = "station"
 
 
-class ImportedPodcastViewSet(viewsets.ModelViewSet):
+@final
+class ImportedPodcastViewSet(viewsets.ModelViewSet[Any]):
+
     queryset = ImportedPodcast.objects.all()
-    serializer_class = ImportedPodcastSerializer
-    model_permission_name = "importedpodcast"
+    serializer_class: type[Serializer[Any]] = ImportedPodcastSerializer
+    model_permission_name: str = "importedpodcast"
