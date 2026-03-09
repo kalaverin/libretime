@@ -43,6 +43,5 @@ known-third-party = [
   "requests"
 ]
 
-[tool.setuptools.packages.find]
-include = ["libretime_api_client"]
-where = ["."]
+[tool.setuptools]
+packages = ["libretime_api_client"]

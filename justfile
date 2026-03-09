@@ -35,6 +35,7 @@ upgrade:
     @uv sync \
         --refresh \
         --upgrade \
+        --all-packages \
         --group development
 
     @echo "installed dependencies after upgrade:"
@@ -62,4 +63,7 @@ develop:
 # add development packages to environment when skipped
 [group('maintenance')]
 _development_packages:
-    @uv sync --quiet --group development
+    @uv sync \
+        --quiet \
+        --all-packages \
+        --group development

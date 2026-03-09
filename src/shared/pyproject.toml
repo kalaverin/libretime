@@ -46,6 +46,5 @@ disallow_incomplete_defs = true
 disallow_untyped_calls = true
 disallow_untyped_defs = true
 
-[tool.setuptools.packages.find]
-include = ["libretime_shared"]
-where = ["."]
+[tool.setuptools]
+packages = ["libretime_shared"]

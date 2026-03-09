@@ -78,6 +78,5 @@ source = ["libretime_api"]
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "libretime_api.settings.testing"
 
-[tool.setuptools.packages.find]
-include = ["libretime_api"]
-where = ["."]
+[tool.setuptools]
+packages = ["libretime_api"]

@@ -50,6 +50,5 @@ known-third-party = [
   "sentry_sdk"
 ]
 
-[tool.setuptools.packages.find]
-include = ["libretime_analyzer"]
-where = ["."]
+[tool.setuptools]
+packages = ["libretime_analyzer"]

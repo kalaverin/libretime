@@ -36,8 +36,7 @@ Documentation = "https://libretime.org"
 Homepage = "https://github.com/libretime/libretime"
 "Source Code" = "https://github.com/libretime/libretime"
 
-[tool.setuptools.packages.find]
-include = ["libretime_*"]
+[ruff.lint.isort]
 known-first-party = [
   "libretime_analyzer",
   "libretime_api",
@@ -52,4 +51,6 @@ known-third-party = [
   "requests",
   "sentry_sdk"
 ]
-where = ["."]
+
+[tool.setuptools]
+packages = ["libretime_worker"]
