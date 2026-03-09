@@ -2,7 +2,7 @@ from libretime_api.core.models.auth import LoginAttempt, UserToken
 from libretime_api.core.models.preference import Preference
 from libretime_api.core.models.role import Role
 
-__all__= (
+__all__ = (
     "LoginAttempt",
     "Preference",
     "Role",

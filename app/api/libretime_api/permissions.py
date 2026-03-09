@@ -21,11 +21,7 @@ REQUEST_PERMISSION_TYPE_MAP = {
 
 def get_own_obj(request, view) -> str:
     user = request.user
-    if (
-        user is None or
-        user.role != Role.HOST or
-        request.method == "GET"
-    ):
+    if user is None or user.role != Role.HOST or request.method == "GET":
         return ""
 
     qs = view.queryset.all()

@@ -197,11 +197,7 @@ class MessageListener:
                 requeue=False,
             )
 
-            if (
-                file_id and
-                callback_url and
-                callback_api_key
-            ):
+            if file_id and callback_url and callback_api_key:
                 StatusReporter.report_failure(
                     callback_url,
                     callback_api_key,

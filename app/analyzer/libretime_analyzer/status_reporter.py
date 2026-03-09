@@ -127,7 +127,8 @@ def process_http_requests(
                 return
 
             logger.exception(
-                "Unhandled exception in StatusReporter %s", exception,
+                "Unhandled exception in StatusReporter %s",
+                exception,
             )
             logger.info("Restarting StatusReporter thread")
             time.sleep(2)  # Throttle it
