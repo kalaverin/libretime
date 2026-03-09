@@ -43,7 +43,7 @@ classifiers = [
 description = "LibreTime"
 name = "libretime"
 readme = "README.md"
-requires-python = ">=3.10,<3.11"
+requires-python = ">=3.10,<3.12"
 version = "4.5.0"
 
 [tool.bandit]
