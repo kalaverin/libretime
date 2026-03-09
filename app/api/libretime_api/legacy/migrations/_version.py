@@ -32,8 +32,7 @@ def parse_version(version: str):
     pre = pre_mapping[match.group("pre_l")]
 
     pre_major, pre_minor = 0, 0
-    pre_version = match.group("pre_n")
-    if pre_version:
+    if (pre_version := match.group("pre_n")):
         pre_version_list = pre_version.split(".")
         pre_major = (
             int(pre_version_list.pop(0)) if len(pre_version_list) else 0

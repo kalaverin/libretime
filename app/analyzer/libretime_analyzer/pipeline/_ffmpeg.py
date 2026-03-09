@@ -38,9 +38,8 @@ def probe_replaygain(filepath: Path) -> float | None:
     """
     cmd = _ffprobe("-i", filepath, errors="backslashreplace")
 
-    track_gain_match = _PROBE_REPLAYGAIN_RE.search(cmd.stderr)
 
-    if track_gain_match:
+    if (track_gain_match := _PROBE_REPLAYGAIN_RE.search(cmd.stderr)):
         return float(track_gain_match.group(1))
     return None
 
@@ -56,9 +55,8 @@ def compute_replaygain(filepath: Path) -> float | None:
     """
     cmd = _ffmpeg("-i", filepath, "-vn", "-filter", "replaygain")
 
-    track_gain_match = _COMPUTE_REPLAYGAIN_RE.search(cmd.stderr)
 
-    if track_gain_match:
+    if (track_gain_match := _COMPUTE_REPLAYGAIN_RE.search(cmd.stderr)):
         return float(track_gain_match.group(1))
     return None
 
