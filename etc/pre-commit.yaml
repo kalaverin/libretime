@@ -44,7 +44,8 @@ repos:
 
       - id: check-mypy
         name: check mypy (static check)
-        entry: uv run --quiet mypy --cache-fine-grained --show-traceback --config etc/lint/mypy.toml 'app/' 'src/'
+        entry: uv run --quiet mypy --cache-fine-grained --show-traceback --config
+          etc/lint/mypy.toml 'app/' 'src/'
         language: system
         pass_filenames: false
 
