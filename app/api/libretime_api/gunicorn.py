@@ -1,5 +1,7 @@
-from uvicorn.workers import UvicornWorker  # pylint: disable=import-error
+from typing import Any
+
+from uvicorn.workers import UvicornWorker
 
 
 class Worker(UvicornWorker):
-    CONFIG_KWARGS = {"lifespan": "off"}
+    CONFIG_KWARGS: dict[str, Any] = {"lifespan": "off"}

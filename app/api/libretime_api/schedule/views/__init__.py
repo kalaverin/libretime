@@ -19,3 +19,19 @@ from libretime_api.schedule.views.webstream import (
     WebstreamMetadataViewSet,
     WebstreamViewSet,
 )
+
+__all__ = (
+    "PlaylistContentViewSet",
+    "PlaylistViewSet",
+    "ScheduleViewSet",
+    "ShowDaysViewSet",
+    "ShowHostViewSet",
+    "ShowInstanceViewSet",
+    "ShowRebroadcastViewSet",
+    "ShowViewSet",
+    "SmartBlockContentViewSet",
+    "SmartBlockCriteriaViewSet",
+    "SmartBlockViewSet",
+    "WebstreamMetadataViewSet",
+    "WebstreamViewSet",
+)

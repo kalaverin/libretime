@@ -1,3 +1,5 @@
+from typing import final
+
 from rest_framework import serializers
 
 from libretime_api.schedule.models import (
@@ -7,19 +9,22 @@ from libretime_api.schedule.models import (
 )
 
 
+@final
 class SmartBlockSerializer(serializers.ModelSerializer):
     class Meta:
         model = SmartBlock
-        fields = "__all__"
+        fields: str = "__all__"
 
 
+@final
 class SmartBlockContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = SmartBlockContent
-        fields = "__all__"
+        fields: str = "__all__"
 
 
+@final
 class SmartBlockCriteriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = SmartBlockCriteria
-        fields = "__all__"
+        fields: str = "__all__"

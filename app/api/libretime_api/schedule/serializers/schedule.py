@@ -1,19 +1,24 @@
+from typing import final
+
 from rest_framework import serializers
 
 from libretime_api.schedule.models import Schedule
 
 
+@final
 class ReadScheduleSerializer(serializers.ModelSerializer):
+
     cue_out = serializers.DurationField(source="get_cue_out", read_only=True)
     ends_at = serializers.DateTimeField(source="get_ends_at", read_only=True)
 
     class Meta:
         model = Schedule
-        fields = "__all__"
+        fields: str = "__all__"
 
 
+@final
 class WriteScheduleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Schedule
-        fields = "__all__"
+        fields: str = "__all__"

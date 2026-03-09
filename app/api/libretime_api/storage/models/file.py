@@ -1,7 +1,19 @@
+from typing import final
+
 from django.db import models
 
 
+@final
 class File(models.Model):
+
+    class Meta:
+        managed: bool = False
+        db_table: str = "cc_files"
+        permissions: tuple[tuple[str, str], ...] = (
+            ("change_own_file", "Change the files where they are the owner"),
+            ("delete_own_file", "Delete the files where they are the owner"),
+        )
+
     library = models.ForeignKey(
         "storage.Library",
         models.DO_NOTHING,
@@ -179,11 +191,3 @@ class File(models.Model):
 
     def get_owner(self):
         return self.owner
-
-    class Meta:
-        managed = False
-        db_table = "cc_files"
-        permissions = [
-            ("change_own_file", "Change the files where they are the owner"),
-            ("delete_own_file", "Delete the files where they are the owner"),
-        ]

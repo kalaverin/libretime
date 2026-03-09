@@ -2,11 +2,13 @@ import logging
 
 from pathlib import Path
 
+from typing import Any
 import requests
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandParser
 from libretime_shared.files import compute_md5
+from typing_extensions import override
 
 from libretime_api.storage.models import File, Library
 
@@ -23,9 +25,10 @@ DEFAULT_ALLOWED_EXTENSIONS = [
 
 
 class Command(BaseCommand):
-    help = "Bulk file upload."
+    help: str = "Bulk file upload."
 
-    def add_arguments(self, parser: CommandParser):
+    @override
+    def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
             "--path",
             help="Path to the directory to scan.",
@@ -52,15 +55,16 @@ class Command(BaseCommand):
             action="store_true",
         )
 
-    def handle(self, *args, **options):
+    @override
+    def handle(self, *_: Any, **options: dict[str, Any]) -> None:
         url = settings.CONFIG.general.public_url
         auth_key = settings.CONFIG.general.api_key
 
-        delete_after_upload = options.get("delete_after_upload", False)
-        delete_if_exists = options.get("delete_if_exists", False)
+        delete_after_upload = bool(options.get("delete_after_upload", False))
+        delete_if_exists = bool(options.get("delete_if_exists", False))
 
-        path = options.get("path")
-        library = options.get("library")
+        path = str(options["path"])
+        library: str | None = options.get("library")
         allowed_extensions = options.get("allowed_extensions")
 
         importer = Importer(
@@ -80,11 +84,11 @@ class Importer:
         delete_after_upload: bool = False,
         delete_if_exists: bool = False,
     ) -> None:
-        self.url = url
-        self.auth_key = auth_key
+        self.url: str = url
+        self.auth_key: str = auth_key
 
-        self.delete_after_upload = delete_after_upload
-        self.delete_if_exists = delete_if_exists
+        self.delete_after_upload: bool = delete_after_upload
+        self.delete_if_exists: bool = delete_if_exists
 
     def _check_file_md5(self, filepath: Path) -> bool:
         file_md5 = compute_md5(filepath)

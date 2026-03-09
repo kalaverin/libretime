@@ -3,13 +3,15 @@ from rest_framework import serializers
 from libretime_api.schedule.models import Playlist, PlaylistContent
 
 
+@final
 class PlaylistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Playlist
-        fields = "__all__"
+        fields: str = "__all__"
 
 
+@final
 class PlaylistContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlaylistContent
-        fields = "__all__"
+        fields: str = "__all__"

@@ -19,7 +19,8 @@ GUEST_PERMISSIONS = [
     "view_apiroot",
 ]
 
-HOST_PERMISSIONS = GUEST_PERMISSIONS + [
+HOST_PERMISSIONS = [
+    *GUEST_PERMISSIONS,
     "add_file",
     "add_podcast",
     "add_podcastepisode",
@@ -51,7 +52,8 @@ HOST_PERMISSIONS = GUEST_PERMISSIONS + [
     "delete_own_webstream",
 ]
 
-MANAGER_PERMISSIONS = GUEST_PERMISSIONS + [
+MANAGER_PERMISSIONS = [
+    *GUEST_PERMISSIONS,
     "add_show",
     "add_showdays",
     "add_showhost",

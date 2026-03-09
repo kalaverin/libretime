@@ -12,7 +12,7 @@ from libretime_api.schedule.models import (
 class ShowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Show
-        fields = [
+        fields: tuple[str, ...] = (
             "id",
             "name",
             "description",
@@ -31,28 +31,32 @@ class ShowSerializer(serializers.ModelSerializer):
             "override_intro_playlist",
             "outro_playlist",
             "override_outro_playlist",
-        ]
+        )
 
 
+@final
 class ShowDaysSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShowDays
-        fields = "__all__"
+        fields: str = "__all__"
 
 
+@final
 class ShowHostSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShowHost
-        fields = "__all__"
+        fields: str = "__all__"
 
 
+@final
 class ShowInstanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShowInstance
-        fields = "__all__"
+        fields: str = "__all__"
 
 
+@final
 class ShowRebroadcastSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShowRebroadcast
-        fields = "__all__"
+        fields: str = "__all__"

@@ -5,7 +5,7 @@ from rest_framework.test import APIClient
 
 
 @pytest.fixture
-def api_client():
+def api_client() -> APIClient:
     obj = APIClient()
     obj.credentials(
         HTTP_AUTHORIZATION=f"Api-Key {settings.CONFIG.general.api_key}",

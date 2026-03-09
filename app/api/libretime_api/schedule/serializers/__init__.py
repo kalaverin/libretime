@@ -22,3 +22,20 @@ from libretime_api.schedule.serializers.webstream import (
     WebstreamMetadataSerializer,
     WebstreamSerializer,
 )
+
+__all__ = (
+    "PlaylistContentSerializer",
+    "PlaylistSerializer",
+    "ReadScheduleSerializer",
+    "ShowDaysSerializer",
+    "ShowHostSerializer",
+    "ShowInstanceSerializer",
+    "ShowRebroadcastSerializer",
+    "ShowSerializer",
+    "SmartBlockContentSerializer",
+    "SmartBlockCriteriaSerializer",
+    "SmartBlockSerializer",
+    "WebstreamMetadataSerializer",
+    "WebstreamSerializer",
+    "WriteScheduleSerializer",
+)

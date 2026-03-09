@@ -1,15 +1,19 @@
+from typing import final
+
 from rest_framework import serializers
 
 from libretime_api.schedule.models import Webstream, WebstreamMetadata
 
 
+@final
 class WebstreamSerializer(serializers.ModelSerializer):
     class Meta:
         model = Webstream
-        fields = "__all__"
+        fields: str = "__all__"
 
 
+@final
 class WebstreamMetadataSerializer(serializers.ModelSerializer):
     class Meta:
         model = WebstreamMetadata
-        fields = "__all__"
+        fields: str = "__all__"

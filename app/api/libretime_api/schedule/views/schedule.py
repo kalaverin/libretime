@@ -1,3 +1,5 @@
+from typing import final
+
 from django.db import models
 from django_filters import rest_framework as filters
 from rest_framework import viewsets
@@ -10,7 +12,9 @@ from libretime_api.schedule.serializers import (
 )
 
 
+@final
 class ScheduleFilter(filters.FilterSet):
+
     starts = filters.DateTimeFromToRangeFilter(field_name="starts_at")
     ends = filters.DateTimeFromToRangeFilter(field_name="ends_at")
     position_status = filters.NumberFilter()
@@ -32,9 +36,11 @@ class ScheduleFilter(filters.FilterSet):
         fields = []  # type: ignore
 
 
+@final
 class ScheduleViewSet(ReadWriteSerializerMixin, viewsets.ModelViewSet):
+
     queryset = Schedule.objects.all()
     read_serializer_class = ReadScheduleSerializer
     write_serializer_class = WriteScheduleSerializer
     filterset_class = ScheduleFilter
-    model_permission_name = "schedule"
+    model_permission_name: str = "schedule"

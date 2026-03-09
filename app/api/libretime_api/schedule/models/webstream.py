@@ -1,7 +1,25 @@
 from django.db import models
+from typing import final
 
 
+@final
 class Webstream(models.Model):
+
+    @final
+    class Meta:
+        managed: bool = False
+        db_table: str = "cc_webstream"
+        permissions: tuple[tuple[str, str], ...] = (
+            (
+                "change_own_webstream",
+                "Change the webstreams where they are the owner",
+            ),
+            (
+                "delete_own_webstream",
+                "Delete the webstreams where they are the owner",
+            ),
+        )
+
     created_at = models.DateTimeField(db_column="utime")
     updated_at = models.DateTimeField(db_column="mtime")
 
@@ -28,22 +46,15 @@ class Webstream(models.Model):
     def get_owner(self):
         return self.owner
 
-    class Meta:
-        managed = False
-        db_table = "cc_webstream"
-        permissions = [
-            (
-                "change_own_webstream",
-                "Change the webstreams where they are the owner",
-            ),
-            (
-                "delete_own_webstream",
-                "Delete the webstreams where they are the owner",
-            ),
-        ]
 
-
+@final
 class WebstreamMetadata(models.Model):
+
+    @final
+    class Meta:
+        managed: bool = False
+        db_table: str = "cc_webstream_metadata"
+
     schedule = models.ForeignKey(
         "schedule.Schedule",
         on_delete=models.DO_NOTHING,
@@ -54,7 +65,3 @@ class WebstreamMetadata(models.Model):
 
     def get_owner(self):
         return self.schedule.get_owner()
-
-    class Meta:
-        managed = False
-        db_table = "cc_webstream_metadata"
