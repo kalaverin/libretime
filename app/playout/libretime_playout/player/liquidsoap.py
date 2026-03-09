@@ -1,7 +1,7 @@
 import logging
 import time
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from libretime_playout.liquidsoap.client import LiquidsoapClient
 from libretime_playout.player.events import (
@@ -358,7 +358,7 @@ class Liquidsoap:
     def modify_cue_point(self, file_event: FileEvent) -> None:
         assert file_event.type == EventKind.FILE
 
-        lateness = seconds_between(file_event.start, datetime.utcnow())
+        lateness = seconds_between(file_event.start, datetime.now(UTC))
 
         if lateness > 0:
             logger.debug("media item was supposed to start %ss ago", lateness)

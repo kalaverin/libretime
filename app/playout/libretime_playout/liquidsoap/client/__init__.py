@@ -5,3 +5,9 @@ from libretime_playout.liquidsoap.client._client import (
 from libretime_playout.liquidsoap.client._connection import (
     LiquidsoapConnection,
 )
+
+__all__ = (
+    "LiquidsoapClient",
+    "LiquidsoapClientError",
+    "LiquidsoapConnection",
+)

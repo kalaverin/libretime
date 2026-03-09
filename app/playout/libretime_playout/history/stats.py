@@ -1,23 +1,24 @@
 import logging
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from threading import Thread
 from time import sleep
-from typing import Any, Union
+from typing import Any
 
 import requests
 
-from libretime_api_client.v1 import ApiClient as LegacyClient
+from libretime_api_client import v1
 from libretime_shared.config import IcecastOutput, ShoutcastOutput
 from lxml import etree
 from requests import Session
+from typing_extensions import override
 
 from libretime_playout.config import Config
 
 logger = logging.getLogger(__name__)
 
-AnyOutput = Union[IcecastOutput, ShoutcastOutput]
+AnyOutput = IcecastOutput | ShoutcastOutput
 
 
 @dataclass
@@ -33,10 +34,10 @@ class StatsCollector:
 
     _session: Session
 
-    def __init__(self, legacy_client: LegacyClient):
+    def __init__(self, legacy_client: v1.ApiClient):
         self._session = Session()
-        self._timeout = 30
-        self._legacy_client = legacy_client
+        self._timeout: float = 30
+        self._legacy_client: v1.ApiClient = legacy_client
 
     def get_output_url(self, output: AnyOutput) -> str:
         if output.kind == "icecast":
@@ -96,7 +97,7 @@ class StatsCollector:
         _timestamp: datetime | None = None,
     ) -> None:
         if _timestamp is None:
-            _timestamp = datetime.utcnow()
+            _timestamp = datetime.now(UTC)
 
         stats: list[dict[str, Any]] = []
         stats_timestamp = _timestamp.strftime("%Y-%m-%d %H:%M:%S")
@@ -144,14 +145,20 @@ class StatsCollector:
 
 
 class StatsCollectorThread(Thread):
-    name = "stats collector"
-    daemon = True
 
-    def __init__(self, config: Config, legacy_client: LegacyClient) -> None:
+    name: str = "stats collector"
+    daemon: bool = True
+
+    def __init__(
+        self,
+        config: Config,
+        legacy_client: v1.ApiClient,
+    ) -> None:
         super().__init__()
-        self._config = config
-        self._collector = StatsCollector(legacy_client)
+        self._config: Config = config
+        self._collector: v1.ApiClient = StatsCollector(legacy_client)
 
+    @override
     def run(self) -> None:
         logger.info("starting %s", self.name)
         while True:

@@ -7,19 +7,25 @@ import os
 import sys
 import time
 
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from queue import Queue
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import click
-import requests
+import sentry_sdk
 
-from libretime_api_client.v1 import ApiClient as LegacyClient
-from libretime_api_client.v2 import ApiClient
+from libretime_api_client import v1, v2
 from libretime_shared.cli import cli_config_options, cli_logging_options
 from libretime_shared.config import DEFAULT_ENV_PREFIX
 from libretime_shared.logging import setup_logger
+from requests.exceptions import (
+    ConnectionError as RequestsConnectionError,
+)
+from requests.exceptions import (
+    HTTPError,
+    Timeout,
+)
 
 from libretime_playout import PACKAGE, VERSION
 from libretime_playout.config import CACHE_DIR, RECORD_DIR, Config
@@ -27,11 +33,13 @@ from libretime_playout.history.stats import StatsCollectorThread
 from libretime_playout.liquidsoap.client import LiquidsoapClient
 from libretime_playout.liquidsoap.version import LIQUIDSOAP_MIN_VERSION
 from libretime_playout.message_handler import MessageListener
-from libretime_playout.player.events import Events, FileEvents
 from libretime_playout.player.fetch import PypoFetch
 from libretime_playout.player.file import PypoFile
 from libretime_playout.player.liquidsoap import Liquidsoap
 from libretime_playout.player.push import PypoPush
+
+if TYPE_CHECKING:
+    from libretime_playout.player.events import Events, FileEvents
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +49,7 @@ for module in ("amqp",):
     logging.getLogger(module).propagate = False
 
 
-def wait_for_legacy(legacy_client: LegacyClient) -> None:
+def wait_for_legacy(legacy_client: v1.ApiClient) -> None:
     while legacy_client.version() == -1:
         time.sleep(2)
 
@@ -49,13 +57,10 @@ def wait_for_legacy(legacy_client: LegacyClient) -> None:
     while not success:
         try:
             legacy_client.register_component("pypo")
-            success = True
-        except (
-            requests.exceptions.ConnectionError,
-            requests.exceptions.HTTPError,
-            requests.exceptions.Timeout,
-        ) as exception:
-            logger.exception(exception)
+            break
+
+        except (HTTPError, RequestsConnectionError, Timeout) as e:
+            logger.exception(e)
             time.sleep(10)
 
 
@@ -82,9 +87,6 @@ def cli(
 
     if "SENTRY_DSN" in os.environ:
         logger.info("installing sentry")
-        # pylint: disable=import-outside-toplevel
-        import sentry_sdk
-
         sentry_sdk.init(
             traces_sample_rate=1.0,
             release=f"{PACKAGE}@{VERSION}",
@@ -93,22 +95,22 @@ def cli(
     try:
         for dir_path in [CACHE_DIR, RECORD_DIR]:
             dir_path.mkdir(exist_ok=True)
-    except OSError as exception:
-        logger.error(exception)
+    except OSError as e:
+        logger.error(e)
         sys.exit(1)
 
     # Although all of our calculations are in UTC, it is useful to know what timezone
     # the local machine is, so that we have a reference for what time the actual
     # log entries were made
     logger.info("Timezone: %s", time.tzname)
-    logger.info("UTC time: %s", datetime.utcnow())
+    logger.info("UTC time: %s", datetime.now(UTC))
 
-    api_client = ApiClient(
+    api_client = v2.ApiClient(
         base_url=config.general.public_url,
         api_key=config.general.api_key,
     )
 
-    legacy_client = LegacyClient(
+    legacy_client = v1.ApiClient(
         base_url=config.general.public_url,
         api_key=config.general.api_key,
     )

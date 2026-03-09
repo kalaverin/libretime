@@ -2,7 +2,7 @@ import logging
 import math
 import time
 
-from datetime import datetime
+from datetime import UTC, datetime
 from queue import Queue
 from threading import Thread
 
@@ -69,7 +69,7 @@ class PypoPush(Thread):
         self,
         events: Events,
     ) -> tuple[list[AnyEvent], Events]:
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         present: list[AnyEvent] = []
         future: Events = {}

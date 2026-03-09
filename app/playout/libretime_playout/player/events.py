@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Annotated, Literal
@@ -53,7 +53,7 @@ class BaseEvent(BaseModel):
         return datetime_to_event_key(self.end)
 
     def ended(self) -> bool:
-        return datetime.utcnow() > self.end
+        return datetime.now(UTC) > self.end
 
 
 class FileEvent(BaseEvent):
