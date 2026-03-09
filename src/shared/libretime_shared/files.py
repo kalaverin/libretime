@@ -8,7 +8,7 @@ def compute_md5(filepath: Path) -> str:
     Compute a file md5sum.
     """
     with filepath.open("rb") as file:
-        buffer = hashlib.md5()  # nosec
+        buffer = hashlib.md5()  # noqa: S324
         while True:
             blob = file.read(8192)
             if not blob:

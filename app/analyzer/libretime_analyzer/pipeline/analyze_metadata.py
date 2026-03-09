@@ -4,34 +4,35 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
-import mutagen
-
 from libretime_shared.files import compute_md5
+from mutagen._file import File
 from mutagen.easyid3 import EasyID3
 
 logger = logging.getLogger(__name__)
 
 
-def flatten(xss):
+def flatten(xss: list[Any]) -> list[Any]:
     return [x for xs in xss for x in xs]
 
 
-def comment_get(id3, _):
+def comment_get(id3: dict[str, Any], _) -> list[str]:
     comments = [
         v.text for k, v in id3.items() if "COMM" in k or "comment" in k
     ]
-
     return flatten(comments)
 
 
 EasyID3.RegisterKey("comment", comment_get)
 
 
-def analyze_metadata(filepath_: str, metadata: dict[str, Any]):
+def analyze_metadata(
+    path: str,
+    metadata: dict[str, Any],
+) -> dict[str, Any]:
     """
     Extract audio metadata from tags embedded in the file using mutagen.
     """
-    filepath = Path(filepath_)
+    filepath = Path(path)
 
     # Airtime <= 2.5.x required fields
     metadata["ftype"] = "audioclip"
@@ -42,7 +43,7 @@ def analyze_metadata(filepath_: str, metadata: dict[str, Any]):
     metadata["md5"] = compute_md5(filepath)
 
     # Get audio file metadata
-    extracted = mutagen.File(filepath, easy=True)
+    extracted = File(filepath, easy=True)
     if extracted is None:
         logger.warning("no metadata were extracted for %s", filepath)
         return metadata

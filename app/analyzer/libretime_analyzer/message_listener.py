@@ -3,9 +3,17 @@ import logging
 import signal
 import time
 
+from contextlib import suppress
 from queue import Queue
+from typing import Any
 
-import pika
+from libretime_shared import JSONType
+from pika import (
+    BlockingConnection,
+    ConnectionParameters,
+    credentials,
+    exceptions,
+)
 
 from libretime_analyzer.config import Config
 from libretime_analyzer.pipeline import (
@@ -24,47 +32,56 @@ QUEUE = "airtime-uploads"
 
 
 class MessageListener:
-    def __init__(self, config: Config):
+
+    _channel: Any
+    _connection: pika.BlockingConnection
+
+    def __init__(self, config: Config) -> None:
         """
         Start listening for file upload event messages from RabbitMQ.
         """
 
-        self.config = config
-        self._shutdown = False
+        self.config: Config = config
+        self._shutdown: bool = False
 
         # Set up a signal handler so we can shutdown gracefully
         # For some reason, this signal handler must be set up here. I'd rather
-        # put it in AirtimeAnalyzerServer, but it doesn't work there (something to do
-        # with pika's SIGTERM handler interfering with it, I think...)
+        # put it in AirtimeAnalyzerServer, but it doesn't work there
+        # (something to do with pika's SIGTERM handler interfering with it,
+        # I think...)
         signal.signal(signal.SIGTERM, self.graceful_shutdown)
 
         while not self._shutdown:
             try:
                 self.connect_to_messaging_server()
                 self.wait_for_messages()
+
             except (KeyboardInterrupt, SystemExit):
                 break  # Break out of the while loop and exit the application
+
             except OSError:
-                pass
-            except pika.exceptions.AMQPError as exception:
+                ...
+
+            except exceptions.AMQPError:
                 if self._shutdown:
                     break
-                logger.error("Connection to message queue failed. ")
-                logger.error(exception)
+
+                logger.exception("Connection to message queue failed. ")
                 logger.info("Retrying in 5 seconds...")
                 time.sleep(5)
 
         self.disconnect_from_messaging_server()
         logger.info("Exiting cleanly.")
 
-    def connect_to_messaging_server(self):
+    def connect_to_messaging_server(self) -> None:
         """Connect to the RabbitMQ server and start listening for messages."""
-        self._connection = pika.BlockingConnection(
-            pika.ConnectionParameters(
+
+        self._connection = BlockingConnection(
+            ConnectionParameters(
                 host=self.config.rabbitmq.host,
                 port=self.config.rabbitmq.port,
                 virtual_host=self.config.rabbitmq.vhost,
-                credentials=pika.credentials.PlainCredentials(
+                credentials=credentials.PlainCredentials(
                     self.config.rabbitmq.user,
                     self.config.rabbitmq.password,
                 ),
@@ -91,23 +108,29 @@ class MessageListener:
             auto_ack=False,
         )
 
-    def wait_for_messages(self):
+    def wait_for_messages(self) -> None:
         """Wait until we've received a RabbitMQ message."""
         self._channel.start_consuming()
 
-    def disconnect_from_messaging_server(self):
+    def disconnect_from_messaging_server(self) -> None:
         """Stop consuming RabbitMQ messages and disconnect"""
         if not self._channel.is_closed:
             self._channel.stop_consuming()
         if not self._connection.is_closed:
             self._connection.close()
 
-    def graceful_shutdown(self, signum, frame):
+    def graceful_shutdown(self, *_: Any) -> None:
         """Disconnect and break out of the message listening loop"""
         self._shutdown = True
         self.disconnect_from_messaging_server()
 
-    def msg_received_callback(self, channel, method_frame, header_frame, body):
+    def msg_received_callback(
+        self,
+        channel,
+        method_frame,
+        header_frame,
+        body,
+    ) -> None:
         """A callback method that runs when a RabbitMQ message is received.
 
         Here we parse the message, spin up an analyzer process, and report the
@@ -119,18 +142,20 @@ class MessageListener:
             method_frame.routing_key,
         )
 
-        audio_file_path = ""
-        # final_file_path = ""
-        import_directory = ""
-        original_filename = ""
         file_id = ""
 
+        callback_api_key = ""
+        callback_url = ""
+
+        audio_file_path = ""
+        import_directory = ""
+        original_filename = ""
+
         try:
-            try:
+            with suppress(UnicodeDecodeError, AttributeError):
                 body = body.decode()
-            except (UnicodeDecodeError, AttributeError):
-                pass
-            msg_dict: dict = json.loads(body)
+
+            msg_dict: JSONType = json.loads(body)
 
             file_id = msg_dict["file_id"]
             audio_file_path = msg_dict["tmp_file_path"]
@@ -172,7 +197,11 @@ class MessageListener:
                 requeue=False,
             )
 
-            if file_id:
+            if (
+                file_id and
+                callback_url and
+                callback_api_key
+            ):
                 StatusReporter.report_failure(
                     callback_url,
                     callback_api_key,
@@ -185,14 +214,15 @@ class MessageListener:
 
     @staticmethod
     def spawn_analyzer_process(
-        audio_file_path,
-        import_directory,
-        original_filename,
-        options: dict,
-    ):
-        metadata = {}
+        audio_file_path: str,
+        import_directory: str,
+        original_filename: str,
+        options: dict[str, Any],
+    ) -> Any:
 
+        metadata = {}
         queue = Queue()
+
         try:
             Pipeline.run_analysis(
                 queue,
@@ -202,11 +232,14 @@ class MessageListener:
                 PipelineOptions(**options),
             )
             metadata = queue.get()
+
         except Exception as exception:
             logger.exception("Analyzer pipeline exception: %s", exception)
             metadata["import_status"] = PipelineStatus.FAILED
 
-        # Ensure our queue doesn't fill up and block due to unexpected behavior. Defensive code.
+        # Ensure our queue doesn't fill up and block due to unexpected behavior
+        # Defensive code.
+
         while not queue.empty():
             queue.get()
 

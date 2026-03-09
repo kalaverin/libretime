@@ -75,7 +75,7 @@ class BaseConfig(BaseModel):
         try:
             return safe_load(filepath.read_text(encoding="utf-8"))
         except YAMLError as exception:
-            logger.error(
+            logger.fatal(
                 "config file '%s' is not a valid yaml file: %s",
                 filepath,
                 exception,

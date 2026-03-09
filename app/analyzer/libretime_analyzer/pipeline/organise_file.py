@@ -2,6 +2,7 @@ import logging
 import shutil
 
 from pathlib import Path
+from typing import Any
 from uuid import uuid4
 
 logger = logging.getLogger(__name__)
@@ -14,15 +15,15 @@ def organise_file(
     filepath_: str,
     storage_url: str,
     original_filename: str,
-    metadata: dict,
-) -> dict:
+    metadata: dict[str, Any],
+) -> dict[str, Any]:
     """
     Move the incoming file into the storage, while preserving the original filename.
 
     If you import multiple copies of the same file, the behavior is:
     - The first filename is preserved.
     - The next filenames receive an uuid append to the name.
-    """
+    """  # noqa: E501
     filepath = Path(filepath_)
 
     orig_filename = Path(original_filename)

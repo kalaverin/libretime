@@ -12,7 +12,10 @@ class UnplayableFileError(Exception):
     pass
 
 
-def analyze_playability(filename: str, metadata: dict[str, Any]):
+def analyze_playability(
+    filename: str,
+    metadata: dict[str, Any],
+) -> dict[str, Any]:
     """
     Checks if a file can be played by Liquidsoap.
     """

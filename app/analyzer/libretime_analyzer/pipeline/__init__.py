@@ -3,3 +3,9 @@ from libretime_analyzer.pipeline.pipeline import (
     PipelineOptions,
     PipelineStatus,
 )
+
+__all__ = (
+    "Pipeline",
+    "PipelineOptions",
+    "PipelineStatus",
+)

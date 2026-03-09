@@ -6,6 +6,8 @@ import queue
 import threading
 import time
 
+from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
 import requests
@@ -16,11 +18,17 @@ logger = logging.getLogger(__name__)
 
 
 class PicklableHttpRequest:
-    def __init__(self, method, url, api_key, data):
-        self.method = method
-        self.url = url
-        self.api_key = api_key
-        self.data = data
+    def __init__(
+        self,
+        method: str,
+        url: str,
+        api_key: str,
+        data: Any,
+    ) -> None:
+        self.method: str = method
+        self.url: str = url
+        self.api_key: str = api_key
+        self.data: Any = data
 
     def create_request(self):
         return requests.Request(
@@ -31,13 +39,17 @@ class PicklableHttpRequest:
         )
 
 
-def process_http_requests(ipc_queue, http_retry_queue_path):
+def process_http_requests(
+    ipc_queue: queue.Queue[Any],
+    http_retry_queue_path: str,
+):
     """Runs in a separate thread and performs all the HTTP requests where we're
-    reporting extracted audio file metadata or errors back to the Airtime web application.
+    reporting extracted audio file metadata or errors back to the Airtime web
+    application.
 
-    This process also checks every 5 seconds if there's failed HTTP requests that we
-    need to retry. We retry failed HTTP requests so that we don't lose uploads if the
-    web server is temporarily down.
+    This process also checks every 5 seconds if there's failed HTTP requests
+    that we need to retry. We retry failed HTTP requests so that we don't lose
+    uploads if the web server is temporarily down.
 
     """
 
@@ -47,22 +59,28 @@ def process_http_requests(ipc_queue, http_retry_queue_path):
     shutdown = False
 
     # Unpickle retry_queue from disk so that we won't have lost any uploads
-    # if airtime_analyzer is shut down while the web server is down or unreachable,
-    # and there were failed HTTP requests pending, waiting to be retried.
+    # if airtime_analyzer is shut down while the web server is down or
+    # unreachable, and there were failed HTTP requests pending,
+    # waiting to be retried.
     try:
         with open(http_retry_queue_path, "rb") as pickle_file:
             retry_queue = pickle.load(pickle_file)
+
     except OSError as exception:
         if exception.errno != 2:
-            raise exception
-    except Exception:
-        # If we fail to unpickle a saved queue of failed HTTP requests, then we'll just log an error
-        # and continue because those HTTP requests are lost anyways. The pickled file will be
-        # overwritten the next time the analyzer is shut down too.
-        logger.error(
+            raise
+
+    except Exception:  # noqa: BLE001
+        # If we fail to unpickle a saved queue of failed HTTP requests, then
+        # we'll just log an error and continue because those HTTP requests are
+        # lost anyways. The pickled file will be overwritten the next time the
+        # analyzer is shut down too.
+        logger.fatal(
             "Failed to unpickle %s. Continuing...",
             http_retry_queue_path,
         )
+
+    request: PicklableHttpRequest | str | None
 
     while True:
         try:
@@ -77,36 +95,48 @@ def process_http_requests(ipc_queue, http_retry_queue_path):
                 except queue.Empty:
                     request = None
 
-                # If there's no new HTTP request we need to execute, let's check our "retry
-                # queue" and see if there's any failed HTTP requests we can retry:
-                if request:
+                # If there's no new HTTP request we need to execute, let's
+                # check our "retry queue" and see if there's any failed HTTP
+                # requests we can retry:
+
+                if isinstance(request, PicklableHttpRequest):
                     send_http_request(request, retry_queue)
+
                 else:
-                    # Using a for loop instead of while so we only iterate over all the requests once!
+                    # Using a for loop instead of while so we only iterate
+                    # over all the requests once!
                     for _ in range(len(retry_queue)):
                         request = retry_queue.popleft()
-                        send_http_request(request, retry_queue)
+                        if isinstance(request, PicklableHttpRequest):
+                            send_http_request(request, retry_queue)
 
             logger.info("Shutting down status_reporter")
-            # Pickle retry_queue to disk so that we don't lose uploads if we're shut down while
-            # while the web server is down or unreachable.
+
+            # Pickle retry_queue to disk so that we don't lose uploads if
+            # we're shut down while while the web server is down or unreachable
             with open(http_retry_queue_path, "wb") as pickle_file:
                 pickle.dump(retry_queue, pickle_file)
+
             return
-        except (
-            Exception
-        ) as exception:  # Terrible top-level exception handler to prevent the thread from dying, just in case.
+
+        except Exception as exception:
+            # Terrible top-level exception handler to prevent the thread from
+            # dying, just in case.
+
             if shutdown:
                 return
+
             logger.exception(
-                "Unhandled exception in StatusReporter %s",
-                exception,
+                "Unhandled exception in StatusReporter %s", exception,
             )
             logger.info("Restarting StatusReporter thread")
             time.sleep(2)  # Throttle it
 
 
-def send_http_request(picklable_request: PicklableHttpRequest, retry_queue):
+def send_http_request(
+    picklable_request: PicklableHttpRequest,
+    retry_queue: collections.deque[Any],
+) -> None:
     try:
         bare_request = picklable_request.create_request()
         session = requests.Session()
@@ -115,28 +145,36 @@ def send_http_request(picklable_request: PicklableHttpRequest, retry_queue):
             prepared_request,
             timeout=StatusReporter._HTTP_REQUEST_TIMEOUT,
         )
-        resp.raise_for_status()  # Raise an exception if there was an http error code returned
+
+        # Raise an exception if there was an http error code returned
+        resp.raise_for_status()
         logger.info("HTTP request sent successfully.")
+
     except requests.exceptions.HTTPError as exception:
+
         if exception.response.status_code == 422:
             # Do no retry the request if there was a metadata validation error
             logger.exception(
                 f"HTTP request failed due to an HTTP exception: {exception}",
             )
+
         else:
-            # The request failed with an error 500 probably, so let's check if Airtime and/or
-            # the web server are broken. If not, then our request was probably causing an
-            # error 500 in the media API (ie. a bug), so there's no point in retrying it.
+            # The request failed with an error 500 probably, so let's check if
+            # Airtime and/or the web server are broken. If not, then our
+            # request was probably causing an error 500 in the media API
+            # (ie. a bug), so there's no point in retrying it.
             logger.exception("HTTP request failed: %s", exception)
             parsed_url = urlparse(exception.response.request.url)
+
             if is_web_server_broken(
                 parsed_url.scheme + "://" + parsed_url.netloc,
             ):
-                # If the web server is having problems, retry the request later:
+                # If the web server is having problems, retry the request later
                 retry_queue.append(picklable_request)
-                # Otherwise, if the request was bad, the request is never retried.
-                # You will have to find these bad requests in logs or you'll be
-                # notified by sentry.
+                # Otherwise, if the request was bad, the request is never
+                # retried. You will have to find these bad requests in logs or
+                # you'll be notified by sentry.
+
     except requests.exceptions.ConnectionError as exception:
         logger.exception(
             "HTTP request failed due to a connection error,  retrying later: %s",
@@ -154,8 +192,8 @@ def send_http_request(picklable_request: PicklableHttpRequest, retry_queue):
         # breaks airtime_analyzer.
 
 
-def is_web_server_broken(url):
-    """Do a naive test to check if the web server we're trying to access is down.
+def is_web_server_broken(url: str) -> bool:
+    """Do a naive test to check if the server we're trying to access is down.
     We use this to try to differentiate between error 500s that are coming
     from (for example) a bug in the Airtime Media REST API and error 500s
     caused by Airtime or the webserver itself being broken temporarily.
@@ -163,6 +201,7 @@ def is_web_server_broken(url):
     try:
         test_req = requests.get(url)
         test_req.raise_for_status()
+
     except HTTPError:
         return True
     return False
@@ -173,13 +212,13 @@ class StatusReporter:
     Airtime web application.
     """
 
-    _HTTP_REQUEST_TIMEOUT = 30
+    _HTTP_REQUEST_TIMEOUT: int = 30
 
-    _ipc_queue = queue.Queue()
-    _http_thread = None
+    _ipc_queue: queue.Queue[Any] = queue.Queue()
+    _http_thread: threading.Thread | None = None
 
     @classmethod
-    def start_thread(cls, http_retry_queue_path):
+    def start_thread(cls, http_retry_queue_path: Path) -> None:
         StatusReporter._http_thread = threading.Thread(
             target=process_http_requests,
             args=(StatusReporter._ipc_queue, http_retry_queue_path),
@@ -187,13 +226,15 @@ class StatusReporter:
         StatusReporter._http_thread.start()
 
     @classmethod
-    def stop_thread(cls):
+    def stop_thread(cls) -> None:
         logger.info("Terminating status_reporter process")
         StatusReporter._ipc_queue.put("shutdown")
-        StatusReporter._http_thread.join()
+
+        if thread := StatusReporter._http_thread:
+            thread.join()
 
     @classmethod
-    def _send_http_request(cls, request):
+    def _send_http_request(cls, request: PicklableHttpRequest) -> None:
         StatusReporter._ipc_queue.put(request)
 
     @classmethod
@@ -201,10 +242,11 @@ class StatusReporter:
         cls,
         callback_url: str,
         callback_api_key: str,
-        metadata: dict,
-    ):
-        """Report the extracted metadata and status of the successfully imported file
-        to the callback URL (which should be the Airtime File Upload API)
+        metadata: dict[str, Any],
+    ) -> None:
+        """Report the extracted metadata and status of the
+        successfully imported file to the callback URL
+        (which should be the Airtime File Upload API)
         """
         put_payload = json.dumps(metadata)
         StatusReporter._send_http_request(
@@ -219,17 +261,16 @@ class StatusReporter:
     @classmethod
     def report_failure(
         cls,
-        callback_url,
-        callback_api_key,
+        callback_url: str,
+        callback_api_key: str,
         import_status: int,
-        reason,
-    ):
+        reason: str,
+    ) -> None:
         logger.debug("Reporting import failure to Airtime REST API...")
         audio_metadata = {}
         audio_metadata["import_status"] = import_status
-        audio_metadata["comment"] = reason  # hack attack
+        audio_metadata["comment"] = reason
         put_payload = json.dumps(audio_metadata)
-        # logger.debug("sending http put with payload: %s", put_payload)
 
         StatusReporter._send_http_request(
             PicklableHttpRequest(

@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 import click
+import sentry_sdk
 
 from libretime_shared.cli import cli_config_options, cli_logging_options
 from libretime_shared.config import DEFAULT_ENV_PREFIX
@@ -33,7 +34,7 @@ def cli(
     log_filepath: Path | None,
     config_filepath: Path | None,
     retry_queue_filepath: Path,
-):
+) -> None:
     """
     Run analyzer.
     """
@@ -42,9 +43,6 @@ def cli(
 
     if "SENTRY_DSN" in os.environ:
         logger.info("installing sentry")
-        # pylint: disable=import-outside-toplevel
-        import sentry_sdk
-
         sentry_sdk.init(
             traces_sample_rate=1.0,
             release=f"{PACKAGE}@{VERSION}",

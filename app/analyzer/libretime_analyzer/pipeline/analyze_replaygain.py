@@ -1,3 +1,4 @@
+from pathlib import Path
 from subprocess import CalledProcessError
 from typing import Any
 
@@ -7,23 +8,30 @@ from libretime_analyzer.pipeline._ffmpeg import (
 )
 
 
-def analyze_replaygain(filepath: str, metadata: dict[str, Any]):
+def analyze_replaygain(
+    filepath: str,
+    metadata: dict[str, Any],
+) -> dict[str, Any]:
     """
     Extracts the Replaygain loudness normalization factor of a track using ffmpeg.
     """
+
+    path = Path(filepath)
     try:
         # First probe for existing replaygain metadata.
-        track_gain = probe_replaygain(filepath)
+        track_gain = probe_replaygain(path)
         if track_gain is not None:
             metadata["replay_gain"] = track_gain
             return metadata
+
     except (CalledProcessError, OSError):
         pass
 
     try:
-        track_gain = compute_replaygain(filepath)
+        track_gain = compute_replaygain(path)
         if track_gain is not None:
             metadata["replay_gain"] = track_gain
+
     except (CalledProcessError, OSError):
         pass
 

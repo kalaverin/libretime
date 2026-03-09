@@ -73,9 +73,8 @@ def index_dict_to_none_list(base: dict[int, T]) -> list[T | None]:
     return result
 
 
-# pylint: disable=too-few-public-methods
 class EnvLoader:
-    schema: dict
+    schema: dict[str, Any]
 
     env_prefix: str
     env_delimiter: str
@@ -84,7 +83,7 @@ class EnvLoader:
 
     def __init__(
         self,
-        schema: dict,
+        schema: dict[str, Any],
         env_prefix: str | None = None,
         env_delimiter: str = "_",
     ) -> None:
@@ -140,7 +139,6 @@ class EnvLoader:
 
         return mapping
 
-    # pylint: disable=too-many-return-statements,too-many-branches
     def _get(
         self,
         env_name: str,
@@ -237,7 +235,6 @@ class EnvLoader:
 
         return result
 
-    # pylint: disable=too-many-branches
     def _get_array(
         self,
         env_parent: str,

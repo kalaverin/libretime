@@ -1,3 +1,5 @@
+# ruff: noqa: S105
+
 from enum import Enum
 from typing import Annotated, Literal
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -12,7 +14,7 @@ from libretime_shared.config._fields import (
 )
 
 # GeneralConfig
-########################################################################################
+##############################################################################
 
 
 # pylint: disable=too-few-public-methods
@@ -37,7 +39,7 @@ class GeneralConfig(BaseModel):
 
 
 # StorageConfig
-########################################################################################
+##############################################################################
 
 
 # pylint: disable=too-few-public-methods
@@ -46,7 +48,7 @@ class StorageConfig(BaseModel):
 
 
 # DatabaseConfig
-########################################################################################
+##############################################################################
 
 
 # pylint: disable=too-few-public-methods
@@ -66,7 +68,7 @@ class DatabaseConfig(BaseModel):
 
 
 # RabbitMQConfig
-########################################################################################
+##############################################################################
 
 
 # pylint: disable=too-few-public-methods
@@ -86,7 +88,7 @@ class RabbitMQConfig(BaseModel):
 
 
 # StreamConfig
-########################################################################################
+##############################################################################
 
 
 class BaseInput(BaseModel):

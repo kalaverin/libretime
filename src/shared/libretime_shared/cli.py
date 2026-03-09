@@ -37,7 +37,7 @@ def cli_logging_options() -> Callable:
 
 def cli_config_options(
     required: bool = False,
-    default: Any | None = None,
+    default: Any | None = None,  # noqa: ANN401
 ) -> Callable:
     def decorator(func: Callable) -> Callable:
         """

@@ -46,12 +46,12 @@ class Pipeline:
 
     @staticmethod
     def run_analysis(
-        queue: Queue,
+        queue: Queue[Any],
         audio_file_path: str,
         import_directory: str,
         original_filename: str,
         options: PipelineOptions,
-    ):
+    ) -> None:
         """Analyze and import an audio file, and put all extracted metadata into queue.
 
         Keyword arguments:
@@ -65,38 +65,28 @@ class Pipeline:
                                temporary randomly generated name, which is why we want
                                to know what the original name was.
         """
-        try:
-            if not isinstance(queue, Queue):
-                raise TypeError("queue must be a Queue.Queue()")
-            if not isinstance(audio_file_path, str):
-                raise TypeError(
-                    "audio_file_path must be unicode. Was of type "
-                    + type(audio_file_path).__name__
-                    + " instead.",
-                )
-            if not isinstance(import_directory, str):
-                raise TypeError(
-                    "import_directory must be unicode. Was of type "
-                    + type(import_directory).__name__
-                    + " instead.",
-                )
-            if not isinstance(original_filename, str):
-                raise TypeError(
-                    "original_filename must be unicode. Was of type "
-                    + type(original_filename).__name__
-                    + " instead.",
-                )
+        metadata: dict[str, Any] = {}
 
+        try:
             # Analyze the audio file we were told to analyze:
             # First, we extract the ID3 tags and other metadata:
-            metadata = {}
+
             metadata = analyze_metadata(audio_file_path, metadata)
+
+            # Then we analyze the duration of the file.
             metadata = analyze_duration(audio_file_path, metadata)
+
+            # Then we analyze the cue points in the file.
             if options.analyze_cue_points:
                 metadata = analyze_cuepoint(audio_file_path, metadata)
+
+            # Then we analyze the replaygain of the file.
             metadata = analyze_replaygain(audio_file_path, metadata)
+
+            # Finally, we check if the file is playable.
             metadata = analyze_playability(audio_file_path, metadata)
 
+            # If all the analysis steps above succeeded, we store file.
             metadata = organise_file(
                 audio_file_path,
                 import_directory,
@@ -104,15 +94,18 @@ class Pipeline:
                 metadata,
             )
 
+            # If we got here, then the file was successfully analyzed.
             metadata["import_status"] = PipelineStatus.SUCCEED
 
             # Pass all the file metadata back to the main analyzer process
             queue.put(metadata)
+
         except UnplayableFileError as exception:
             logger.exception(exception)
             metadata["import_status"] = PipelineStatus.FAILED
             metadata["reason"] = "The file could not be played."
-            raise exception
+            raise
+
         except Exception as exception:
             logger.exception(exception)
-            raise exception
+            raise

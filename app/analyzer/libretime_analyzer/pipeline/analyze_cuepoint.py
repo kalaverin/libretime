@@ -2,6 +2,7 @@ import logging
 
 from datetime import timedelta
 from math import isclose
+from pathlib import Path
 from subprocess import CalledProcessError
 from typing import Any
 
@@ -21,7 +22,7 @@ def analyze_duration(
     Extracts the file duration using ffmpeg.
     """
     try:
-        duration = probe_duration(filepath)
+        duration = probe_duration(Path(filepath))
 
         if "length_seconds" in metadata and not isclose(
             metadata["length_seconds"],
@@ -57,7 +58,7 @@ def analyze_cuepoint(
     duration = metadata["length_seconds"]
 
     try:
-        silences = compute_silences(filepath)
+        silences = compute_silences(Path(filepath))
 
         if len(silences) > 2:
             # Only keep first and last silence

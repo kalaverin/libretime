@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 def setup_logger(
     level: str,
     filepath: Path | None = None,
-    serialize: bool = False,  # pylint: disable=unused-argument
+    serialize: bool = False,  # noqa: ARG001
     rotate: bool = True,
 ) -> tuple[str, Path | None]:
     """
@@ -21,7 +21,8 @@ def setup_logger(
     root.setLevel(level)
 
     formatter = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(name)s:%(funcName)s:%(lineno)s - %(message)s",
+        "%(asctime)s | %(levelname)-8s | "
+        "%(name)s:%(funcName)s:%(lineno)s - %(message)s",
     )
     handlers: list[logging.Handler] = [logging.StreamHandler()]
 
