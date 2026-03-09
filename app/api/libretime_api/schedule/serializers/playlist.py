@@ -1,3 +1,5 @@
+from typing import final
+
 from rest_framework import serializers
 
 from libretime_api.schedule.models import Playlist, PlaylistContent

@@ -11,6 +11,7 @@ from libretime_api.schedule.models import (
 
 @final
 class SmartBlockSerializer(serializers.ModelSerializer):
+    @final
     class Meta:
         model = SmartBlock
         fields: str = "__all__"
@@ -18,6 +19,7 @@ class SmartBlockSerializer(serializers.ModelSerializer):
 
 @final
 class SmartBlockContentSerializer(serializers.ModelSerializer):
+    @final
     class Meta:
         model = SmartBlockContent
         fields: str = "__all__"
@@ -25,6 +27,7 @@ class SmartBlockContentSerializer(serializers.ModelSerializer):
 
 @final
 class SmartBlockCriteriaSerializer(serializers.ModelSerializer):
+    @final
     class Meta:
         model = SmartBlockCriteria
         fields: str = "__all__"

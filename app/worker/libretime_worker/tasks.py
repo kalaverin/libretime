@@ -7,15 +7,18 @@ from tempfile import NamedTemporaryFile
 from typing import Any
 from urllib.parse import urlsplit
 
-import mutagen
 import requests
+import sentry_sdk
 
 from celery import Celery, signals
 from celery.schedules import crontab
 from celery.utils.log import get_task_logger
-from libretime_api_client.v1 import ApiClient as LegacyClient
-from mutagen import MutagenError
+from libretime_api_client import v1
+from libretime_shared import JSONType
+from mutagen._file import File
+from mutagen._util import MutagenError
 from requests import RequestException, Response
+from sentry_sdk.integrations.celery import CeleryIntegration
 
 from libretime_worker import PACKAGE, VERSION
 from libretime_worker.config import config
@@ -23,21 +26,16 @@ from libretime_worker.config import config
 worker = Celery()
 logger = get_task_logger(__name__)
 
-legacy_client = LegacyClient(
+legacy_client = v1.ApiClient(
     base_url=config.general.public_url,
     api_key=config.general.api_key,
 )
 
 
 @signals.worker_init.connect
-def init_sentry(**_kwargs):
+def init_sentry(**_: dict[str, Any]) -> None:
     if "SENTRY_DSN" in os.environ:
         logger.info("installing sentry")
-        # pylint: disable=import-outside-toplevel
-        import sentry_sdk
-
-        from sentry_sdk.integrations.celery import CeleryIntegration
-
         sentry_sdk.init(
             traces_sample_rate=1.0,
             release=f"{PACKAGE}@{VERSION}",
@@ -56,7 +54,7 @@ worker.conf.beat_schedule = {
 
 
 @worker.task()
-def legacy_trigger_task_manager():
+def legacy_trigger_task_manager() -> None:
     """
     Trigger the legacy task manager to perform background tasks.
     """
@@ -76,7 +74,7 @@ def podcast_download(
     episode_title: str | None,
     podcast_name: str,
     override_album: bool,
-):
+) -> JSONType:
     """
     Download a podcast episode.
 
@@ -116,7 +114,7 @@ def podcast_download(
 
         # Save metadata to podcast episode file
         try:
-            metadata = mutagen.File(tmp_file.name, easy=True)
+            metadata = File(tmp_file.name, easy=True)
             if metadata is None:
                 raise PodcastDownloadException(
                     f"could not determine podcast episode {episode_id} file type",

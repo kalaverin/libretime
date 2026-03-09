@@ -1,6 +1,7 @@
 import json
 import logging
 
+from contextlib import suppress
 from queue import Queue as ThreadQueue
 from signal import SIGTERM, signal
 from time import sleep
@@ -11,6 +12,8 @@ from kombu.connection import Connection
 from kombu.message import Message
 from kombu.messaging import Exchange, Queue
 from kombu.mixins import ConsumerMixin
+from libretime_shared import JSONType
+from typing_extensions import override
 
 from libretime_playout.config import Config
 
@@ -18,16 +21,18 @@ logger = logging.getLogger(__name__)
 
 
 class MessageHandler(ConsumerMixin):
+
     def __init__(
         self,
         connection: Connection,
-        fetch_queue: "ThreadQueue[dict[str, Any]]",
-    ):
-        self.connection = connection
+        fetch_queue: ThreadQueue[dict[str, Any]],
+    ) -> None:
 
-        self.fetch_queue = fetch_queue
+        self.connection: Connection = connection
+        self.fetch_queue: ThreadQueue[dict[str, Any]] = fetch_queue
 
-    def get_consumers(self, Consumer, channel):
+    @override
+    def get_consumers(self, Consumer, channel) -> list[Any]:
         exchange = Exchange(
             "playout",
             "fanout",
@@ -49,15 +54,13 @@ class MessageHandler(ConsumerMixin):
             ),
         ]
 
-    def on_message(self, body, message: Message) -> None:
+    def on_message(self, body: bytes, message: Message) -> None:
         logger.debug("received message: %s", body)
         try:
-            try:
+            with suppress(UnicodeDecodeError, AttributeError):
                 body = body.decode()
-            except (UnicodeDecodeError, AttributeError):
-                pass
 
-            payload: dict = json.loads(body)
+            payload: JSONType = json.loads(body)
             command = payload["event_type"]
             logger.info("handling event %s: %s", command, payload)
 
@@ -83,15 +86,16 @@ class MessageHandler(ConsumerMixin):
         message.ack()
 
 
-# pylint: disable=too-few-public-methods
 class MessageListener:
+
     def __init__(
         self,
         config: Config,
-        fetch_queue: "ThreadQueue[dict[str, Any]]",
+        fetch_queue: ThreadQueue[dict[str, Any]],
     ) -> None:
-        self.config = config
-        self.fetch_queue = fetch_queue
+
+        self.config: Config = config
+        self.fetch_queue: ThreadQueue[dict[str, Any]] = fetch_queue
 
     def run_forever(self) -> None:
         while True:

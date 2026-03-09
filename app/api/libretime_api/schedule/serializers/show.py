@@ -36,6 +36,7 @@ class ShowSerializer(serializers.ModelSerializer):
 
 @final
 class ShowDaysSerializer(serializers.ModelSerializer):
+    @final
     class Meta:
         model = ShowDays
         fields: str = "__all__"
@@ -43,6 +44,7 @@ class ShowDaysSerializer(serializers.ModelSerializer):
 
 @final
 class ShowHostSerializer(serializers.ModelSerializer):
+    @final
     class Meta:
         model = ShowHost
         fields: str = "__all__"
@@ -50,6 +52,7 @@ class ShowHostSerializer(serializers.ModelSerializer):
 
 @final
 class ShowInstanceSerializer(serializers.ModelSerializer):
+    @final
     class Meta:
         model = ShowInstance
         fields: str = "__all__"
@@ -57,6 +60,7 @@ class ShowInstanceSerializer(serializers.ModelSerializer):
 
 @final
 class ShowRebroadcastSerializer(serializers.ModelSerializer):
+    @final
     class Meta:
         model = ShowRebroadcast
         fields: str = "__all__"

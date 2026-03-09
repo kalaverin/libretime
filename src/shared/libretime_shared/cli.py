@@ -5,8 +5,8 @@ from typing import Any
 import click
 
 
-def cli_logging_options() -> Callable:
-    def decorator(func: Callable) -> Callable:
+def cli_logging_options() -> Callable[..., Any]:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         """
         Decorator function to add logging options to a click application.
 
@@ -22,7 +22,7 @@ def cli_logging_options() -> Callable:
             help="Name of the logging level.",
         )(func)
 
-        func = click.option(
+        return click.option(
             "--log-filepath",
             "log_filepath",
             type=click.Path(path_type=Path),
@@ -30,16 +30,14 @@ def cli_logging_options() -> Callable:
             default=None,
         )(func)
 
-        return func
-
     return decorator
 
 
 def cli_config_options(
     required: bool = False,
     default: Any | None = None,  # noqa: ANN401
-) -> Callable:
-    def decorator(func: Callable) -> Callable:
+) -> Callable[..., Any]:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         """
         Decorator function to add config file options to a click application.
 
@@ -47,7 +45,7 @@ def cli_config_options(
         - config_filepath: Optional[Path] or Path
         """
 
-        func = click.option(
+        return click.option(
             "--c",
             "--config",
             "config_filepath",
@@ -56,7 +54,5 @@ def cli_config_options(
             required=required,
             default=default,
         )(func)
-
-        return func
 
     return decorator

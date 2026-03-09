@@ -63,7 +63,8 @@ known-third-party = [
   "pydantic",
   "python_dateutil",
   "requests",
-  "sentry_sdk"
+  "sentry_sdk",
+  "typing_extensions",
 ]
 
 [tool.mypy]
