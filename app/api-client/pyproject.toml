@@ -31,10 +31,6 @@ Documentation = "https://libretime.org"
 Homepage = "https://github.com/libretime/libretime"
 "Source Code" = "https://github.com/libretime/libretime"
 
-[tool.setuptools.packages.find]
-include = ["libretime_api_client"]
-where = ["."]
-
 [ruff.lint.isort]
 known-first-party = [
   "libretime_analyzer",
@@ -46,3 +42,7 @@ known-third-party = [
   "python_dateutil",
   "requests"
 ]
+
+[tool.setuptools.packages.find]
+include = ["libretime_api_client"]
+where = ["."]

@@ -32,6 +32,14 @@ Documentation = "https://libretime.org"
 Homepage = "https://github.com/libretime/libretime"
 "Source Code" = "https://github.com/libretime/libretime"
 
+[ruff.lint.isort]
+known-first-party = [
+  "click",
+  "pydantic",
+  "pytest",
+  "pyyaml"
+]
+
 [tool.mypy]
 allow_redefinition = true
 disallow_incomplete_defs = true
@@ -41,11 +49,3 @@ disallow_untyped_defs = true
 [tool.setuptools.packages.find]
 include = ["libretime_shared"]
 where = ["."]
-
-[ruff.lint.isort]
-known-first-party = [
-  "click",
-  "pydantic",
-  "pytest",
-  "pyyaml"
-]

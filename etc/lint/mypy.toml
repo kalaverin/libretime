@@ -1,9 +1,14 @@
+[tool.django-stubs]
+django_settings_module = "libretime_api.settings.testing"
+strict_model_abstract_attrs = true
+strict_settings = true
+
 [tool.mypy]
+cache_fine_grained = true
 disable_error_code = [
   # we also override attributes (variables) from base classes with Any
   "misc"
 ]
-cache_fine_grained = true
 # using Any type in return for decorated (e.g. @property) functions
 disallow_any_decorated = false
 disallow_any_explicit = false
@@ -13,23 +18,18 @@ disallow_any_expr = false
 disallow_any_unimported = false
 # it's error told us that some base class has "Any" type
 disallow_subclassing_any = false
+# we have some dynamic code that mypy can't analyze, so allow it to be untyped
+explicit_package_bases = true
 extra_checks = true
 follow_imports = "silent"
 follow_imports_for_stubs = true
 # many modules have no stubs, skip these errors
 ignore_missing_imports = true
-# we have some dynamic code that mypy can't analyze, so allow it to be untyped
-explicit_package_bases = true
 plugins = [
   "mypy_django_plugin.main",
   "mypy_drf_plugin.main",
   "pydantic.mypy"
 ]
-
-[tool.django-stubs]
-django_settings_module = "libretime_api.settings.testing"
-strict_settings = true
-strict_model_abstract_attrs = true
 
 [[tool.mypy.overrides]]
 ignore_errors = true
