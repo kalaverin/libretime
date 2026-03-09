@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class SmartBlock(models.Model):
     created_at = models.DateTimeField(blank=True, null=True, db_column="utime")
     updated_at = models.DateTimeField(blank=True, null=True, db_column="mtime")

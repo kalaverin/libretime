@@ -1,5 +1,6 @@
 from rest_framework.serializers import Serializer
 
+
 class ReadWriteSerializerMixin:
     """
     Overrides get_serializer_class to choose the read serializer

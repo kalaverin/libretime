@@ -5,6 +5,7 @@ from libretime_playout.liquidsoap.client import (
     LiquidsoapClientError,
 )
 
+
 def test_liq_client():
     assert LiquidsoapClient(
         host="localhost",

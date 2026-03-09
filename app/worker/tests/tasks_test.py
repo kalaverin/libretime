@@ -7,6 +7,7 @@ from requests import Response
 
 from tests.fixtures import fixtures_path
 
+
 @pytest.mark.parametrize(
     "file",
     [

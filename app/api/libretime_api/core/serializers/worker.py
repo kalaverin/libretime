@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from libretime_api.core.models import CeleryTask, ThirdPartyTrackReference
 
+
 class ThirdPartyTrackReferenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = ThirdPartyTrackReference

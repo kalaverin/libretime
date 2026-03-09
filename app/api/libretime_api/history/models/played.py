@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class PlayoutHistory(models.Model):
     file = models.ForeignKey(
         "storage.File",

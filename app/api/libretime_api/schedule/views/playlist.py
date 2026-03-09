@@ -6,6 +6,7 @@ from libretime_api.schedule.serializers import (
     PlaylistSerializer,
 )
 
+
 class PlaylistViewSet(viewsets.ModelViewSet):
     queryset = Playlist.objects.all()
     serializer_class = PlaylistSerializer

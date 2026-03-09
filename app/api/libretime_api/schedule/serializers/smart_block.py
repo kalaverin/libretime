@@ -6,6 +6,7 @@ from libretime_api.schedule.models import (
     SmartBlockCriteria,
 )
 
+
 class SmartBlockSerializer(serializers.ModelSerializer):
     class Meta:
         model = SmartBlock

@@ -7,6 +7,7 @@ from libretime_shared.config._fields import (
 )
 from pydantic import TypeAdapter
 
+
 @pytest.mark.parametrize(
     "data, expected",
     [

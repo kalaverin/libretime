@@ -8,6 +8,7 @@ from libretime_api.schedule.models import (
     ShowRebroadcast,
 )
 
+
 class ShowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Show

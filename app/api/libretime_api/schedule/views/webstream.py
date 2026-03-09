@@ -6,6 +6,7 @@ from libretime_api.schedule.serializers import (
     WebstreamSerializer,
 )
 
+
 class WebstreamViewSet(viewsets.ModelViewSet):
     queryset = Webstream.objects.all()
     serializer_class = WebstreamSerializer

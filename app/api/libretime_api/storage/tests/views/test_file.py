@@ -9,6 +9,7 @@ from rest_framework.test import APITestCase
 from libretime_api._fixtures import AUDIO_FILENAME
 from libretime_api.storage.models import File
 
+
 class TestFileViewSet(APITestCase):
     @classmethod
     def setUpTestData(cls):

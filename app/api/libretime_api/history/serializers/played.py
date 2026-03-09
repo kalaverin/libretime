@@ -7,6 +7,7 @@ from libretime_api.history.models import (
     PlayoutHistoryTemplateField,
 )
 
+
 class PlayoutHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = PlayoutHistory

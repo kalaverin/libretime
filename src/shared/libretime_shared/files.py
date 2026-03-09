@@ -2,6 +2,7 @@ import hashlib
 
 from pathlib import Path
 
+
 def compute_md5(filepath: Path) -> str:
     """
     Compute a file md5sum.

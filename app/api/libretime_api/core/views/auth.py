@@ -6,6 +6,7 @@ from libretime_api.core.serializers import (
     UserTokenSerializer,
 )
 
+
 class UserTokenViewSet(viewsets.ModelViewSet):
     queryset = UserToken.objects.all()
     serializer_class = UserTokenSerializer

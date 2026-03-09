@@ -7,6 +7,7 @@ from rest_framework.test import APITestCase
 
 from libretime_api._fixtures import AUDIO_FILENAME
 
+
 class TestScheduleViewSet(APITestCase):
     @classmethod
     def setUpTestData(cls):

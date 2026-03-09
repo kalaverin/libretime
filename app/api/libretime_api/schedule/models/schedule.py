@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.timezone import now
 
+
 class Schedule(models.Model):
     starts_at = models.DateTimeField(db_column="starts")
     ends_at = models.DateTimeField(db_column="ends")

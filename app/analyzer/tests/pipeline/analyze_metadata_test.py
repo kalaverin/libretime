@@ -6,6 +6,7 @@ from libretime_analyzer.pipeline.analyze_metadata import analyze_metadata
 
 from tests.fixtures import FILE_INVALID_DRM, FILE_INVALID_TXT, FILES_TAGGED
 
+
 @pytest.mark.parametrize(
     "filepath,metadata",
     map(lambda i: (i.path, i.metadata), FILES_TAGGED),

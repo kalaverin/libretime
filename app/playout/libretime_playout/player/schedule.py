@@ -16,6 +16,7 @@ from libretime_playout.player.events import (
     event_isoparse,
 )
 
+
 def insert_event(events: Events, event_key: str, event: AnyEvent) -> None:
     key = event_key
 

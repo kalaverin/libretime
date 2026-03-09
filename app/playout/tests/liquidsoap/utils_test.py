@@ -2,6 +2,7 @@ import pytest
 
 from libretime_playout.liquidsoap.utils import quote
 
+
 @pytest.mark.parametrize(
     "value, double, expected",
     [

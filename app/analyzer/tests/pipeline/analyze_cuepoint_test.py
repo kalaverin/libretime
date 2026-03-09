@@ -7,6 +7,7 @@ from libretime_analyzer.pipeline.analyze_cuepoint import (
 
 from tests.fixtures import FILES
 
+
 @pytest.mark.parametrize(
     "filepath,length,cuein,cueout",
     map(

@@ -2,6 +2,7 @@ import pytest
 
 from libretime_api.legacy.migrations._version import parse_version
 
+
 @pytest.mark.parametrize(
     "version,expected",
     [

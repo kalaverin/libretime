@@ -10,6 +10,7 @@ from django.db import models
 from libretime_api.core.models.role import Role
 from libretime_api.permission_constants import GROUPS
 
+
 class UserManager(BaseUserManager):
     # pylint: disable=too-many-positional-arguments
     def create_user(

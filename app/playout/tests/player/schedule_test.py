@@ -20,6 +20,7 @@ from libretime_playout.player.schedule import (
     get_schedule,
 )
 
+
 @pytest.fixture(name="api_client")
 def _api_client_fixture():
     base_url = "http://localhost"

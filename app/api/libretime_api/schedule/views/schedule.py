@@ -9,6 +9,7 @@ from libretime_api.schedule.serializers import (
     WriteScheduleSerializer,
 )
 
+
 class ScheduleFilter(filters.FilterSet):
     starts = filters.DateTimeFromToRangeFilter(field_name="starts_at")
     ends = filters.DateTimeFromToRangeFilter(field_name="ends_at")

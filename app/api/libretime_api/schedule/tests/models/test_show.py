@@ -1,5 +1,6 @@
 from libretime_api.schedule.models import Show
 
+
 def test_show_live_enabled():
     show = Show(
         name="My Test Show",

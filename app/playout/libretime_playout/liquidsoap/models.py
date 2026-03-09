@@ -2,6 +2,7 @@ from enum import Enum
 
 from pydantic import BaseModel
 
+
 class Info(BaseModel):
     station_name: str
 

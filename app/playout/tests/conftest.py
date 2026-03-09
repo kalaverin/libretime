@@ -3,6 +3,7 @@ import pytest
 from libretime_playout.config import Config
 from libretime_playout.liquidsoap.models import StreamPreferences
 
+
 @pytest.fixture
 def config():
     return Config(

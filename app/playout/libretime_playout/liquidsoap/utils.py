@@ -1,5 +1,6 @@
 from typing import Any
 
+
 def quote(value: Any, double=False) -> str:
     """
     Quote and escape strings quotes for liquidsoap.

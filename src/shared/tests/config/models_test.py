@@ -10,6 +10,7 @@ from libretime_shared.config._models import (
 )
 from pydantic import ValidationError
 
+
 def test_general_config_timezone():
     defaults = {
         "public_url": "http://localhost:8080",

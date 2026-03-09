@@ -4,6 +4,7 @@ from libretime_api_client._client import (
     default_retry,
 )
 
+
 class ApiClient(AbstractApiClient):
     VERSION = "2.0"
 

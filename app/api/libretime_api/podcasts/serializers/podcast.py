@@ -7,6 +7,7 @@ from libretime_api.podcasts.models import (
     StationPodcast,
 )
 
+
 class PodcastSerializer(serializers.ModelSerializer):
     class Meta:
         model = Podcast

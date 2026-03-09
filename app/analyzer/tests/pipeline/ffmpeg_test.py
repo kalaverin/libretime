@@ -10,6 +10,7 @@ from libretime_analyzer.pipeline._ffmpeg import (
 
 from tests.fixtures import FILES
 
+
 @pytest.mark.skip(reason="fixtures files are missing replaygain metadata")
 @pytest.mark.parametrize(
     "filepath,replaygain",

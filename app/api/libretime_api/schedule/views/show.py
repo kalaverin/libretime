@@ -15,6 +15,7 @@ from libretime_api.schedule.serializers import (
     ShowSerializer,
 )
 
+
 class ShowViewSet(viewsets.ModelViewSet):
     queryset = Show.objects.all()
     serializer_class = ShowSerializer

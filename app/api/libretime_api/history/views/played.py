@@ -13,6 +13,7 @@ from libretime_api.history.serializers import (
     PlayoutHistoryTemplateSerializer,
 )
 
+
 class PlayoutHistoryViewSet(viewsets.ModelViewSet):
     queryset = PlayoutHistory.objects.all()
     serializer_class = PlayoutHistorySerializer

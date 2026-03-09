@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Show(models.Model):
     name = models.CharField(max_length=255)
     description = models.CharField(max_length=8192, blank=True, null=True)

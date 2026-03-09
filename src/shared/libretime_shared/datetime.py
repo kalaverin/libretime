@@ -1,5 +1,6 @@
 from datetime import time
 
+
 def time_in_seconds(value: time) -> float:
     return (
         value.hour * 60 * 60

@@ -8,6 +8,7 @@ from libretime_playout.liquidsoap.version import (
     parse_liquidsoap_version,
 )
 
+
 @pytest.mark.parametrize(
     "version, expected",
     [

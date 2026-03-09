@@ -10,6 +10,7 @@ from requests.exceptions import HTTPError
 
 from tests.fixtures import icecast_stats, shoutcast_admin
 
+
 @pytest.fixture(name="outputs")
 def outputs_fixture():
     default_output = {

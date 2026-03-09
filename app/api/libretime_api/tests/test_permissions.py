@@ -7,6 +7,7 @@ from rest_framework.test import APIRequestFactory, APITestCase
 from libretime_api.core.models import Role
 from libretime_api.permissions import IsSystemTokenOrUser
 
+
 class TestIsSystemTokenOrUser(APITestCase):
     @classmethod
     def setUpTestData(cls):

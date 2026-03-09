@@ -8,6 +8,7 @@ from libretime_analyzer.pipeline import Pipeline, PipelineOptions
 
 from tests.conftest import AUDIO_FILENAME, AUDIO_IMPORT_DEST
 
+
 def test_run_analysis(src_dir: Path, dest_dir: Path):
     queue = Queue()
     Pipeline.run_analysis(
