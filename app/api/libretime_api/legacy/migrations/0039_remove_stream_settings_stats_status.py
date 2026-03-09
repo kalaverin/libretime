@@ -6,6 +6,7 @@ from libretime_api.legacy.migrations._migrations import (
     legacy_migration_factory,
 )
 
+
 UP = """
 delete from cc_stream_setting
 where "keyname" like '%_listener_stat_error';

@@ -6,6 +6,7 @@ from libretime_api.legacy.migrations._migrations import (
     legacy_migration_factory,
 )
 
+
 UP = """
 ALTER TABLE cc_files DROP COLUMN soundcloud_id;
 ALTER TABLE cc_files DROP COLUMN soundcloud_error_code;

@@ -2,6 +2,8 @@ from datetime import datetime, time, timedelta
 from operator import itemgetter
 
 from libretime_api_client.v2 import ApiClient
+from libretime_shared.datetime import time_in_milliseconds, time_in_seconds
+
 from libretime_playout.liquidsoap.models import StreamPreferences
 from libretime_playout.player.events import (
     ActionEvent,
@@ -13,7 +15,6 @@ from libretime_playout.player.events import (
     datetime_to_event_key,
     event_isoparse,
 )
-from libretime_shared.datetime import time_in_milliseconds, time_in_seconds
 
 
 def insert_event(events: Events, event_key: str, event: AnyEvent) -> None:

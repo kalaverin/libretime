@@ -6,6 +6,7 @@ from libretime_api.legacy.migrations._migrations import (
     legacy_migration_factory,
 )
 
+
 UP = """
 delete from cc_pref
 where "keystr" = 'allowed_cors_urls';

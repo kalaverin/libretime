@@ -1,7 +1,10 @@
 import random
+
 from datetime import datetime
 
 import pytest
+
+from libretime_api_client.v2 import ApiClient
 from libretime_playout.liquidsoap.models import StreamPreferences
 from libretime_playout.player.events import (
     ActionEvent,
@@ -16,8 +19,6 @@ from libretime_playout.player.schedule import (
     generate_webstream_events,
     get_schedule,
 )
-
-from libretime_api_client.v2 import ApiClient
 
 
 @pytest.fixture(name="api_client")

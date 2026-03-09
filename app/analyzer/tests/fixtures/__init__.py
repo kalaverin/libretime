@@ -4,6 +4,7 @@ from pathlib import Path
 
 from pytest import approx
 
+
 here = Path(__file__).parent
 fixtures_path = here
 

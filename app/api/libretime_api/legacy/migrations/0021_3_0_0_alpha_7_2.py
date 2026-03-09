@@ -6,6 +6,7 @@ from libretime_api.legacy.migrations._migrations import (
     legacy_migration_factory,
 )
 
+
 # https://github.com/libretime/libretime/pull/704
 # Add criteria group to smartblock table to enable database to store separately
 

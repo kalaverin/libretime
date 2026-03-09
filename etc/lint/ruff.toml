@@ -95,22 +95,5 @@ docstring-quotes = "double"
 inline-quotes = "double"
 multiline-quotes = "double"
 
-[lint.isort]
-force-to-top = []  # used for override special importers in tests/
-known-first-party = [
-  "feodor",
-  "myexlab",
-  "sdk"
-]
-relative-imports-order = "closest-to-furthest"
-section-order = [
-  "future",
-  "standard-library",
-  "third-party",
-  "first-party",
-  "local-folder"
-]
-split-on-trailing-comma = true
-
 [lint.mccabe]
 max-complexity = 20

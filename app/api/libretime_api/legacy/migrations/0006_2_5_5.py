@@ -6,6 +6,7 @@ from libretime_api.legacy.migrations._migrations import (
     legacy_migration_factory,
 )
 
+
 UP = """
 -- DELETE FROM cc_pref WHERE keystr = 'system_version';
 -- INSERT INTO cc_pref (keystr, valstr) VALUES ('system_version', '2.5.5');

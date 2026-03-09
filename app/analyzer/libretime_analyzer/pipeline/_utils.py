@@ -1,5 +1,7 @@
 import logging
+
 from subprocess import CalledProcessError, CompletedProcess, run
+
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,6 @@
 import logging
 import time
+
 from datetime import datetime, timedelta
 
 from libretime_playout.liquidsoap.client import LiquidsoapClient
@@ -11,6 +12,7 @@ from libretime_playout.player.events import (
     WebStreamEvent,
 )
 from libretime_playout.utils import seconds_between
+
 
 logger = logging.getLogger(__name__)
 

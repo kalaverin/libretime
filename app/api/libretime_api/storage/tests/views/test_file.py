@@ -1,4 +1,5 @@
 import os
+
 from unittest.mock import patch
 
 from django.conf import settings

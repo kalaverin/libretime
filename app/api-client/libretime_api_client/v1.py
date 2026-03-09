@@ -1,11 +1,13 @@
 import json
 import logging
+
 from functools import wraps
 from time import sleep
 
 from requests.exceptions import RequestException
 
 from libretime_api_client._client import AbstractApiClient, Response
+
 
 logger = logging.getLogger(__name__)
 

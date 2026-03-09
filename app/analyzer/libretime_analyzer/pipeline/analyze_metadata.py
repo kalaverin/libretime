@@ -1,12 +1,14 @@
 import logging
+
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
 import mutagen
-from mutagen.easyid3 import EasyID3
 
 from libretime_shared.files import compute_md5
+from mutagen.easyid3 import EasyID3
+
 
 logger = logging.getLogger(__name__)
 

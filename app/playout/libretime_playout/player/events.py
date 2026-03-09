@@ -9,6 +9,7 @@ from pydantic import BaseModel, BeforeValidator, Field, parse_obj_as
 from libretime_playout.config import CACHE_DIR
 from libretime_playout.utils import mime_guess_extension
 
+
 EVENT_KEY_FORMAT = "%Y-%m-%d-%H-%M-%S"
 
 

@@ -6,6 +6,7 @@ from libretime_playout.config import Config
 from libretime_playout.liquidsoap.models import Info, StreamPreferences
 from libretime_playout.liquidsoap.utils import quote
 
+
 here = Path(__file__).parent
 
 templates_loader = PackageLoader(__name__, "templates")

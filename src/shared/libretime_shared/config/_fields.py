@@ -15,6 +15,7 @@ from pydantic_core.core_schema import (
     no_info_after_validator_function,
 )
 
+
 StrNoTrailingSlash = Annotated[
     str,
     AfterValidator(lambda x: str(x).rstrip("/")),

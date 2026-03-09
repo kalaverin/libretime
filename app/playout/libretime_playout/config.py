@@ -1,14 +1,14 @@
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, model_validator
-
 from libretime_shared.config import (
     BaseConfig,
     GeneralConfig,
     RabbitMQConfig,
     StreamConfig,
 )
+from pydantic import BaseModel, model_validator
+
 
 CACHE_DIR = Path.cwd() / "scheduler"
 RECORD_DIR = Path.cwd() / "recorder"

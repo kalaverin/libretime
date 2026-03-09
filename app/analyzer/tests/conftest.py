@@ -1,4 +1,5 @@
 import shutil
+
 from pathlib import Path
 
 import pytest
@@ -6,6 +7,7 @@ import pytest
 from libretime_shared.logging import setup_logger
 
 from tests.fixtures import fixtures_path
+
 
 setup_logger("debug")
 

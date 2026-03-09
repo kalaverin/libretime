@@ -9,10 +9,9 @@ build = [
 ]
 development = [
   "django-coverage-plugin>=3.0.0,<4",
-  "django-stubs>=5.1.0,<6",
-  "djangorestframework-stubs>=1.8.0,<4",
-  "model_bakery>=1.10.1,<2",
-  "psycopg[binary]>=3.1.8,<3.3",
+  "django-stubs[compatible-mypy]>=5.1.0,<6",
+  "djangorestframework-stubs[compatible-mypy]>=1.8.0,<4",
+  "model-bakery>=1.10.1,<2",
   "pylint-django>=2.5.3,<3",
   "pytest-django>=4.5.2,<5",
   "requests-mock>=1.10.0,<2"
@@ -55,12 +54,30 @@ omit = [
 plugins = ["django_coverage_plugin"]
 source = ["libretime_api"]
 
-[tool.django-stubs]
-django_settings_module = "libretime_api.settings.testing"
-
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "libretime_api.settings.testing"
 
 [tool.setuptools.packages.find]
 include = ["libretime_api"]
 where = ["."]
+
+[ruff.lint.isort]
+known-first-party = [
+  "libretime_analyzer",
+  "libretime_api_client",
+  "libretime_shared",
+  "libretime_worker"
+]
+known-third-party = [
+  "django",
+  "django_cors_headers",
+  "django_filter",
+  "djangorestframework",
+  "drf-spectacular",
+  "gunicorn",
+  "psycopg",
+  "requests",
+  "pydantic",
+  "sentry_sdk",
+  "uvicorn"
+]

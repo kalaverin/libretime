@@ -6,6 +6,7 @@ from libretime_api.legacy.migrations._migrations import (
     legacy_migration_factory,
 )
 
+
 UP = """
 ALTER TABLE imported_podcast ADD COLUMN album_override boolean default 'f' NOT NULL;
 ALTER TABLE third_party_track_references ALTER COLUMN file_id SET DEFAULT 0;

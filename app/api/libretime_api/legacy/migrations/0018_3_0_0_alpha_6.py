@@ -6,6 +6,7 @@ from libretime_api.legacy.migrations._migrations import (
     legacy_migration_factory,
 )
 
+
 UP = """
 ALTER TABLE cc_service_register ALTER COLUMN ip TYPE character varying(45);
 """

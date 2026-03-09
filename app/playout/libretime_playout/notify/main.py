@@ -14,16 +14,19 @@ Main case:
 """
 
 import logging
+
 from pathlib import Path
 from typing import Literal
 
 import click
 
 from libretime_api_client.v1 import ApiClient as LegacyClient
-from libretime_playout.config import Config
 from libretime_shared.cli import cli_config_options, cli_logging_options
 from libretime_shared.config import DEFAULT_ENV_PREFIX
 from libretime_shared.logging import setup_logger
+
+from libretime_playout.config import Config
+
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,7 @@
 import re
+
 from subprocess import run
+
 
 LIQUIDSOAP_VERSION_RE = re.compile(r"(?:Liquidsoap )?(\d+).(\d+).(\d+)")
 LIQUIDSOAP_MIN_VERSION = (1, 4, 0)

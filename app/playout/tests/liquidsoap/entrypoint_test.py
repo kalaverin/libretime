@@ -3,6 +3,7 @@ from subprocess import CalledProcessError, check_call, check_output
 from unittest import mock
 
 import pytest
+
 from libretime_playout.config import Config
 from libretime_playout.liquidsoap.entrypoint import generate_entrypoint
 from libretime_playout.liquidsoap.models import Info, StreamPreferences

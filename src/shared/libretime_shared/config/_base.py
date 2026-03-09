@@ -1,5 +1,6 @@
 import logging
 import sys
+
 from itertools import zip_longest
 from pathlib import Path
 from typing import Any
@@ -8,6 +9,7 @@ from pydantic import BaseModel, ValidationError
 from yaml import YAMLError, safe_load
 
 from libretime_shared.config._env import EnvLoader
+
 
 logger = logging.getLogger(__name__)
 

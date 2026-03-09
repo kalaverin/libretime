@@ -6,6 +6,7 @@ import logging
 import os
 import sys
 import time
+
 from datetime import datetime
 from pathlib import Path
 from queue import Queue
@@ -16,6 +17,10 @@ import requests
 
 from libretime_api_client.v1 import ApiClient as LegacyClient
 from libretime_api_client.v2 import ApiClient
+from libretime_shared.cli import cli_config_options, cli_logging_options
+from libretime_shared.config import DEFAULT_ENV_PREFIX
+from libretime_shared.logging import setup_logger
+
 from libretime_playout import PACKAGE, VERSION
 from libretime_playout.config import CACHE_DIR, RECORD_DIR, Config
 from libretime_playout.history.stats import StatsCollectorThread
@@ -27,11 +32,10 @@ from libretime_playout.player.fetch import PypoFetch
 from libretime_playout.player.file import PypoFile
 from libretime_playout.player.liquidsoap import Liquidsoap
 from libretime_playout.player.push import PypoPush
-from libretime_shared.cli import cli_config_options, cli_logging_options
-from libretime_shared.config import DEFAULT_ENV_PREFIX
-from libretime_shared.logging import setup_logger
+
 
 logger = logging.getLogger(__name__)
+
 
 for module in ("amqp",):
     logging.getLogger(module).setLevel(logging.INFO)

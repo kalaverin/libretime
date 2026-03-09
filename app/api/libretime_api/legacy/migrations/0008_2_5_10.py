@@ -6,6 +6,7 @@ from libretime_api.legacy.migrations._migrations import (
     legacy_migration_factory,
 )
 
+
 UP = """
 ALTER TABLE cc_files ADD COLUMN filesize integer NOT NULL
 CONSTRAINT filesize_default DEFAULT 0

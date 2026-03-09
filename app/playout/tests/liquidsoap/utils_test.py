@@ -1,4 +1,5 @@
 import pytest
+
 from libretime_playout.liquidsoap.utils import quote
 
 

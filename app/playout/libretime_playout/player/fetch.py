@@ -2,16 +2,17 @@ import copy
 import logging
 import os
 import time
+
 from pathlib import Path
 from queue import Empty, Queue
 from subprocess import DEVNULL, PIPE, run
 from threading import Thread, Timer
 from typing import Any
 
-from requests import RequestException
-
 from libretime_api_client.v1 import ApiClient as LegacyClient
 from libretime_api_client.v2 import ApiClient
+from requests import RequestException
+
 from libretime_playout.config import CACHE_DIR, POLL_INTERVAL, Config
 from libretime_playout.liquidsoap.client import LiquidsoapClient
 from libretime_playout.liquidsoap.models import (
@@ -23,6 +24,7 @@ from libretime_playout.liquidsoap.models import (
 from libretime_playout.player.events import Events, FileEvent, FileEvents
 from libretime_playout.player.liquidsoap import Liquidsoap
 from libretime_playout.player.schedule import get_schedule
+
 
 logger = logging.getLogger(__name__)
 

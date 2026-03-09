@@ -5,10 +5,13 @@ import pickle
 import queue
 import threading
 import time
+
 from urllib.parse import urlparse
 
 import requests
+
 from requests.exceptions import HTTPError
+
 
 logger = logging.getLogger(__name__)
 

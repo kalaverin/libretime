@@ -7,6 +7,7 @@ from libretime_api.podcasts.views import (
     StationPodcastViewSet,
 )
 
+
 router = routers.DefaultRouter(trailing_slash=False)
 router.register("podcast-episodes", PodcastEpisodeViewSet)
 router.register("podcasts", PodcastViewSet)

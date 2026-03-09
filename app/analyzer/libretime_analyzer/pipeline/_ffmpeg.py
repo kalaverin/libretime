@@ -1,9 +1,11 @@
 import re
+
 from math import inf
 from os import getenv
 from pathlib import Path
 
 from libretime_analyzer.pipeline._utils import run_
+
 
 FFPROBE = getenv("FFPROBE_PATH", "ffprobe")
 FFMPEG = getenv("FFMPEG_PATH", "ffmpeg")

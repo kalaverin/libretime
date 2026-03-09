@@ -4,6 +4,7 @@ from operator import getitem
 from os import environ
 from typing import Any, TypeVar
 
+
 __all__ = [
     "EnvLoader",
 ]

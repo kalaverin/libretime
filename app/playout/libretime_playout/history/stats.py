@@ -1,4 +1,5 @@
 import logging
+
 from dataclasses import dataclass
 from datetime import datetime
 from threading import Thread
@@ -6,12 +7,14 @@ from time import sleep
 from typing import Any, Union
 
 import requests
+
+from libretime_api_client.v1 import ApiClient as LegacyClient
+from libretime_shared.config import IcecastOutput, ShoutcastOutput
 from lxml import etree
 from requests import Session
 
-from libretime_api_client.v1 import ApiClient as LegacyClient
 from libretime_playout.config import Config
-from libretime_shared.config import IcecastOutput, ShoutcastOutput
+
 
 logger = logging.getLogger(__name__)
 

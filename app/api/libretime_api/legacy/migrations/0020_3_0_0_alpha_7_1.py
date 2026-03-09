@@ -6,6 +6,7 @@ from libretime_api.legacy.migrations._migrations import (
     legacy_migration_factory,
 )
 
+
 # https://github.com/libretime/libretime/pull/659
 # Add description and title to podcast episodes database table
 

@@ -39,3 +39,17 @@ Homepage = "https://github.com/libretime/libretime"
 [tool.setuptools.packages.find]
 include = ["libretime_analyzer"]
 where = ["."]
+
+[ruff.lint.isort]
+known-first-party = [
+  "libretime_api",
+  "libretime_api_client",
+  "libretime_shared",
+  "libretime_worker"
+]
+known-third-party = [
+  "mutagen",
+  "pika",
+  "requests",
+  "sentry_sdk"
+]

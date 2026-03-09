@@ -1,8 +1,7 @@
 from datetime import time
 
-from pytest import approx
-
 from libretime_shared.datetime import time_in_milliseconds, time_in_seconds
+from pytest import approx
 
 
 def test_time_in_seconds():

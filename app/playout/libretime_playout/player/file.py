@@ -2,13 +2,16 @@ import hashlib
 import logging
 import os
 import time
+
 from queue import Empty, Queue
 from threading import Thread
 
 import requests
 
 from libretime_api_client.v2 import ApiClient
+
 from libretime_playout.player.events import FileEvent, FileEvents
+
 
 logger = logging.getLogger(__name__)
 

@@ -34,3 +34,15 @@ Homepage = "https://github.com/libretime/libretime"
 [tool.setuptools.packages.find]
 include = ["libretime_api_client"]
 where = ["."]
+
+[ruff.lint.isort]
+known-first-party = [
+  "libretime_analyzer",
+  "libretime_api",
+  "libretime_shared",
+  "libretime_worker"
+]
+known-third-party = [
+  "python_dateutil",
+  "requests"
+]

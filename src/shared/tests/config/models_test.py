@@ -1,5 +1,4 @@
 import pytest
-from pydantic import ValidationError
 
 from libretime_shared.config._models import (
     AudioAAC,
@@ -9,6 +8,7 @@ from libretime_shared.config._models import (
     GeneralConfig,
     StreamConfig,
 )
+from pydantic import ValidationError
 
 
 def test_general_config_timezone():

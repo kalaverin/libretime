@@ -1,7 +1,5 @@
 from typing import Literal
 
-from pydantic import BaseModel
-
 from libretime_shared.config import (
     BaseConfig,
     DatabaseConfig,
@@ -9,6 +7,7 @@ from libretime_shared.config import (
     RabbitMQConfig,
     StorageConfig,
 )
+from pydantic import BaseModel
 
 
 class EmailConfig(BaseModel):

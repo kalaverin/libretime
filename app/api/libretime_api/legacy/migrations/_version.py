@@ -1,5 +1,6 @@
 import re
 
+
 VERSION_RE = re.compile(
     r"""
     (?P<release>[0-9]+(?:\.[0-9]+)*)

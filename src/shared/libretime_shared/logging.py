@@ -1,6 +1,8 @@
 import logging
+
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
+
 
 logger = logging.getLogger(__name__)
 

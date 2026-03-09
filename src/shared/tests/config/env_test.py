@@ -3,10 +3,11 @@ from os import environ
 from unittest import mock
 
 import pytest
-from pydantic import BaseModel
 
 from libretime_shared.config import BaseConfig
 from libretime_shared.config._env import EnvLoader
+from pydantic import BaseModel
+
 
 ENV_SCHEMA_OBJ_WITH_STR = {
     "type": "object",

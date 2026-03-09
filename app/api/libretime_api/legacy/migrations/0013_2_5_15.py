@@ -6,6 +6,7 @@ from libretime_api.legacy.migrations._migrations import (
     legacy_migration_factory,
 )
 
+
 # SAAS-1071
 # Remove not null constraint from file_id fk in third_party_track_references
 # so that we can create track references for downloads (which won't have a

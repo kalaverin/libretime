@@ -1,4 +1,5 @@
 import logging
+
 from pathlib import Path
 from time import sleep
 from typing import Any, Literal
@@ -9,6 +10,7 @@ from libretime_playout.liquidsoap.client._connection import (
 from libretime_playout.liquidsoap.models import MessageFormatKind
 from libretime_playout.liquidsoap.utils import quote
 from libretime_playout.liquidsoap.version import parse_liquidsoap_version
+
 
 logger = logging.getLogger(__name__)
 

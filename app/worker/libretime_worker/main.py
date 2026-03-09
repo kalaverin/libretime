@@ -4,6 +4,7 @@ import click
 
 from libretime_shared.cli import cli_logging_options
 from libretime_shared.config import DEFAULT_ENV_PREFIX
+
 from libretime_worker.config import __name__ as config_module
 from libretime_worker.tasks import worker
 

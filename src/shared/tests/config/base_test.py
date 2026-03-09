@@ -3,9 +3,6 @@ from pathlib import Path
 from typing import Annotated
 from unittest import mock
 
-from pydantic import BaseModel, Field
-from pytest import mark, raises
-
 from libretime_shared.config import (
     AnyHttpUrlStr,
     BaseConfig,
@@ -14,6 +11,9 @@ from libretime_shared.config import (
     RabbitMQConfig,
     ShoutcastOutput,
 )
+from pydantic import BaseModel, Field
+from pytest import mark, raises
+
 
 AnyOutput = Annotated[
     IcecastOutput | ShoutcastOutput,

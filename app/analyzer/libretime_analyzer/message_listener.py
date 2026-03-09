@@ -2,6 +2,7 @@ import json
 import logging
 import signal
 import time
+
 from queue import Queue
 
 import pika
@@ -13,6 +14,7 @@ from libretime_analyzer.pipeline import (
     PipelineStatus,
 )
 from libretime_analyzer.status_reporter import StatusReporter
+
 
 logger = logging.getLogger(__name__)
 

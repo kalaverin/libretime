@@ -6,6 +6,7 @@ from libretime_api.settings._internal import (
 )
 from libretime_api.settings._schema import Config
 
+
 LIBRETIME_LOG_FILEPATH = getenv("LIBRETIME_LOG_FILEPATH")
 LIBRETIME_CONFIG_FILEPATH = getenv("LIBRETIME_CONFIG_FILEPATH")
 

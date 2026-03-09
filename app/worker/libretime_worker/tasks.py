@@ -1,5 +1,6 @@
 import json
 import os
+
 from email.message import EmailMessage
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -8,15 +9,17 @@ from urllib.parse import urlsplit
 
 import mutagen
 import requests
+
 from celery import Celery, signals
 from celery.schedules import crontab
 from celery.utils.log import get_task_logger
+from libretime_api_client.v1 import ApiClient as LegacyClient
 from mutagen import MutagenError
 from requests import RequestException, Response
 
-from libretime_api_client.v1 import ApiClient as LegacyClient
 from libretime_worker import PACKAGE, VERSION
 from libretime_worker.config import config
+
 
 worker = Celery()
 logger = get_task_logger(__name__)
@@ -33,6 +36,7 @@ def init_sentry(**_kwargs):
         logger.info("installing sentry")
         # pylint: disable=import-outside-toplevel
         import sentry_sdk
+
         from sentry_sdk.integrations.celery import CeleryIntegration
 
         sentry_sdk.init(

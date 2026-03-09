@@ -1,11 +1,11 @@
 import pytest
-from pydantic import TypeAdapter
 
 from libretime_shared.config._fields import (
     AnyHttpUrlStr,
     StrNoLeadingSlash,
     StrNoTrailingSlash,
 )
+from pydantic import TypeAdapter
 
 
 @pytest.mark.parametrize(

@@ -1,6 +1,7 @@
 import logging
 import math
 import time
+
 from datetime import datetime
 from queue import Queue
 from threading import Thread
@@ -9,6 +10,7 @@ from libretime_playout.config import PUSH_INTERVAL, Config
 from libretime_playout.player.events import AnyEvent, Events, FileEvent
 from libretime_playout.player.liquidsoap import Liquidsoap
 from libretime_playout.player.queue import PypoLiqQueue
+
 
 logger = logging.getLogger(__name__)
 

@@ -53,3 +53,22 @@ check_untyped_defs = true
 [tool.setuptools.packages.find]
 include = ["libretime_playout"]
 where = ["."]
+
+[ruff.lint.isort]
+known-first-party = [
+  "libretime_analyzer",
+  "libretime_api",
+  "libretime_api_client",
+  "libretime_shared",
+  "libretime_worker"
+]
+known-third-party = [
+  "jinja2",
+  "kombu",
+  "lxml",
+  "mutagen",
+  "pydantic",
+  "python_dateutil",
+  "requests",
+  "sentry_sdk"
+]

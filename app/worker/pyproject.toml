@@ -39,3 +39,17 @@ Homepage = "https://github.com/libretime/libretime"
 [tool.setuptools.packages.find]
 include = ["libretime_*"]
 where = ["."]
+known-first-party = [
+  "libretime_analyzer",
+  "libretime_api",
+  "libretime_api_client",
+  "libretime_playout",
+  "libretime_shared"
+]
+known-third-party = [
+  "celery",
+  "kombu",
+  "mutagen",
+  "requests",
+  "sentry_sdk"
+]

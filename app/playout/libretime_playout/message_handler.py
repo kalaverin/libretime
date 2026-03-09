@@ -1,5 +1,6 @@
 import json
 import logging
+
 from queue import Queue as ThreadQueue
 from signal import SIGTERM, signal
 from time import sleep
@@ -12,6 +13,7 @@ from kombu.messaging import Exchange, Queue
 from kombu.mixins import ConsumerMixin
 
 from libretime_playout.config import Config
+
 
 logger = logging.getLogger(__name__)
 

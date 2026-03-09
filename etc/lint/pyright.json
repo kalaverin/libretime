@@ -4,18 +4,27 @@
     "../../src/"
   ],
   "exclude": [
-    "**/.*",
-    "**/__pycache__/"
+    "**/.*"
   ],
   "ignore": [
+    "**/tests/"
   ],
+  "venvPath": "../../",
+  "venv": ".venv",
+  "pythonVersion": "3.10",
   "executionEnvironments": [
     {
-      "pythonVersion": "3.8",
-      "root": "../../"
+      "root": "../../",
+      "extraPaths": [
+        "../../analyzer/",
+        "../../api/",
+        "../../api-client/",
+        "../../playout/",
+        "../../worker/",
+        "../../src/shared/"
+      ]
     }
   ],
-  "pythonVersion": "3.8",
   "typeCheckingMode": "recommended",
   "enableExperimentalFeatures": true,
   "analyzeUnannotatedFunctions": true,
@@ -26,7 +35,7 @@
   "reportExplicitAny": false,
   "reportIgnoreCommentWithoutRule": true,
   "reportImplicitAbstractClass": true,
-  "reportImplicitRelativeImport": true,
+  "reportImplicitRelativeImport": false,
   "reportImplicitStringConcatenation": false,
   "reportImportCycles": false,
   "reportIncompatibleVariableOverride": "information",

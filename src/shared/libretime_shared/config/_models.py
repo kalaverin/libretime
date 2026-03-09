@@ -1,6 +1,6 @@
-import sys
 from enum import Enum
 from typing import Annotated, Literal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -11,7 +11,6 @@ from libretime_shared.config._fields import (
     StrNoTrailingSlash,
 )
 
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 # GeneralConfig
 ########################################################################################
