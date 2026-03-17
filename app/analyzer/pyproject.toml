@@ -1,12 +1,8 @@
 [build-system]
-build-backend = "setuptools.build_meta"
-requires = ["setuptools", "wheel"]
+requires = ["uv_build>=0.10.9,<0.11.0"]
+build-backend = "uv_build"
 
 [dependency-groups]
-build = [
-  "setuptools",
-  "wheel"
-]
 development = [
   "distro>=1.8.0,<2",
   "types-requests>=2.31.0,<3"
@@ -50,5 +46,6 @@ known-third-party = [
   "sentry_sdk"
 ]
 
-[tool.setuptools]
-packages = ["analyzer"]
+[tool.uv.build-backend]
+module-name = "analyzer"
+module-root = ""

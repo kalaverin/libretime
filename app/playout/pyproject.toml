@@ -1,12 +1,8 @@
 [build-system]
-build-backend = "setuptools.build_meta"
-requires = ["setuptools", "wheel"]
+requires = ["uv_build>=0.10.9,<0.11.0"]
+build-backend = "uv_build"
 
 [dependency-groups]
-build = [
-  "setuptools",
-  "wheel"
-]
 development = [
   "distro>=1.8.0,<2",
   "requests-mock>=1.10.0,<2",
@@ -70,5 +66,6 @@ known-third-party = [
 [tool.mypy]
 check_untyped_defs = true
 
-[tool.setuptools]
-packages = ["playout"]
+[tool.uv.build-backend]
+module-name = "playout"
+module-root = ""

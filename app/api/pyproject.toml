@@ -1,12 +1,8 @@
 [build-system]
-build-backend = "setuptools.build_meta"
-requires = ["setuptools", "wheel"]
+requires = ["uv_build>=0.10.9,<0.11.0"]
+build-backend = "uv_build"
 
 [dependency-groups]
-build = [
-  "setuptools",
-  "wheel"
-]
 development = [
   "django-coverage-plugin>=3.0.0,<4",
   "django-stubs[compatible-mypy]>=5.1.0,<6",
@@ -26,7 +22,7 @@ dependencies = [
   "djangorestframework>=3.14.0,<3.16",
   "drf-spectacular>=0.22.1,<0.29",
   "gunicorn>=22.0.0,<23.1",
-  "psycopg[binary]>=3.1.8,<3.3",
+  "psycopg>=3.1.8,<3.3",
   "requests>=2.32.2,<2.33",
   "sentry-sdk[django]>=1.15.0,<2",
   "uvicorn[standard]>=0.17.6,<0.36.0"
@@ -78,5 +74,6 @@ source = ["api"]
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "api.settings.testing"
 
-[tool.setuptools]
-packages = ["api"]
+[tool.uv.build-backend]
+module-name = "api"
+module-root = ""
