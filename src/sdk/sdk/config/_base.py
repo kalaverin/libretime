@@ -26,6 +26,7 @@ class BaseConfig(BaseModel):
     :param env_delimiter: delimiter for the environment variable names
     :returns: configuration class
     """
+
     def __init__(
         self,
         path: Path | str | None = None,

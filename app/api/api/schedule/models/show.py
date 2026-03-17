@@ -24,10 +24,14 @@ class Show(Model):
 
     name: CharField[Any, Any] = CharField(max_length=255)
     description: CharField[Any, Any] = CharField(
-        max_length=8192, blank=True, null=True,
+        max_length=8192,
+        blank=True,
+        null=True,
     )
     genre: CharField[Any, Any] = CharField(
-        max_length=255, blank=True, null=True,
+        max_length=255,
+        blank=True,
+        null=True,
     )
     url: CharField[Any, Any] = CharField(max_length=255, blank=True, null=True)
 
@@ -178,7 +182,8 @@ class ShowDays(Model):
         MONTHLY = 2, "Every month"
 
     show: ForeignKey[Any, Any] = ForeignKey(
-        "schedule.Show", on_delete=DO_NOTHING,
+        "schedule.Show",
+        on_delete=DO_NOTHING,
     )
 
     first_show_on: DateField[Any, Any] = DateField(
@@ -232,7 +237,8 @@ class ShowInstance(Model):
     created_at: DateTimeField[Any, Any] = DateTimeField(db_column="created")
 
     show: ForeignKey[Any, Any] = ForeignKey(
-        "schedule.Show", on_delete=DO_NOTHING,
+        "schedule.Show",
+        on_delete=DO_NOTHING,
     )
     instance: ForeignKey[Any, Any] = ForeignKey(
         "self",
@@ -256,13 +262,16 @@ class ShowInstance(Model):
     )
 
     description: CharField[Any, Any] = CharField(
-        max_length=8192, blank=True, null=True,
+        max_length=8192,
+        blank=True,
+        null=True,
     )
     modified: BooleanField[Any, Any] = BooleanField(
         db_column="modified_instance",
     )
     rebroadcast: SmallIntegerField[Any, Any] = SmallIntegerField(
-        blank=True, null=True,
+        blank=True,
+        null=True,
     )
 
     auto_playlist_built: BooleanField[Any, Any] = BooleanField(
@@ -295,7 +304,8 @@ class ShowRebroadcast(Model):
         db_table: str = "cc_show_rebroadcast"
 
     show: ForeignKey[Any, Any] = ForeignKey(
-        "schedule.Show", on_delete=DO_NOTHING,
+        "schedule.Show",
+        on_delete=DO_NOTHING,
     )
     day_offset: CharField[Any, Any] = CharField(max_length=1024)
     start_time: TimeField[Any, Any] = TimeField()

@@ -35,15 +35,21 @@ class SmartBlock(Model):
         DYNAMIC = "dynamic", "Dynamic"
 
     created_at: DateTimeField[Any, Any] = DateTimeField(
-        blank=True, null=True, db_column="utime",
+        blank=True,
+        null=True,
+        db_column="utime",
     )
     updated_at: DateTimeField[Any, Any] = DateTimeField(
-        blank=True, null=True, db_column="mtime",
+        blank=True,
+        null=True,
+        db_column="mtime",
     )
 
     name: CharField[Any, Any] = CharField(max_length=255)
     description: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )
     length: DurationField[Any, Any] = DurationField(blank=True, null=True)
 
@@ -105,16 +111,24 @@ class SmartBlockContent(Model):
         db_column="cliplength",
     )
     cue_in: DurationField[Any, Any] = DurationField(
-        blank=True, null=True, db_column="cuein",
+        blank=True,
+        null=True,
+        db_column="cuein",
     )
     cue_out: DurationField[Any, Any] = DurationField(
-        blank=True, null=True, db_column="cueout",
+        blank=True,
+        null=True,
+        db_column="cueout",
     )
     fade_in: TimeField[Any, Any] = TimeField(
-        blank=True, null=True, db_column="fadein",
+        blank=True,
+        null=True,
+        db_column="fadein",
     )
     fade_out: TimeField[Any, Any] = TimeField(
-        blank=True, null=True, db_column="fadeout",
+        blank=True,
+        null=True,
+        db_column="fadeout",
     )
 
     def get_owner(self):
@@ -149,11 +163,14 @@ class SmartBlockCriteria(Model):
 
     criteria: CharField[Any, Any] = CharField(max_length=32)
     condition: CharField[Any, Any] = CharField(
-        max_length=16, db_column="modifier",
+        max_length=16,
+        db_column="modifier",
     )
     value: CharField[Any, Any] = CharField(max_length=512)
     extra: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )
 
     def get_owner(self):

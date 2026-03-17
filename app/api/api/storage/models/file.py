@@ -77,10 +77,14 @@ class File(Model):
     )
 
     created_at: DateTimeField[Any, Any] = DateTimeField(
-        blank=True, null=True, db_column="utime",
+        blank=True,
+        null=True,
+        db_column="utime",
     )
     updated_at: DateTimeField[Any, Any] = DateTimeField(
-        blank=True, null=True, db_column="mtime",
+        blank=True,
+        null=True,
+        db_column="mtime",
     )
     last_played_at: DateTimeField[Any, Any] = DateTimeField(
         blank=True,
@@ -101,7 +105,9 @@ class File(Model):
     bit_rate: IntegerField[Any, Any] = IntegerField(blank=True, null=True)
     sample_rate: IntegerField[Any, Any] = IntegerField(blank=True, null=True)
     format: CharField[Any, Any] = CharField(
-        max_length=128, blank=True, null=True,
+        max_length=128,
+        blank=True,
+        null=True,
     )  # ?
     channels: IntegerField[Any, Any] = IntegerField(blank=True, null=True)
     length: DurationField[Any, Any] = DurationField(blank=True, null=True)
@@ -114,27 +120,39 @@ class File(Model):
         null=True,
     )
     cue_in: DurationField[Any, Any] = DurationField(
-        blank=True, null=True, db_column="cuein",
+        blank=True,
+        null=True,
+        db_column="cuein",
     )
     cue_out: DurationField[Any, Any] = DurationField(
-        blank=True, null=True, db_column="cueout",
+        blank=True,
+        null=True,
+        db_column="cueout",
     )
 
     # Metadata
     name: CharField[Any, Any] = CharField(max_length=255)  # ?
     description: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )  # ?
 
     artwork: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )
 
     artist_name: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )
     artist_url: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )  # ?
     original_artist: CharField[Any, Any] = CharField(
         max_length=512,
@@ -142,13 +160,19 @@ class File(Model):
         null=True,
     )  # ?
     album_title: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )
     track_title: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )
     genre: CharField[Any, Any] = CharField(
-        max_length=64, blank=True, null=True,
+        max_length=64,
+        blank=True,
+        null=True,
     )
     mood: CharField[Any, Any] = CharField(max_length=64, blank=True, null=True)
     date: CharField[Any, Any] = CharField(
@@ -159,34 +183,54 @@ class File(Model):
     )
     track_number: IntegerField[Any, Any] = IntegerField(blank=True, null=True)
     disc_number: CharField[Any, Any] = CharField(
-        max_length=8, blank=True, null=True,
+        max_length=8,
+        blank=True,
+        null=True,
     )  # ?
     comment: TextField[Any, Any] = TextField(
-        blank=True, null=True, db_column="comments",
+        blank=True,
+        null=True,
+        db_column="comments",
     )
     language: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )
     label: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )
     copyright: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )
     composer: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )
     conductor: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )
     orchestra: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )  # ?
     encoder: CharField[Any, Any] = CharField(
-        max_length=64, blank=True, null=True,
+        max_length=64,
+        blank=True,
+        null=True,
     )
     encoded_by: CharField[Any, Any] = CharField(
-        max_length=255, blank=True, null=True,
+        max_length=255,
+        blank=True,
+        null=True,
     )  # ?
     isrc: CharField[Any, Any] = CharField(
         max_length=512,
@@ -197,7 +241,9 @@ class File(Model):
 
     lyrics: TextField[Any, Any] = TextField(blank=True, null=True)  # ?
     lyricist: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )  # ?
     original_lyricist: CharField[Any, Any] = CharField(
         max_length=512,
@@ -206,19 +252,29 @@ class File(Model):
     )  # ?
 
     subject: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )  # ?
     contributor: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )  # ?
     rating: CharField[Any, Any] = CharField(
-        max_length=8, blank=True, null=True,
+        max_length=8,
+        blank=True,
+        null=True,
     )  # ?
     url: CharField[Any, Any] = CharField(
-        max_length=1024, blank=True, null=True,
+        max_length=1024,
+        blank=True,
+        null=True,
     )  # ?
     info_url: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )  # ?
     audio_source_url: CharField[Any, Any] = CharField(
         max_length=512,
@@ -226,7 +282,9 @@ class File(Model):
         null=True,
     )  # ?
     buy_this_url: CharField[Any, Any] = CharField(
-        max_length=512, blank=True, null=True,
+        max_length=512,
+        blank=True,
+        null=True,
     )  # ?
     catalog_number: CharField[Any, Any] = CharField(
         max_length=512,
