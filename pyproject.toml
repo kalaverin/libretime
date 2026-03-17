@@ -7,7 +7,6 @@ development = [
   "better-exceptions>=0.3.3",
   "black>=26.1.0",
   "colorama>=0.4.6",
-  "grpcio-reflection>=1.71.2",
   "hexora>=0.2.2",
   "pre-commit>=4.5.1",
   "pytest>=8.4.2",
@@ -130,7 +129,7 @@ exclude = []
 
 [tool.uv]
 default-groups = [
-  "development"
+  # "development"
 ]
 index-strategy = "unsafe-best-match"
 package = false
