@@ -39,7 +39,7 @@ class TestFileViewSet(APITestCase):
             filepath=AUDIO_FILENAME,
         )
 
-        with patch("libretime_api.storage.views.file.remove") as remove_mock:
+        with patch("api.storage.views.file.remove") as remove_mock:
             response = self.client.delete(f"/api/v2/files/{file.id}")
 
         self.assertEqual(response.status_code, 204)

@@ -9,7 +9,7 @@ def main() -> None:
     """Run administrative tasks."""
     os.environ.setdefault(
         "DJANGO_SETTINGS_MODULE",
-        "libretime_api.settings.prod",
+        "api.settings.prod",
     )
     os.environ.setdefault(
         "LIBRETIME_CONFIG_FILEPATH",

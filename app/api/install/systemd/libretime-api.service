@@ -26,10 +26,10 @@ Type=notify
 KillMode=mixed
 ExecStart=@@VENV_DIR@@/bin/gunicorn \
         --workers 4 \
-        --worker-class libretime_api.gunicorn.Worker \
+        --worker-class api.gunicorn.Worker \
         --log-file - \
         --bind unix:/run/libretime-api.sock \
-        libretime_api.asgi
+        api.asgi
 ExecReload=/bin/kill -s HUP $MAINPID
 Restart=always
 

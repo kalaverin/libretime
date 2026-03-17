@@ -10,12 +10,12 @@ DEBUG = getenv("LIBRETIME_DEBUG", "false").lower() == "true"
 # Application definition
 
 INSTALLED_APPS = [
-    "libretime_api.legacy",
-    "libretime_api.core",
-    "libretime_api.history",
-    "libretime_api.storage",
-    "libretime_api.podcasts",
-    "libretime_api.schedule",
+    "api.legacy",
+    "api.core",
+    "api.history",
+    "api.storage",
+    "api.podcasts",
+    "api.schedule",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -38,7 +38,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "libretime_api.urls"
+ROOT_URLCONF = "api.urls"
 
 TEMPLATES = [
     {
@@ -56,7 +56,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "libretime_api.wsgi.application"
+WSGI_APPLICATION = "api.wsgi.application"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
@@ -129,7 +129,7 @@ def setup_logger(log_filepath: str | None):
                 "level": "INFO",
                 "propagate": True,
             },
-            "libretime_api": {
+            "api": {
                 "handlers": logging_handlers.keys(),
                 "level": "INFO",
                 "propagate": True,
@@ -152,7 +152,7 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.BasicAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": [
-        "libretime_api.permissions.IsSystemTokenOrUser",
+        "api.permissions.IsSystemTokenOrUser",
     ],
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
@@ -170,9 +170,9 @@ AUTH_USER_MODEL = "core.User"
 # https://drf-spectacular.readthedocs.io/en/latest/settings.html
 
 SPECTACULAR_ENUM_NAME_OVERRIDES = {
-    "FileImportStatusEnum": "libretime_api.storage.models.File.ImportStatus",
-    "PlaylistContentKindEnum": "libretime_api.schedule.models.PlaylistContent.Kind",
-    "SmartBlockKindEnum": "libretime_api.schedule.models.SmartBlock.Kind",
+    "FileImportStatusEnum": "api.storage.models.File.ImportStatus",
+    "PlaylistContentKindEnum": "api.schedule.models.PlaylistContent.Kind",
+    "SmartBlockKindEnum": "api.schedule.models.SmartBlock.Kind",
 }
 
 SPECTACULAR_SETTINGS = {

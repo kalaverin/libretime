@@ -18,4 +18,4 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # Testing
 # https://docs.djangoproject.com/en/3.2/ref/settings/#test-runner
 
-TEST_RUNNER = "libretime_api.tests.runner.ManagedModelTestRunner"
+TEST_RUNNER = "api.tests.runner.ManagedModelTestRunner"

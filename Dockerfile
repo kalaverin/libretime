@@ -168,10 +168,10 @@ WORKDIR /app
 
 CMD ["/usr/local/bin/gunicorn", \
     "--workers=4", \
-    "--worker-class=libretime_api.gunicorn.Worker", \
+    "--worker-class=api.gunicorn.Worker", \
     "--log-file", "-", \
     "--bind=0.0.0.0:9001", \
-    "libretime_api.asgi"]
+    "api.asgi"]
 
 ARG LIBRETIME_VERSION
 ENV LIBRETIME_VERSION=$LIBRETIME_VERSION

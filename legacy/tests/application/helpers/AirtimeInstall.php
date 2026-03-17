@@ -215,7 +215,7 @@ class AirtimeInstall
     {
         echo ' * Creating database tables' . PHP_EOL;
         $con = Propel::getConnection();
-        $sqlDir = dirname(ROOT_PATH) . '/api/libretime_api/legacy/migrations/sql/';
+        $sqlDir = dirname(ROOT_PATH) . '/api/api/legacy/migrations/sql/';
         $files = ['schema.sql', 'data.sql'];
         foreach ($files as $file) {
             try {

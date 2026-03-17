@@ -5,11 +5,11 @@ include ../tools/python.mk
 PIP_INSTALL := \
 	--editable ../shared \
 	--editable .[dev,sentry]
-PYLINT_ARG := libretime_api
-MYPY_ARG := libretime_api
-BANDIT_ARG := --exclude '*/tests/*' libretime_api || true
+PYLINT_ARG := api
+MYPY_ARG := api
+BANDIT_ARG := --exclude '*/tests/*' api || true
 
-export DJANGO_SETTINGS_MODULE=libretime_api.settings.testing
+export DJANGO_SETTINGS_MODULE=api.settings.testing
 
 format: .format
 lint: .format-check .pylint .mypy .bandit

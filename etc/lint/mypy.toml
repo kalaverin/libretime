@@ -1,5 +1,5 @@
 [tool.django-stubs]
-django_settings_module = "libretime_api.settings.testing"
+django_settings_module = "api.settings.testing"
 strict_model_abstract_attrs = true
 strict_settings = true
 

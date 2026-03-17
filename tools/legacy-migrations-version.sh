@@ -7,7 +7,7 @@ error() {
   exit 1
 }
 
-migrations="api/libretime_api/legacy/migrations"
+migrations="api/api/legacy/migrations"
 version_file="$migrations/__init__.py"
 
 latest_migration="$(find "$migrations" -name '[0-9][0-9][0-9][0-9]_*.py' | sort | tail -n 1)"
