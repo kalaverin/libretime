@@ -19,7 +19,7 @@ python.compile = false
 python.uv_venv_auto = true
 
 [tools]
-go = "latest"
-"go:github.com/direnv/direnv" = "master"
-just = "latest"
-uv = "latest"
+#go = "latest"
+#"go:github.com/direnv/direnv" = "master"
+#just = "latest"
+#uv = "latest"
