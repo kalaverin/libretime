@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Self
+from typing import Annotated, Any
 
 from pydantic import (
     AfterValidator,
@@ -13,7 +13,7 @@ from pydantic_core.core_schema import (
     CoreSchema,
     no_info_after_validator_function,
 )
-from typing_extensions import override
+from typing_extensions import Self, override
 
 StrNoTrailingSlash = Annotated[
     str,

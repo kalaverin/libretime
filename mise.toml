@@ -8,7 +8,7 @@ postinstall = [
   "cp -n .env.sample .env",
   "uv venv --clear",
   "uv sync --all-packages --refresh",
-  ".venv/bin/pre-commit install --hook-type pre-push --config etc/pre-commit.yaml"
+  # ".venv/bin/pre-commit install --hook-type pre-push --config etc/pre-commit.yaml"
 ]
 
 [settings]
@@ -22,5 +22,4 @@ python.uv_venv_auto = true
 go = "latest"
 "go:github.com/direnv/direnv" = "master"
 just = "latest"
-python = "3.11"
 uv = "latest"

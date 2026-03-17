@@ -28,7 +28,7 @@ requires-python = ">=3.10"
 version = "4.5.0"
 
 [project.scripts]
-libretime-analyzer = "analyzer.main:cli"
+analyzer = "analyzer.main:cli"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/libretime/libretime/issues"

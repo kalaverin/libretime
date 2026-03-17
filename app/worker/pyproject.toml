@@ -28,7 +28,7 @@ requires-python = ">=3.10"
 version = "4.5.0"
 
 [project.scripts]
-libretime-worker = "libretime_worker.main:cli"
+worker = "worker.main:cli"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/libretime/libretime/issues"

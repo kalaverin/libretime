@@ -37,9 +37,9 @@ requires-python = ">=3.10"
 version = "4.5.0"
 
 [project.scripts]
-libretime-liquidsoap = "libretime_playout.liquidsoap.main:cli"
-libretime-playout = "libretime_playout.main:cli"
-libretime-playout-notify = "libretime_playout.notify.main:cli"
+liquidsoap = "playout.liquidsoap.main:cli"
+playout = "playout.main:cli"
+playout-notify = "playout.notify.main:cli"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/libretime/libretime/issues"

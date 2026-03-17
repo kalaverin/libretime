@@ -12,8 +12,8 @@ from sdk.config._env import EnvLoader
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_ENV_PREFIX = "LIBRETIME"
-DEFAULT_CONFIG_FILEPATH = Path("/etc/libretime/config.yml")
+DEFAULT_ENV_PREFIX = "RETIME"
+DEFAULT_CONFIG_FILEPATH = Path("dev/config.yml")
 
 
 # pylint: disable=too-few-public-methods
@@ -26,58 +26,58 @@ class BaseConfig(BaseModel):
     :param env_delimiter: delimiter for the environment variable names
     :returns: configuration class
     """
-
-    # pylint: disable=no-self-argument
     def __init__(
-        _self,
-        _filepath: Path | str | None = None,
+        self,
+        path: Path | str | None = None,
         *,
-        _env_prefix: str = DEFAULT_ENV_PREFIX,
-        _env_delimiter: str = "_",
+        prefix: str = DEFAULT_ENV_PREFIX,
+        delimiter: str = "_",
         **kwargs: Any,
     ) -> None:
-        if _filepath is not None:
-            _filepath = Path(_filepath)
+        if path is not None:
+            path = Path(path)
 
         env_loader = EnvLoader(
-            _self.model_json_schema(),
-            _env_prefix,
-            _env_delimiter,
+            self.model_json_schema(),
+            prefix,
+            delimiter,
         )
 
         values = deep_merge_dict(
             kwargs,
-            _self._load_file_values(_filepath),
+            self.load_from_file(path or DEFAULT_CONFIG_FILEPATH),
             env_loader.load(),
         )
 
         try:
             super().__init__(**values)
+
         except ValidationError as error:
             logger.critical(error)
             sys.exit(1)
 
-    def _load_file_values(
+    def load_from_file(
         self,
-        filepath: Path | None = None,
+        path: Path | None = None,
     ) -> dict[str, Any]:
-        if filepath is None:
-            logger.debug("no config filepath is provided")
+        if not path:
+            logger.warning("no config filepath is provided")
             return {}
 
-        if not filepath.is_file():
+        if not path.is_file():
             logger.warning(
                 "provided config filepath '%s' is not a file",
-                filepath,
+                path,
             )
             return {}
 
         try:
-            return safe_load(filepath.read_text(encoding="utf-8"))
+            return safe_load(path.read_text(encoding="utf-8"))
+
         except YAMLError as exception:
             logger.fatal(
                 "config file '%s' is not a valid yaml file: %s",
-                filepath,
+                path,
                 exception,
             )
 

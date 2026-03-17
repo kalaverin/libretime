@@ -34,7 +34,7 @@ QUEUE = "airtime-uploads"
 class MessageListener:
 
     _channel: Any
-    _connection: pika.BlockingConnection
+    _connection: BlockingConnection
 
     def __init__(self, config: Config) -> None:
         """

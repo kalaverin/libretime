@@ -1,6 +1,7 @@
 *~
 .*
 .*/
+*.db
 *.md
 *.egg-info/
 __*__/
@@ -27,3 +28,5 @@ __*__/
 /dev/certs/*
 /dev/playout/*
 /website/
+
+uv.lock

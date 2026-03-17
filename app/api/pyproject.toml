@@ -38,7 +38,7 @@ requires-python = ">=3.10"
 version = "4.5.0"
 
 [project.scripts]
-libretime-api = "libretime_api.manage:main"
+api = "api.manage:main"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/libretime/libretime/issues"

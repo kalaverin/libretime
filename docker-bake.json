@@ -13,22 +13,22 @@
   },
   "target": {
     "analyzer": {
-      "target": "libretime-analyzer"
+      "target": "analyzer"
     },
     "playout": {
-      "target": "libretime-playout"
+      "target": "playout"
     },
     "api": {
-      "target": "libretime-api"
+      "target": "api"
     },
     "worker": {
-      "target": "libretime-worker"
+      "target": "worker"
     },
     "legacy": {
-      "target": "libretime-legacy"
+      "target": "legacy"
     },
     "nginx": {
-      "target": "libretime-nginx"
+      "target": "nginx"
     }
   }
 }

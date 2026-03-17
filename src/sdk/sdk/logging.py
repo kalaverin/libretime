@@ -3,18 +3,26 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
+from sdk.structlog import configure
 
 
 def setup_logger(
     level: str,
     filepath: Path | None = None,
-    serialize: bool = False,  # noqa: ARG001
+    serialize: bool = False,
     rotate: bool = True,
 ) -> tuple[str, Path | None]:
     """
     Configure the logger and return the log level and log filepath.
     """
+
+    configure(
+        level,
+        is_textual=not serialize,
+    )
+
+    return level, filepath
+
     level = level.upper()
 
     root = logging.getLogger()
