@@ -33,3 +33,7 @@ __*__/
 /website/
 
 uv.lock
+
+celerybeat-schedule
+radio.liq
+retry_queue
