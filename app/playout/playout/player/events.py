@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Annotated, Literal
@@ -8,6 +8,7 @@ from pydantic import BaseModel, BeforeValidator, Field, parse_obj_as
 
 from playout.config import CACHE_DIR
 from playout.utils import mime_guess_extension
+from sdk import UTC
 
 EVENT_KEY_FORMAT = "%Y-%m-%d-%H-%M-%S"
 

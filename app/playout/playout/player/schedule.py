@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, time, timedelta
+from datetime import datetime, time, timedelta
 from operator import itemgetter
 
 from api_client import v2
@@ -15,6 +15,7 @@ from playout.player.events import (
     datetime_to_event_key,
     event_isoparse,
 )
+from sdk import UTC
 
 
 def insert_event(events: Events, event_key: str, event: AnyEvent) -> None:

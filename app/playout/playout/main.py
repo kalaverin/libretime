@@ -7,7 +7,7 @@ import os
 import sys
 import time
 
-from datetime import UTC, datetime
+from datetime import datetime
 from pathlib import Path
 from queue import Queue
 from typing import TYPE_CHECKING, Any
@@ -37,6 +37,7 @@ from playout.player.fetch import PypoFetch
 from playout.player.file import PypoFile
 from playout.player.liquidsoap import Liquidsoap
 from playout.player.push import PypoPush
+from sdk import UTC
 
 if TYPE_CHECKING:
     from playout.player.events import Events, FileEvents

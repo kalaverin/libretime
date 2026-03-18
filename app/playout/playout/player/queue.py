@@ -1,7 +1,7 @@
 import logging
 
 from collections import deque
-from datetime import UTC, datetime
+from datetime import datetime
 from queue import Empty, Queue
 from threading import Thread
 from typing import TYPE_CHECKING, Any
@@ -10,6 +10,7 @@ from typing_extensions import final, override
 
 from playout.player.liquidsoap import Liquidsoap
 from playout.utils import seconds_between
+from sdk import UTC
 
 if TYPE_CHECKING:
     from playout.player.events import AnyEvent

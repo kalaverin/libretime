@@ -1,7 +1,7 @@
 import logging
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from threading import Thread
 from time import sleep
 from typing import Any
@@ -15,6 +15,7 @@ from sdk.config import IcecastOutput, ShoutcastOutput
 from typing_extensions import override
 
 from playout.config import Config
+from sdk import UTC
 
 logger = logging.getLogger(__name__)
 

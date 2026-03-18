@@ -1,7 +1,7 @@
 import logging
 import time
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 
 from playout.liquidsoap.client import LiquidsoapClient
 from playout.player.events import (
@@ -12,6 +12,7 @@ from playout.player.events import (
     WebStreamEvent,
 )
 from playout.utils import seconds_between
+from sdk import UTC
 
 logger = logging.getLogger(__name__)
 

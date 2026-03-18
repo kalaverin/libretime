@@ -2,16 +2,17 @@ import logging
 import math
 import time
 
-from datetime import UTC, datetime
+from datetime import datetime
 from queue import Queue
 from threading import Thread
 
-from typiing_extensions import final, override
+from typing_extensions import final, override
 
 from playout.config import PUSH_INTERVAL, Config
 from playout.player.events import AnyEvent, Events, FileEvent
 from playout.player.liquidsoap import Liquidsoap
 from playout.player.queue import PypoLiqQueue
+from sdk import UTC
 
 logger = logging.getLogger(__name__)
 
