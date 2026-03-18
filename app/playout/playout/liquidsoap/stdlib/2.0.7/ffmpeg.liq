@@ -1,0 +1,205 @@
+%ifdef input.ffmpeg
+# Stream from a video4linux2 input device, such as a webcam.
+# @category Source / Input
+# @param ~id Force the value of the source ID.
+# @param ~max_buffer Maximum data buffer in seconds
+# @param ~device V4L2 device to use.
+def input.v4l2(~id=null(), ~max_buffer=0.5, ~device="/dev/video0")
+  (input.ffmpeg(id=id, format="v4l2", max_buffer=max_buffer, device):source(audio=none))
+end
+
+# A test video source, which generates various patterns.
+# @category Source / Video Processing
+# @param ~pattern Pattern drawn in the video: `"testsrc"`, `"testsrc2"`, `"smptebars"` or `"rgbtestsrc"`.
+# @param ~max_buffer Maximum data buffer in seconds
+# @param ~duration Duration of the source.
+def video.testsrc(~id=null(), ~pattern="testsrc", ~max_buffer=0.5, ~duration=null())
+  if not list.mem(pattern, ["testsrc", "testsrc2", "smptebars", "rgbtestsrc"]) then failwith("invalid pattern for video.testsrc.ffmpeg") end
+  size = "size=#{settings.frame.video.width()}x#{settings.frame.video.height()}"
+  rate = "rate=#{settings.frame.video.framerate()}"
+  duration = if null.defined(duration) then ":duration=#{duration}" else "" end
+  src = "#{pattern}=#{size}:#{rate}#{duration}"
+  (input.ffmpeg(id=id, max_buffer=max_buffer, format="lavfi", src):source(audio=none,video=yuva420p,midi=none))
+end
+
+# Read an RTMP stream.
+# @category Source / Input
+# @param ~max_buffer Maximum data buffer in seconds
+# @param ~listen Act as a RTMP server and wait for incoming connection
+# @param url URL to read RTMP from, in the form `rtmp://IP:PORT/ENDPOINT`
+def input.rtmp(~max_buffer=5., ~listen=true, url)
+  input.ffmpeg(max_buffer=max_buffer, log_overfull=false, format="live_flv",
+               int_args=[("listen", listen ? 1 : 0)], url)
+end
+%endif
+
+%ifdef ffmpeg.filter.drawtext
+let video.add_text.ffmpeg = ()
+
+# Display a text. Use this operator inside ffmpeg filters.
+# @category Source / Video Processing
+# @param ~color Text color (in 0xRRGGBB format).
+# @param ~cycle Cycle text when it reaches left boundary.
+# @param ~font Path to ttf font file.
+# @param ~metadata Change text on a particular metadata (empty string means disabled).
+# @param ~size Font size.
+# @param ~speed Horizontal speed in pixels per second (0 means no scrolling and update \
+#               according to x and y in case they are variable).
+# @param ~graph a ffmpeg filter graph to attach this filter to.
+# @param ~x x offset.
+# @param ~y y offset.
+# @params d Text to display.
+def video.add_text.ffmpeg.raw(~color=0xffffff,~cycle=true,~font="",
+                              ~metadata=null(),~size=18,~speed=70,~x=getter(10),~y=getter(10),
+                              ~graph, d=getter(""), s) =
+  color = "0x" ^ string.hex_of_int(pad=6, color)
+
+  fontfile = 
+    if font == "" then
+      null()
+    else
+      font
+    end
+
+  x =
+    if speed != 0 then
+      last_time = ref(time())
+      changed = getter.changes(x)
+      effective_x = ref(getter.get(x))
+      getter({
+        begin
+          cur_time = time()
+          traveled_to = int(float(speed) * (cur_time - !last_time))
+          last_time := cur_time
+          if changed() then
+            effective_x := getter.get(x)
+          else
+            effective_x := !effective_x - traveled_to
+          end
+          if !effective_x < 0 then
+            effective_x := settings.frame.video.width() - !effective_x
+          end
+          !effective_x
+        end})
+    else
+      x
+    end
+
+  filter = ffmpeg.filter.drawtext.create(
+                                  fontfile=fontfile, fontsize="#{size}", x="#{getter.get(x)}", y="#{getter.get(y)}",
+                                  fontcolor=color, text=getter.get(d), graph)
+
+  def escape =
+    def special_char(s) =
+      string.contains(substring=s, "(',%,\\,:,{,})")
+    end
+    def escape_char(s) =
+      "\\#{s}"
+    end
+    fun (s) -> string.escape(special_char=special_char,
+                             escape_char=escape_char, s)
+  end
+
+  def escaped_text() =
+    escape(getter.get(d))
+  end
+
+  filters = [{
+    args = getter({"x=#{getter.get(x)}:y=#{getter.get(y)}:text=#{escaped_text()}"}),
+    filter = filter
+  }]
+
+  filters =
+    if cycle then
+      x = getter({"min(#{getter.get(x)}-w,#{getter.get(x)}-text_w)"})
+      [...filters,{
+        args   = getter({"x=#{getter.get(x)}:y=#{getter.get(y)}:text=#{escaped_text()}"}),
+        filter = ffmpeg.filter.drawtext.create(
+                                      fontfile=fontfile, fontsize="#{size}", x="#{getter.get(x)}", y="#{getter.get(y)}",
+                                      fontcolor=color, text=getter.get(d), graph)}]
+    else filters end
+
+  changed = getter.changes(getter({(getter.get(x),getter.get(y),getter.get(d))}))
+  def on_change()
+    ignore(getter.get(x))
+    ignore(getter.get(y))
+    ignore(getter.get(d))
+    if changed() then
+      list.iter((fun (el) ->
+        ignore(el.filter.process_command("reinit", getter.get(el.args)))), filters)
+    end
+  end
+
+  def on_metadata(m) =
+    if null.defined(metadata) then
+      meta = null.get(metadata)
+      d = escape(m[meta])
+      if d != "" then
+        log(level=3,  label="ffmpeg.filter.drawtext", "Setting new text #{d} from metadata #{meta}") 
+        list.iter((fun (el) ->
+           ignore(el.filter.process_command("reinit", "text=#{d}"))), filters)
+      end
+    end
+  end
+
+  s.on_metadata(on_metadata)
+  s = source.on_frame(s, on_change)
+  s = ffmpeg.filter.video.input(graph, s)
+
+  list.fold((fun (cur, el) ->
+    begin
+      el.filter.set_input(cur)
+      el.filter.output
+    end), s, filters)
+end
+
+# Display a text.
+# @category Source / Video Processing
+# @param ~id Force the value of the source ID.
+# @param ~color Text color (in 0xRRGGBB format).
+# @param ~cycle Cycle text when it reaches left boundary.
+# @param ~font Path to ttf font file.
+# @param ~metadata Change text on a particular metadata (empty string means disabled).
+# @param ~size Font size.
+# @param ~speed Horizontal speed in pixels per second (0 means no scrolling and update \
+#               according to x and y in case they are variable).
+# @param ~x x offset.
+# @param ~y y offset.
+# @params d Text to display.
+def video.add_text.ffmpeg.internal(~id=null(),~color=0xffffff,~cycle=true,~font="",
+                          ~metadata=null(),~size=18,~speed=70,~x=getter(10),~y=getter(10),
+                          d, s) =
+  id =  string.id.default(default="video.add_text.ffmpeg", id)
+  s = ffmpeg.raw.encode.audio_video(%ffmpeg(%audio.raw, %video.raw), s)
+  v = drop_audio(s)
+  def mkfilter(graph)
+    v = video.add_text.ffmpeg.raw(color=color,cycle=cycle,font=font,metadata=metadata,
+                                  size=size,speed=speed,x=x,y=y,graph=graph,d,v)
+    ffmpeg.filter.video.output(graph, v)
+  end
+  v = ffmpeg.filter.create(mkfilter)
+  s = mux_audio(id=id,audio=drop_video(s),v)
+  ffmpeg.raw.decode.audio_video(s)
+end
+
+let replaces video.add_text.ffmpeg = video.add_text.ffmpeg.internal
+video.add_text.available := [("ffmpeg", video.add_text.ffmpeg.internal), ...!video.add_text.available]
+
+if settings.video.add_text() != "sdl" then
+  settings.video.add_text.set("ffmpeg")
+end
+%endif
+
+%ifdef ffmpeg.filter.video.output
+let ffmpeg.filter.audio_video = ()
+
+# Return a source with audio and video from a filter's output.
+# @category Source / Output
+# @param id Force the value of the source ID.
+# @param fps Output frame per seconds. Defaults to global value.
+def ffmpeg.filter.audio_video.output(~id=null(), ~fps=null(), graph, audio, video)
+  a = ffmpeg.filter.audio.output(id=id, graph, audio)
+  v = ffmpeg.filter.video.output(id=id, fps=fps, graph, video)
+  mux_audio(audio=a, v)
+end
+%endif
