@@ -137,10 +137,11 @@ index-strategy = "unsafe-best-match"
 package = false
 
 [[tool.uv.index]]
+trusted_host = "uv.dush.es"
 allow_insecure_host = "uv.dush.es"
 authenticate = "never"
 name = "private"
-url = "https://uv.dush.es/root/bsd/+simple/"
+url = "http://uv.dush.es/root/bsd/+simple/"
 
 [tool.uv.workspace]
 members = [
