@@ -1,0 +1,41 @@
+#!/usr/bin/env zsh
+
+local -i error=0 method=0
+
+source "${0:h}/supervisord.zsh"
+root="$(get_root "$0")" || return $?
+
+is_started "$root" || {
+    error=$?
+    print -u2 " == fail ($0): supervisord is not running ($error)"
+    return 1
+}
+
+local -a control_args=(
+    supervisorctl
+    --configuration
+    "$root/etc/supervisord.conf"
+)
+
+# determine start method
+
+if [[ -x "$commands[supervisorctl]" ]]; then
+
+    $control_args[@] $@ || {
+        error=$?
+        print -u2 " == fail ($0): run command via supervisorctl failed ($error)"
+        return $error
+    }
+
+elif [[ -x "$commands[uvx]" ]]; then
+
+    uvx $uv_args[@] $control_args[@] $@  || {
+        error=$?
+        print -u2 " == fail ($0): run command via uvx failed ($error)"
+        return $error
+    }
+
+else
+    print -u2 " == fail ($0): supervisorctl command not found"
+    return 1
+fi
