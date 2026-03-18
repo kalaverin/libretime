@@ -27,7 +27,7 @@ urlpatterns = [
         "api/browser/",
         include("rest_framework.urls", namespace="rest_framework"),
     ),
-    path("api/v2/", include(api_urls)),
+    path("api/v2/", include(list(api_urls))),
     path(
         "api/v2/schema",
         SpectacularAPIView.as_view(),
