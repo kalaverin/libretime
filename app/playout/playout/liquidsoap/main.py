@@ -39,7 +39,10 @@ def cli(
         api_key=config.general.api_key,
     )
 
-    version = get_liquidsoap_version()
+    version = get_liquidsoap_version(config.liquidsoap.executable)
+
+    if not sum(version):
+        logger.warning("empty liquidsoap version")
 
     info = Info(**api_client.get_info().json())
     preferences = StreamPreferences(
@@ -59,8 +62,9 @@ def cli(
     )
 
     exec_args = [
-        "/usr/bin/liquidsoap",
+        str(config.liquidsoap.executable),
         "libretime-liquidsoap",
+        "--no-stdlib",
         "--verbose",
         str(entrypoint_filepath),
     ]

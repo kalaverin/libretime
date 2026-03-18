@@ -1,3 +1,4 @@
+from os import environ
 from pathlib import Path
 from typing import Literal
 
@@ -11,6 +12,7 @@ from sdk.config import (
 
 CACHE_DIR = Path.cwd() / "scheduler"
 RECORD_DIR = Path.cwd() / "recorder"
+EXECUTABLE: Path = Path(environ['LIQUIDSOAP_EXECUTABLE'])
 
 PUSH_INTERVAL: float = 2.0
 POLL_INTERVAL: float = 400.0
@@ -28,6 +30,9 @@ class PlayoutConfig(BaseModel):
 
 
 class LiquidsoapConfig(BaseModel):
+
+    executable: Path = EXECUTABLE
+
     server_listen_address: str = "127.0.0.1"
     server_listen_port: int = 1234
 
@@ -36,6 +41,7 @@ class LiquidsoapConfig(BaseModel):
     harbor_ssl_certificate: str | None = None
     harbor_ssl_private_key: str | None = None
     harbor_ssl_password: str | None = None
+
 
     @model_validator(mode="after")
     def _validate_harbor_ssl(self):
@@ -50,6 +56,14 @@ class LiquidsoapConfig(BaseModel):
             and self.harbor_ssl_private_key is not None
         ):
             raise ValueError("missing 'harbor_ssl_certificate' value")
+
+        return self
+
+    @model_validator(mode="after")
+    def _validate_executable(self):
+
+        if not self.executable.is_file():
+            raise ValueError("invalid liquidsoap executable path")
 
         return self
 
