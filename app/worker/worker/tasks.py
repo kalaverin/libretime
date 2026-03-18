@@ -47,7 +47,7 @@ def init_sentry(**_: dict[str, Any]) -> None:
 
 worker.conf.beat_schedule = {
     "legacy-trigger-task-manager": {
-        "task": "libretime_worker.tasks.legacy_trigger_task_manager",
+        "task": "worker.tasks.legacy_trigger_task_manager",
         "schedule": crontab(minute="*/5"),
     },
 }
