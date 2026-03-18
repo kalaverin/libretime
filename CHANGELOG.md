@@ -845,7 +845,7 @@
 
 ### Bug Fixes
 
-- **playout:** add locales to libretime-playout-notify calls ([#1715](https://github.com/libretime/libretime/issues/1715))
+- **playout:** add locales to playout-notify calls ([#1715](https://github.com/libretime/libretime/issues/1715))
 - **worker:** enable logfile variable expansion in ExecStart ([#1717](https://github.com/libretime/libretime/issues/1717))
 
 ### Documentation

@@ -133,6 +133,9 @@ liquidsoap:
   # > default is 1234
   server_listen_port: 1234
 
+  # Liquidsoap executable
+  executable: /usr/home/yaakov/build/savonet/archive/liquidsoap-15.0.4-2.0.7-4.14.2
+
   # Input harbor listen address.
   # > default is ["0.0.0.0"]
   harbor_listen_address:

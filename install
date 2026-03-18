@@ -645,7 +645,7 @@ install_packages $(list_packages "$SCRIPT_DIR/playout")
 install_python_app "$SCRIPT_DIR/playout"
 link_python_app libretime-liquidsoap
 link_python_app libretime-playout
-link_python_app libretime-playout-notify
+link_python_app playout-notify
 
 info "creating libretime-playout working directory"
 mkdir_and_chown "$LIBRETIME_USER" "$WORKING_DIR/playout"
