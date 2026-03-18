@@ -1,4 +1,4 @@
-import logging
+from structlog import get_logger
 import os
 
 from os import remove
@@ -18,7 +18,7 @@ from api.schedule.models import Schedule
 from api.storage.models import File
 from api.storage.serializers import FileSerializer
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @final

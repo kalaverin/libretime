@@ -2,6 +2,8 @@ from os import environ, getenv
 
 from api import PACKAGE, VERSION
 
+import structlog
+
 API_VERSION = "2.0.0"
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -93,46 +95,47 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 def setup_logger(log_filepath: str | None):
-    logging_handlers = {
-        "console": {
-            "level": "INFO",
-            "class": "logging.StreamHandler",
-            "formatter": "simple",
-        },
-    }
+    from sdk.structlog import configure
 
-    if log_filepath is not None:
-        logging_handlers["file"] = {
-            "level": "DEBUG",
-            "class": "logging.FileHandler",
-            "filename": log_filepath,
-            "formatter": "verbose",
-        }
-
+    configure(level='debug', is_textual=True)
     return {
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
-            "simple": {
-                "format": "{levelname} {message}",
-                "style": "{",
+            "json_formatter": {
+                "()": structlog.stdlib.ProcessorFormatter,
+                "processor": structlog.processors.JSONRenderer(),
             },
-            "verbose": {
-                "format": "{asctime} {module} {levelname} {message}",
-                "style": "{",
+            "plain_console": {
+                "()": structlog.stdlib.ProcessorFormatter,
+                "processor": structlog.dev.ConsoleRenderer(),
+            },
+            "key_value": {
+                "()": structlog.stdlib.ProcessorFormatter,
+                "processor": structlog.processors.KeyValueRenderer(
+                    key_order=["timestamp", "level", "event", "logger"]
+                ),
             },
         },
-        "handlers": logging_handlers,
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "plain_console",
+            },
+            "json_file": {
+                "class": "logging.handlers.WatchedFileHandler",
+                "filename": "log/api.log",
+                "formatter": "json_formatter",
+            },
+        },
         "loggers": {
-            "django": {
-                "handlers": logging_handlers.keys(),
+            "django_structlog": {
+                "handlers": ["console", "json_file"],
                 "level": "INFO",
-                "propagate": True,
             },
             "api": {
-                "handlers": logging_handlers.keys(),
+                "handlers": ["console", "json_file"],
                 "level": "INFO",
-                "propagate": True,
             },
         },
     }

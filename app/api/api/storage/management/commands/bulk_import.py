@@ -1,4 +1,4 @@
-import logging
+from structlog import get_logger
 
 from pathlib import Path
 from typing import Any
@@ -12,7 +12,7 @@ from typing_extensions import override
 
 from api.storage.models import File, Library
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 DEFAULT_ALLOWED_EXTENSIONS = [
     ".flac",
