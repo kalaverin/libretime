@@ -134,7 +134,7 @@ liquidsoap:
   server_listen_port: 1234
 
   # Liquidsoap executable
-  executable: /usr/home/yaakov/build/savonet/archive/liquidsoap-15.0.4-2.0.7-4.14.2
+  executable: bin/liquidsoap
 
   # Input harbor listen address.
   # > default is ["0.0.0.0"]
@@ -186,12 +186,12 @@ stream:
     # Default icecast output
     # This can be reused to define multiple outputs without duplicating data
     .default_icecast_output: &default_icecast_output
-      host: localhost
-      port: 8000
+      host: 10.13.33.1
+      port: 7962
       source_password: hackme
       admin_password: hackme
-      name: Echo
-      description: Echo
+      name: Radio Echo
+      description: alex@kalaver.in
       website: https://echo.dush.es
       genre: various
 
@@ -200,12 +200,12 @@ stream:
     icecast:
       # The default Icecast output stream
       - <<: *default_icecast_output
-        enabled: false
-        public_url:
+        enabled: true
+        public_url: https://echo.lz4.zip
         mount: main
         audio:
           format: ogg
-          bitrate: 256
+          bitrate: 128
 
       # You can define extra outputs by reusing the default output using a yaml anchor
       - <<: *default_icecast_output
