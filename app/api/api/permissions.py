@@ -2,15 +2,18 @@ from collections.abc import Sequence
 from contextlib import suppress
 from secrets import compare_digest
 from typing import Any
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
-from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
 from typing_extensions import override
 
 from api.core.models import Role
+
+if TYPE_CHECKING:
+    from rest_framework.views import APIView
+    from rest_framework.viewsets import ModelViewSet
 
 REQUEST_PERMISSION_TYPE_MAP = {
     "GET": "view",
@@ -26,7 +29,7 @@ REQUEST_PERMISSION_TYPE_MAP = {
 PermissionsType = Sequence[type[BasePermission]]
 
 
-def get_own_obj(request: Request, view: ModelViewSet[Any]) -> str:
+def get_own_obj(request: Request, view: "APIView") -> str:
 
     user = request.user
     if user is None or user.role != Role.HOST or request.method == "GET":
@@ -47,7 +50,7 @@ def get_own_obj(request: Request, view: ModelViewSet[Any]) -> str:
 
 def get_permission_for_view(
     request: Request,
-    view: ModelViewSet[Any],
+    view: "APIView",
 ) -> str | None:
 
     with suppress(AttributeError):
@@ -80,14 +83,14 @@ class IsAdminOrOwnUser(BasePermission):
     """
 
     @override
-    def has_permission(self, request: Request, view: APIView) -> bool:
+    def has_permission(self, request: Request, view: Any) -> bool:
         return bool(request.user.is_superuser())
 
     @override
     def has_object_permission(
         self,
         request: Request,
-        view: APIView,
+        view: "APIView",
         obj: Any,
     ) -> bool:
         if request.user.is_superuser():
@@ -107,7 +110,7 @@ class IsSystemTokenOrUser(BasePermission):
     """
 
     @override
-    def has_permission(self, request: Request, view: APIView) -> bool:
+    def has_permission(self, request: Request, view: Any) -> bool:
 
         if request.user and request.user.is_authenticated:
             perm = get_permission_for_view(request, view)
@@ -126,7 +129,7 @@ class IsSystemTokenOrUser(BasePermission):
     def has_object_permission(
         self,
         request: Request,
-        view: APIView,
+        view: "APIView",
         obj: Any,
     ) -> bool:
 

@@ -31,7 +31,7 @@ class File(Model):
         PENDING = 1, "Pending"
         FAILED = 2, "Failed"
 
-    library: ForeignKey[Any, Any] = ForeignKey(
+    library: ForeignKey = ForeignKey(
         "storage.Library",
         DO_NOTHING,
         blank=True,
@@ -39,60 +39,60 @@ class File(Model):
         db_column="track_type_id",
     )
 
-    owner: ForeignKey[Any, Any] = ForeignKey(
+    owner: ForeignKey = ForeignKey(
         "core.User",
         DO_NOTHING,
         blank=True,
         null=True,
     )
 
-    import_status: IntegerField[Any, Any] = IntegerField(
+    import_status: IntegerField = IntegerField(
         choices=ImportStatus.choices,
         default=ImportStatus.PENDING,
     )
 
-    filepath: TextField[Any, Any] = TextField(blank=True, null=True)
-    size: IntegerField[Any, Any] = IntegerField(db_column="filesize")
-    exists: BooleanField[Any, Any] = BooleanField(
+    filepath: TextField = TextField(blank=True, null=True)
+    size: IntegerField = IntegerField(db_column="filesize")
+    exists: BooleanField = BooleanField(
         blank=True,
         null=True,
         db_column="file_exists",
     )
-    mime: CharField[Any, Any] = CharField(max_length=255)
-    md5: CharField[Any, Any] = CharField(max_length=32, blank=True, null=True)
+    mime: CharField = CharField(max_length=255)
+    md5: CharField = CharField(max_length=32, blank=True, null=True)
 
-    hidden: BooleanField[Any, Any] = BooleanField(blank=True, null=True)
-    accessed: IntegerField[Any, Any] = IntegerField(
+    hidden: BooleanField = BooleanField(blank=True, null=True)
+    accessed: IntegerField = IntegerField(
         db_column="currentlyaccessing",
     )
-    scheduled: BooleanField[Any, Any] = BooleanField(
+    scheduled: BooleanField = BooleanField(
         blank=True,
         null=True,
         db_column="is_scheduled",
     )
-    part_of_list: BooleanField[Any, Any] = BooleanField(
+    part_of_list: BooleanField = BooleanField(
         blank=True,
         null=True,
         db_column="is_playlist",
     )
 
-    created_at: DateTimeField[Any, Any] = DateTimeField(
+    created_at: DateTimeField = DateTimeField(
         blank=True,
         null=True,
         db_column="utime",
     )
-    updated_at: DateTimeField[Any, Any] = DateTimeField(
+    updated_at: DateTimeField = DateTimeField(
         blank=True,
         null=True,
         db_column="mtime",
     )
-    last_played_at: DateTimeField[Any, Any] = DateTimeField(
+    last_played_at: DateTimeField = DateTimeField(
         blank=True,
         null=True,
         db_column="lptime",
     )
 
-    edited_by: ForeignKey[Any, Any] = ForeignKey(
+    edited_by: ForeignKey = ForeignKey(
         "core.User",
         on_delete=DO_NOTHING,
         blank=True,
@@ -102,218 +102,218 @@ class File(Model):
     )
 
     # Audio
-    bit_rate: IntegerField[Any, Any] = IntegerField(blank=True, null=True)
-    sample_rate: IntegerField[Any, Any] = IntegerField(blank=True, null=True)
-    format: CharField[Any, Any] = CharField(
+    bit_rate: IntegerField = IntegerField(blank=True, null=True)
+    sample_rate: IntegerField = IntegerField(blank=True, null=True)
+    format: CharField = CharField(
         max_length=128,
         blank=True,
         null=True,
     )  # ?
-    channels: IntegerField[Any, Any] = IntegerField(blank=True, null=True)
-    length: DurationField[Any, Any] = DurationField(blank=True, null=True)
+    channels: IntegerField = IntegerField(blank=True, null=True)
+    length: DurationField = DurationField(blank=True, null=True)
 
-    bpm: IntegerField[Any, Any] = IntegerField(blank=True, null=True)  # ?
-    replay_gain: DecimalField[Any, Any] = DecimalField(
+    bpm: IntegerField = IntegerField(blank=True, null=True)  # ?
+    replay_gain: DecimalField = DecimalField(
         max_digits=8,
         decimal_places=2,
         blank=True,
         null=True,
     )
-    cue_in: DurationField[Any, Any] = DurationField(
+    cue_in: DurationField = DurationField(
         blank=True,
         null=True,
         db_column="cuein",
     )
-    cue_out: DurationField[Any, Any] = DurationField(
+    cue_out: DurationField = DurationField(
         blank=True,
         null=True,
         db_column="cueout",
     )
 
     # Metadata
-    name: CharField[Any, Any] = CharField(max_length=255)  # ?
-    description: CharField[Any, Any] = CharField(
+    name: CharField = CharField(max_length=255)  # ?
+    description: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
 
-    artwork: CharField[Any, Any] = CharField(
+    artwork: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )
 
-    artist_name: CharField[Any, Any] = CharField(
+    artist_name: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )
-    artist_url: CharField[Any, Any] = CharField(
+    artist_url: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
-    original_artist: CharField[Any, Any] = CharField(
+    original_artist: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
-    album_title: CharField[Any, Any] = CharField(
+    album_title: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )
-    track_title: CharField[Any, Any] = CharField(
+    track_title: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )
-    genre: CharField[Any, Any] = CharField(
+    genre: CharField = CharField(
         max_length=64,
         blank=True,
         null=True,
     )
-    mood: CharField[Any, Any] = CharField(max_length=64, blank=True, null=True)
-    date: CharField[Any, Any] = CharField(
+    mood: CharField = CharField(max_length=64, blank=True, null=True)
+    date: CharField = CharField(
         max_length=16,
         blank=True,
         null=True,
         db_column="year",
     )
-    track_number: IntegerField[Any, Any] = IntegerField(blank=True, null=True)
-    disc_number: CharField[Any, Any] = CharField(
+    track_number: IntegerField = IntegerField(blank=True, null=True)
+    disc_number: CharField = CharField(
         max_length=8,
         blank=True,
         null=True,
     )  # ?
-    comment: TextField[Any, Any] = TextField(
+    comment: TextField = TextField(
         blank=True,
         null=True,
         db_column="comments",
     )
-    language: CharField[Any, Any] = CharField(
+    language: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )
-    label: CharField[Any, Any] = CharField(
+    label: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )
-    copyright: CharField[Any, Any] = CharField(
+    copyright: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )
-    composer: CharField[Any, Any] = CharField(
+    composer: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )
-    conductor: CharField[Any, Any] = CharField(
+    conductor: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )
-    orchestra: CharField[Any, Any] = CharField(
+    orchestra: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
-    encoder: CharField[Any, Any] = CharField(
+    encoder: CharField = CharField(
         max_length=64,
         blank=True,
         null=True,
     )
-    encoded_by: CharField[Any, Any] = CharField(
+    encoded_by: CharField = CharField(
         max_length=255,
         blank=True,
         null=True,
     )  # ?
-    isrc: CharField[Any, Any] = CharField(
+    isrc: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
         db_column="isrc_number",
     )
 
-    lyrics: TextField[Any, Any] = TextField(blank=True, null=True)  # ?
-    lyricist: CharField[Any, Any] = CharField(
+    lyrics: TextField = TextField(blank=True, null=True)  # ?
+    lyricist: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
-    original_lyricist: CharField[Any, Any] = CharField(
+    original_lyricist: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
 
-    subject: CharField[Any, Any] = CharField(
+    subject: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
-    contributor: CharField[Any, Any] = CharField(
+    contributor: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
-    rating: CharField[Any, Any] = CharField(
+    rating: CharField = CharField(
         max_length=8,
         blank=True,
         null=True,
     )  # ?
-    url: CharField[Any, Any] = CharField(
+    url: CharField = CharField(
         max_length=1024,
         blank=True,
         null=True,
     )  # ?
-    info_url: CharField[Any, Any] = CharField(
+    info_url: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
-    audio_source_url: CharField[Any, Any] = CharField(
+    audio_source_url: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
-    buy_this_url: CharField[Any, Any] = CharField(
+    buy_this_url: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
-    catalog_number: CharField[Any, Any] = CharField(
-        max_length=512,
-        blank=True,
-        null=True,
-    )  # ?
-
-    radio_station_name: CharField[Any, Any] = CharField(
-        max_length=512,
-        blank=True,
-        null=True,
-    )  # ?
-    radio_station_url: CharField[Any, Any] = CharField(
+    catalog_number: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
 
-    report_datetime: CharField[Any, Any] = CharField(
+    radio_station_name: CharField = CharField(
+        max_length=512,
+        blank=True,
+        null=True,
+    )  # ?
+    radio_station_url: CharField = CharField(
+        max_length=512,
+        blank=True,
+        null=True,
+    )  # ?
+
+    report_datetime: CharField = CharField(
         max_length=32,
         blank=True,
         null=True,
     )  # ?
-    report_location: CharField[Any, Any] = CharField(
+    report_location: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,
     )  # ?
-    report_organization: CharField[Any, Any] = CharField(
+    report_organization: CharField = CharField(
         max_length=512,
         blank=True,
         null=True,

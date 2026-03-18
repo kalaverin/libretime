@@ -22,56 +22,56 @@ class Show(Model):
         managed: bool = False
         db_table: str = "cc_show"
 
-    name: CharField[Any, Any] = CharField(max_length=255)
-    description: CharField[Any, Any] = CharField(
+    name: CharField = CharField(max_length=255)
+    description: CharField = CharField(
         max_length=8192,
         blank=True,
         null=True,
     )
-    genre: CharField[Any, Any] = CharField(
+    genre: CharField = CharField(
         max_length=255,
         blank=True,
         null=True,
     )
-    url: CharField[Any, Any] = CharField(max_length=255, blank=True, null=True)
+    url: CharField = CharField(max_length=255, blank=True, null=True)
 
-    image: CharField[Any, Any] = CharField(
+    image: CharField = CharField(
         max_length=255,
         blank=True,
         null=True,
         db_column="image_path",
     )
-    foreground_color: CharField[Any, Any] = CharField(
+    foreground_color: CharField = CharField(
         max_length=6,
         blank=True,
         null=True,
         db_column="color",
     )
-    background_color: CharField[Any, Any] = CharField(
+    background_color: CharField = CharField(
         max_length=6,
         blank=True,
         null=True,
     )
 
-    live_auth_registered: BooleanField[Any, Any] = BooleanField(
+    live_auth_registered: BooleanField = BooleanField(
         default=False,
         blank=True,
         null=True,
         db_column="live_stream_using_airtime_auth",
     )
-    live_auth_custom: BooleanField[Any, Any] = BooleanField(
+    live_auth_custom: BooleanField = BooleanField(
         default=False,
         blank=True,
         null=True,
         db_column="live_stream_using_custom_auth",
     )
-    live_auth_custom_user: CharField[Any, Any] = CharField(
+    live_auth_custom_user: CharField = CharField(
         max_length=255,
         blank=True,
         null=True,
         db_column="live_stream_user",
     )
-    live_auth_custom_password: CharField[Any, Any] = CharField(
+    live_auth_custom_password: CharField = CharField(
         max_length=255,
         blank=True,
         null=True,
@@ -84,24 +84,24 @@ class Show(Model):
 
     # A show is linkable if it has never been linked before. Once
     # a show becomes unlinked it can not be linked again.
-    linked: BooleanField[Any, Any] = BooleanField()
-    linkable: BooleanField[Any, Any] = BooleanField(db_column="is_linkable")
+    linked: BooleanField = BooleanField()
+    linkable: BooleanField = BooleanField(db_column="is_linkable")
 
-    auto_playlist: ForeignKey[Any, Any] = ForeignKey(
+    auto_playlist: ForeignKey = ForeignKey(
         "schedule.Playlist",
         on_delete=DO_NOTHING,
         blank=True,
         null=True,
         db_column="autoplaylist_id",
     )
-    auto_playlist_enabled: BooleanField[Any, Any] = BooleanField(
+    auto_playlist_enabled: BooleanField = BooleanField(
         db_column="has_autoplaylist",
     )
-    auto_playlist_repeat: BooleanField[Any, Any] = BooleanField(
+    auto_playlist_repeat: BooleanField = BooleanField(
         db_column="autoplaylist_repeat",
     )
 
-    intro_playlist: ForeignKey[Any, Any] = ForeignKey(
+    intro_playlist: ForeignKey = ForeignKey(
         "schedule.Playlist",
         on_delete=DO_NOTHING,
         blank=True,
@@ -110,11 +110,11 @@ class Show(Model):
         related_name="intro_playlist",
     )
 
-    override_intro_playlist: BooleanField[Any, Any] = BooleanField(
+    override_intro_playlist: BooleanField = BooleanField(
         db_column="override_intro_playlist",
     )
 
-    outro_playlist: ForeignKey[Any, Any] = ForeignKey(
+    outro_playlist: ForeignKey = ForeignKey(
         "schedule.Playlist",
         on_delete=DO_NOTHING,
         blank=True,
@@ -123,11 +123,11 @@ class Show(Model):
         related_name="outro_playlist",
     )
 
-    override_outro_playlist: BooleanField[Any, Any] = BooleanField(
+    override_outro_playlist: BooleanField = BooleanField(
         db_column="override_outro_playlist",
     )
 
-    hosts: ManyToManyField[Any, Any] = ManyToManyField(
+    hosts: ManyToManyField = ManyToManyField(
         "core.User",
         through="ShowHost",
     )
@@ -142,11 +142,11 @@ class ShowHost(Model):
         managed: bool = False
         db_table: str = "cc_show_hosts"
 
-    show: ForeignKey[Any, Any] = ForeignKey(
+    show: ForeignKey = ForeignKey(
         "schedule.Show",
         on_delete=DO_NOTHING,
     )
-    user: ForeignKey[Any, Any] = ForeignKey(
+    user: ForeignKey = ForeignKey(
         "core.User",
         on_delete=DO_NOTHING,
         db_column="subjs_id",
@@ -181,25 +181,25 @@ class ShowDays(Model):
         WEEKLY_4 = 5, "Every 4 weeks"
         MONTHLY = 2, "Every month"
 
-    show: ForeignKey[Any, Any] = ForeignKey(
+    show: ForeignKey = ForeignKey(
         "schedule.Show",
         on_delete=DO_NOTHING,
     )
 
-    first_show_on: DateField[Any, Any] = DateField(
+    first_show_on: DateField = DateField(
         db_column="first_show",
     )
-    last_show_on: DateField[Any, Any] = DateField(
+    last_show_on: DateField = DateField(
         blank=True,
         null=True,
         db_column="last_show",
     )
-    start_time: TimeField[Any, Any] = TimeField()
+    start_time: TimeField = TimeField()
 
-    timezone: CharField[Any, Any] = CharField(max_length=1024)
-    duration: CharField[Any, Any] = CharField(max_length=1024)
+    timezone: CharField = CharField(max_length=1024)
+    duration: CharField = CharField(max_length=1024)
 
-    record_enabled: SmallIntegerField[Any, Any] = SmallIntegerField(
+    record_enabled: SmallIntegerField = SmallIntegerField(
         choices=Record.choices,
         default=Record.NO,
         blank=True,
@@ -207,18 +207,18 @@ class ShowDays(Model):
         db_column="record",
     )
 
-    week_day: SmallIntegerField[Any, Any] = SmallIntegerField(
+    week_day: SmallIntegerField = SmallIntegerField(
         choices=WeekDay.choices,
         blank=True,
         null=True,
         db_column="day",
     )
 
-    repeat_kind: SmallIntegerField[Any, Any] = SmallIntegerField(
+    repeat_kind: SmallIntegerField = SmallIntegerField(
         choices=RepeatKind.choices,
         db_column="repeat_type",
     )
-    repeat_next_on: DateField[Any, Any] = DateField(
+    repeat_next_on: DateField = DateField(
         blank=True,
         null=True,
         db_column="next_pop_date",
@@ -234,58 +234,58 @@ class ShowInstance(Model):
         managed: bool = False
         db_table: str = "cc_show_instances"
 
-    created_at: DateTimeField[Any, Any] = DateTimeField(db_column="created")
+    created_at: DateTimeField = DateTimeField(db_column="created")
 
-    show: ForeignKey[Any, Any] = ForeignKey(
+    show: ForeignKey = ForeignKey(
         "schedule.Show",
         on_delete=DO_NOTHING,
     )
-    instance: ForeignKey[Any, Any] = ForeignKey(
+    instance: ForeignKey = ForeignKey(
         "self",
         on_delete=DO_NOTHING,
         blank=True,
         null=True,
     )
 
-    starts_at: DateTimeField[Any, Any] = DateTimeField(db_column="starts")
-    ends_at: DateTimeField[Any, Any] = DateTimeField(db_column="ends")
-    filled_time: DurationField[Any, Any] = DurationField(
+    starts_at: DateTimeField = DateTimeField(db_column="starts")
+    ends_at: DateTimeField = DateTimeField(db_column="ends")
+    filled_time: DurationField = DurationField(
         blank=True,
         null=True,
         db_column="time_filled",
     )
 
-    last_scheduled_at: DateTimeField[Any, Any] = DateTimeField(
+    last_scheduled_at: DateTimeField = DateTimeField(
         blank=True,
         null=True,
         db_column="last_scheduled",
     )
 
-    description: CharField[Any, Any] = CharField(
+    description: CharField = CharField(
         max_length=8192,
         blank=True,
         null=True,
     )
-    modified: BooleanField[Any, Any] = BooleanField(
+    modified: BooleanField = BooleanField(
         db_column="modified_instance",
     )
-    rebroadcast: SmallIntegerField[Any, Any] = SmallIntegerField(
+    rebroadcast: SmallIntegerField = SmallIntegerField(
         blank=True,
         null=True,
     )
 
-    auto_playlist_built: BooleanField[Any, Any] = BooleanField(
+    auto_playlist_built: BooleanField = BooleanField(
         db_column="autoplaylist_built",
     )
 
-    record_enabled: SmallIntegerField[Any, Any] = SmallIntegerField(
+    record_enabled: SmallIntegerField = SmallIntegerField(
         choices=Record.choices,
         default=Record.NO,
         blank=True,
         null=True,
         db_column="record",
     )
-    record_file: ForeignKey[Any, Any] = ForeignKey(
+    record_file: ForeignKey = ForeignKey(
         "storage.File",
         on_delete=DO_NOTHING,
         blank=True,
@@ -303,12 +303,12 @@ class ShowRebroadcast(Model):
         managed: bool = False
         db_table: str = "cc_show_rebroadcast"
 
-    show: ForeignKey[Any, Any] = ForeignKey(
+    show: ForeignKey = ForeignKey(
         "schedule.Show",
         on_delete=DO_NOTHING,
     )
-    day_offset: CharField[Any, Any] = CharField(max_length=1024)
-    start_time: TimeField[Any, Any] = TimeField()
+    day_offset: CharField = CharField(max_length=1024)
+    start_time: TimeField = TimeField()
 
     def get_owner(self):
         return self.show.get_owner()

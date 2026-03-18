@@ -26,36 +26,36 @@ class Schedule(Model):
             ("delete_own_schedule", "Delete the content on their shows"),
         )
 
-    starts_at: DateTimeField[Any, Any] = DateTimeField(db_column="starts")
-    ends_at: DateTimeField[Any, Any] = DateTimeField(db_column="ends")
+    starts_at: DateTimeField = DateTimeField(db_column="starts")
+    ends_at: DateTimeField = DateTimeField(db_column="ends")
 
-    instance: ForeignKey[Any, Any] = ForeignKey(
+    instance: ForeignKey = ForeignKey(
         "schedule.ShowInstance",
         on_delete=DO_NOTHING,
     )
 
-    file: ForeignKey[Any, Any] = ForeignKey(
+    file: ForeignKey = ForeignKey(
         "storage.File",
         on_delete=DO_NOTHING,
         blank=True,
         null=True,
     )
-    stream: ForeignKey[Any, Any] = ForeignKey(
+    stream: ForeignKey = ForeignKey(
         "schedule.Webstream",
         on_delete=DO_NOTHING,
         blank=True,
         null=True,
     )
 
-    length: DurationField[Any, Any] = DurationField(
+    length: DurationField = DurationField(
         blank=True,
         null=True,
         db_column="clip_length",
     )
-    fade_in: TimeField[Any, Any] = TimeField(blank=True, null=True)
-    fade_out: TimeField[Any, Any] = TimeField(blank=True, null=True)
-    cue_in: DurationField[Any, Any] = DurationField()
-    cue_out: DurationField[Any, Any] = DurationField()
+    fade_in: TimeField = TimeField(blank=True, null=True)
+    fade_out: TimeField = TimeField(blank=True, null=True)
+    cue_in: DurationField = DurationField()
+    cue_out: DurationField = DurationField()
 
     class PositionStatus(IntegerChoices):
         FILLER = -1, "Filler"  # Used to fill a show that already started
@@ -63,8 +63,8 @@ class Schedule(Model):
         INSIDE = 1, "Inside"  # Is inside the show time frame
         BOUNDARY = 2, "Boundary"  # Is at the boundary of the show time frame
 
-    position: IntegerField[Any, Any] = IntegerField()
-    position_status: SmallIntegerField[Any, Any] = SmallIntegerField(
+    position: IntegerField = IntegerField()
+    position_status: SmallIntegerField = SmallIntegerField(
         choices=PositionStatus.choices,
         default=PositionStatus.INSIDE,
         db_column="playout_status",
@@ -72,8 +72,8 @@ class Schedule(Model):
 
     # Broadcasted is set to 1 when a live source is not
     # on. Used for the playout history.
-    broadcasted: SmallIntegerField[Any, Any] = SmallIntegerField()
-    played: BooleanField[Any, Any] = BooleanField(
+    broadcasted: SmallIntegerField = SmallIntegerField()
+    played: BooleanField = BooleanField(
         blank=True,
         null=True,
         db_column="media_item_played",
