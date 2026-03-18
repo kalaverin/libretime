@@ -25,12 +25,13 @@ __*__/
 !.python-version
 !.vale.ini
 
-/log
-/var
+bin/
+log/
+var/
 
-/dev/certs/*
-/dev/playout/*
-/website/
+dev/certs/*
+dev/playout/*
+website/
 
 uv.lock
 
