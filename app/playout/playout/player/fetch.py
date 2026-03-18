@@ -277,33 +277,27 @@ class PypoFetch(Thread):
                 if not self.is_file_opened(expired_filepath):
                     os.remove(expired_filepath)
                     logger.info("File '%s' removed", expired_filepath)
+
                 else:
                     logger.info(
-                        "File '%s' not removed. Still busy!",
-                        expired_filepath,
+                    f"File '{expired_filepath}' not removed. Still busy!",
                     )
-            except (
-                Exception
-            ) as exception:  # pylint: disable=broad-exception-caught
-                logger.exception(
-                    "Problem removing file '%s': %s",
-                    expired_file,
-                    exception,
-                )
+
+            except Exception:
+                logger.exception(f"Problem removing file '{expired_file}'")
 
     def manual_schedule_fetch(self) -> bool:
         try:
             self.schedule_data = get_schedule(self.api_client)
             logger.debug(
-                "Received event from API client: %s",
-                self.schedule_data,
+                f"Received event from API client: {self.schedule_data}",
             )
             self.process_schedule(self.schedule_data)
             return True
-        except (
-            Exception
-        ) as exception:  # pylint: disable=broad-exception-caught
-            logger.exception("Unable to fetch schedule: %s", exception)
+
+        except Exception:
+            logger.exception("Unable to fetch schedule")
+
         return False
 
     def persistent_manual_schedule_fetch(self, max_attempts=1) -> bool:
