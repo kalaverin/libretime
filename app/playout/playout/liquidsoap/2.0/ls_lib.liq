@@ -1,5 +1,5 @@
 def gateway(args)
-  command = "timeout --signal=KILL 45 libretime-playout-notify #{args} &"
+  command = "timeout --signal=KILL 45 playout-notify #{args} &"
   log(command)
   process.run(command)
 end
@@ -132,33 +132,33 @@ end
 #   it would also create an interruptions while the buffer is
 #   refilling... on the other hand, this would avoid having to
 #   fade using both cross() and switch().buffer=5.,max=15.,,autostart=false
-def input.http_restart(~id,~initial_url="http://dummy/url")
+# def input.http_restart(~id,~initial_url="http://dummy/url")
 
-  source = audio_to_stereo( mksafe(input.http(id=id,initial_url)))
+#   source = audio_to_stereo( mksafe(input.http(id=id,initial_url)))
 
-  def stopped()
-    "stopped" == list.hd(server.execute("#{id}.status"), default="")
-  end
+#   def stopped()
+#     "stopped" == list.hd(server.execute("#{id}.status"), default="")
+#   end
 
-  server.register(namespace=id,
-                  "restart",
-                  usage="restart [url]",
-                  fun (url) -> begin
-                    if url != "" then
-                      log(string_of(server.execute("#{id}.url #{url}")))
-                    end
-                    log(string_of(server.execute("#{id}.stop")))
-                    add_timeout(0.5,
-                      { if stopped() then
-                          log(string_of(server.execute("#{id}.start"))) ;
-                          (-1.)
-                        else 0.5 end})
-                    "Done"
-                  end)
+#   server.register(namespace=id,
+#                   "restart",
+#                   usage="restart [url]",
+#                   fun (url) -> begin
+#                     if url != "" then
+#                       log(string_of(server.execute("#{id}.url #{url}")))
+#                     end
+#                     log(string_of(server.execute("#{id}.stop")))
+#                     add_timeout(0.5,
+#                       { if stopped() then
+#                           log(string_of(server.execute("#{id}.start"))) ;
+#                           (-1.)
+#                         else 0.5 end})
+#                     "Done"
+#                   end)
 
-  source
+#   source
 
-end
+# end
 
 # Transitions between URL changes in HTTP streams.
 def cross_http(~debug=true,~http_input_id,source)
@@ -181,7 +181,7 @@ def cross_http(~debug=true,~http_input_id,source)
   # but it's also asking too much: the metadata may not pass through
   # before the crosser is instantiated.
   # Using only status in crosser misses some info, eg. on first URL.
-  source = map_metadata(on_m,source)
+  source = metadata.map(on_m,source)
 
   cross_d = 3.
 

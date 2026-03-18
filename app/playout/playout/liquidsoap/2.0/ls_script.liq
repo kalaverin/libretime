@@ -28,10 +28,10 @@ def create_source()
     l = fade.in(l)
     l = fade.out(l)
 
-    l = map_metadata(notify_queue,l)
+    l = metadata.map(notify_queue,l)
     l = cross_http(http_input_id="http",l)
     l = http_fallback(http_input_id="http", http=l, default=l)
-    l = map_metadata(id="map_metadata:schedule", update=false, append_title, l)
+    l = metadata.map(id="metadata.map:schedule", update=false, append_title, l)
     sources := list.append([l], !sources)
     server.register(namespace="queues",
                 "s#{this_source_id}_skip",
@@ -96,7 +96,7 @@ def map_message_offline(m) =
   [("title", message_offline())]
 end
 
-default = map_metadata(id="map_metadata:offline", map_message_offline, default)
+default = metadata.map(id="metadata.map:offline", map_message_offline, default)
 ignore(output.dummy(default, fallible=true))
 
 input_main_streaming = ref (false)
@@ -124,7 +124,7 @@ def make_input_auth_handler(input_name)
         log("user '#{args.user}' connected", label="#{input_name}_input")
 
         # Check auth based on return value from auth script
-        ret = test_process("libretime-playout-notify live-auth '#{input_name}' '#{args.user}' '#{args.password}'")
+        ret = process.test("playout-notify live-auth '#{input_name}' '#{args.user}' '#{args.password}'")
         if ret then
             log("user '#{args.user}' authenticated", label="#{input_name}_input")
         else
