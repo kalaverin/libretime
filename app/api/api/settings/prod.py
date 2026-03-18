@@ -4,6 +4,7 @@ from os import getenv
 from api.settings._internal import (
     setup_logger,
 )
+from api.settings._internal import *
 from api.settings._schema import Config
 
 LIBRETIME_LOG_FILEPATH = getenv("LIBRETIME_LOG_FILEPATH")
