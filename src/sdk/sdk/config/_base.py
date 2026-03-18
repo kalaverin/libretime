@@ -12,8 +12,8 @@ from sdk.config._env import EnvLoader
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_ENV_PREFIX = "RETIME"
-DEFAULT_CONFIG_FILEPATH = Path("dev/config.yml")
+DEFAULT_ENV_PREFIX = "LIBRETIME"
+DEFAULT_CONFIG_FILEPATH = Path("etc/config.yml")
 
 
 # pylint: disable=too-few-public-methods
