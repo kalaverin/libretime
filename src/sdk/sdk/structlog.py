@@ -102,12 +102,14 @@ class SuppressSpamFilter(Filter):
         "amqp.connection.Connection.heartbeat_tick",
         "django.utils.autoreload",
         "pika.heartbeat",
+        "worker.tasks",
     })
 
     FILES = frozenset({
         "autoreload.py",
         "connection.py",
     })
+    # podcast_download
 
     def filter(self, record: LogRecord) -> bool:
         return (

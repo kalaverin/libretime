@@ -10,8 +10,8 @@ from sdk.config import (
     StreamConfig,
 )
 
-CACHE_DIR = Path.cwd() / "scheduler"
-RECORD_DIR = Path.cwd() / "recorder"
+CACHE_DIR = Path.cwd() / 'var' / 'cache' / "scheduler"
+RECORD_DIR = Path.cwd() / 'var' / 'cache' / "recorder"
 EXECUTABLE: Path = Path(environ['LIQUIDSOAP_EXECUTABLE'])
 
 PUSH_INTERVAL: float = 2.0
