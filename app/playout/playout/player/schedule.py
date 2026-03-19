@@ -47,8 +47,8 @@ def get_schedule(api_client: v2.ApiClient) -> Events:
 
     schedule = api_client.list_schedule(
         params={
-            "ends_after": f"{current_time_str}Z",
-            "ends_before": f"{end_time_str}Z",
+            "ends_after": current_time_str,
+            "ends_before": end_time_str,
             "overbooked": False,
             "position_status__gt": 0,
         },

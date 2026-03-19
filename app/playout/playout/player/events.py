@@ -15,18 +15,18 @@ EVENT_KEY_FORMAT = "%Y-%m-%d-%H-%M-%S"
 
 def event_key_to_datetime(value: str | datetime) -> datetime:
     if isinstance(value, str):
-        value = datetime.strptime(value, EVENT_KEY_FORMAT)
+        return event_isoparse(value)
     return value
 
 
 def datetime_to_event_key(value: str | datetime) -> str:
     if isinstance(value, datetime):
-        value = value.strftime(EVENT_KEY_FORMAT)
+        return value.replace(microsecond=0).isoformat()
     return value
 
 
 def event_isoparse(value: str) -> datetime:
-    return isoparse(value).replace(tzinfo=None).replace(microsecond=0)
+    return isoparse(value).replace(microsecond=0)
 
 
 class EventKind(str, Enum):
