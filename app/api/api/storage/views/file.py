@@ -39,7 +39,7 @@ class FileViewSet(viewsets.ModelViewSet[Any]):
     filterset_fields: tuple[str, ...] = ("md5", "genre")
 
     @action(detail=True, methods=["GET"])
-    def download(self, _: Request, __: Any = None) -> HttpResponse:
+    def download(self, _: Request, **__: Any) -> HttpResponse:
         instance: File = self.get_object()
 
         response = HttpResponse()
