@@ -1,0 +1,7 @@
+---
+# https://github.com/gjcarneiro/yacron
+jobs:
+  - name: permitter
+    command: sudo .venv/bin/python tools/permitter.py
+    schedule: "* * * * *"
+    concurrencyPolicy: Forbid
