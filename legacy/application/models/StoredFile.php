@@ -952,7 +952,12 @@ SQL;
 
             // Martin K.: changed to rename: Much less load + quicker since this is
             // an atomic operation
-            if (rename($audio_file, $audio_stor) === false) {
+            $moveResult = @rename($audio_file, $audio_stor);
+            if (
+                ($moveResult === false)
+                && file_exists($audio_file)
+                && !file_exists($audio_stor)
+            ) {
                 // something went wrong likely there wasn't enough space in .
                 // the audio_stor to move the file too warn the user that   .
                 // the file wasn't uploaded and they should check if there  .
