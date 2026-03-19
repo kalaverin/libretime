@@ -46,6 +46,7 @@ requires-python = ">=3.10,<3.12"
 version = "4.5.0"
 dependencies = [
     "orjson>=3.11.7",
+    "rich>=14.3.3",
     "structlog>=25.5.0",
     "supervisor>=4.3.0",
     "yacron>=0.19.0",
@@ -137,11 +138,10 @@ index-strategy = "unsafe-best-match"
 package = false
 
 [[tool.uv.index]]
-trusted_host = "uv.dush.es"
 allow_insecure_host = "uv.dush.es"
 authenticate = "never"
 name = "private"
-url = "http://uv.dush.es/root/bsd/+simple/"
+url = "https://uv.dush.es/root/bsd/+simple/"
 
 [tool.uv.workspace]
 members = [
