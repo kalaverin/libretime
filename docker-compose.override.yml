@@ -36,6 +36,6 @@ services:
 
     volumes:
       - ./etc/config.yml:/etc/libretime/config.yml:ro
-      # - ./legacy/public:/var/www/html/public:rw,cached
+      - ./legacy/application:/var/www/html/application:ro
       - ./legacy:/var/www/echo/retime/libretime/legacy:rw,cached
       - /var/www/echo/retime/files:/var/www/echo/retime/files:rw,cached
