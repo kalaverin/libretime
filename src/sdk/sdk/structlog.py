@@ -21,6 +21,7 @@ from functools import partial
 from logging import (
     WARNING,
     Filter,
+    LogRecord,
     StreamHandler,
     getLevelName,
     getLogger,
@@ -92,6 +93,30 @@ DEFAULT_PROCESSORS: tuple[Processor, ...] = (
     add_log_level,
 )
 
+###
+
+
+class SuppressSpamFilter(Filter):
+
+    MODULES = frozenset({
+        "amqp.connection.Connection.heartbeat_tick",
+        "django.utils.autoreload",
+        "pika.heartbeat",
+    })
+
+    FILES = frozenset({
+        "autoreload.py",
+        "connection.py",
+    })
+
+    def filter(self, record: LogRecord) -> bool:
+        return (
+            record.module not in self.MODULES and
+            record.filename not in self.FILES
+        )
+
+###
+
 
 def nothing_to_do(*_: Any, **__: Any) -> None:
     """No-op function used to disable logging.config.dictConfig.
@@ -104,7 +129,7 @@ def nothing_to_do(*_: Any, **__: Any) -> None:
 def configure(
     level: int | str = "info",
     is_textual: bool = False,
-    descriptor: TextIO = sys.stderr,
+    descriptor: TextIO = sys.stdout,
     serializer_options: int = DEFAULT_JSON_OPTIONS,
     processors: Iterable[Processor] = DEFAULT_PROCESSORS,
 ) -> None:
@@ -205,6 +230,7 @@ def configure(
     # override all loggers to use our handler and formatter
 
     handler: StreamHandler[TextIO] = StreamHandler(descriptor)
+    handler.addFilter(SuppressSpamFilter())
     handler.setFormatter(fmt=formatter)
 
     for logger in (getLogger(), *map(getLogger, root.manager.loggerDict)):
