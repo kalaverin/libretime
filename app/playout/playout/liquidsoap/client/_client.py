@@ -82,10 +82,10 @@ class LiquidsoapClient:
             self.conn.read()  # Flush
             self._set_var("show_name", self._quote(show_name))
 
-    def web_stream_get_id(self) -> str:
+    def web_stream_get_id(self) -> int:
         with self.conn:
             self.conn.write("web_stream.get_id")
-            return self.conn.read().splitlines()[0]
+            return int(self.conn.read().splitlines()[0])
 
     def web_stream_start(self) -> None:
         with self.conn:
