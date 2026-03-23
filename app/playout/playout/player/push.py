@@ -52,13 +52,13 @@ class PypoPush(Thread):
         while True:
             try:
                 events = self.queue.get(block=True)
-            except (
-                Exception
-            ) as exception:  # pylint: disable=broad-exception-caught
-                logger.exception(exception)
-                raise exception
 
-            logger.debug(events)
+            except Exception:
+                logger.exception(
+                    "Exception while getting media schedule from push queue",
+                )
+                raise
+
             # separate media_schedule list into currently_playing and
             # scheduled_for_future lists
             currently_playing, scheduled_for_future = (
@@ -106,6 +106,6 @@ class PypoPush(Thread):
         while True:
             try:
                 self.main()
-            except Exception as e:
-                logger.exception(e)
+            except Exception:
+                logger.exception("Exception in liquidsoap push thread")
                 time.sleep(5)

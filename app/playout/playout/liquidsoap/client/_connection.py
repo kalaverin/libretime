@@ -3,6 +3,8 @@ import socket
 
 from pathlib import Path
 
+from typing_extensions import Self
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,7 +21,7 @@ class LiquidsoapConnection:
     _timeout: int
 
     _sock: socket.socket | None = None
-    _eof = b"END"
+    _eof: bytes = b"END"
 
     def __init__(
         self,
@@ -27,7 +29,7 @@ class LiquidsoapConnection:
         port: int = 0,
         path: Path | None = None,
         timeout: int = 5,
-    ):
+    ) -> None:
         """
         Create a connection to a Liquidsoap server.
 
@@ -50,14 +52,14 @@ class LiquidsoapConnection:
             else str(self._path)
         )
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         self.connect()
         return self
 
-    def __exit__(self, exc_type, exc_value, _traceback):
+    def __exit__(self, exc_type, exc_value, _traceback) -> None:
         self.close()
 
-    def connect(self):
+    def connect(self) -> None:
         try:
             logger.debug("connecting to %s", self.address())
 
@@ -75,21 +77,21 @@ class LiquidsoapConnection:
             self._sock = None
             raise
 
-    def close(self):
+    def close(self) -> None:
         if self._sock is not None:
             logger.debug("closing connection to %s", self.address())
 
             try:
                 self.write("exit")
                 # Reading for clean exit
-                while self._sock.recv(1024):
+                while self._sock.recv(2**10):
                     continue
 
             finally:
                 self._sock.close()
                 self._sock = None
 
-    def write(self, *messages: str):
+    def write(self, *messages: str) -> None:
         if self._sock is None:
             raise InvalidConnection
 
@@ -106,7 +108,7 @@ class LiquidsoapConnection:
 
         chunks = []
         while True:
-            chunk = self._sock.recv(1024)
+            chunk = self._sock.recv(2**10)
             if not chunk:
                 break
 

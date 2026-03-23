@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from dateutil.parser import isoparse
 from pydantic import BaseModel, BeforeValidator, Field, parse_obj_as
@@ -126,8 +126,8 @@ AnyEvent = Annotated[
 ]
 
 
-def parse_any_event(value: dict) -> AnyEvent:
-    return parse_obj_as(AnyEvent, value)  # type: ignore
+def parse_any_event(value: dict[Any, Any]) -> AnyEvent:
+    return parse_obj_as(AnyEvent, value)
 
 
 FileEvents = dict[str, FileEvent]

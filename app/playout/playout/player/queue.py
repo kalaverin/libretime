@@ -89,7 +89,5 @@ class PypoLiqQueue(Thread):
     def run(self) -> None:
         try:
             self.main()
-        except (
-            Exception
-        ) as exception:  # pylint: disable=broad-exception-caught
-            logger.exception(exception)
+        except Exception:
+            logger.exception("Exception in liquidsoap queue thread")

@@ -1,5 +1,3 @@
-import logging
-
 from typing import Any
 
 from requests import Response
@@ -9,10 +7,11 @@ from requests.exceptions import RequestException
 from requests.models import PreparedRequest
 from sdk.http import join_url_path
 from starlette import status
+from structlog import get_logger
 from typing_extensions import override
 from urllib3.util import Retry
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 DEFAULT_TIMEOUT = 5
 
@@ -69,7 +68,9 @@ class Session(BaseSession):
         self.mount("https://", adapter)
 
     @override
-    def request(self, method: str, url: str, *args: Any, **kwargs: Any):
+    def request(
+        self, method: str, url: str, *args: Any, **kwargs: Any,
+    ) -> Response:
         """Send the request after generating the complete URL."""
         url = self.create_url(url)
         return super().request(method, url, *args, **kwargs)
@@ -102,17 +103,19 @@ class AbstractApiClient:
         method: str,
         url: str,
         stream: bool = False,
+        params: dict[str, Any] | None = None,
     ) -> Response:
         try:
             response = self.session.request(
                 method,
                 url,
                 stream=stream,
+                params=params,
             )
             response.raise_for_status()
 
-        except RequestException as exception:
-            logger.error(exception)
-            raise exception
+        except RequestException:
+            logger.exception("request failed", method=method, url=url)
+            raise
 
         return response

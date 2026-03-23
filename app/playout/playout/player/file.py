@@ -133,10 +133,8 @@ class PypoFile(Thread):
         ):
             logger.exception(error_msg)
 
-        except (
-            Exception
-        ) as exception:  # pylint: disable=broad-exception-caught
-            logger.exception("%s: %s", error_msg, exception)
+        except Exception:
+            logger.exception(error_msg)
 
         return file_size
 
@@ -191,8 +189,8 @@ class PypoFile(Thread):
                 if file_event is not None:
                     self.copy_file(file_event)
 
-            except Exception as e:
-                logger.exception(e)
+            except Exception:
+                logger.exception("Exception in PypoFile main loop")
                 raise
 
     @override
@@ -202,10 +200,8 @@ class PypoFile(Thread):
         """
         try:
             self.main()
-        except (
-            Exception
-        ) as exception:  # pylint: disable=broad-exception-caught
-            logger.exception(exception)
+        except Exception:
+            logger.exception("Exception in PypoFile thread")
             time.sleep(5)
 
         logger.info("PypoFile thread exiting")

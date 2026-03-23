@@ -35,7 +35,7 @@ class LiquidsoapClient:
         port: int = 0,
         path: Path | None = None,
         timeout: int = 15,
-    ):
+    ) -> None:
         self.conn = LiquidsoapConnection(
             host=host,
             port=port,
@@ -61,12 +61,15 @@ class LiquidsoapClient:
         while timeout > 0:
             try:
                 version = self.version()
-                logger.info("found version %s", version)
-                return version
-            except OSError as exception:
-                logger.warning("could not get version: %s", exception)
+
+            except OSError:
+                logger.warning("could not get version")
                 timeout -= 1
                 sleep(1)
+
+            else:
+                logger.info("found version %s", version)
+                return version
 
         raise LiquidsoapClientError("could not get liquidsoap version")
 
@@ -137,15 +140,19 @@ class LiquidsoapClient:
         input_fade_transition: float | None = None,
     ) -> None:
         with self.conn:
+
             if station_name is not None:
                 self._set_var("station_name", self._quote(station_name))
+
             if message_format is not None:
                 if isinstance(message_format, MessageFormatKind):
                     message_format = message_format.value
                 # Use an interactive.string until Liquidsoap have interactive.int
                 # variables
                 self._set_var("message_format", self._quote(message_format))
+
             if message_offline is not None:
                 self._set_var("message_offline", self._quote(message_offline))
+
             if input_fade_transition is not None:
                 self._set_var("input_fade_transition", input_fade_transition)
