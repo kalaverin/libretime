@@ -1,14 +1,28 @@
-import json
 import logging
 
-from functools import wraps
+from contextlib import suppress
+from functools import partial, wraps
 from time import sleep
+from typing import Any
+
+import orjson
 
 from requests.exceptions import RequestException
+from sdk.http import JSONType
 
 from api_client._client import AbstractApiClient, Response
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_JSON_OPTIONS: int = (
+    orjson.OPT_SORT_KEYS
+    | orjson.OPT_NAIVE_UTC
+    | orjson.OPT_SERIALIZE_DATACLASS
+    | orjson.OPT_SERIALIZE_NUMPY
+    | orjson.OPT_SERIALIZE_UUID
+)
+
+dumps = partial(orjson.dumps, option=DEFAULT_JSON_OPTIONS)
 
 
 def retry_decorator(max_retries: int = 5):
@@ -41,58 +55,55 @@ class BaseApiClient(AbstractApiClient):
         self.session.headers.update({"Authorization": f"Api-Key {api_key}"})
         self.session.params.update({"format": "json"})  # type: ignore[union-attr]
 
-    def version(self, **kwargs) -> Response:
+    def version(self) -> Response:
         return self._request(
             "GET",
             "/api/version",
-            **kwargs,
         )
 
-    def register_component(self, component: str, **kwargs) -> Response:
+    def register_component(self, component: str) -> Response:
         return self._request(
             "GET",
             "/api/register-component",
             params={"component": component},
-            **kwargs,
         )
 
-    def notify_media_item_start_play(self, media_id, **kwargs) -> Response:
+    def notify_media_item_start_play(self, media_id: int) -> Response:
         return self._request(
             "GET",
             "/api/notify-media-item-start-play",
             params={"media_id": media_id},
-            **kwargs,
         )
 
     def update_liquidsoap_status(
         self,
-        msg,
-        stream_id,
-        boot_time,
-        **kwargs,
+        msg: str,
+        stream_id: int,
+        boot_time: str,
     ) -> Response:
         return self._request(
             "POST",
             "/api/update-liquidsoap-status",
             params={"stream_id": stream_id, "boot_time": boot_time},
             data={"msg_post": msg},
-            **kwargs,
         )
 
-    def update_source_status(self, sourcename, status, **kwargs) -> Response:
+    def update_source_status(
+        self,
+        sourcename: str,
+        status: str,
+    ) -> Response:
         return self._request(
             "GET",
             "/api/update-source-status",
             params={"sourcename": sourcename, "status": status},
-            **kwargs,
         )
 
     def check_live_stream_auth(
         self,
-        username,
-        password,
-        djtype,
-        **kwargs,
+        username: str,
+        password: str,
+        djtype: str,
     ) -> Response:
         return self._request(
             "GET",
@@ -102,68 +113,78 @@ class BaseApiClient(AbstractApiClient):
                 "password": password,
                 "djtype": djtype,
             },
-            **kwargs,
         )
 
-    def notify_webstream_data(self, media_id, data, **kwargs) -> Response:
+    def notify_webstream_data(
+        self,
+        media_id: str,
+        data: str,
+    ) -> Response:
         return self._request(
             "POST",
             "/api/notify-webstream-data",
             params={"media_id": media_id},
             data={"data": data},  # Data is already a json formatted string
-            **kwargs,
         )
 
-    def rabbitmq_do_push(self, **kwargs) -> Response:
+    def rabbitmq_do_push(self) -> Response:
         return self._request(
             "GET",
             "/api/rabbitmq-do-push",
-            **kwargs,
         )
 
-    def push_stream_stats(self, data, **kwargs) -> Response:
+    def push_stream_stats(
+        self,
+        data: list[dict[str, Any]],
+    ) -> Response:
         return self._request(
             "POST",
             "/api/push-stream-stats",
-            data={"data": json.dumps(data)},
-            **kwargs,
+            data={"data": dumps(data)},
         )
 
-    def update_stream_setting_table(self, data, **kwargs) -> Response:
+    def update_stream_setting_table(
+        self,
+        data: dict[int, Any],
+    ) -> Response:
         return self._request(
             "POST",
             "/api/update-stream-setting-table",
-            data={"data": json.dumps(data)},
-            **kwargs,
+            data={"data": dumps(data)},
         )
 
-    def update_metadata_on_tunein(self, **kwargs) -> Response:
+    def update_metadata_on_tunein(self) -> Response:
         return self._request(
             "GET",
             "/api/update-metadata-on-tunein",
-            **kwargs,
         )
 
 
 class ApiClient:
-    def __init__(self, base_url: str, api_key: str):
-        self._base_client = BaseApiClient(base_url=base_url, api_key=api_key)
+    def __init__(
+        self,
+        base_url: str,
+        api_key: str,
+    ) -> None:
+        self._base_client: BaseApiClient = BaseApiClient(
+            base_url=base_url,
+            api_key=api_key,
+        )
 
-    def version(self):
+    def version(self) -> int:
         try:
             resp = self._base_client.version()
             payload = resp.json()
             return payload["api_version"]
+
         except RequestException:
             return -1
 
-    def notify_liquidsoap_started(self):
-        try:
+    def notify_liquidsoap_started(self) -> None:
+        with suppress(RequestException):
             self._base_client.rabbitmq_do_push()
-        except RequestException:
-            pass
 
-    def notify_media_item_start_playing(self, media_id):
+    def notify_media_item_start_playing(self, media_id: int) -> JSONType:
         """
         This is a callback from liquidsoap, we use this to notify
         about the currently playing *song*. We get passed a JSON string
@@ -176,7 +197,12 @@ class ApiClient:
         except RequestException:
             return None
 
-    def check_live_stream_auth(self, username, password, dj_type):
+    def check_live_stream_auth(
+        self,
+        username: str,
+        password: str,
+        dj_type: str,
+    ) -> JSONType:
         try:
             return self._base_client.check_live_stream_auth(
                 username=username,
@@ -186,7 +212,7 @@ class ApiClient:
         except RequestException:
             return {}
 
-    def register_component(self, component):
+    def register_component(self, component: str) -> Response:
         """
         Purpose of this method is to contact the server with a "Hey its
         me!" message. This will allow the server to register the component's
@@ -197,7 +223,12 @@ class ApiClient:
         return self._base_client.register_component(component=component)
 
     @retry_decorator()
-    def notify_liquidsoap_status(self, msg, stream_id, time):
+    def notify_liquidsoap_status(
+        self,
+        msg: str,
+        stream_id: int,
+        time: str,
+    ) -> None:
         self._base_client.update_liquidsoap_status(
             msg=msg,
             stream_id=stream_id,
@@ -205,14 +236,22 @@ class ApiClient:
         )
 
     @retry_decorator()
-    def notify_source_status(self, sourcename, status):
+    def notify_source_status(
+        self,
+        sourcename: str,
+        status: str,
+    ) -> Response:
         return self._base_client.update_source_status(
             sourcename=sourcename,
             status=status,
         )
 
     @retry_decorator()
-    def notify_webstream_data(self, data, media_id):
+    def notify_webstream_data(
+        self,
+        data: str,
+        media_id: int,
+    ) -> Response:
         """
         Update the server with the latest metadata we've received from the
         external webstream
@@ -222,17 +261,23 @@ class ApiClient:
             media_id=str(media_id),
         )
 
-    def push_stream_stats(self, data):
+    def push_stream_stats(
+        self,
+        data: list[dict[str, Any]],
+    ) -> Response:
         return self._base_client.push_stream_stats(data=data)
 
-    def update_stream_setting_table(self, data):
+    def update_stream_setting_table(
+        self,
+        data: dict[int, Any],
+    ) -> Response | None:
         try:
             return self._base_client.update_stream_setting_table(data=data)
         except RequestException:
             return None
 
-    def update_metadata_on_tunein(self):
+    def update_metadata_on_tunein(self) -> None:
         self._base_client.update_metadata_on_tunein()
 
-    def trigger_task_manager(self):
+    def trigger_task_manager(self) -> None:
         self._base_client.version()

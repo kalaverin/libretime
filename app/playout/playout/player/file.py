@@ -116,7 +116,8 @@ class PypoFile(Thread):
         try:
             self.api_client.update_file(
                 file_id,
-                json={"filesize": file_size, "md5": md5_hash},
+                size=file_size,
+                md5=md5_hash,
             )
         except (
             requests.exceptions.ConnectionError,

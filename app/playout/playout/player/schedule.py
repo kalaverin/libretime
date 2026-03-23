@@ -46,12 +46,10 @@ def get_schedule(api_client: v2.ApiClient) -> Events:
     end_time_str = end_time.isoformat(timespec="seconds")
 
     schedule = api_client.list_schedule(
-        params={
-            "ends_after": current_time_str,
-            "ends_before": end_time_str,
-            "overbooked": False,
-            "position_status__gt": 0,
-        },
+        ends_after=current_time_str,
+        ends_before=end_time_str,
+        overbooked=False,
+        position_status__gt=0,
     ).json()
 
     events: dict[str, AnyEvent] = {}

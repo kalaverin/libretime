@@ -23,6 +23,7 @@ import click
 from api_client.v1 import ApiClient as LegacyClient
 from sdk.cli import cli_config_options, cli_logging_options
 from sdk.config import DEFAULT_ENV_PREFIX
+from sdk.http import JSONType
 from sdk.logging import setup_logger
 
 from playout.config import Config
@@ -55,7 +56,7 @@ def cli(
     log_level: str,
     log_filepath: Path | None,
     config_filepath: Path | None,
-):
+) -> None:
     """
     A gateway between Liquidsoap and the API.
     """
@@ -66,7 +67,7 @@ def cli(
 @cli.command()
 @click.argument("media_id")
 @pass_app
-def media(app: App, media_id):
+def media(app: App, media_id: int) -> None:
     """
     Notify currently playing media.
 
@@ -80,7 +81,7 @@ def media(app: App, media_id):
 @click.argument("media_id")
 @click.argument("data")
 @pass_app
-def webstream(app: App, media_id, data):
+def webstream(app: App, media_id: int, data: JSONType) -> None:
     """
     Notify currently playing webstream.
 
@@ -98,7 +99,7 @@ def webstream(app: App, media_id, data):
 @click.argument("name")
 @click.argument("status")
 @pass_app
-def live(app: App, name, status):
+def live(app: App, name: str, status: str) -> None:
     """
     Notify currently playing live input.
 
@@ -122,7 +123,7 @@ def live_auth(
     input_name: Literal["main", "show"],
     username: str,
     password: str,
-):
+) -> None:
     """
     Check live stream user authentication.
     """
@@ -139,7 +140,7 @@ def live_auth(
         input_name_map[input_name],
     )
 
-    payload: dict = resp.json()
+    payload: JSONType = resp.json()
     if payload.get("msg", False) is True:
         raise SystemExit(0)
     raise SystemExit(1)
@@ -150,7 +151,7 @@ def live_auth(
 @click.argument("time")
 @click.option("--error", help="Error message if any occurred.")
 @pass_app
-def stream(app: App, stream_id, time, error):
+def stream(app: App, stream_id: int, time: str, error: str):
     """
     Notify about output stream status.
 

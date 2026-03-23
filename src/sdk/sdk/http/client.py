@@ -20,7 +20,7 @@ import re
 from asyncio import create_task, gather
 from collections.abc import Awaitable, Callable
 from contextlib import suppress
-from enum import StrEnum
+from enum import Enum
 from functools import cached_property
 from logging import WARNING, getLogger
 from operator import methodcaller
@@ -50,7 +50,7 @@ getLogger("httpcore").setLevel(WARNING)
 getLogger("httpx").setLevel(WARNING)
 
 
-class Method(StrEnum):
+class Method(str, Enum):
     """HTTP methods supported by the client.
 
     Attributes:

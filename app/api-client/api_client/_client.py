@@ -1,9 +1,15 @@
 import logging
 
+from typing import Any
+
 from requests import Response
 from requests import Session as BaseSession
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
+from requests.models import PreparedRequest
+from sdk.http import join_url_path
+from starlette import status
+from typing_extensions import override
 from urllib3.util import Retry
 
 logger = logging.getLogger(__name__)
@@ -12,25 +18,37 @@ DEFAULT_TIMEOUT = 5
 
 
 class TimeoutHTTPAdapter(HTTPAdapter):
-    timeout: int = DEFAULT_TIMEOUT
-
-    def __init__(self, *args, **kwargs):
-        if "timeout" in kwargs:
-            self.timeout = kwargs["timeout"]
-            del kwargs["timeout"]
+    def __init__(
+        self,
+        *args: Any,
+        **kwargs: dict[str, Any],
+    ) -> None:
+        self.timeout: float | int = kwargs.pop("timeout", DEFAULT_TIMEOUT)
         super().__init__(*args, **kwargs)
 
-    def send(self, request, *args, **kwargs):
-        if "timeout" not in kwargs:
-            kwargs["timeout"] = self.timeout
+    @override
+    def send(
+        self,
+        request: PreparedRequest,
+        *args: Any,
+        **kwargs: dict[str, Any],
+    ) -> Response:
+        kwargs.setdefault("timeout", self.timeout)
         return super().send(request, *args, **kwargs)
 
 
-def default_retry(max_retries: int = 5):
+def default_retry(max_retries: int = 5) -> Retry:
     return Retry(
         total=max_retries,
         backoff_factor=2,
-        status_forcelist=[413, 429, 500, 502, 503, 504],
+        status_forcelist=[
+            status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status.HTTP_502_BAD_GATEWAY,
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            status.HTTP_504_GATEWAY_TIMEOUT,
+        ],
     )
 
 
@@ -50,16 +68,17 @@ class Session(BaseSession):
         self.mount("http://", adapter)
         self.mount("https://", adapter)
 
-    def request(self, method, url, *args, **kwargs):
+    @override
+    def request(self, method: str, url: str, *args: Any, **kwargs: Any):
         """Send the request after generating the complete URL."""
         url = self.create_url(url)
         return super().request(method, url, *args, **kwargs)
 
-    def create_url(self, url):
+    def create_url(self, url: str) -> str:
         """Create the URL based off this partial path."""
         if self.base_url is None:
             return url
-        return f"{self.base_url.rstrip('/')}/{url.lstrip('/')}"
+        return join_url_path(self.base_url, url)
 
 
 # pylint: disable=too-few-public-methods
@@ -71,7 +90,7 @@ class AbstractApiClient:
         self,
         base_url: str,
         retry: Retry | None = None,
-    ):
+    ) -> None:
         self.base_url = base_url
         self.session = Session(
             base_url=base_url,
@@ -80,15 +99,16 @@ class AbstractApiClient:
 
     def _request(
         self,
-        method,
-        url,
-        **kwargs,
+        method: str,
+        url: str,
+        **kwargs: dict[str, Any],
     ) -> Response:
         try:
             response = self.session.request(method, url, **kwargs)
             response.raise_for_status()
-            return response
 
         except RequestException as exception:
             logger.error(exception)
             raise exception
+
+        return response
