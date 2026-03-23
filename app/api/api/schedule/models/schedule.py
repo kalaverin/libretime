@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import Any
 
 from django.db.models import (
     DO_NOTHING,

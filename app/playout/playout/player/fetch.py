@@ -280,7 +280,7 @@ class PypoFetch(Thread):
 
                 else:
                     logger.info(
-                    f"File '{expired_filepath}' not removed. Still busy!",
+                        f"File '{expired_filepath}' not removed. Still busy!",
                     )
 
             except Exception:

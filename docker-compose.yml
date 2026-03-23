@@ -33,13 +33,13 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile   # или путь к твоему
+      dockerfile: Dockerfile  # или путь к твоему
       args:
-        LIBRETIME_VERSION: "dev-local"
-        UID: "${UID:-1000}"
-        GID: "${GID:-1000}"
+        LIBRETIME_VERSION: dev-local
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
     image: frontend:dev
-    user: "${UID:-1000}:${GID:-1000}"
+    user: ${UID:-1000}:${GID:-1000}
     restart: unless-stopped
     volumes:
       - ./etc/config.yml:/etc/libretime/config.yml:ro

@@ -1,9 +1,9 @@
 import logging
 import mimetypes
-from re import match
 
 from datetime import datetime
 from pathlib import Path
+from re import match
 
 logger = logging.getLogger(__name__)
 
@@ -23,12 +23,12 @@ mimetypes.init([str(here / "mime.types")])
 
 
 def mime_guess_extension(mime: str) -> str:
-    extension = (
-        mimetypes.guess_extension(mime, strict=False) or ''
-    ).lstrip('.')
+    extension = (mimetypes.guess_extension(mime, strict=False) or "").lstrip(
+        ".",
+    )
 
-    if m := match(r'^([0-9a-z]+)', extension):
-        return '.' + m.group(1)
+    if m := match(r"^([0-9a-z]+)", extension):
+        return "." + m.group(1)
 
     if not extension:
         logger.warning(
@@ -37,4 +37,4 @@ def mime_guess_extension(mime: str) -> str:
         )
         return ""
 
-    return '.' + extension
+    return "." + extension

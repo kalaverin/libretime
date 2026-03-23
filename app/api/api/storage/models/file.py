@@ -1,4 +1,4 @@
-from typing import Any, final
+from typing import final
 
 from django.db import models
 from django.db.models import (

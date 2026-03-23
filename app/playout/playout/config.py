@@ -10,9 +10,9 @@ from sdk.config import (
     StreamConfig,
 )
 
-CACHE_DIR = Path.cwd() / 'var' / 'cache' / "scheduler"
-RECORD_DIR = Path.cwd() / 'var' / 'cache' / "recorder"
-EXECUTABLE: Path = Path(environ['LIQUIDSOAP_EXECUTABLE'])
+CACHE_DIR = Path.cwd() / "var" / "cache" / "scheduler"
+RECORD_DIR = Path.cwd() / "var" / "cache" / "recorder"
+EXECUTABLE: Path = Path(environ["LIQUIDSOAP_EXECUTABLE"])
 
 PUSH_INTERVAL: float = 2.0
 POLL_INTERVAL: float = 400.0
@@ -41,7 +41,6 @@ class LiquidsoapConfig(BaseModel):
     harbor_ssl_certificate: str | None = None
     harbor_ssl_private_key: str | None = None
     harbor_ssl_password: str | None = None
-
 
     @model_validator(mode="after")
     def _validate_harbor_ssl(self):

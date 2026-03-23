@@ -3,5 +3,5 @@
 jobs:
   - name: permitter
     command: sudo .venv/bin/python tools/permitter.py
-    schedule: "* * * * *"
+    schedule: '* * * * *'
     concurrencyPolicy: Forbid

@@ -1,5 +1,3 @@
-from structlog import get_logger
-
 from pathlib import Path
 from typing import Any
 
@@ -8,6 +6,7 @@ import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandParser
 from sdk.files import compute_md5
+from structlog import get_logger
 from typing_extensions import override
 
 from api.storage.models import File, Library

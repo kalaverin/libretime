@@ -98,24 +98,29 @@ DEFAULT_PROCESSORS: tuple[Processor, ...] = (
 
 class SuppressSpamFilter(Filter):
 
-    MODULES = frozenset({
-        "amqp.connection.Connection.heartbeat_tick",
-        "django.utils.autoreload",
-        "pika.heartbeat",
-        "worker.tasks",
-    })
+    MODULES = frozenset(
+        {
+            "amqp.connection.Connection.heartbeat_tick",
+            "django.utils.autoreload",
+            "pika.heartbeat",
+            "worker.tasks",
+        },
+    )
 
-    FILES = frozenset({
-        "autoreload.py",
-        "connection.py",
-    })
+    FILES = frozenset(
+        {
+            "autoreload.py",
+            "connection.py",
+        },
+    )
     # podcast_download
 
     def filter(self, record: LogRecord) -> bool:
         return (
-            record.module not in self.MODULES and
-            record.filename not in self.FILES
+            record.module not in self.MODULES
+            and record.filename not in self.FILES
         )
+
 
 ###
 

@@ -10,10 +10,10 @@ class RequestLoggingMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
 
-        if getattr(response, 'exception', None):
+        if getattr(response, "exception", None):
             logger.fatal(
                 f"{request.method} {request.path} {response.status_code} "
-                f"{request.headers} {response.content}"
+                f"{request.headers} {response.content}",
             )
 
         return response

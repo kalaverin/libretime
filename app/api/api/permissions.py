@@ -1,8 +1,7 @@
 from collections.abc import Sequence
 from contextlib import suppress
 from secrets import compare_digest
-from typing import Any
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from django.conf import settings
 from rest_framework.permissions import BasePermission
@@ -13,7 +12,6 @@ from api.core.models import Role
 
 if TYPE_CHECKING:
     from rest_framework.views import APIView
-    from rest_framework.viewsets import ModelViewSet
 
 REQUEST_PERMISSION_TYPE_MAP = {
     "GET": "view",

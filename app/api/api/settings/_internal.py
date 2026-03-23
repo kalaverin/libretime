@@ -1,8 +1,8 @@
 from os import environ, getenv
 
-from api import PACKAGE, VERSION
-
 import structlog
+
+from api import PACKAGE, VERSION
 
 API_VERSION = "2.0.0"
 
@@ -98,7 +98,7 @@ AUTH_PASSWORD_VALIDATORS = [
 def setup_logger(log_filepath: str | None):
     from sdk.structlog import configure
 
-    configure(level='debug', is_textual=True)
+    configure(level="debug", is_textual=True)
     return {
         "version": 1,
         "disable_existing_loggers": False,
@@ -114,7 +114,7 @@ def setup_logger(log_filepath: str | None):
             "key_value": {
                 "()": structlog.stdlib.ProcessorFormatter,
                 "processor": structlog.processors.KeyValueRenderer(
-                    key_order=["timestamp", "level", "event", "logger"]
+                    key_order=["timestamp", "level", "event", "logger"],
                 ),
             },
         },

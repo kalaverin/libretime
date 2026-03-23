@@ -1,4 +1,3 @@
-from structlog import get_logger
 import os
 
 from os import remove
@@ -12,6 +11,7 @@ from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
 from rest_framework.request import Request
+from structlog import get_logger
 from typing_extensions import override
 
 from api.schedule.models import Schedule
