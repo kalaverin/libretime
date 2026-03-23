@@ -10,6 +10,7 @@ from threading import Thread
 import requests
 
 from api_client.v2 import ApiClient
+from typing_extensions import override
 
 from playout.player.events import FileEvent, FileEvents
 
@@ -194,6 +195,7 @@ class PypoFile(Thread):
                 logger.exception(e)
                 raise
 
+    @override
     def run(self):
         """
         Entry point of the thread

@@ -17,9 +17,17 @@ from sdk import UTC
 logger = logging.getLogger(__name__)
 
 
+class UnknownEventError(Exception): ...
+
+
+class NoQueueAvailableError(Exception): ...
+
+
 def create_liquidsoap_annotation(file_event: FileEvent) -> str:
-    # We need liq_start_next value in the annotation. That is the value that controls
-    # overlap duration of crossfade.
+
+    # We need liq_start_next value in the annotation. That is the value that
+    # controls overlap duration of crossfade.
+
     annotations = {
         "media_id": file_event.id,
         "schedule_table_id": file_event.row_id,
@@ -33,9 +41,11 @@ def create_liquidsoap_annotation(file_event: FileEvent) -> str:
     if file_event.replay_gain is not None:
         annotations["replay_gain"] = f"{file_event.replay_gain} dB"
 
-    # Override the the artist/title that Liquidsoap extracts from a file's metadata with
-    # the metadata we get from LibreTime. (You can modify metadata in LibreTime's library,
-    # which doesn't get saved back to the file.)
+    # Override the the artist/title that Liquidsoap extracts from a file's
+    # metadata with the metadata we get from LibreTime. (You can modify
+    # metadata in LibreTime's library, which doesn't get saved back to
+    # the file.)
+
     if file_event.artist_name:
         value = (
             file_event.artist_name.replace('"', '\\"')
@@ -119,24 +129,25 @@ class TelnetLiquidsoap:
         except OSError as exception:
             logger.exception(exception)
 
-    def get_current_stream_id(self) -> str:
+    def get_current_stream_id(self) -> int:
         try:
-            return self.liq_client.web_stream_get_id()
+            return int(self.liq_client.web_stream_get_id())
+
         except OSError as exception:
             logger.exception(exception)
-            return "-1"
+            return -1
 
-    def disconnect_source(self, sourcename) -> None:
+    def disconnect_source(self, sourcename: str) -> None:
         if sourcename not in ("master_dj", "live_dj"):
             raise ValueError(f"invalid source name: {sourcename}")
 
         try:
             logger.debug("Disconnecting source: %s", sourcename)
-            self.liq_client.source_switch_status(sourcename, False)
+            self.liq_client.source_switch_status(sourcename, streaming=False)
         except OSError as exception:
             logger.exception(exception)
 
-    def switch_source(self, sourcename, status) -> None:
+    def switch_source(self, sourcename: str, status: str) -> None:
         if sourcename not in ("master_dj", "live_dj", "scheduled_play"):
             raise ValueError(f"invalid source name: {sourcename}")
 
@@ -215,9 +226,10 @@ class Liquidsoap:
                 event.row_id
                 != self.telnet_liquidsoap.current_prebuffering_stream_id
             ):
-                # this is called if the stream wasn't scheduled sufficiently ahead of
-                # time so that the prebuffering stage could take effect. Let's do the
-                # prebuffering now.
+                # this is called if the stream wasn't scheduled sufficiently
+                # ahead of time so that the prebuffering stage could take
+                # effect. Let's do the prebuffering now.
+
                 self.telnet_liquidsoap.start_web_stream_buffer(event)
             self.telnet_liquidsoap.start_web_stream()
 
@@ -263,22 +275,22 @@ class Liquidsoap:
         item, we should have a max of 8 items.
 
         2013-03-21-22-56-00_0: {
-        id: 1,
-        type: "stream_output_start",
-        row_id: 41,
-        uri: "http://stream2.radioblackout.org:80/blackout.ogg",
-        start: "2013-03-21-22-56-00",
-        end: "2013-03-21-23-26-00",
-        show_name: "Untitled Show"
+            id: 1,
+            type: "stream_output_start",
+            row_id: 41,
+            uri: "http://stream2.radioblackout.org:80/blackout.ogg",
+            start: "2013-03-21-22-56-00",
+            end: "2013-03-21-23-26-00",
+            show_name: "Untitled Show"
         },
         """
 
         scheduled_now_files: list[FileEvent] = [
-            x for x in scheduled_now if x.type == EventKind.FILE  # type: ignore
+            x for x in scheduled_now if x.type == EventKind.FILE
         ]
 
         scheduled_now_webstream: list[WebStreamEvent] = [
-            x  # type: ignore
+            x
             for x in scheduled_now
             if x.type == EventKind.WEB_STREAM_OUTPUT_START
         ]
@@ -295,10 +307,11 @@ class Liquidsoap:
         to_be_removed: set[int] = set()
         to_be_added: set[int] = set()
 
-        # Iterate over the new files, and compare them to currently scheduled
-        # tracks. If already in liquidsoap queue still need to make sure they don't
-        # have different attributes. Ff replay gain changes, it shouldn't change the
-        # amplification of the currently playing song
+        # Iterate over the new files, and compare them to currently
+        # scheduled tracks. If already in liquidsoap queue still need to make
+        # sure they don't have different attributes. Ff replay gain changes,
+        # it shouldn't change the amplification of the currently playing song
+
         for item in scheduled_now_files:
             if item.row_id in row_id_map:
                 queue_item = row_id_map[item.row_id]
@@ -342,17 +355,18 @@ class Liquidsoap:
                     self.play(item)
 
         # handle webstreams
+
         current_stream_id = self.telnet_liquidsoap.get_current_stream_id()
-        if current_stream_id is None:
-            current_stream_id = "-1"
+        if not current_stream_id:
+            current_stream_id = -1
 
         logger.debug("scheduled now webstream: %s", scheduled_now_webstream)
+
         if scheduled_now_webstream:
-            if int(current_stream_id) != int(
-                scheduled_now_webstream[0].row_id,
-            ):
+            if current_stream_id != int(scheduled_now_webstream[0].row_id):
                 self.play(scheduled_now_webstream[0])
-        elif current_stream_id != "-1":
+
+        elif current_stream_id != -1:
             # something is playing and it shouldn't be.
             self.telnet_liquidsoap.stop_web_stream_buffer()
             self.telnet_liquidsoap.stop_web_stream_output()
@@ -377,9 +391,3 @@ class Liquidsoap:
 
     def clear_all_queues(self) -> None:
         self.telnet_liquidsoap.queue_clear_all()
-
-
-class UnknownEventError(Exception): ...
-
-
-class NoQueueAvailableError(Exception): ...
