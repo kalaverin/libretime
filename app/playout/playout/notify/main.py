@@ -151,7 +151,7 @@ def live_auth(
 @click.argument("time")
 @click.option("--error", help="Error message if any occurred.")
 @pass_app
-def stream(app: App, stream_id: int, time: str, error: str):
+def stream(app: App, stream_id: int, time: str, error: str) -> None:
     """
     Notify about output stream status.
 
@@ -168,7 +168,7 @@ def stream(app: App, stream_id: int, time: str, error: str):
 
 @cli.command()
 @pass_app
-def started(app: App):
+def started(app: App) -> None:
     """
     Notify liquidsoap startup status.
 

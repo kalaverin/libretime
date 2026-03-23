@@ -122,7 +122,7 @@ class StatsCollector:
                     requests.exceptions.HTTPError,
                     requests.exceptions.Timeout,
                 ) as exception:
-                    logger.exception(exception)
+                    logger.exception("Error collecting output stats")
                     self._legacy_client.update_stream_setting_table(
                         {output_id: str(exception)},
                     )
@@ -165,8 +165,6 @@ class StatsCollectorThread(Thread):
         while True:
             try:
                 self._collector.collect(self._config.stream.outputs.merged)
-            except (
-                Exception
-            ) as exception:  # pylint: disable=broad-exception-caught
-                logger.exception(exception)
+            except Exception:
+                logger.exception("Error collecting stats")
             sleep(120)

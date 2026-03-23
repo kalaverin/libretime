@@ -1,7 +1,8 @@
-import logging
 import time
 
 from datetime import datetime, timedelta
+
+from structlog import get_logger
 
 from playout.liquidsoap.client import LiquidsoapClient
 from playout.player.events import (
@@ -14,7 +15,7 @@ from playout.player.events import (
 from playout.utils import seconds_between
 from sdk import UTC
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class UnknownEventError(Exception): ...
@@ -83,14 +84,20 @@ class TelnetLiquidsoap:
     def queue_clear_all(self) -> None:
         try:
             self.liq_client.queues_remove(*self.queues)
-        except OSError as exception:
-            logger.exception(exception)
+        except OSError:
+            logger.exception(
+                "Error clearing liquidsoap queues",
+                queues=self.queues,
+            )
 
     def queue_remove(self, queue_id: int) -> None:
         try:
             self.liq_client.queues_remove(queue_id)
-        except OSError as exception:
-            logger.exception(exception)
+        except OSError:
+            logger.exception(
+                "Error removing file from liquidsoap queue",
+                queue_id=queue_id,
+            )
 
     def queue_push(self, queue_id: int, file_event: FileEvent) -> None:
         try:
@@ -100,41 +107,49 @@ class TelnetLiquidsoap:
                 annotation,
                 file_event.show_name,
             )
-        except OSError as exception:
-            logger.exception(exception)
+        except OSError:
+            logger.exception(
+                "Error pushing file to liquidsoap queue",
+                path=file_event.local_filepath,
+            )
 
     def stop_web_stream_buffer(self) -> None:
         try:
             self.liq_client.web_stream_stop_buffer()
-        except OSError as exception:
-            logger.exception(exception)
+        except OSError:
+            logger.exception("Error stopping web stream buffer")
 
     def stop_web_stream_output(self) -> None:
         try:
             self.liq_client.web_stream_stop()
-        except OSError as exception:
-            logger.exception(exception)
+        except OSError:
+            logger.exception("Error stopping web stream output")
 
     def start_web_stream(self) -> None:
         try:
             self.liq_client.web_stream_start()
             self.current_prebuffering_stream_id = None
-        except OSError as exception:
-            logger.exception(exception)
+        except OSError:
+            logger.exception("Error starting web stream output")
 
-    def start_web_stream_buffer(self, event: WebStreamEvent):
+    def start_web_stream_buffer(self, event: WebStreamEvent) -> None:
         try:
             self.liq_client.web_stream_start_buffer(event.row_id, event.uri)
             self.current_prebuffering_stream_id = event.row_id
-        except OSError as exception:
-            logger.exception(exception)
+
+        except OSError:
+            logger.exception(
+                "Error starting web stream buffer",
+                row_id=event.row_id,
+                uri=event.uri,
+            )
 
     def get_current_stream_id(self) -> int:
         try:
             return int(self.liq_client.web_stream_get_id())
 
-        except OSError as exception:
-            logger.exception(exception)
+        except OSError:
+            logger.exception("Error getting current web stream id")
             return -1
 
     def disconnect_source(self, sourcename: str) -> None:
@@ -144,8 +159,9 @@ class TelnetLiquidsoap:
         try:
             logger.debug("Disconnecting source: %s", sourcename)
             self.liq_client.source_switch_status(sourcename, streaming=False)
-        except OSError as exception:
-            logger.exception(exception)
+
+        except OSError:
+            logger.exception("Error disconnecting source", source=sourcename)
 
     def switch_source(self, sourcename: str, status: str) -> None:
         if sourcename not in ("master_dj", "live_dj", "scheduled_play"):
@@ -153,16 +169,22 @@ class TelnetLiquidsoap:
 
         try:
             logger.debug(
-                'Switching source: %s to "%s" status',
-                sourcename,
-                status,
+                "Switching source to status",
+                source=sourcename,
+                status=status,
             )
             self.liq_client.source_switch_status(sourcename, status == "on")
-        except OSError as exception:
-            logger.exception(exception)
+
+        except OSError:
+            logger.exception(
+                "Error switching source to status",
+                source=sourcename,
+                status=status,
+            )
 
 
 class Liquidsoap:
+
     def __init__(self, liq_client: LiquidsoapClient) -> None:
         self.liq_queue_tracker: dict[int, FileEvent | None] = {
             0: None,
@@ -207,45 +229,52 @@ class Liquidsoap:
             try:
                 self.telnet_liquidsoap.queue_push(available_queue, file_event)
                 self.liq_queue_tracker[available_queue] = file_event
-            except Exception as exception:
-                logger.exception(exception)
-                raise exception
+
+            except Exception:
+                logger.exception(
+                    "Error pushing file to liquidsoap queue",
+                    path=file_event.local_filepath,
+                )
+                raise
         else:
             logger.warning(
-                "File %s did not become ready in less than 5 seconds. Skipping...",
-                file_event.local_filepath,
+                "File did not become ready in less than 5 seconds. Skipping",
+                path=file_event.local_filepath,
             )
 
     def handle_web_stream_type(self, event: WebStreamEvent) -> None:
-
-        if event.type == EventKind.WEB_STREAM_BUFFER_START:
-            self.telnet_liquidsoap.start_web_stream_buffer(event)
-
-        elif event.type == EventKind.WEB_STREAM_OUTPUT_START:
-            if (
-                event.row_id
-                != self.telnet_liquidsoap.current_prebuffering_stream_id
-            ):
-                # this is called if the stream wasn't scheduled sufficiently
-                # ahead of time so that the prebuffering stage could take
-                # effect. Let's do the prebuffering now.
-
+        match event.type:
+            case EventKind.WEB_STREAM_BUFFER_START:
                 self.telnet_liquidsoap.start_web_stream_buffer(event)
-            self.telnet_liquidsoap.start_web_stream()
 
-        elif event.type == EventKind.WEB_STREAM_BUFFER_END:
-            self.telnet_liquidsoap.stop_web_stream_buffer()
+            case EventKind.WEB_STREAM_OUTPUT_START:
+                if (
+                    event.row_id
+                    != self.telnet_liquidsoap.current_prebuffering_stream_id
+                ):
+                    # this is called if the stream wasn't scheduled sufficiently
+                    # ahead of time so that the prebuffering stage could take
+                    # effect. Let's do the prebuffering now.
 
-        elif event.type == EventKind.WEB_STREAM_OUTPUT_END:
-            self.telnet_liquidsoap.stop_web_stream_output()
+                    self.telnet_liquidsoap.start_web_stream_buffer(event)
+                self.telnet_liquidsoap.start_web_stream()
+
+            case EventKind.WEB_STREAM_BUFFER_END:
+                self.telnet_liquidsoap.stop_web_stream_buffer()
+
+            case EventKind.WEB_STREAM_OUTPUT_END:
+                self.telnet_liquidsoap.stop_web_stream_output()
 
     def handle_event_type(self, event: ActionEvent) -> None:
+        match event.event_type:
+            case "kick_out":
+                self.telnet_liquidsoap.disconnect_source("live_dj")
 
-        if event.event_type == "kick_out":
-            self.telnet_liquidsoap.disconnect_source("live_dj")
+            case "switch_off":
+                self.telnet_liquidsoap.switch_source("live_dj", "off")
 
-        elif event.event_type == "switch_off":
-            self.telnet_liquidsoap.switch_source("live_dj", "off")
+            case _:
+                logger.warning("Unknown event type", type=event.event_type)
 
     def find_available_queue(self) -> int:
         available_queue = None
@@ -322,7 +351,7 @@ class Liquidsoap:
                     and queue_item.row_id == item.row_id
                 ):
                     # need to re-add
-                    logger.info("Track %s found to have new attr.", item)
+                    logger.info("Track found to have new attr", item=item)
                     to_be_removed.add(item.row_id)
                     to_be_added.add(item.row_id)
 
@@ -331,8 +360,8 @@ class Liquidsoap:
 
         if to_be_removed:
             logger.info(
-                "Need to remove items from Liquidsoap: %s",
-                to_be_removed,
+                "Need to remove items from Liquidsoap",
+                items=to_be_removed,
             )
 
             # remove files from Liquidsoap's queue
@@ -345,8 +374,8 @@ class Liquidsoap:
 
         if to_be_added:
             logger.info(
-                "Need to add items to Liquidsoap *now*: %s",
-                to_be_added,
+                "Need to add items to Liquidsoap *now*",
+                items=to_be_added,
             )
 
             for item in scheduled_now_files:
@@ -360,7 +389,7 @@ class Liquidsoap:
         if not current_stream_id:
             current_stream_id = -1
 
-        logger.debug("scheduled now webstream: %s", scheduled_now_webstream)
+        logger.debug("scheduled now webstream", items=scheduled_now_webstream)
 
         if scheduled_now_webstream:
             if current_stream_id != int(scheduled_now_webstream[0].row_id):
@@ -385,7 +414,7 @@ class Liquidsoap:
         lateness = seconds_between(file_event.start, datetime.now(UTC))
 
         if lateness > 0:
-            logger.debug("media item was supposed to start %ss ago", lateness)
+            logger.debug("media item was supposed to start", items=lateness)
             cue_in_orig = timedelta(seconds=file_event.cue_in)
             file_event.cue_in = cue_in_orig.total_seconds() + lateness
 
