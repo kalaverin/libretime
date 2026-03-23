@@ -1,5 +1,6 @@
 from datetime import datetime, time, timedelta
 from operator import itemgetter
+from typing import Any
 
 from api_client import v2
 from sdk.datetime import time_in_milliseconds, time_in_seconds
@@ -80,9 +81,9 @@ def get_schedule(api_client: v2.ApiClient) -> Events:
 
 def generate_live_events(
     events: Events,
-    show_instance: dict,
+    show_instance: dict[Any, Any],
     stream_preferences: StreamPreferences,
-):
+) -> None:
     transition = timedelta(seconds=stream_preferences.input_fade_transition)
 
     switch_off = show_instance["ends_at"] - transition
@@ -112,11 +113,11 @@ def generate_live_events(
 
 def generate_file_events(
     events: Events,
-    schedule: dict,
-    file: dict,
-    show: dict,
+    schedule: dict[Any, Any],
+    file: dict[Any, Any],
+    show: dict[Any, Any],
     stream_preferences: StreamPreferences,
-):
+) -> None:
     """
     Generate events for a scheduled file.
     """
@@ -157,10 +158,10 @@ def generate_file_events(
 
 def generate_webstream_events(
     events: Events,
-    schedule: dict,
-    webstream: dict,
-    show: dict,
-):
+    schedule: dict[Any, Any],
+    webstream: dict[Any, Any],
+    show: dict[Any, Any],
+) -> None:
     """
     Generate events for a scheduled webstream.
     """
