@@ -10,11 +10,12 @@ __*__/
 
 !docs/*.md
 
+!AGENTS.md
 !CHANGELOG.md
+!CONTRIBUTING.md@
 !LEGACY.md
 !README.md
 !SECURITY.md
-!CONTRIBUTING.md@
 
 !.dockerignore
 !.env.sample
