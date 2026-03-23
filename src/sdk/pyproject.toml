@@ -17,8 +17,10 @@ authors = [{name = "LibreTime Contributors"}]
 dependencies = [
   "backports-zoneinfo>=0.2.1,<0.3 ; python_full_version < '3.9'",
   "click>=8.0.4,<8.2",
+  "httpx>=0.28.1",
   "pydantic>=2.5.0,<2.12",
-  "pyyaml>=5.3.1,<6.1"
+  "pyyaml>=5.3.1,<6.1",
+  "starlette>=1.0.0",
 ]
 description = "LibreTime Shared SDK"
 license = {text = "AGPLv3"}
