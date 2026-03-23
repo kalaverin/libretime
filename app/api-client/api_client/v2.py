@@ -63,10 +63,11 @@ class ApiClient(AbstractApiClient):
             json={"filesize": size, "md5": md5},
         )
 
-    def download_file(self, item_id: int) -> Response:
+    def download_file(self, item_id: int, stream: bool = False) -> Response:
         return self._request(
             "GET",
             f"/api/v2/files/{item_id:d}/download",
+            stream=stream,
         )
 
     def get_stream_preferences(self) -> Response:

@@ -101,10 +101,14 @@ class AbstractApiClient:
         self,
         method: str,
         url: str,
-        **kwargs: dict[str, Any],
+        stream: bool = False,
     ) -> Response:
         try:
-            response = self.session.request(method, url, **kwargs)
+            response = self.session.request(
+                method,
+                url,
+                stream=stream,
+            )
             response.raise_for_status()
 
         except RequestException as exception:

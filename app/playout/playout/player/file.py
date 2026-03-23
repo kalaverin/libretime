@@ -1,8 +1,9 @@
 import hashlib
 import logging
-import os
 import time
 
+from contextlib import suppress
+from pathlib import Path
 from queue import Empty, Queue
 from threading import Thread
 
@@ -16,8 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 class PypoFile(Thread):
-    name = "file"
-    daemon = True
+
+    name: str = "file"
+    daemon: bool = True
 
     file_events_queue: "Queue[FileEvents]"
     file_events: FileEvents
@@ -26,13 +28,13 @@ class PypoFile(Thread):
         self,
         file_queue: "Queue[FileEvents]",
         api_client: ApiClient,
-    ):
+    ) -> None:
         Thread.__init__(self)
         self.file_events_queue = file_queue
         self.file_events = {}
-        self.api_client = api_client
+        self.api_client: ApiClient = api_client
 
-    def copy_file(self, file_event: FileEvent):
+    def copy_file(self, file_event: FileEvent) -> None:
         """
         Copy file_event from local library directory to local cache directory.
         """
@@ -57,7 +59,7 @@ class PypoFile(Thread):
                         file_event.id,
                         stream=True,
                     )
-                    for chunk in response.iter_content(chunk_size=8192):
+                    for chunk in response.iter_content(chunk_size=2**20):
                         file_fd.write(chunk)
 
             except requests.exceptions.HTTPError as exception:
@@ -92,17 +94,19 @@ class PypoFile(Thread):
         file_path: str,
         file_id: int,
     ) -> int:
-        try:
-            file_size = os.path.getsize(file_path)
+        path = Path(file_path)
+        hasher = hashlib.new("md5", usedforsecurity=False)
 
-            with open(file_path, "rb") as file_fd:
-                hasher = hashlib.new("md5", usedforsecurity=False)
+        try:
+            file_size = path.stat().st_size
+
+            with path.open("rb") as fd:
                 while True:
-                    data = file_fd.read(8192)
-                    if not data:
+                    if data := fd.read(2**20):
+                        hasher.update(data)
+                    else:
                         break
-                    hasher.update(data)
-                md5_hash = hasher.hexdigest()
+
         except OSError as exception:
             file_size = 0
             logger.exception(
@@ -110,6 +114,9 @@ class PypoFile(Thread):
                 file_id,
                 exception,
             )
+            raise
+
+        md5_hash = hasher.hexdigest()
 
         # Make PUT request to LibreTime to update the file size and hash
         error_msg = f"Could not update media file {file_id} with file size and md5 hash"
@@ -124,6 +131,7 @@ class PypoFile(Thread):
             requests.exceptions.Timeout,
         ):
             logger.exception(error_msg)
+
         except (
             Exception
         ) as exception:  # pylint: disable=broad-exception-caught
@@ -139,15 +147,10 @@ class PypoFile(Thread):
         Get highest priority file event in the queue. Currently the highest
         priority is decided by how close the start time is to "now".
         """
-        if file_events is None or len(file_events) == 0:
+        if not file_events:
             return None
 
-        sorted_keys = sorted(file_events.keys())
-
-        if len(sorted_keys) == 0:
-            return None
-
-        highest_priority = sorted_keys[0]
+        highest_priority = sorted(file_events)[0]
         file_event = file_events[highest_priority]
 
         logger.debug("Highest priority item: %s", highest_priority)
@@ -157,38 +160,39 @@ class PypoFile(Thread):
         # anymore. If on the next iteration we have received a new schedule,
         # it is very possible we will have to deal with the same media_items
         # again. In this situation, the worst possible case is that we try to
-        # copy the file again and realize we already have it (thus aborting the copy).
+        # copy the file again and realize we already have it
+        # (thus aborting the copy).
+
         del file_events[highest_priority]
 
         return file_event
 
-    def main(self):
+    def main(self) -> None:
         while True:
             try:
-                if self.file_events is None or len(self.file_events) == 0:
+                if not self.file_events:
                     # We have no schedule, so we have nothing else to do. Let's
                     # do a blocked wait on the queue
                     self.file_events = self.file_events_queue.get(block=True)
                 else:
                     # We have a schedule we need to process, but we also want
                     # to check if a newer schedule is available. In this case
-                    # do a non-blocking queue.get and in either case (we get something
-                    # or we don't), get back to work on preparing getting files.
-                    try:
+                    # do a non-blocking queue.get and in either case
+                    # (we get something or we don't),
+                    # get back to work on preparing getting files.
+
+                    with suppress(Empty):
                         self.file_events = self.file_events_queue.get_nowait()
-                    except Empty:
-                        pass
 
                 file_event = self.get_highest_priority_file_event(
                     self.file_events,
                 )
                 if file_event is not None:
                     self.copy_file(file_event)
-            except (
-                Exception
-            ) as exception:  # pylint: disable=broad-exception-caught
-                logger.exception(exception)
-                raise exception
+
+            except Exception as e:
+                logger.exception(e)
+                raise
 
     def run(self):
         """
