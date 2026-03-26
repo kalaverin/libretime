@@ -1,11 +1,10 @@
-import logging
-
 from collections import deque
 from datetime import datetime
 from queue import Empty, Queue
 from threading import Thread
 from typing import TYPE_CHECKING, Any
 
+from structlog import get_logger
 from typing_extensions import final, override
 
 from playout.player.liquidsoap import Liquidsoap
@@ -15,7 +14,7 @@ from sdk import UTC
 if TYPE_CHECKING:
     from playout.player.events import AnyEvent
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @final
@@ -35,19 +34,21 @@ class PypoLiqQueue(Thread):
         self.liquidsoap: Liquidsoap = liquidsoap
 
     def main(self) -> None:
+
+        media_schedule = None
         time_until_next_play = None
         schedule_deque: deque[AnyEvent] = deque()
-        media_schedule = None
 
         while True:
             try:
                 if time_until_next_play is None:
                     logger.info("waiting indefinitely for schedule")
                     media_schedule = self.queue.get(block=True)
+
                 else:
                     logger.info(
-                        "waiting %ss until next scheduled item",
-                        time_until_next_play,
+                        "waiting until next scheduled item",
+                        wait=time_until_next_play,
                     )
                     media_schedule = self.queue.get(
                         block=True,

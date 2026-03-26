@@ -103,14 +103,18 @@ class AbstractApiClient:
         method: str,
         url: str,
         stream: bool = False,
+        data: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
         params: dict[str, Any] | None = None,
     ) -> Response:
         try:
             response = self.session.request(
                 method,
                 url,
-                stream=stream,
+                data=data,
+                json=json,
                 params=params,
+                stream=stream,
             )
             response.raise_for_status()
 
