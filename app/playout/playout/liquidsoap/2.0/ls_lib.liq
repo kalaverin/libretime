@@ -30,7 +30,7 @@ end
 def append_title(m) =
   log("Using message format #{message_format()}")
 
-  if list.mem_assoc("mapped", m) then
+  if list.assoc.mem("mapped", m) then
     # protection against applying this function twice. It shouldn't be happening and bug
     # file with Liquidsoap.
     m
@@ -95,15 +95,14 @@ def to_live(old,new) =
   sequence([old,new])
 end
 
-
-def make_ouput_on_connect_handler(stream)
+def make_output_on_connect_handler(stream)
   def on_connect()
     gateway("stream '#{stream}' '#{boot_timestamp}'")
   end
   on_connect
 end
 
-def make_ouput_on_error_handler(stream)
+def make_output_on_error_handler(stream)
   def on_error(msg)
     gateway("stream '#{stream}' '#{boot_timestamp}' --error='#{msg}'")
     5.

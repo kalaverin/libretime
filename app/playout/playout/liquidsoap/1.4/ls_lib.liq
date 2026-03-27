@@ -95,7 +95,7 @@ def to_live(old,new) =
 end
 
 
-def make_ouput_on_connect_handler(stream)
+def make_output_on_connect_handler(stream)
   def on_connect()
     gateway("stream '#{stream}' '#{boot_timestamp}'")
   end

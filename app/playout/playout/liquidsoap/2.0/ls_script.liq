@@ -1,7 +1,7 @@
 boot_timestamp = string_of(time())
 
 web_stream_enabled = ref(false)
-web_stream_id = ref( '-1')
+web_stream_id = ref('-1')
 
 show_name = interactive.string("show_name", "")
 
@@ -49,14 +49,9 @@ create_source()
 create_source()
 create_source()
 
-queue = add(!sources)#, normalize=false)
+queue = add(!sources)
 queue = insert_metadata(queue)
 dynamic_metadata_callback := queue.insert_metadata
-
-output.dummy(fallible=true, queue)
-
-#http = input.http_restart(id="http")
-#output.dummy(fallible=true, http)
 
 ignore(output.dummy(queue, fallible=true))
 
@@ -75,6 +70,7 @@ server.register(namespace="sources",
                 fun (s) -> begin log("sources.start_web_stream")
                     notify([("schedule_table_id", !web_stream_id)])
                     web_stream_enabled := true "enabled" end)
+
 server.register(namespace="sources",
                 description="Stop webstream source",
                 "stop_web_stream",
@@ -186,31 +182,37 @@ else
     s
 end
 
+
 server.register(namespace="sources",
     description="Stop main input source.",
     usage="stop_input_main",
     "stop_input_main",
     fun (s) -> begin log("sources.stop_input_main") stop_input_main() "Done" end)
+
 server.register(namespace="sources",
     description="Start main input source.",
     usage="start_input_main",
     "start_input_main",
     fun (s) -> begin log("sources.start_input_main") start_input_main() "Done" end)
+
 server.register(namespace="sources",
     description="Stop show input source.",
     usage="stop_input_show",
     "stop_input_show",
     fun (s) -> begin log("sources.stop_input_show") stop_input_show() "Done" end)
+
 server.register(namespace="sources",
     description="Start show input source.",
     usage="start_input_show",
     "start_input_show",
     fun (s) -> begin log("sources.start_input_show") start_input_show() "Done" end)
+
 server.register(namespace="sources",
     description="Stop schedule source.",
     usage="stop_schedule",
     "stop_schedule",
     fun (s) -> begin log("sources.stop_schedule") stop_schedule() "Done" end)
+
 server.register(namespace="sources",
     description="Start schedule source.",
     usage="start_schedule",
