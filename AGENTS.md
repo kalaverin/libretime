@@ -1,276 +1,110 @@
-# LibreTime - Agent Guide
+# libretime — Agent Context
 
-**Version:** 4.5.0  
-**Commit:** f6e3015e8  
-**License:** AGPLv3  
-**Python:** >=3.10, <3.12
+- This file modification datetime: 2026-03-27
+- File modified at commit: 6205e003a371d3a7bd234daceccbaae69a2bb200
 
----
+## PROJECT_CONTEXT
+- Stack: Python, Django REST Framework, Celery, RabbitMQ, PostgreSQL, Liquidsoap
+- Language version: Python >=3.10, <3.12
+- Framework: Django 4.2 (API), Zend Framework 1 (Legacy PHP)
+- Entry points:
+  - API: `api.manage:main` (Django management)
+  - Playout: `playout.main:cli`, `playout.liquidsoap.main:cli`, `playout.notify:cli`
+  - Analyzer: `analyzer.main:cli`
+  - Worker: `worker.main:cli`
+- Build: `make install` (mise tools), `uv sync --all-packages --group development` (deps)
+- Test runner: `pytest` / `pytest-django` (run from component directory)
+- Lint: `make lint` or `uv run pre-commit run --config etc/pre-commit.yaml --all`
+- Format: black (line length 79, Python 3.10 target) via pre-commit
 
-## Overview
+## ARCHITECTURE
 
-LibreTime is a radio broadcast automation system - a community-managed fork of the AirTime project. It enables running online or terrestrial radio stations with scheduling, playout, and streaming capabilities.
+Monolithic radio broadcast automation system split into two functional blocks:
 
----
+### Create Schedule (Content Management)
+| Component | Path | Purpose |
+|-----------|------|---------|
+| `api` | `app/api/` | Django REST API, database models, business logic |
+| `worker` | `app/worker/` | Celery worker for async tasks (podcasts, notifications) |
+| `analyzer` | `app/analyzer/` | Audio file analysis (metadata, replaygain, cuepoints) |
+| Legacy Web | `legacy/` | PHP web UI (Zend Framework 1) |
 
-## Architecture
+### Play Schedule (Audio Playout)
+| Component | Path | Purpose |
+|-----------|------|---------|
+| `playout` | `app/playout/` | Playout engine, schedule execution, Liquidsoap control |
+| Liquidsoap | External | Audio streaming/processing engine |
+| Icecast/HLS | External | Audio streaming servers |
 
-The system is split into two main monolithic blocks:
+### Shared Libraries
+| Component | Path | Purpose |
+|-----------|------|---------|
+| `sdk` | `src/sdk/` | Shared utilities (config, logging, HTTP client, datetime) |
 
-### 1. Create the Schedule
-Components for content management and scheduling:
-- **Web API** (Django REST Framework) - core backend
-- **Worker** (Celery) - background task processing
-- **Message API** - communication layer
-- **Web App** - Legacy PHP interface
+### API Django Apps (`app/api/api/`)
+- `core` - users, auth, preferences, workers
+- `storage` - files, libraries
+- `schedule` - shows, playlists, smart blocks, webstreams
+- `podcasts` - podcast management
+- `history` - listener stats, playout history
+- `legacy` - migrations from old schema
 
-### 2. Play the Schedule
-Components for audio playout and streaming:
-- **Playout** - schedule execution engine
-- **Liquidsoap** - audio streaming/processing engine
-- **Icecast** - traditional audio streaming server
-- **HLS** - modern HTTP Live Streaming
+## CONVENTIONS
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Create Schedule                         │
-│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐        │
-│  │ Web App │  │   API   │  │ Worker  │  │ Message │        │
-│  │  (PHP)  │──│ (Django)│  │(Celery) │  │   API   │        │
-│  └─────────┘  └────┬────┘  └────┬────┘  └────┬────┘        │
-└────────────────────┼────────────┼────────────┼──────────────┘
-                     │            │            │
-                     ▼            ▼            ▼
-              ┌─────────┐  ┌─────────┐  ┌──────────────┐
-              │Database │  │Storage  │  │Message Queue │
-              │(PostgreSQL)         │  │(RabbitMQ)    │
-              └─────────┘  └─────────┘  └──────────────┘
-                     ▲                           ▲
-                     │                           │
-┌────────────────────┼───────────────────────────┼──────────────┐
-│                     │      Play Schedule        │              │
-│  ┌─────────┐  ┌────┴────┐                     │              │
-│  │Playout  │──│Liquidsoap                      │              │
-│  │(Python) │  │         │◄────────────────────┘              │
-│  └─────────┘  └────┬────┘                                    │
-│                    │                                         │
-│              ┌─────┴─────┐                                   │
-│              ▼           ▼                                   │
-│        ┌─────────┐  ┌─────────┐                              │
-│        │ Icecast │  │   HLS   │                              │
-│        └─────────┘  └─────────┘                              │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Workspace Structure
-
-### `app/*` - Applications
-
-| Component | Language | Purpose |
-|-----------|----------|---------|
-| `analyzer/` | Python | Audio file analysis (metadata, replaygain, cuepoints, playability) |
-| `api/` | Python (Django) | REST API, database models, business logic |
-| `api-client/` | Python | HTTP client library for API communication |
-| `playout/` | Python | Playout engine, Liquidsoap integration, scheduling |
-| `worker/` | Python | Celery worker for async tasks (podcasts, notifications) |
-
-### `src/*` - Libraries
-
-| Component | Language | Purpose |
-|-----------|----------|---------|
-| `sdk/` | Python | Shared utilities (config, logging, HTTP client, datetime helpers) |
-
-### `legacy/` - Legacy Application
-
-| Component | Language | Purpose |
-|-----------|----------|---------|
-| `application/` | PHP (Zend FW 1) | Web UI, controllers, models (Propel ORM) |
-| `public/` | PHP/CSS/JS | Static assets, entry point |
-| `locale/` | PO files | Internationalization (15+ languages) |
-
----
-
-## Component Details
-
-### analyzer
-- **Entry point:** `analyzer.main:cli`
-- **Queue:** Listens to RabbitMQ for file analysis jobs
-- **Pipeline stages:**
-  1. `analyze_metadata` - extract ID3/metadata
-  2. `analyze_replaygain` - loudness normalization data
-  3. `analyze_cuepoint` - silence detection
-  4. `analyze_playability` - validate file can be played
-  5. `organise_file` - move to storage
-
-### api
-- **Entry point:** `api.manage:main`
-- **Django apps:**
-  - `core` - users, auth, preferences, workers
-  - `storage` - files, libraries
-  - `schedule` - shows, playlists, smart blocks, webstreams
-  - `podcasts` - podcast management
-  - `history` - listener stats, playout history
-  - `legacy` - migrations from old schema
-
-### playout
-- **Entry points:** 
-  - `playout.main:cli` - main playout daemon
-  - `playout.liquidsoap.main:cli` - Liquidsoap control
-  - `playout.notify.main:cli` - notification handler
-- **Key modules:**
-  - `player/` - schedule fetching, event queue, file management
-  - `liquidsoap/` - Liquidsoap integration (telnet/socket control)
-  - `history/` - playout statistics
-
-### worker
-- **Entry point:** `worker.main:cli`
-- **Tasks:**
-  - Podcast downloading
-  - Email notifications
-  - Background processing
-
-### sdk
-- **Modules:**
-  - `config/` - configuration parsing (env-based, pydantic models)
-  - `http/` - HTTP client with retry logic
-  - `logging.py` - structured logging setup
-  - `datetime.py` - timezone utilities
-
----
-
-## Development Toolchain
-
-### Package Management
-- **uv** - Modern Python package manager and workspace tool
-- Workspace defined in root `pyproject.toml` with members: `app/*`, `src/*`
-
-### Task Runner
-- **just** - Command runner (see `justfile`)
-  - `just` - list commands
-  - `just develop` - run development environment
-  - `just upgrade` - upgrade all dependencies
-  - `just clean` - clean cache files
-  - `just dock` - build Docker image
-
-### Environment Management
-- **mise** - Tool version manager (see `mise.toml`)
-- Install: `make install`
-
-### Linting & Formatting
-- **ruff** - Fast Python linter/formatter (config in `etc/lint/ruff.toml`)
-  - Line length: 79
-  - Target: Python 3.10
-- **mypy/basedpyright** - Type checking
-- **pre-commit** - Git hooks for quality checks (config: `etc/pre-commit.yaml`)
-
-### Testing
-- **pytest** - Test runner
-- **pytest-django** - Django testing utilities
-- Run: `uv run pytest` from component directory
-
----
-
-## Code Conventions
+### Code Style
+- Line length: 79 characters
+- Type hints required (Python 3.10+)
+- Import order: future → stdlib → third-party → first-party → local (enforced by ruff)
 
 ### Commits
 - Follow [Conventional Commits](https://www.conventionalcommits.org/)
-- Examples: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`
+- Prefixes: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`
 
 ### Development Process
-- Based on [C4 development process](https://rfc.zeromq.org/spec:42/c4/)
+- Based on [C4 process](https://rfc.zeromq.org/spec:42/c4/)
 - Main branch: `main`
 - Stable branches: `stable-X.Y`
 
-### Python Style
-- Type hints required (Python 3.10+)
-- Black-compatible formatting via ruff
-- Import order: future, stdlib, third-party, first-party, local
+### Pre-commit Hooks (etc/pre-commit.yaml)
+- uv lock check, yamlfix, yamllint
+- black (formatting), ruff (linting)
+- mypy, basedpyright (type checking)
+- refurb (bad patterns), vulture (unused code)
+- bandit, hexora (security)
+- codespell (spelling)
 
----
+### Testing
+- Run tests from component directory: `cd app/<component> && uv run pytest`
+- Django tests use `pytest-django` with `DJANGO_SETTINGS_MODULE=api.settings.testing`
 
-## Common Tasks
+## AGENT_RULES
+- Never modify files outside app/, src/ and tests/ without explicit confirmation
+- Do not run tests or linters without explicit request
+- Do not refactor code without explicit request
+- Use git only for read operations, never for write operations (e.g. commit, push, pull) without explicit request
+- When in doubt, check .agent/decisions.md for active decisions
+- Update .agent/tasks.md when starting/completing work items
 
-### Setup Development Environment
-```bash
-make install        # Install mise tools
-uv sync --all-packages --group development  # Install deps
-pre-commit install  # Setup git hooks
-```
-
-### Run Development Stack
-```bash
-just develop
-# or with Docker:
-make dev
-```
-
-### Run Linters
-```bash
-make lint
-# or directly:
-uv run pre-commit run --config etc/pre-commit.yaml --all
-```
-
-### Type Check
-```bash
-uv run basedpyright
-uv run basedmypy
-```
-
-### Run Tests
-```bash
-cd app/<component>
-uv run pytest
-```
-
-### Update Dependencies
-```bash
-just upgrade
-```
-
----
-
-## Key Configuration Files
-
-| File | Purpose |
-|------|---------|
-| `pyproject.toml` | Root workspace, deps, tool configs |
-| `justfile` | Task definitions |
-| `mise.toml` | Tool versions |
-| `etc/lint/ruff.toml` | Linter rules |
-| `etc/pre-commit.yaml` | Pre-commit hooks |
-| `docker-compose.yml` | Local development stack |
-| `app/*/pyproject.toml` | Component-specific deps |
-
----
-
-## External Services
-
-| Service | Usage | Config |
-|---------|-------|--------|
-| PostgreSQL | Database | `DATABASE_URL` |
-| RabbitMQ | Message queue | `RABBITMQ_*` |
-| Icecast | Audio streaming | Stream settings in DB |
-| Liquidsoap | Audio engine | Generated config |
-| Redis | Celery backend | `REDIS_*` |
-
----
-
-## Documentation
-
-- User docs: `docs/user-manual/`
-- Admin docs: `docs/admin-manual/`
-- Developer docs: `docs/developer-manual/`
-- Architecture: `docs/contributor-manual/design/architecture.md`
-
----
-
-## Notes
-
-- Each component has its own `Makefile` and `README.md`
+## MEMORY_HINTS
+- Workspace uses `uv` for package management (not pip/poetry)
+- Each app/* component is a separate package with its own pyproject.toml
+- Legacy PHP code in `legacy/` should rarely be modified
 - Services communicate via RabbitMQ message queue
-- Strong separation between "Create schedule" and "Play schedule" blocks
-- Playout can operate independently if API is down (schedule cached)
+- Playout can operate independently if API is down (schedule is cached)
 - Not designed for multi-tenancy - one install per radio station
+
+## KNOWN_ISSUES
+- Legacy codebase contains technical debt (Zend Framework 1, Propel ORM)
+- Some tests may require Docker services (postgres, rabbitmq)
+- Liquidsoap integration requires external binary
+
+## EXTERNAL RESOURCES
+- Documentation: https://libretime.org/docs/
+- Forum: https://discourse.libretime.org
+- Matrix: #libretime:matrix.org
+- C4 Process: https://rfc.zeromq.org/spec:42/c4/
+- Conventional Commits: https://www.conventionalcommits.org/
+
+---
+
+*This file is maintained by repo-init-agent. Last full sync: 2026-03-27*
