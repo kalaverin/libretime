@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from django.db.models import (
     DO_NOTHING,
     CharField,
@@ -10,6 +12,9 @@ from django.db.models import (
     TextChoices,
     TimeField,
 )
+
+if TYPE_CHECKING:
+    from api.core.models.user import User
 
 
 class SmartBlock(Model):
@@ -68,7 +73,7 @@ class SmartBlock(Model):
         db_column="creator_id",
     )
 
-    def get_owner(self):
+    def get_owner(self) -> "User | None":
         return self.owner
 
 
@@ -129,7 +134,7 @@ class SmartBlockContent(Model):
         db_column="fadeout",
     )
 
-    def get_owner(self):
+    def get_owner(self) -> "User | None":
         return self.block.get_owner()
 
 
@@ -171,5 +176,5 @@ class SmartBlockCriteria(Model):
         null=True,
     )
 
-    def get_owner(self):
+    def get_owner(self) -> "User | None":
         return self.block.get_owner()

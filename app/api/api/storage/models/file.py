@@ -1,4 +1,4 @@
-from typing import final
+from typing import TYPE_CHECKING, final
 
 from django.db import models
 from django.db.models import (
@@ -13,6 +13,9 @@ from django.db.models import (
     Model,
     TextField,
 )
+
+if TYPE_CHECKING:
+    from api.core.models.user import User
 
 
 @final
@@ -319,5 +322,5 @@ class File(Model):
         null=True,
     )  # ?
 
-    def get_owner(self):
+    def get_owner(self) -> "User | None":
         return self.owner

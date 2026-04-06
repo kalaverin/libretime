@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from django.db.models import (
     DO_NOTHING,
     BooleanField,
@@ -12,6 +14,11 @@ from django.db.models import (
     SmallIntegerField,
     TimeField,
 )
+
+if TYPE_CHECKING:
+    from django.db.models import QuerySet
+
+    from api.core.models.user import User
 
 
 class Show(Model):
@@ -130,7 +137,7 @@ class Show(Model):
         through="ShowHost",
     )
 
-    def get_owner(self):
+    def get_owner(self) -> "QuerySet[User]":
         return self.hosts.all()
 
 
@@ -222,7 +229,7 @@ class ShowDays(Model):
         db_column="next_pop_date",
     )
 
-    def get_owner(self):
+    def get_owner(self) -> "QuerySet[User]":
         return self.show.get_owner()
 
 
@@ -291,7 +298,7 @@ class ShowInstance(Model):
         db_column="file_id",
     )
 
-    def get_owner(self):
+    def get_owner(self) -> "QuerySet[User]":
         return self.show.get_owner()
 
 
@@ -308,5 +315,5 @@ class ShowRebroadcast(Model):
     day_offset: CharField = CharField(max_length=1024)
     start_time: TimeField = TimeField()
 
-    def get_owner(self):
+    def get_owner(self) -> "QuerySet[User]":
         return self.show.get_owner()

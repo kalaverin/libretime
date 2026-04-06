@@ -30,7 +30,7 @@ class PicklableHttpRequest:
         self.api_key: str = api_key
         self.data: Any = data
 
-    def create_request(self):
+    def create_request(self) -> requests.Request:
         return requests.Request(
             method=self.method,
             url=self.url,
@@ -42,7 +42,7 @@ class PicklableHttpRequest:
 def process_http_requests(
     ipc_queue: queue.Queue[Any],
     http_retry_queue_path: str,
-):
+) -> None:
     """Runs in a separate thread and performs all the HTTP requests where we're
     reporting extracted audio file metadata or errors back to the Airtime web
     application.

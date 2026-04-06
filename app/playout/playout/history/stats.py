@@ -35,7 +35,7 @@ class StatsCollector:
 
     _session: Session
 
-    def __init__(self, legacy_client: v1.ApiClient):
+    def __init__(self, legacy_client: v1.ApiClient) -> None:
         self._session = Session()
         self._timeout: float = 30
         self._legacy_client: v1.ApiClient = legacy_client
@@ -157,7 +157,7 @@ class StatsCollectorThread(Thread):
     ) -> None:
         super().__init__()
         self._config: Config = config
-        self._collector: v1.ApiClient = StatsCollector(legacy_client)
+        self._collector: StatsCollector = StatsCollector(legacy_client)
 
     @override
     def run(self) -> None:

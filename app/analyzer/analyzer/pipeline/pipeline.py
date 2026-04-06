@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class Step(Protocol):
     @staticmethod
-    def __call__(filename: str, metadata: dict[str, Any]): ...
+    def __call__(filename: str, metadata: dict[str, Any]) -> dict[str, Any]: ...
 
 
 class PipelineStatus(int, Enum):

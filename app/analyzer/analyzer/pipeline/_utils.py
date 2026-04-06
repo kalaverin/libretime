@@ -1,11 +1,12 @@
 import logging
 
 from subprocess import CalledProcessError, CompletedProcess, run
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def run_(*args, **kwargs) -> CompletedProcess:
+def run_(*args: Any, **kwargs: Any) -> CompletedProcess[str]:
     try:
         return run(
             args,

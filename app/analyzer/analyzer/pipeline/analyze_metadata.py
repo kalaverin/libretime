@@ -11,11 +11,11 @@ from sdk.files import compute_md5
 logger = logging.getLogger(__name__)
 
 
-def flatten(xss: list[Any]) -> list[Any]:
+def flatten(xss: list[list[Any]]) -> list[Any]:
     return [x for xs in xss for x in xs]
 
 
-def comment_get(id3: dict[str, Any], _) -> list[str]:
+def comment_get(id3: dict[str, Any], _: Any) -> list[str]:
     comments = [
         v.text for k, v in id3.items() if "COMM" in k or "comment" in k
     ]

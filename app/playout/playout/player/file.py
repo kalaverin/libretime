@@ -194,7 +194,7 @@ class PypoFile(Thread):
                 raise
 
     @override
-    def run(self):
+    def run(self) -> None:
         """
         Entry point of the thread
         """

@@ -1,4 +1,9 @@
+from typing import TYPE_CHECKING
+
 from django.db import models
+
+if TYPE_CHECKING:
+    from api.core.models.user import User
 
 
 class UserToken(models.Model):
@@ -10,7 +15,7 @@ class UserToken(models.Model):
     token = models.CharField(unique=True, max_length=40)
     created = models.DateTimeField()
 
-    def get_owner(self):
+    def get_owner(self) -> "User":
         return self.user
 
     class Meta:

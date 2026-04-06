@@ -1,4 +1,5 @@
 import hashlib
+from typing import TYPE_CHECKING, ClassVar
 
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -10,18 +11,21 @@ from django.db import models
 from api.core.models.role import Role
 from api.permission_constants import GROUPS
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
 
 class UserManager(BaseUserManager):
     # pylint: disable=too-many-positional-arguments
     def create_user(
         self,
-        role,
-        username,
-        password,
-        email,
-        first_name,
-        last_name,
-    ):
+        role: str,
+        username: str,
+        password: str | None,
+        email: str,
+        first_name: str,
+        last_name: str,
+    ) -> "User":
         user = self.model(
             role=role,
             username=username,
@@ -36,12 +40,12 @@ class UserManager(BaseUserManager):
     # pylint: disable=too-many-positional-arguments
     def create_superuser(
         self,
-        username,
-        password,
-        email,
-        first_name,
-        last_name,
-    ):
+        username: str,
+        password: str | None,
+        email: str,
+        first_name: str,
+        last_name: str,
+    ) -> "User":
         return self.create_user(
             Role.ADMIN,
             username,
@@ -51,7 +55,7 @@ class UserManager(BaseUserManager):
             last_name,
         )
 
-    def get_by_natural_key(self, username):
+    def get_by_natural_key(self, username: str) -> "User":
         return self.get(username=username)
 
 
@@ -110,24 +114,24 @@ class User(AbstractBaseUser):
     USERNAME_FIELD = "username"
     EMAIL_FIELD = "email"
     REQUIRED_FIELDS = ["role", "email", "first_name", "last_name"]
-    objects = UserManager()
+    objects: ClassVar[UserManager] = UserManager()
 
-    def get_full_name(self):
+    def get_full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
-    def get_short_name(self):
+    def get_short_name(self) -> str:
         return self.first_name
 
-    def set_password(self, raw_password):
+    def set_password(self, raw_password: str | None) -> None:
         if not raw_password:
             self.set_unusable_password()
         else:
             self.password = hashlib.md5(raw_password.encode()).hexdigest()
 
-    def is_staff(self):
+    def is_staff(self) -> bool:
         return self.role == Role.ADMIN
 
-    def check_password(self, raw_password):
+    def check_password(self, raw_password: str) -> bool:
         if self.has_usable_password():
             test_password = hashlib.md5(raw_password.encode()).hexdigest()
             return test_password == self.password
@@ -139,17 +143,19 @@ class User(AbstractBaseUser):
     # (managed = True), then this can be replaced with
     # django.contrib.auth.models.PermissionMixin.
 
-    def is_superuser(self):
+    def is_superuser(self) -> bool:
         return self.role == Role.ADMIN
 
     # pylint: disable=unused-argument
-    def get_user_permissions(self, obj=None):
+    def get_user_permissions(self, obj: object | None = None) -> list[str]:
         """
         Users do not have permissions directly, only through groups
         """
         return []
 
-    def get_group_permissions(self, obj=None):
+    def get_group_permissions(
+        self, obj: object | None = None
+    ) -> list[Permission]:
         permissions = GROUPS[self.role]
         if obj is not None:
             obj_name = obj.__class__.__name__.lower()
@@ -160,10 +166,12 @@ class User(AbstractBaseUser):
             query = query | models.Q(codename=perm)
         return list(Permission.objects.filter(query))
 
-    def get_all_permissions(self, obj=None):
+    def get_all_permissions(
+        self, obj: object | None = None
+    ) -> list[str] | list[Permission]:
         return self.get_user_permissions(obj) + self.get_group_permissions(obj)
 
-    def has_perm(self, perm, obj=None):
+    def has_perm(self, perm: str, obj: object | None = None) -> bool:
         if self.is_superuser():
             return True
         if not perm:
@@ -175,7 +183,9 @@ class User(AbstractBaseUser):
         except Permission.DoesNotExist:
             return False
 
-    def has_perms(self, perm_list, obj=None):
+    def has_perms(
+        self, perm_list: Sequence[str], obj: object | None = None
+    ) -> bool:
         result = True
         for permission in perm_list:
             result = result and self.has_perm(permission, obj)

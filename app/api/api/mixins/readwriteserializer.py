@@ -13,19 +13,19 @@ class ReadWriteSerializerMixin:
     read_serializer_class = Serializer
     write_serializer_class = Serializer
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> type[Serializer]:
         if self.action in ["create"]:
             return self.get_write_serializer_class()
         return self.get_read_serializer_class()
 
-    def get_read_serializer_class(self):
+    def get_read_serializer_class(self) -> type[Serializer]:
         assert self.read_serializer_class is not None, (
             f"'{self.__class__.__name__}' should either include a `read_serializer_class`"
             "attribute, or override the `get_read_serializer_class()` method."
         )
         return self.read_serializer_class
 
-    def get_write_serializer_class(self):
+    def get_write_serializer_class(self) -> type[Serializer]:
         assert self.write_serializer_class is not None, (
             f"'{self.__class__.__name__}' should either include a `write_serializer_class`"
             "attribute, or override the `get_write_serializer_class()` method."

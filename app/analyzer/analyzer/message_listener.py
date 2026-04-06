@@ -5,7 +5,7 @@ import time
 
 from contextlib import suppress
 from queue import Queue
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pika import (
     BlockingConnection,
@@ -23,6 +23,10 @@ from analyzer.pipeline import (
 from analyzer.status_reporter import StatusReporter
 from sdk import JSONType
 
+if TYPE_CHECKING:
+    from pika.adapters.blocking_connection import BlockingChannel
+    from pika.spec import Basic, BasicProperties
+
 logger = logging.getLogger(__name__)
 
 EXCHANGE = "airtime-uploads"
@@ -33,7 +37,7 @@ QUEUE = "airtime-uploads"
 
 class MessageListener:
 
-    _channel: Any
+    _channel: "BlockingChannel"
     _connection: BlockingConnection
 
     def __init__(self, config: Config) -> None:
@@ -126,10 +130,10 @@ class MessageListener:
 
     def msg_received_callback(
         self,
-        channel,
-        method_frame,
-        header_frame,
-        body,
+        channel: "BlockingChannel",
+        method_frame: "Basic.Deliver",
+        header_frame: "BasicProperties",
+        body: bytes,
     ) -> None:
         """A callback method that runs when a RabbitMQ message is received.
 
@@ -216,8 +220,8 @@ class MessageListener:
         options: dict[str, Any],
     ) -> Any:
 
-        metadata = {}
-        queue = Queue()
+        metadata: dict[str, Any] = {}
+        queue: Queue[Any] = Queue()
 
         try:
             Pipeline.run_analysis(

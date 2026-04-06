@@ -1,4 +1,10 @@
+from typing import TYPE_CHECKING
+
 from django.db import models
+
+if TYPE_CHECKING:
+    from api.core.models.user import User
+    from api.storage.models.file import File
 
 
 class Podcast(models.Model):
@@ -24,7 +30,7 @@ class Podcast(models.Model):
         null=True,
     )
 
-    def get_owner(self):
+    def get_owner(self) -> "User | None":
         return self.owner
 
     class Meta:
@@ -61,7 +67,7 @@ class PodcastEpisode(models.Model):
     episode_title = models.CharField(max_length=4096)
     episode_description = models.TextField()
 
-    def get_owner(self):
+    def get_owner(self) -> "User | None":
         return self.podcast.owner
 
     class Meta:
@@ -85,7 +91,7 @@ class StationPodcast(models.Model):
         on_delete=models.DO_NOTHING,
     )
 
-    def get_owner(self):
+    def get_owner(self) -> "User | None":
         return self.podcast.owner
 
     class Meta:
@@ -107,7 +113,7 @@ class ImportedPodcast(models.Model):
         db_column="auto_ingest_timestamp",
     )
 
-    def get_owner(self):
+    def get_owner(self) -> "User | None":
         return self.podcast.owner
 
     class Meta:

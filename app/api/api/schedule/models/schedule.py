@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
 from django.db.models import (
     DO_NOTHING,
@@ -13,6 +14,9 @@ from django.db.models import (
     TimeField,
 )
 from django.utils.timezone import now
+
+if TYPE_CHECKING:
+    from api.core.models.user import User
 
 
 class Schedule(Model):
@@ -88,7 +92,7 @@ class Schedule(Model):
         """
         return self.starts_at >= self.instance.ends_at
 
-    def get_owner(self):
+    def get_owner(self) -> "User | None":
         return self.instance.get_owner()
 
     def get_cue_out(self) -> timedelta:

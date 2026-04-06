@@ -3,7 +3,8 @@ import logging
 from contextlib import suppress
 from functools import partial, wraps
 from time import sleep
-from typing import Any
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 import orjson
 
@@ -25,10 +26,13 @@ DEFAULT_JSON_OPTIONS: int = (
 dumps = partial(orjson.dumps, option=DEFAULT_JSON_OPTIONS)
 
 
-def retry_decorator(max_retries: int = 5):
-    def retry_request(func):
+F = TypeVar("F", bound=Callable[..., Any])
+
+
+def retry_decorator(max_retries: int = 5) -> Callable[[F], F]:
+    def retry_request(func: F) -> F:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             retries = max_retries
             while True:
                 try:
@@ -44,13 +48,13 @@ def retry_decorator(max_retries: int = 5):
 
             return None
 
-        return wrapper
+        return wrapper  # type: ignore[return-value]
 
     return retry_request
 
 
 class BaseApiClient(AbstractApiClient):
-    def __init__(self, base_url: str, api_key: str):
+    def __init__(self, base_url: str, api_key: str) -> None:
         super().__init__(base_url=base_url)
         self.session.headers.update({"Authorization": f"Api-Key {api_key}"})
         self.session.params.update({"format": "json"})  # type: ignore[union-attr]

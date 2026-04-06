@@ -1,6 +1,9 @@
-from typing import final
+from typing import TYPE_CHECKING, final
 
 from django.db import models
+
+if TYPE_CHECKING:
+    from api.core.models.user import User
 
 
 @final
@@ -44,7 +47,7 @@ class Webstream(models.Model):
         db_column="creator_id",
     )
 
-    def get_owner(self):
+    def get_owner(self) -> "User | None":
         return self.owner
 
 
@@ -64,5 +67,5 @@ class WebstreamMetadata(models.Model):
     starts_at = models.DateTimeField(db_column="start_time")
     data = models.CharField(max_length=1024, db_column="liquidsoap_data")
 
-    def get_owner(self):
+    def get_owner(self) -> "User | None":
         return self.schedule.get_owner()

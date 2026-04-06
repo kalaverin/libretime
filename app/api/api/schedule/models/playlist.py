@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from django.db.models import (
     DO_NOTHING,
     CharField,
@@ -11,6 +13,9 @@ from django.db.models import (
     SmallIntegerField,
     TimeField,
 )
+
+if TYPE_CHECKING:
+    from api.core.models.user import User
 
 
 class Playlist(Model):
@@ -46,7 +51,7 @@ class Playlist(Model):
         db_column="creator_id",
     )
 
-    def get_owner(self):
+    def get_owner(self) -> "User | None":
         return self.owner
 
 
@@ -120,5 +125,5 @@ class PlaylistContent(Model):
         db_column="fadeout",
     )
 
-    def get_owner(self):
+    def get_owner(self) -> "User | None":
         return self.playlist.get_owner()

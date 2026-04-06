@@ -3,6 +3,8 @@ import re
 from math import inf
 from os import getenv
 from pathlib import Path
+from subprocess import CompletedProcess
+from typing import Any
 
 from analyzer.pipeline._utils import run_
 
@@ -10,7 +12,7 @@ FFPROBE = getenv("FFPROBE_PATH", "ffprobe")
 FFMPEG = getenv("FFMPEG_PATH", "ffmpeg")
 
 
-def _ffmpeg(*args, **kwargs):
+def _ffmpeg(*args: Any, **kwargs: Any) -> CompletedProcess[str]:
     return run_(
         FFMPEG,
         *args,
@@ -23,7 +25,7 @@ def _ffmpeg(*args, **kwargs):
     )
 
 
-def _ffprobe(*args, **kwargs):
+def _ffprobe(*args: Any, **kwargs: Any) -> CompletedProcess[str]:
     return run_(FFPROBE, *args, **kwargs)
 
 
