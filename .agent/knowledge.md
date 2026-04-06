@@ -2,7 +2,7 @@
 # Machine Index
 version: 1
 schema: knowledge-graph
-last_updated: 2026-04-06T16:28:17Z
+last_updated: 2026-04-06T16:54:33Z
 graph_hash: ""
 ---
 

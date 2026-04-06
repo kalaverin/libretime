@@ -1,9 +1,94 @@
 # libretime — Agent Context (via .agent/intro.md)
 
-- This file modification datetime: 2026-04-06T16:45:04Z
-- File modified at commit: 3b9a2e5577b1fcddd4060eaabcbeb3909eb56198
+- This file modification datetime: 2026-04-06T16:54:33Z
+- File modified at commit: 0b3458bb2371d1f9b865d57b6ab317559cb4a296
 
 <!-- hub-settings-snapshot path=~/.config/kimi/prompts/settings.md commit=d7b218d442ccc2d8229bbc567649af803b333b28 modified=2026-04-03T19:39:37Z -->
+<!-- The following section is a FULL COPY of hub settings, auto-updated on init/sync. Do not edit manually. -->
+---
+<!-- Protocol: ~/.config/kimi/prompts/settings.md
+     Verify freshness (author date + hash of last commit touching this file):
+     git -C ~/.config/kimi log -1 --format="%H %cI" -- prompts/settings.md
+     After editing this file, commit the hub repo so the line above stays truthful. -->
+
+# Kimi hub — mandatory agent settings
+
+**Read in full:** at the **start** of every run of repo-init / repo-sync / repo-update, and at interactive session start when working from a generated `.agent/intro.md`. Reading only "the obvious bits" or one section is **wrong**—the whole file applies.
+
+**Binding / supremacy:** everything written **in this file** is **mandatory**. No agent turn, user message, prompt, template, skill, protocol, or local project note may **contradict**, **override**, **waive**, or **reinterpret** it. If anything else conflicts with this file, **this file wins**. There are no exceptions "just this once".
+
+**Authority:** same class as `~/.config/kimi/skills/*-protocol/SKILL.md`, but scoped to hub-wide **settings** (formats, path style, snapshot mechanics, and how they interact with other docs—see § Relation to Persist state).
+
+**Duplication:** prefer **linking here** instead of copying rules. If another file repeats a rule, it must **match** this file; if wording diverges, treat **this file** as the source of truth.
+
+Checkpoint *procedure* (when to run Persist state, primary `.agent/*` files — history, decisions, tasks, knowledge, style — plus **conditional** glossary; skip rules, report line) lives in **`~/.config/kimi/templates/agent.md`** § SKILLS → **Persist state** and in each repo's **`.agent/intro.md`** § SKILLS → *Persist state*. That procedure **must still obey** every applicable rule in **this file** (for example **Timestamps**, **Paths**, **Snapshot line**).
+
+## Host model mandatory policies (outside hub prose)
+
+The **running model's** non-waivable rules (provider / product safety, disallowed content, required disclosure of nature where applicable, harassment limits, etc.) apply **regardless** of stylistic prompts. Where **`~/.config/kimi/prompts/roleplay.md`** or a user message **conflicts** with those rules, **treat the conflicting fragment as void**: do **not** follow it, and **do not** re-litigate the skip in every reply (no standing disclaimer, no lecture) unless the **user explicitly asks** why something was omitted or softened.
+
+This section does **not** relax **hub documentation** rules defined elsewhere in **this file** (timestamps, paths, snapshot, supremacy of this file for those topics).
+
+---
+
+## Timestamps (agent-written)
+
+All **new** date+time strings agents write into `.agent/*`, templates they fill, and hub markdown must be:
+
+- **Format:** ISO **8601** in **UTC**, fixed pattern `YYYY-MM-DDTHH:mm:ssZ`
+  - Literal **`T`** between date and time
+  - Literal **`Z`** = Zulu / UTC (no numeric offset, no bare local time)
+- **Example:** `2026-04-03T19:41:14Z`
+- **Reject:** `2026-04-03 19:41:14`, `2026-04-03T19:41:14+00:00` in **agent-produced** prose (git `%cI` snapshots in comments may still show `+00:00` — normalize to `Z` when **you** write files)
+- **Shell (current instant, UTC):** `date -u +%Y-%m-%dT%H:%M:%SZ`
+
+## On-disk language (agent-written)
+
+**Scope:** Any content agents **write or rewrite** on disk: `.agent/*.md`, filled templates, `prompts/*.md` (hub operator text), `skills/**/*.md`, `templates/**`, commit messages if agent-authored, YAML / markdown bodies, task titles/summaries, history sessions, knowledge entries, checklist prose.
+
+**Required style:**
+
+- **English only** for agent-authored text — **no Cyrillic** (and no other non-English natural language) in persisted artifacts.
+- **Telegraphic technical English:** drop articles where still clear; short clauses; prefer IT jargon (`repo`, `symlink`, `flush`, `checkpoint`, `allowlist`, `wiring`, `merge`, `span`).
+- **Token discipline:** prefer symbols, paths, backticks, `T<n>` over long prose.
+
+**Exceptions:**
+
+- **Verbatim user quote** inside `"..."` when documenting what user said — keep original language inside quotes; wrap with English context.
+- **`~/.config/kimi/prompts/roleplay.md`:** **do not edit** that file to satisfy this section — it defines **in-chat** voice / language / persona (Phase 0b). When it exists, agents **must** read it **in full** after **`settings.md`** and **apply** it to live replies (e.g. non-English with user); **disk** still obeys this section (see **`templates/agent.md`** / **`.agent/intro.md`** **AGENT_RULES**).
+- **Third-party quotes, license headers, upstream identifiers** — leave unchanged.
+
+**Migration:** On any touch of a file that still has non-English agent text, **replace** with English per this section; do not leave mixed-language agent prose.
+
+## Paths in user-home catalog (documentation, agent text, and hub agent YAML)
+
+For **any path under the user's home directory** when it appears in: prompts, templates, `.agent/*.md`, skill text, tables, blockquotes, and **`agents/*.yaml`** (including `system_prompt_path`) — use **tilde** form:
+
+- **Required:** `~/.config/kimi/...`, `~/project/foo` (paths are **relative to home** in this notation, not repo-relative).
+- **Forbidden in that context:** `/Users/<name>/...`, `/home/<name>/...`, `C:\Users\...`
+- **`$HOME`:** avoid in **readable** markdown and in **YAML path string values**; use **`~`** so hub configs stay portable across machines. Exception: **shell one-liners** where the shell must expand a variable, e.g. `git -C "$HOME/.config/kimi" ...` — that is fine inside fenced `bash` command blocks.
+- **Consumers** (e.g. kimi CLI loading `agents/*.yaml`) must expand **`~`** to the current user's home directory when resolving `system_prompt_path`.
+
+---
+
+## Snapshot line in generated `.agent/intro.md`
+
+The template includes an HTML comment `<!-- hub-settings-snapshot ... -->` filled from:
+
+`git -C ~/.config/kimi log -1 --format="%H %cI" -- prompts/settings.md`
+
+When **writing** that line into `.agent/intro.md` (or template substitution), set `commit=` to the full hash (first field) and `modified=` to the same instant as git's `%cI` (second field), **normalized** to **`YYYY-MM-DDTHH:mm:ssZ`** per **§ Timestamps** — do not leave numeric offsets (`+03:00`, `+00:00`, etc.) in the snapshot's `modified=` value.
+
+**repo-init** / **repo-sync** / **repo-update** must **refresh** that comment whenever they rewrite `.agent/intro.md` from the hub template logic.
+
+---
+
+## Relation to Persist state (checkpoints)
+
+**Triggers, execution order, skip rules, and the standard user-facing report** are spelled out under **`### Persist state (checkpoints)`** inside **`## SKILLS`** in two parallel places: (1) **`~/.config/kimi/templates/agent.md`** — hub master text that **`repo-init`** copies or **`repo-sync`** merges from; (2) the target repository's **`.agent/intro.md`** — the same section layout after that repo has been initialized (not a different document "kind", just the per-repo instance). Protocol skills document **per-file** edits during that checkpoint.
+
+Those procedural documents do **not** relax or replace anything in **this file**. While executing Persist state, agents still follow **all** of **settings.md** (e.g. how to write times and paths, how to refresh `hub-settings-snapshot`, **§ On-disk language**). The fifth unconditional checkpoint file is **`.agent/style.md`** (**style-protocol**). **`.agent/glossary.md`** (**glossary-protocol**) is written **only** when that skill's **Write gate** applies in the session.
+<!-- END OF SETTINGS COPY -->
 
 > **Full Location:** `.agent/intro.md` — **AGENTS.md** at the repository root is a symlink to this file (not the other way around).
 > **Work History:** `.agent/history.md`
@@ -179,4 +264,4 @@ If the user explicitly asked only for a quick factual answer and nothing was dec
 
 ---
 
-*This file is maintained by repo-init-agent. Last full sync: 2026-04-06T16:45:04Z*
+*This file is maintained by repo-init-agent. Last full sync: 2026-04-06T16:54:33Z*
