@@ -10,9 +10,8 @@ __*__/
 
 !docs/*.md
 
-!AGENTS.md
 !CHANGELOG.md
-!CONTRIBUTING.md@
+!CONTRIBUTING.md
 !LEGACY.md
 !README.md
 !SECURITY.md
@@ -39,3 +38,6 @@ uv.lock
 celerybeat-schedule
 radio.liq
 retry_queue
+
+!.agent/
+!.agent/*.md
