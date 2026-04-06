@@ -1,7 +1,7 @@
 # libretime — Agent Context (via .agent/intro.md)
 
-- This file modification datetime: 2026-04-06T16:28:17Z
-- File modified at commit: 773e4c98e93e640c66136f2d532e42a8641d50e5
+- This file modification datetime: 2026-04-06T16:45:04Z
+- File modified at commit: 3b9a2e5577b1fcddd4060eaabcbeb3909eb56198
 
 <!-- hub-settings-snapshot path=~/.config/kimi/prompts/settings.md commit=d7b218d442ccc2d8229bbc567649af803b333b28 modified=2026-04-03T19:39:37Z -->
 
@@ -104,7 +104,7 @@ Monolithic radio broadcast automation system split into two functional blocks:
 - **Keep `.agent/tasks.md` and `.agent/decisions.md` honest** — same checkpoint: sync task status and log any decisions taken (see task-protocol / decision-protocol).
 - **`.agent/style.md` after code work** — reconcile **S<n>** notes on checkpoint when you touched project source (**style-protocol**); continuous capture during coding session encouraged.
 - **Update `.agent/knowledge.md` autonomously and continuously** — write there **on your own** as you learn; the user should never have to ask to "remember" or "add to knowledge". Checkpoints add a structured **flush**, not permission to defer writes until then.
-- **Read the corresponding protocol skill BEFORE modifying any `.agent/` file** — check the `<!-- Protocol: ... -->` comment at the top of the file for the exact path
+- **Read the corresponding protocol skill BEFORE modifying any `.agent/` file** — check the `<!-- Protocol: ... -->` comment at the top of the file for the exact path; each file contains a **FULL COPY** of its protocol between `<!-- The following section is a FULL COPY...` and `<!-- END OF PROTOCOL COPY -->` markers
 
 ## MEMORY_HINTS
 - **Treat "next task / next question" as a checkpoint boundary** — one coherent unit of work should be reflected in `.agent/` before you start the next.
@@ -179,4 +179,4 @@ If the user explicitly asked only for a quick factual answer and nothing was dec
 
 ---
 
-*This file is maintained by repo-init-agent. Last full sync: 2026-04-06T16:28:17Z*
+*This file is maintained by repo-init-agent. Last full sync: 2026-04-06T16:45:04Z*
