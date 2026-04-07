@@ -159,6 +159,7 @@ Status: POSTPONED
 Last worked: YYYY-MM-DDTHH:mm:ssZ
 Postponed: (why / until when / trigger to revisit)
 Next step: (first action when un-postponed)
+Notes: (optional)
 ```
 
 3. **Do not** use `POSTPONED` for tasks that remain under **Active**—that placement is invalid; use `BLOCKED` or move to Backlog first.
@@ -830,3 +831,845 @@ Scan this section when allocating next T<n> (max+1 rule).
 | ID | Date | Scope | Status | Title |
 |----|------|-------|--------|-------|
 -->
+
+---
+
+# LEGACY TESTING PLAN — Phase 0: Foundation (Weeks 1-2)
+
+## [CRITICAL] test T64 — Fix PreferenceUnitTest.php path issue
+Status: NOT_STARTED
+Phase: 0
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/models/PreferenceUnitTest.php`
+Next step: Replace `require_once('../application/configs/conf.php')` with APPLICATION_PATH constant
+Notes: Test uses relative path `../application/` which fails in Docker container structure
+
+## [HIGH] test T65 — Audit all require_once in tests/ for relative paths
+Status: NOT_STARTED
+Phase: 0
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+Files: `legacy/tests/**/*Test.php`
+Next step: Find all tests using `../application/` patterns
+Notes: Blocking T64-T67. Must fix before other Phase 0 tasks can proceed.
+
+## [MEDIUM] test T66 — Create unified TestBootstrap.php
+Status: NOT_STARTED
+Phase: 0
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/TestBootstrap.php`
+Next step: Create single entry point that sets constants and loads dependencies
+Notes: Blocked by T65. Must know all path patterns before consolidating.
+
+## [MEDIUM] test T67 — Verify phpunit.xml bootstrap configuration
+Status: NOT_STARTED
+Phase: 0
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/phpunit.xml`
+Next step: Ensure bootstrap file loads correctly with all required constants
+Notes: Blocked by T66. Update after TestBootstrap.php created.
+
+## [MEDIUM] test T68 — Test TestHelper::getDbZendConfig()
+Status: NOT_STARTED
+Phase: 0
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/TestHelper.php`
+Next step: Create unit test for getDbZendConfig() method
+Notes: Part of Test Helpers Coverage goal
+
+## [MEDIUM] test T69 — Test TestHelper::installTestDatabase()
+Status: NOT_STARTED
+Phase: 0
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/TestHelper.php`
+Next step: Create unit test for installTestDatabase() method
+Notes: Depends on working database fixtures
+
+## [MEDIUM] test T70 — Test AirtimeInstall::CreateDatabaseTables()
+Status: NOT_STARTED
+Phase: 0
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/AirtimeInstall.php`
+Next step: Test SQL migrations execution
+Notes: Already patched for Docker paths; needs test coverage
+
+## [MEDIUM] test T71 — Create ModelFactory for test fixtures
+Status: NOT_STARTED
+Phase: 0
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/ModelFactory.php`
+Next step: Design fluent API for creating test models
+Notes: Blocked by T72-T74. Must understand entity relationships first.
+
+## [MEDIUM] test T72 — Create YAML fixtures for User entity
+Status: NOT_STARTED
+Phase: 0
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/fixtures/users.yml`
+Next step: Create YAML fixture with test user data
+Notes: Base fixture for auth tests
+
+## [MEDIUM] test T73 — Create YAML fixtures for Show entity
+Status: NOT_STARTED
+Phase: 0
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/fixtures/shows.yml`
+Next step: Create YAML fixture with test show data
+Notes: Critical for ShowService tests
+
+## [MEDIUM] test T74 — Create YAML fixtures for File entity
+Status: NOT_STARTED
+Phase: 0
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/fixtures/files.yml`
+Next step: Create YAML fixture with test file data
+Notes: Required for MediaService tests
+
+---
+
+# LEGACY TESTING PLAN — Phase 1: Common Helpers (Weeks 2-3)
+
+## [MEDIUM] test T75 — Test DateHelper::getUTCDateTime()
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/DateHelperTest.php`
+Next step: Test valid/invalid date parsing
+Notes: Pure function, high value, easy to test
+
+## [MEDIUM] test T76 — Test DateHelper::getLocalDateTime()
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/DateHelperTest.php`
+Next step: Test timezone conversion logic
+Notes: Depends on timezone configuration
+
+## [MEDIUM] test T77 — Test DateHelper::getTimeInterval()
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/DateHelperTest.php`
+Next step: Test interval calculations
+Notes: Edge cases around DST transitions
+
+## [MEDIUM] test T78 — Test DateHelper::isInPast()
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/DateHelperTest.php`
+Next step: Test boundary conditions
+Notes: Critical for scheduling logic
+
+## [MEDIUM] test T79 — Test DateHelper::getDateRange()
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/DateHelperTest.php`
+Next step: Test date range generation
+Notes: Used in calendar views
+
+## [MEDIUM] test T80 — Test FileDataHelper::createFileFromUpload()
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/FileDataHelperTest.php`
+Next step: Test valid file upload handling
+Notes: May need mock filesystem
+
+## [MEDIUM] test T81 — Test FileDataHelper::parseMetadata()
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/FileDataHelperTest.php`
+Next step: Test ID3/exif metadata extraction
+Notes: Requires test audio files
+
+## [MEDIUM] test T82 — Test FileDataHelper::validateFileExtension()
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/FileDataHelperTest.php`
+Next step: Test allowed/blocked extensions
+Notes: Security-critical function
+
+## [MEDIUM] test T83 — Test FileDataHelper::sanitizeFilename()
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/FileDataHelperTest.php`
+Next step: Test filename sanitization
+Notes: Prevents path traversal
+
+## [MEDIUM] test T84 — Test FileDataHelper::getMimeType()
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/FileDataHelperTest.php`
+Next step: Test MIME type detection
+Notes: Used for file validation
+
+## [LOW] test T85 — Test HTTPHelper::getClientIp()
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/HTTPHelperTest.php`
+Next step: Test IP extraction from headers
+Notes: X-Forwarded-For handling
+
+## [LOW] test T86 — Test HTTPHelper::isAjaxRequest()
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/HTTPHelperTest.php`
+Next step: Test XHR detection
+Notes: Simple header check
+
+## [LOW] test T87 — Test HTTPHelper::buildUrl()
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/HTTPHelperTest.php`
+Next step: Test URL construction
+Notes: Query string handling
+
+## [MEDIUM] test T88 — Test SecurityHelper::generateToken()
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/SecurityHelperTest.php`
+Next step: Test token generation
+Notes: CSRF/auth token generation
+
+## [MEDIUM] test T89 — Test SecurityHelper::hashPassword()
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/SecurityHelperTest.php`
+Next step: Test password hashing
+Notes: Uses MD5 currently (known issue)
+
+## [MEDIUM] test T90 — Test SecurityHelper::verifyCsrfToken()
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/SecurityHelperTest.php`
+Next step: Test CSRF protection
+Notes: Security-critical
+
+## [MEDIUM] test T91 — Test SecurityHelper::sanitizeInput()
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/SecurityHelperTest.php`
+Next step: Test XSS prevention
+Notes: Input sanitization
+
+## [LOW] test T92 — Test LocaleHelper methods
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/LocaleHelperTest.php`
+Next step: Test getAvailableLocales, normalizeLanguageCode, getDateFormat
+Notes: Low priority, simple functions
+
+## [LOW] test T93 — Test OsPath methods
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/OsPathTest.php`
+Next step: Test join, normalize, isAbsolute
+Notes: Path utilities
+
+## [LOW] test T94 — Test Timezone methods
+Status: NOT_STARTED
+Phase: 1
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/helpers/TimezoneTest.php`
+Next step: Test getUserTimezone, convertToUTC, getTimezoneList
+Notes: Timezone handling
+
+---
+
+# LEGACY TESTING PLAN — Phase 2: Service Layer — Core (Weeks 3-5)
+
+## [CRITICAL] test T95 — Test ShowService::addUpdateShow() without repeat
+Status: NOT_STARTED
+Phase: 2
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/services/ShowServiceTest.php`
+Next step: Test creating single show instance
+Notes: Critical path — show creation is core functionality
+
+## [CRITICAL] test T96 — Test ShowService::addUpdateShow() with weekly repeat
+Status: NOT_STARTED
+Phase: 2
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/services/ShowServiceTest.php`
+Next step: Test weekly recurring shows
+Notes: Most common repeat type
+
+## [CRITICAL] test T97 — Test ShowService::addUpdateShow() with bi-weekly repeat
+Status: NOT_STARTED
+Phase: 2
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/services/ShowServiceTest.php`
+Next step: Test bi-weekly recurring shows
+Notes: Edge case in repeat logic
+
+## [CRITICAL] test T98 — Test ShowService::addUpdateShow() with monthly repeat
+Status: NOT_STARTED
+Phase: 2
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/services/ShowServiceTest.php`
+Next step: Test monthly recurring shows
+Notes: Complex date math
+
+## [HIGH] test T99 — Test ShowService::addUpdateShow() with rebroadcast
+Status: NOT_STARTED
+Phase: 2
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/services/ShowServiceTest.php`
+Next step: Test rebroadcast functionality
+Notes: Advanced feature
+
+## [HIGH] test T100 — Test ShowService::addUpdateShow() with recording
+Status: NOT_STARTED
+Phase: 2
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/services/ShowServiceTest.php`
+Next step: Test recording-enabled shows
+Notes: Requires storage mocks
+
+## [HIGH] test T101 — Test ShowService editing without changing repeat
+Status: NOT_STARTED
+Phase: 2
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/services/ShowServiceTest.php`
+Next step: Test editing show metadata only
+Notes: Update operations
+
+## [HIGH] test T102 — Test ShowService changing repeat type
+Status: NOT_STARTED
+Phase: 2
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/services/ShowServiceTest.php`
+Next step: Test weekly → bi-weekly transition
+Notes: Complex state change
+
+## [HIGH] test T103 — Test ShowService deleting instances
+Status: NOT_STARTED
+Phase: 2
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/services/ShowServiceTest.php`
+Next step: Test single, current+following, full show deletion
+Notes: Delete operations critical
+
+## [HIGH] test T104 — Test ShowService query methods
+Status: NOT_STARTED
+Phase: 2
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/services/ShowServiceTest.php`
+Next step: Test getFutureShowInstances, getShowLength, formatShowDuration
+Notes: Read operations
+
+## [MEDIUM] test T105 — Test ShowService private methods via Reflection
+Status: NOT_STARTED
+Phase: 2
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/services/ShowServiceTest.php`
+Next step: Test createUTCStartEndDateTime, getNextMonthlyWeeklyRepeatDate, etc.
+Notes: Complex date logic needs coverage
+
+## [HIGH] test T106 — Test SchedulerService methods
+Status: NOT_STARTED
+Phase: 2
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/services/SchedulerServiceTest.php`
+Next step: Test scheduleAfter, removeGaps, reschedule, isScheduleEmpty
+Notes: Core scheduling logic
+
+## [HIGH] test T107 — Test UserService CRUD operations
+Status: NOT_STARTED
+Phase: 2
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/services/UserServiceTest.php`
+Next step: Test createUser, updateUser, deleteUser, getUserByLogin
+Notes: User management
+
+## [HIGH] test T108 — Test UserService authentication methods
+Status: NOT_STARTED
+Phase: 2
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/services/UserServiceTest.php`
+Next step: Test changePassword, validateUserType
+Notes: Auth-related operations
+
+## [HIGH] test T109 — Test MediaService file operations
+Status: NOT_STARTED
+Phase: 2
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/services/MediaServiceTest.php`
+Next step: Test uploadFile, updateMetadata, deleteFile, moveFile, searchFiles
+Notes: File management critical
+
+## [MEDIUM] test T110 — Test PodcastService methods
+Status: NOT_STARTED
+Phase: 2
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/services/PodcastServiceTest.php`
+Next step: Test importPodcast, updatePodcast, deletePodcast, syncEpisodes
+Notes: RSS podcast integration
+
+---
+
+# LEGACY TESTING PLAN — Phase 3: Models — Core (Weeks 5-7)
+
+## [CRITICAL] test T111 — Test Show Model basic CRUD
+Status: NOT_STARTED
+Phase: 3
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/models/ShowModelTest.php`
+Next step: Test getName/setName, getDescription/setDescription, getColor/setColor
+Notes: Core entity
+
+## [CRITICAL] test T112 — Test Show Model host management
+Status: NOT_STARTED
+Phase: 3
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/models/ShowModelTest.php`
+Next step: Test getHosts, addHost, removeHost
+Notes: Host assignment critical
+
+## [CRITICAL] test T113 — Test Show Model recording flag
+Status: NOT_STARTED
+Phase: 3
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/models/ShowModelTest.php`
+Next step: Test isRecorded method
+Notes: Recording functionality
+
+## [CRITICAL] test T114 — Test ShowInstance Model
+Status: NOT_STARTED
+Phase: 3
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/models/ShowInstanceModelTest.php`
+Next step: Test getShow, getStartDateTime, getEndDateTime, addFileToShow, clearShow
+Notes: Show instances are core to scheduling
+
+## [CRITICAL] test T115 — Test Schedule Model
+Status: NOT_STARTED
+Phase: 3
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/models/ScheduleModelTest.php`
+Next step: Test IsFileScheduledInTheFuture, checkOverlappingShows, getRangeScheduled
+Notes: Scheduling engine
+
+## [HIGH] test T116 — Test Block Model (Smart Blocks)
+Status: NOT_STARTED
+Phase: 3
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/models/BlockModelTest.php`
+Next step: Test saveSmartBlockCriteria, getListOfFilesUnderLimit, getLength
+Notes: Smart block functionality
+
+## [HIGH] test T117 — Test Playlist Model
+Status: NOT_STARTED
+Phase: 3
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/models/PlaylistModelTest.php`
+Next step: Test create, addContent, moveItem, deleteItem, getLength
+Notes: Playlist management
+
+## [HIGH] test T118 — Test StoredFile Model
+Status: NOT_STARTED
+Phase: 3
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/models/StoredFileModelTest.php`
+Next step: Test create, updateMetadata, delete, getMetadata
+Notes: File metadata handling
+
+## [HIGH] test T119 — Test User Model
+Status: NOT_STARTED
+Phase: 3
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/models/UserModelTest.php`
+Next step: Test create, setPassword, checkPassword, getType, isAdmin
+Notes: User authentication
+
+## [MEDIUM] test T120 — Test Preference Model
+Status: NOT_STARTED
+Phase: 3
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/models/PreferenceModelTest.php`
+Next step: Test SetValue/GetValue, SetShowsPopulatedUntil, GetShowsPopulatedUntil
+Notes: System preferences
+
+## [MEDIUM] test T121 — Test Library Model
+Status: NOT_STARTED
+Phase: 3
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/models/LibraryModelTest.php`
+Next step: Test getFiles, search, getFileCount
+Notes: Library browsing
+
+## [MEDIUM] test T122 — Test Webstream Model
+Status: NOT_STARTED
+Phase: 3
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/models/WebstreamModelTest.php`
+Next step: Test create, getUrl, setMetadata
+Notes: Webstream support
+
+---
+
+# LEGACY TESTING PLAN — Phase 4: Forms (Weeks 7-8)
+
+## [MEDIUM] test T123 — Test Login Form validation
+Status: NOT_STARTED
+Phase: 4
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/forms/LoginFormTest.php`
+Next step: Test username/password validation and CSRF
+Notes: Auth entry point
+
+## [MEDIUM] test T124 — Test AddUser Form validation
+Status: NOT_STARTED
+Phase: 4
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/forms/AddUserFormTest.php`
+Next step: Test email, username uniqueness, password complexity, user type
+Notes: User creation validation
+
+## [MEDIUM] test T125 — Test AddShow forms
+Status: NOT_STARTED
+Phase: 4
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/forms/AddShowFormsTest.php`
+Next step: Test AddShowWhat, AddShowWhen, AddShowRepeats, AddShowWho, AddShowStyle
+Notes: Multi-step show creation
+
+## [MEDIUM] test T126 — Test EditUser Form validation
+Status: NOT_STARTED
+Phase: 4
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/forms/EditUserFormTest.php`
+Next step: Test profile editing, password change, permission changes
+Notes: User management
+
+## [LOW] test T127 — Test Preferences Forms
+Status: NOT_STARTED
+Phase: 4
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/forms/PreferencesFormsTest.php`
+Next step: Test GeneralPreferences, LiveStreamingPreferences, StreamSetting
+Notes: System settings
+
+---
+
+# LEGACY TESTING PLAN — Phase 5: Auth & Security (Weeks 8-9)
+
+## [CRITICAL] test T128 — Test Auth Model authentication
+Status: NOT_STARTED
+Phase: 5
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/models/AuthModelTest.php`
+Next step: Test getAuthAdapter, authenticate (success/fail), logout
+Notes: Core authentication
+
+## [CRITICAL] test T129 — Test ACL Plugin access control
+Status: NOT_STARTED
+Phase: 5
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/plugins/AclPluginTest.php`
+Next step: Test guest/host/admin/superadmin access levels, 403 responses
+Notes: Authorization framework
+
+## [MEDIUM] test T130 — Test Custom Validators
+Status: NOT_STARTED
+Phase: 5
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/validators/CustomValidatorsTest.php`
+Next step: Test UserNameValidate, NotDemoValidate, ConditionalNotEmpty
+Notes: Input validation
+
+---
+
+# LEGACY TESTING PLAN — Phase 6: Controllers — Core (Weeks 9-11)
+
+## [HIGH] test T131 — Test LoginController
+Status: NOT_STARTED
+Phase: 6
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/controllers/LoginControllerTest.php`
+Next step: Test indexAction (form display, login success/fail), logoutAction, passwordChangeAction
+Notes: Auth controller
+
+## [HIGH] test T132 — Test UserController
+Status: NOT_STARTED
+Phase: 6
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/controllers/UserControllerTest.php`
+Next step: Test indexAction, addUserAction, editUserAction, removeUserAction, getUserDataAction
+Notes: User management controller
+
+## [HIGH] test T133 — Test ScheduleController
+Status: NOT_STARTED
+Phase: 6
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/controllers/ScheduleControllerTest.php`
+Next step: Test indexAction, addShowAction, editShowAction, deleteShowAction, cancelShowAction, eventFeedAction
+Notes: Schedule management controller
+
+## [HIGH] test T134 — Test PlaylistController
+Status: NOT_STARTED
+Phase: 6
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/controllers/PlaylistControllerTest.php`
+Next step: Test indexAction, newAction, editAction, deleteAction, addItemAction
+Notes: Playlist management controller
+
+## [HIGH] test T135 — Test LibraryController
+Status: NOT_STARTED
+Phase: 6
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/controllers/LibraryControllerTest.php`
+Next step: Test indexAction, uploadAction, editFileMdAction, deleteAction, getFileMetadataAction
+Notes: File library controller
+
+## [MEDIUM] test T136 — Test ApiController
+Status: NOT_STARTED
+Phase: 6
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/controllers/ApiControllerTest.php`
+Next step: Test dispatchMetadata, listAllFiles, status
+Notes: API endpoints controller
+
+---
+
+# LEGACY TESTING PLAN — Phase 7: Integration & Edge Cases (Weeks 11-12)
+
+## [HIGH] test T137 — Test Full Show Lifecycle
+Status: NOT_STARTED
+Phase: 7
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/integration/ShowLifecycleTest.php`
+Next step: Test create → add content → start → complete flow
+Notes: End-to-end show scenario
+
+## [HIGH] test T138 — Test Repeating Show Instance Editing
+Status: NOT_STARTED
+Phase: 7
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/integration/ShowInstanceEditingTest.php`
+Next step: Test editing single instance of recurring show
+Notes: Complex recurring show logic
+
+## [HIGH] test T139 — Test Show Recording Integration
+Status: NOT_STARTED
+Phase: 7
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/integration/ShowRecordingTest.php`
+Next step: Test recording flow and history verification
+Notes: Recording feature end-to-end
+
+## [HIGH] test T140 — Test File Upload Flow
+Status: NOT_STARTED
+Phase: 7
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/integration/FileUploadFlowTest.php`
+Next step: Test upload → metadata extraction → playlist addition
+Notes: File workflow
+
+## [MEDIUM] test T141 — Test Scheduling Conflicts
+Status: NOT_STARTED
+Phase: 7
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/integration/SchedulingConflictsTest.php`
+Next step: Test overlapping shows prevention and rescheduling with conflicts
+Notes: Conflict resolution
+
+## [MEDIUM] test T142 — Test Timezone Edge Cases
+Status: NOT_STARTED
+Phase: 7
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/integration/TimezoneEdgeCasesTest.php`
+Next step: Test DST transition, cross-timezone scheduling, negative offsets
+Notes: Timezone handling edge cases
+
+## [MEDIUM] test T143 — Test Permission Scenarios
+Status: NOT_STARTED
+Phase: 7
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/integration/PermissionScenariosTest.php`
+Next step: Test host editing others' shows, guest restrictions, program manager rights
+Notes: Authorization scenarios
+
+---
+
+# LEGACY TESTING PLAN — Phase 8: REST API Module (Weeks 12-13)
+
+## [MEDIUM] test T144 — Test REST MediaController
+Status: NOT_STARTED
+Phase: 8
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/modules/rest/MediaControllerTest.php`
+Next step: Test GET/POST/PUT/DELETE /media endpoints
+Notes: REST API media management
+
+## [MEDIUM] test T145 — Test REST PodcastController
+Status: NOT_STARTED
+Phase: 8
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/modules/rest/PodcastControllerTest.php`
+Next step: Test GET/POST/PUT/DELETE /podcasts endpoints
+Notes: REST API podcast management
+
+## [LOW] test T146 — Test REST ShowImageController
+Status: NOT_STARTED
+Phase: 8
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/modules/rest/ShowImageControllerTest.php`
+Next step: Test GET/POST show image endpoints
+Notes: Show image API
+
+---
+
+# LEGACY TESTING PLAN — Phase 9: Formatters & Utilities (Weeks 13-14)
+
+## [LOW] test T147 — Test Formatters
+Status: NOT_STARTED
+Phase: 9
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/application/models/formatters/FormattersTest.php`
+Next step: Test LengthFormatter, BitrateFormatter, SamplerateFormatter, TimeFilledFormatter
+Notes: Display formatting utilities
+
+---
+
+# LEGACY TESTING PLAN — Phase 10: Final Coverage & Polish (Weeks 14-15)
+
+## [MEDIUM] test T148 — Generate coverage report and identify gaps
+Status: NOT_STARTED
+Phase: 10
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+Next step: Run full coverage analysis, document uncovered areas
+Notes: Target: 80% total coverage
+
+## [MEDIUM] test T149 — Write missing tests for coverage gaps
+Status: NOT_STARTED
+Phase: 10
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+Next step: Implement tests for identified uncovered code
+Notes: Depends on T148
+
+## [LOW] test T150 — Create performance tests
+Status: NOT_STARTED
+Phase: 10
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+Next step: Test large playlists (>1000 items), many repeating shows, library search stress
+Notes: Performance baseline
+
+## [LOW] test T151 — Document test helpers and create HOWTO
+Status: NOT_STARTED
+Phase: 10
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/tests/README.md`, `legacy/tests/HOWTO.md`
+Next step: Document helpers and create guide for adding new tests
+Notes: Developer documentation
+
+## [LOW] test T152 — Update TESTING.md with results
+Status: NOT_STARTED
+Phase: 10
+Created: 2026-04-07T13:16:18Z
+Last worked: 2026-04-07T13:16:18Z
+File: `legacy/TESTING.md`
+Next step: Document final coverage metrics and testing approach
+Notes: Project documentation
