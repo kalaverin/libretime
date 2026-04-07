@@ -1,7 +1,9 @@
 # Decision Log
 
-<!-- Protocol: ~/.config/kimi/skills/decision-protocol/SKILL.md (modified: 2026-04-03T19:39:37Z, commit: d7b218d442ccc2d8229bbc567649af803b333b28) -->
-<!-- The following section is a FULL COPY of the protocol above, auto-updated on init/sync. Do not edit manually. -->
+<!-- Protocol: ~/.config/kimi/skills/decision-protocol/SKILL.md (modified: 2026-04-07T12:03:05Z, commit: 8407a3fffae7e8a6a45e80fb73eeded8078dafa7) -->
+<!-- The following section is a FULL COPY of ~/.config/kimi/skills/decision-protocol/SKILL.md
+     Protocol commit: 8407a3fffae7e8a6a45e80fb73eeded8078dafa7
+     Protocol modified: 2026-04-07T12:03:05Z -->
 ---
 name: decision-protocol
 description: Protocol for maintaining .agent/decisions.md architectural decision log
@@ -10,8 +12,6 @@ description: Protocol for maintaining .agent/decisions.md architectural decision
 # Decision Protocol
 
 Architectural Decision Record (ADR) system for tracking decisions, their rationale, and status across AI agent sessions.
-
-**Hub settings:** `~/.config/kimi/prompts/settings.md` — read **in full**; **supreme** for everything it defines. Table + rationale text: **§ On-disk language**.
 
 ## File Structure
 
@@ -48,7 +48,7 @@ Add to the table in chronological order (newest last).
 
 When a **checkpoint** runs (triggers and order: **`~/.config/kimi/templates/agent.md`** or **`.agent/intro.md`** § SKILLS → *Persist state*), this protocol's **sole** responsibility is **`.agent/decisions.md`**.
 
-1. For each **new** architectural or approach decision from this session: add a row to the decision table with **rationale** and status **ACTIVE** (or **PENDING** if blocked). Use **§ 1. Recording a New Decision** above.
+1. For each **new** architectural or approach decision from this session: add a row to the decision table with **rationale** and status **ACTIVE** (or **PENDING** if blocked).
 2. If a decision **supersedes** an older one: mark the old row **SUPERSEDED** and add the replacement row per **§ 4. Superseding Decisions** below.
 3. Keep narrative under **Decisions:** in `.agent/history.md` (memory-protocol) aligned with the table — the table is the long-term source of truth.
 

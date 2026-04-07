@@ -1,7 +1,9 @@
 # Active Tasks
 
-<!-- Protocol: ~/.config/kimi/skills/task-protocol/SKILL.md (modified: 2026-04-05T02:38:33Z, commit: 78920ccbaab368bbbd6edb32109fbe10f153df45) -->
-<!-- The following section is a FULL COPY of the protocol above, auto-updated on init/sync. Do not edit manually. -->
+<!-- Protocol: ~/.config/kimi/skills/task-protocol/SKILL.md (modified: 2026-04-07T12:03:05Z, commit: 8407a3fffae7e8a6a45e80fb73eeded8078dafa7) -->
+<!-- The following section is a FULL COPY of ~/.config/kimi/skills/task-protocol/SKILL.md
+     Protocol commit: 8407a3fffae7e8a6a45e80fb73eeded8078dafa7
+     Protocol modified: 2026-04-07T12:03:05Z -->
 ---
 name: task-protocol
 description: Protocol for maintaining .agent/tasks.md task tracking and work item management
@@ -10,8 +12,6 @@ description: Protocol for maintaining .agent/tasks.md task tracking and work ite
 # Task Protocol
 
 Task tracking system for managing active, blocked, and completed work items across AI agent sessions.
-
-**Hub settings:** `~/.config/kimi/prompts/settings.md` — in hub-driven work, read **in full** first; **supreme** — **nothing** overrides it. Date/time fields follow § Timestamps; task prose § On-disk language.
 
 ## Task identity (scope + global ID)
 
@@ -218,7 +218,7 @@ When user explicitly requests to archive/cleanup/compress/compact completed and 
 When a **checkpoint** runs (triggers and order: **`~/.config/kimi/templates/agent.md`** or **`.agent/intro.md`** § SKILLS → *Persist state*), this protocol's **sole** responsibility is **`.agent/tasks.md`**.
 
 1. Set each **active** task's `Status` to match reality (`DONE`, `IN_PROGRESS`, `INTERRUPTED`, `BLOCKED`, `NOT_STARTED`, `POSTPONED`, etc.). If any row has `Status: POSTPONED`, **confirm** it sits **under `# Backlog`**; relocate the row if not.
-2. Update **`Last worked`** to the current UTC UTC instant in **`YYYY-MM-DDTHH:mm:ssZ`** (per `~/.config/kimi/prompts/settings.md` § Timestamps) for every task you touched during this checkpoint.
+2. Update **`Last worked`** to the current UTC instant in **`YYYY-MM-DDTHH:mm:ssZ`** (per `~/.config/kimi/prompts/settings.md` § Timestamps) for every task you touched during this checkpoint.
 3. If work stops mid-task: use `INTERRUPTED` and expand **Notes** with the next concrete step and WIP context (branch, failing paths, temp artifacts).
 4. **Do not** change **`T<n>`** or `scope` in headings unless correcting a documented error.
 

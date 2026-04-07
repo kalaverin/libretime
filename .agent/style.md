@@ -1,7 +1,9 @@
 # Code style ledger
 
-<!-- Protocol: ~/.config/kimi/skills/style-protocol/SKILL.md (modified: 2026-04-03T19:39:37Z, commit: d7b218d442ccc2d8229bbc567649af803b333b28) -->
-<!-- The following section is a FULL COPY of the protocol above, auto-updated on init/sync. Do not edit manually. -->
+<!-- Protocol: ~/.config/kimi/skills/style-protocol/SKILL.md (modified: 2026-04-07T12:03:05Z, commit: 8407a3fffae7e8a6a45e80fb73eeded8078dafa7) -->
+<!-- The following section is a FULL COPY of ~/.config/kimi/skills/style-protocol/SKILL.md
+     Protocol commit: 8407a3fffae7e8a6a45e80fb73eeded8078dafa7
+     Protocol modified: 2026-04-07T12:03:05Z -->
 ---
 name: style-protocol
 description: Protocol for maintaining .agent/style.md empirical code-style ledger (refs + observations)
@@ -10,8 +12,6 @@ description: Protocol for maintaining .agent/style.md empirical code-style ledge
 # Style Protocol
 
 Ledger of **empirical** project code style: what to **mirror** when writing/editing project source (naming, comment habits, error shapes, test layout, etc.). **Not** a dump of linter config — formatters enforce mechanics; this file captures **patterns agents should copy** from real neighbors, with **repo-relative** `Refs`.
-
-**Hub settings:** `~/.config/kimi/prompts/settings.md` — read **in full** first in hub-driven work; **supreme**. Ledger prose: **§ On-disk language** (English telegraphic). **`Refs`** paths point at **project files** — use **repo-relative** paths (e.g. `src/foo.ts`), not home-tilde.
 
 ## Style note identity
 

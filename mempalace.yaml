@@ -1,0 +1,34 @@
+wing: libretime
+rooms:
+- name: artifacts
+  description: Files from artifacts/
+- name: scripts
+  description: Files from tools/
+- name: docker
+  description: Files from docker/
+- name: app
+  description: Files from app/
+- name: agent.old
+  description: Files from agent.old/
+- name: bin
+  description: Files from bin/
+- name: testing
+  description: Files from tests/
+- name: etc
+  description: Files from etc/
+- name: legacy
+  description: Files from legacy/
+- name: documentation
+  description: Files from docs/
+- name: dev
+  description: Files from dev/
+- name: installer
+  description: Files from installer/
+- name: share
+  description: Files from share/
+- name: src
+  description: Files from src/
+- name: backend
+  description: Files from api/
+- name: general
+  description: Files that don't fit other rooms

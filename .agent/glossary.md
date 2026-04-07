@@ -1,7 +1,9 @@
 # Glossary
 
-<!-- Protocol: ~/.config/kimi/skills/glossary-protocol/SKILL.md (modified: 2026-04-03T19:39:37Z, commit: d7b218d442ccc2d8229bbc567649af803b333b28) -->
-<!-- The following section is a FULL COPY of the protocol above, auto-updated on init/sync. Do not edit manually. -->
+<!-- Protocol: ~/.config/kimi/skills/glossary-protocol/SKILL.md (modified: 2026-04-07T12:03:05Z, commit: 8407a3fffae7e8a6a45e80fb73eeded8078dafa7) -->
+<!-- The following section is a FULL COPY of ~/.config/kimi/skills/glossary-protocol/SKILL.md
+     Protocol commit: 8407a3fffae7e8a6a45e80fb73eeded8078dafa7
+     Protocol modified: 2026-04-07T12:03:05Z -->
 ---
 name: glossary-protocol
 description: Protocol for .agent/glossary.md — user-defined project terms and model interpretation (write only on explicit ask)
@@ -11,7 +13,6 @@ description: Protocol for .agent/glossary.md — user-defined project terms and 
 
 Per-repository **lexicon**: what phrases and names **mean for the agent** when the user uses them (scope of "read the repo", what counts as a "unit", etc.). **Not** general documentation — entries are **binding interpretive rules** for this workspace.
 
-**Hub settings:** `~/.config/kimi/prompts/settings.md` — read **in full** first; **supreme**. Definition bodies on disk: **§ On-disk language** (English telegraphic). **User phrase** may appear inside `"..."` as verbatim quote per that section.
 
 ## Entry identity
 

@@ -1,7 +1,9 @@
-# Work History — 2026-04-06T16:54:33Z
+# Work History — 2026-04-07T12:49:46Z
 
-<!-- Protocol: ~/.config/kimi/skills/memory-protocol/SKILL.md (modified: 2026-04-03T19:39:37Z, commit: d7b218d442ccc2d8229bbc567649af803b333b28) -->
-<!-- The following section is a FULL COPY of the protocol above, auto-updated on init/sync. Do not edit manually. -->
+<!-- Protocol: ~/.config/kimi/skills/memory-protocol/SKILL.md (modified: 2026-04-07T12:03:05Z, commit: 8407a3fffae7e8a6a45e80fb73eeded8078dafa7) -->
+<!-- The following section is a FULL COPY of ~/.config/kimi/skills/memory-protocol/SKILL.md
+     Protocol commit: 8407a3fffae7e8a6a45e80fb73eeded8078dafa7
+     Protocol modified: 2026-04-07T12:03:05Z -->
 ---
 name: memory-protocol
 description: Protocol for maintaining .agent/history.md session logs and cross-session continuity
@@ -160,9 +162,9 @@ You MUST append a session entry after completing any work
 
 ## Session Summary
 <!-- Generated every 10 sessions -->
-- Total sessions: 1
+- Total sessions: 2
 - Active decisions: 0
-- Last focus: Repository initialization (MIGRATION from agent.old)
+- Last focus: Repository infrastructure synchronization
 - Key patterns: Monolithic architecture with clear separation between "create schedule" and "play schedule"
 
 ## Sessions
@@ -207,6 +209,39 @@ You MUST append a session entry after completing any work
 - `.agent/knowledge.md` — created knowledge base
 - `.agent/style.md` — created style ledger
 - `.agent/glossary.md` — created glossary
+
+### [2026-04-07T12:49:46Z]
+**Completed:**
+- Synchronized infrastructure files from central hub (~/.config/kimi/)
+- Updated .agent/intro.md: header, hub-settings-snapshot, FULL SETTINGS COPY, AGENT_RULES, MEMORY_HINTS, SKILLS sections
+- Updated .agent/history.md: protocol copy (memory-protocol v8407a3f)
+- Updated .agent/tasks.md: protocol copy (task-protocol v8407a3f)
+- Updated .agent/decisions.md: protocol copy (decision-protocol v8407a3f)
+- Updated .agent/knowledge.md: protocol copy (knowledge-protocol v8407a3f)
+- Updated .agent/style.md: protocol copy (style-protocol v8407a3f)
+- Updated .agent/glossary.md: protocol copy (glossary-protocol v8407a3f)
+- Verified root AGENTS.md → symlink to .agent/intro.md
+- All user content preserved (PROJECT_CONTEXT, ARCHITECTURE, CONVENTIONS, KNOWN_ISSUES, EXTERNAL_RESOURCES, sessions, tasks T1-T63, knowledge entries, style anchors)
+
+**Discovered:**
+- Central hub settings.md updated (decca84c, 2026-04-07)
+- Multiple protocol skills updated to commit 8407a3f (2026-04-07)
+- New mempalace-protocol integrated with three modes (MCP, CLI, File)
+
+**Decisions:**
+- None new
+
+**Open:**
+- None
+
+**Modified files:**
+- `.agent/intro.md` — infrastructure sections refreshed
+- `.agent/history.md` — protocol copy refreshed
+- `.agent/tasks.md` — protocol copy refreshed
+- `.agent/decisions.md` — protocol copy refreshed
+- `.agent/knowledge.md` — protocol copy refreshed
+- `.agent/style.md` — protocol copy refreshed
+- `.agent/glossary.md` — protocol copy refreshed
 
 <!-- Agent appends new sessions HERE, at the END of Sessions section, before the --- separator -->
 <!-- Format:

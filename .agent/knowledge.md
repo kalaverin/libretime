@@ -2,136 +2,108 @@
 # Machine Index
 version: 1
 schema: knowledge-graph
-last_updated: 2026-04-06T16:54:33Z
+last_updated: 2026-04-07T12:49:46Z
 graph_hash: ""
 ---
 
-<!-- Protocol: ~/.config/kimi/skills/knowledge-protocol/SKILL.md (modified: 2026-04-03T19:39:37Z, commit: d7b218d442ccc2d8229bbc567649af803b333b28) -->
-<!-- The following section is a FULL COPY of the protocol above, auto-updated on init/sync. Do not edit manually. -->
+<!-- Protocol: ~/.config/kimi/skills/knowledge-protocol/SKILL.md (modified: 2026-04-07T12:03:05Z, commit: 8407a3fffae7e8a6a45e80fb73eeded8078dafa7) -->
+<!-- The following section is a FULL COPY of ~/.config/kimi/skills/knowledge-protocol/SKILL.md
+     Protocol commit: 8407a3fffae7e8a6a45e80fb73eeded8078dafa7
+     Protocol modified: 2026-04-07T12:03:05Z -->
 ---
 name: knowledge-protocol
-description: Protocol for maintaining .agent/knowledge.md - machine-readable accumulated knowledge about codebase
+description: Protocol for maintaining codebase knowledge — via MCP MemPalace (preferred) OR .agent/knowledge.md (fallback)
 ---
 
 # Knowledge Protocol
 
-Machine-readable knowledge base for AI agents. Unlike history.md (chronological sessions), 
-this file contains accumulated facts, patterns, and insights discovered during work.
-
-**Hub settings:** `~/.config/kimi/prompts/settings.md` — read **in full** before heavy edits; **supreme** — **nothing** overrides it.
+Accumulated codebase knowledge for AI agents. **Primary storage:** MCP MemPalace server. **Fallback:** `.agent/knowledge.md` when MCP unavailable.
 
 ## File Structure
 
 ```
 repo-root/
+├── mempalace.yaml          # Optional: wing/room taxonomy
 └── .agent/
-    └── knowledge.md       # Accumulated codebase knowledge
+    └── knowledge.md        # Fallback when MCP unavailable
 ```
 
-## Core Principle
+## Storage Selection Priority
 
-**NEVER STOP WRITING. Knowledge.md grows continuously or it's useless.**
+| Priority | Storage | Condition |
+|----------|---------|-----------|
+| 1 | **MCP MemPalace** | MCP `mempalace` server available |
+| 2 | **CLI MemPalace** | MCP unavailable BUT `mempalace.yaml` exists → use `mempalace` CLI |
+| 3 | **Local file** | No MCP and no `mempalace.yaml` → use `.agent/knowledge.md` |
 
-Unlike history.md (updated once per session), knowledge.md is updated CONSTANTLY — 
-after every grep, every discussion, every discovered connection. Default action: WRITE.
-
-### Autonomous updates (no user request)
-
-The agent updates **knowledge.md on its own**. The user does **not** need to say "remember this", "add to knowledge", or wait for explicit "save work". Deferring writes until a checkpoint or until the user asks is **wrong** — checkpoints **reconcile** knowledge they might have missed; they do not replace continuous capture. **Disk prose:** `~/.config/kimi/prompts/settings.md` § **On-disk language**.
-
-### The "Puffy Knowledge Base" Rule
-
-If knowledge.md is not growing during your session, you are doing it wrong.
-Every 10 minutes of work = at least one new entry. Minimum.
+**Never split knowledge** — use exactly one storage system per session.
 
 ## Read on Session Start
 
-1. **Read .agent/knowledge.md entirely** - it's optimized for machine parsing
-2. **Parse YAML blocks** - restore mental model of:
-   - Dependency graph
-   - Class hierarchies
-   - Data flows
-   - Known gotchas
-   - Investigation results
-3. **Acknowledge**: "Knowledge loaded: X components, Y gotchas, Z investigations"
+### Step 1: Attempt MCP Mode
+1. **Call `mempalace_status`**:
+   - **Success**: MCP mode activated
+   - **Failure**: Go to Step 2 (File Mode)
+2. If `.agent/knowledge.md` has content:
+   - **Migrate** to MCP: for each YAML block, call `mempalace_add_drawer`
+   - Truncate file to stub after successful migration
+3. Acknowledge: "Knowledge: MCP active, migrated X entries"
 
-## Write Triggers (MANDATORY - NO EXCEPTIONS)
+### Step 2: CLI Mode (MCP unavailable, mempalace.yaml exists)
+1. Check if `mempalace.yaml` exists in repo root:
+   - **Yes**: CLI mode activated
+   - **No**: Go to Step 3 (File Mode)
+2. **On session start**: Shell `mempalace wake-up [--wing <wing>]` → inject context
+3. **For search**: Shell `mempalace search "query"`
+4. Acknowledge: "Knowledge: CLI mode (mempalace.yaml), wing: X"
 
-**ALWAYS WRITE KNOWLEDGE.md. NO EXCEPTIONS.**
+### Step 3: File Mode (MCP unavailable, no mempalace.yaml)
+1. Read `.agent/knowledge.md` entirely
+2. Parse YAML blocks — restore mental model
+3. Acknowledge: "Knowledge: file mode, loaded X components, Y gotchas"
 
-You are FORBIDDEN from "remembering for later". Write immediately or lose forever.
+## Write Triggers (MANDATORY)
 
-### Immediate Write Required (Do Not Pass Go)
+### MCP Mode (when `mempalace_status` succeeded)
 
-These trigger INSTANT knowledge.md update — stop what you're doing and write:
+| Trigger | Command |
+|---------|---------|
+| Component discovered | `mempalace_kg_add` + `mempalace_add_drawer(room="components")` |
+| Gotcha found | `mempalace_add_drawer(room="gotchas")` |
+| Insight discovered | `mempalace_add_drawer(room="insights")` |
+| Investigation concluded | `mempalace_add_drawer(room="investigations")` |
+| Data flow traced | `mempalace_add_drawer(room="architecture")` |
 
-| Trigger | Action | Example |
-|---------|--------|---------|
-| Finished grep/search | Add pattern to insights | "Found 12 files using X pattern" |
-| Discussion with user | Add conclusion to insights | "User clarified Y behavior" |
-| Found bug/gotcha | Add to gotchas | "Z fails when condition W" |
-| Read new file | Update dependency_graph | "Service X calls Y" |
-| Traced data flow | Update data_flow | "Request flows A→B→C" |
-| Fixed something | Update investigation_log | "Root cause was X" |
-| User explained domain | Add to insights | "Business rule: ..." |
-| Saw unexpected pattern | Add to insights | "Interesting: X does Y" |
-| Any "aha!" moment | WRITE IT DOWN | Immediately. Now.
+### CLI Mode (mempalace.yaml exists, MCP unavailable)
+Read-only mode via CLI:
+- **Search**: `mempalace search "query" [--wing WING] [--room ROOM]`
+- **Wake-up**: `mempalace wake-up [--wing WING]` (on session start)
 
-### 1. Component Relationships
-- New service/repository/controller created
-- New dependency between components discovered
-- Interface/abstract class found
+Writes go to `.agent/knowledge.md` (file mode) until MCP available.
 
-→ Update: `dependency_graph` YAML block
+### File Mode (no mempalace.yaml, MCP unavailable)
+Use traditional YAML block updates in `.agent/knowledge.md`.
 
-### 2. Class Hierarchy Changes
-- Inheritance chain discovered
-- Mixin pattern found
-- Interface implementation
+## Migration Procedure
 
-→ Update: `class_hierarchy` YAML block
+**From file to MCP (one-time):**
 
-### 3. Data Flow Discovery
-- Request flows through multiple layers
-- Background job processing
-- Event handling
+```yaml
+migration_steps:
+  1_verify: "Call mempalace_status to confirm MCP availability"
+  2_cli_check: "If MCP unavailable, check for mempalace.yaml → use CLI mode"
+  3_read: "Read .agent/knowledge.md entirely"
+  4_migrate:
+    - For each YAML block → mempalace_add_drawer(wing=..., room=..., content=...)
+    - For relationships → mempalace_kg_add(subject=..., predicate=..., object=...)
+  5_cleanup: "Truncate knowledge.md to stub"
+  6_verify: "Call mempalace_search to confirm migration"
+```
 
-→ Update: `data_flow` YAML block
+## File Mode Schema (YAML)
 
-### 4. Database Knowledge
-- Table structure understood
-- Index usage discovered
-- Relationship cardinality found
-- Query pattern analyzed
+**Only when MCP unavailable:**
 
-→ Update: `database` YAML block
-
-### 5. Gotchas Found
-- Non-obvious behavior
-- Environment-specific quirks
-- Counter-intuitive patterns
-- Hidden dependencies
-
-→ Update: `gotchas` YAML block
-
-### 6. Random Insights
-- Unexpected connections between components
-- Performance characteristics
-- Security implications
-- Design patterns in use
-
-→ Update: `insights` YAML block
-
-### 7. Investigation Results
-- Debug session concluded
-- Root cause found
-- Experiment completed
-
-→ Update: `investigation_log` YAML block
-
-## YAML Schema
-
-### dependency_graph
 ```yaml
 dependency_graph:
   components:
@@ -141,16 +113,7 @@ dependency_graph:
       depends_on: [list_of_components]
       provides: [list_of_capabilities]
       critical: true|false
-  
-  edges:
-    - from: component_a
-      to: component_b
-      type: [sync|async|event|db_query]
-      notes: "optional details"
-```
 
-### class_hierarchy
-```yaml
 class_hierarchy:
   classes:
     ClassName:
@@ -159,41 +122,7 @@ class_hierarchy:
       implements: [Interface1]
       abstract: true|false
       file: path/to/file.py
-      methods: [method1, method2]
-      
-  interfaces:
-    InterfaceName:
-      methods: [method1, method2]
-      implementors: [ClassA, ClassB]
-```
 
-### data_flow
-(Top-level key **`data_flow`** in `templates/knowledge.md` — not `data_flow_map`.)
-
-```yaml
-data_flow:
-  flows: {}
-```
-
-### database
-(Top-level key **`database`** — not `database_schema_knowledge`.)
-
-```yaml
-database:
-  tables: {}
-  indexes: []
-  relationships: []
-```
-
-### third_party
-(Top-level key **`third_party`** for external packages/services — not `external_dependencies`.)
-
-```yaml
-third_party: {}
-```
-
-### gotchas
-```yaml
 gotchas:
   - id: unique_id
     severity: [critical|high|medium|low]
@@ -201,187 +130,53 @@ gotchas:
     title: "Short description"
     description: "Detailed explanation"
     location: "Where it occurs"
-    workaround: "How to handle it"
     discovered: "YYYY-MM-DDTHH:mm:ssZ"
-    discovered_in: "Session context"
-```
 
-### insights
-```yaml
 insights:
   - id: insight_001
     type: [pattern|connection|performance|security|design]
     title: "Brief description"
     description: "Detailed insight"
-    relates_to: [component_a, component_b]
     confidence: [confirmed|likely|speculative]
     discovered: "YYYY-MM-DDTHH:mm:ssZ"
-```
 
-### investigation_log
-```yaml
 investigation_log:
   - id: INV-001
     topic: "What was investigated"
     status: [ongoing|resolved|stalled]
     conclusion: "What was learned"
-    root_cause: "If resolved"
-    solution: "How fixed"
-    files_involved: [path1, path2]
     discovered: "YYYY-MM-DDTHH:mm:ssZ"
     resolved: "YYYY-MM-DDTHH:mm:ssZ"
 ```
 
-## Auto-Update Rules (for repo-update)
+## Save Work / Persist State
 
-repo-update agent MUST scan code and update knowledge.md:
+### MCP Mode
+1. All knowledge already persisted via MCP calls
+2. Ensure `mempalace_diary_write` called if session ending
+3. No local file operations
 
-### Triggers
-```yaml
-auto_update_triggers:
-  new_model:
-    pattern: "**/models/*.py"
-    action: "Add to database"
-    
-  new_repository:
-    pattern: "**/repositories/*.py"
-    action: "Add to class_hierarchy and dependency_graph"
-    
-  new_service:
-    pattern: "**/services/*.py"
-    action: "Add to dependency_graph, map dependencies"
-    
-  new_router:
-    pattern: "**/routers/*.py"
-    action: "Add to data_flow"
-    
-  requirements_changed:
-    pattern: "requirements*.txt"
-    action: "Update third_party"
-```
+### CLI Mode (mempalace.yaml exists, MCP unavailable)
+1. No persistent writes to palace via CLI (read-only)
+2. Accumulate new knowledge to `.agent/knowledge.md` (file mode)
+3. Flush pending knowledge to YAML blocks
 
-### Validation
-```yaml
-validation_rules:
-  - rule: "All classes in inheritance chain must be documented"
-    check: class_hierarchy
-    severity: warning
-    
-  - rule: "All database models must have schema entry"
-    check: database
-    severity: error
-    
-  - rule: "Gotchas must have severity and workaround"
-    check: gotchas
-    severity: error
-```
+### File Mode (no mempalace.yaml)
+1. Flush pending knowledge to `.agent/knowledge.md` YAML blocks
+2. Verify file written
 
-## Save Work / Persist state (this protocol only)
+## Cross-References
 
-When a **checkpoint** runs (triggers and order: **`~/.config/kimi/templates/agent.md`** or **`.agent/intro.md`** § SKILLS → *Persist state*), this protocol's **sole** responsibility is **`.agent/knowledge.md`**. Continuous autonomous updates should already be happening; this step is a **flush / reconcile**, not the first time you write.
+- **mempalace-protocol**: MCP server commands, AAAK format
+- **memory-protocol**: Session history (always local file)
+- **decision-protocol**: Architectural decisions
+- **task-protocol**: Work tracking
 
-1. **Flush** anything learned this session that is not yet recorded — use the right YAML blocks per **Write Triggers** and **YAML Schema** (`gotchas`, `insights`, `investigation_log`, `dependency_graph`, etc.).
-2. If the session was **non-trivial** but everything is already captured from continuous writes, do a quick verification pass; if still nothing to add, add a minimal **insight** noting "checkpoint, no new durable facts."
+## Implementation Notes
 
-Finish **memory-protocol**, **decision-protocol**, and **task-protocol** before this step when following the template order; **style-protocol** then **glossary-protocol** (conditional) run **after** this step.
-
-## Example Entries
-
-### Gotcha Example
-```yaml
-gotchas:
-  - id: gotcha_001
-    severity: high
-    category: behavior
-    title: "FastAPI dependency caching"
-    description: |
-      FastAPI caches dependency results per request by default.
-      If dependency returns mutable object (list, dict), 
-      modifications persist across subsequent calls in same request.
-    location: "All FastAPI dependencies"
-    workaround: "Return immutable objects or copy before returning"
-    discovered: "2026-04-03T12:00:00Z"
-    discovered_in: "Debugging why user permissions accumulated"
-```
-
-### Insight Example
-```yaml
-insights:
-  - id: insight_003
-    type: connection
-    title: "Auth service bypasses cache for admin users"
-    description: |
-      Admin user authentication always hits database, never cache.
-      This is intentional (security) but not documented.
-      Found by noticing cache miss pattern in logs.
-    relates_to: [auth_service, redis_cache]
-    confidence: confirmed
-    discovered: "2026-04-03T12:00:00Z"
-```
-
-### Investigation Example
-```yaml
-investigation_log:
-  - id: INV-005
-    topic: "Why user sessions expire early?"
-    status: resolved
-    conclusion: "Timezone mismatch between app and Redis"
-    root_cause: "App uses UTC, Redis uses system time (EST)"
-    solution: "Force Redis to UTC in config, added tz check on startup"
-    files_involved: 
-      - app/core/config.py
-      - app/services/session.py
-      - docker-compose.yml
-    discovered: "2026-04-01"
-    resolved: "2026-04-02"
-```
-
-## Hygiene Rules (ENFORCED)
-
-### The Golden Rule
-**If you thought it, write it. If you found it, log it. If you discussed it, document it.**
-
-### Mandatory Actions
-- **Write IMMEDIATELY** — stop mid-sentence if needed. No batching. No "later".
-- **Every grep → insight** — search results are knowledge. Log patterns found.
-- **Every discussion → entry** — user explanations are gold. Document domain knowledge.
-- **Every debug → investigation_log** — even if unresolved. ESPECIALLY if unresolved.
-- **Every fix → conclusion** — root cause must be recorded for posterity.
-
-### Volume Requirements
-- Minimum: 1 entry per 10 minutes of active work
-- Target: Knowledge.md should grow by 10-50 lines per hour of work
-- Success metric: File size increases every session
-
-### Quality Rules
-- **Use IDs** — every entry must have unique ID for referencing
-- **Be specific** — file paths, line numbers, exact error messages
-- **Link related entries** — use relates_to, references fields  
-- **Mark confidence** — distinguish confirmed facts from speculation
-- **Respect .gitignore** — Never scan files in `.gitignore` (except `.agent/`)
-
-### Anti-Patterns (FORBIDDEN)
-- ❌ "I'll add this to knowledge.md at the end"
-- ❌ "This is too small to document"
-- ❌ "I already remember this"
-- ❌ "I'll batch these updates"
-- ❌ "This is obvious"
-- ❌ Waiting for the user to say "remember" or "save" before writing durable facts
-
-## Cross-References to Other Files
-
-- `.agent/history.md` - links to investigation sessions
-- `.agent/decisions.md` - architectural decisions that explain why
-- Root `AGENTS.md` (symlink → `.agent/intro.md`) — links to external resources
-
-## Format
-
-knowledge.md uses hybrid format:
-- Markdown headers for sections
-- YAML blocks for structured data
-- Free text only in descriptions
-
-This allows both human reading and machine parsing.
+1. **Check MCP availability** each session via `mempalace_status`
+2. **Graceful fallback** — MCP failure → automatically switch to file mode
+3. **No caching** — check MCP availability each session
 <!-- END OF PROTOCOL COPY -->
 
 # Dependency Graph
