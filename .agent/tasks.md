@@ -727,6 +727,54 @@ Last worked: 2026-04-06T16:53:26Z
 File: `app/playout/playout/player/fetch.py:371-409`
 Notes: `log` variable may be undefined if exception before assignment.
 
+## [MEDIUM] test T58 — Fix failing SDK compat test (UTC.dst returns None)
+Status: NOT_STARTED
+Created: 2026-04-06T21:20:00Z
+Last worked: 2026-04-06T21:20:00Z
+File: `tests/unit/sdk/test_compat.py:21`
+Next step: Fix test expectation - UTC.dst(None) returns None, not timedelta(0)
+Notes: Test expects UTC.dst(None) == timedelta(0), but Python's timezone.utc.dst(None) returns None.
+
+## [MEDIUM] test T59 — Fix failing datetime test (max time milliseconds)
+Status: NOT_STARTED
+Created: 2026-04-06T21:20:00Z
+Last worked: 2026-04-06T21:20:00Z
+File: `tests/unit/sdk/test_datetime.py:58-62`
+Next step: Fix expected value calculation for max time
+Notes: Test calculation for max time milliseconds is incorrect. time(23, 59, 59, 999999) has 999999 microseconds, not 0.999999 seconds.
+
+## [MEDIUM] test T60 — Fix failing config merge tests (type coercion)
+Status: NOT_STARTED
+Created: 2026-04-06T21:20:00Z
+Last worked: 2026-04-06T21:20:00Z
+Files: `tests/unit/sdk/config/test_base.py` (multiple tests)
+Next step: Fix test expectations for type handling in merge functions
+Notes: Multiple tests fail because they expect incorrect type coercion behavior (int to str, None handling in lists).
+
+## [MEDIUM] test T61 — Fix import error in SDK config models test
+Status: NOT_STARTED
+Created: 2026-04-06T21:20:00Z
+Last worked: 2026-04-06T21:20:00Z
+File: `tests/unit/sdk/config/test_models.py:7`
+Next step: Fix import - BaseHarborInput does not exist, use HarborInput
+Notes: Test tries to import BaseHarborInput which doesn't exist. Should be HarborInput.
+
+## [MEDIUM] test T62 — Fix failing env loader tests
+Status: NOT_STARTED
+Created: 2026-04-06T21:20:00Z
+Last worked: 2026-04-06T21:20:00Z
+File: `tests/unit/sdk/config/test_env.py`
+Next step: Fix test expectations for env array index parsing and schema composition
+Notes: Multiple tests fail due to incorrect expectations about env var parsing behavior.
+
+## [MEDIUM] test T63 — Fix failing fields validation tests
+Status: NOT_STARTED
+Created: 2026-04-06T21:20:00Z
+Last worked: 2026-04-06T21:20:00Z
+File: `tests/unit/sdk/config/test_fields.py`
+Next step: Fix test expectations for StrNoTrailingSlash and AnyUrlStr validation
+Notes: Tests expect validation errors that don't occur (int coerced to str) or don't raise on invalid URL scheme.
+
 # Backlog
 
 <!--
