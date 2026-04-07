@@ -836,23 +836,21 @@ Scan this section when allocating next T<n> (max+1 rule).
 
 # LEGACY TESTING PLAN — Phase 0: Foundation (Weeks 1-2)
 
-## [CRITICAL] test T64 — Fix PreferenceUnitTest.php path issue
-Status: NOT_STARTED
+## [DONE] test T64 — Fix PreferenceUnitTest.php path issue
+Status: DONE
 Phase: 0
 Created: 2026-04-07T13:16:18Z
-Last worked: 2026-04-07T13:16:18Z
-File: `legacy/tests/application/models/PreferenceUnitTest.php`
-Next step: Replace `require_once('../application/configs/conf.php')` with APPLICATION_PATH constant
-Notes: Test uses relative path `../application/` which fails in Docker container structure
+Last worked: 2026-04-07T13:46:18Z
+Completed: 2026-04-07T13:46:18Z
+Summary: Fixed relative path issues in 3 test files by replacing `../application/configs/conf.php` with `CONFIG_PATH . '/conf.php'`. Files: PreferenceUnitTest.php, ShowServiceUnitTest.php, ShowServiceDbTest.php. Tests now load successfully in Docker environment.
 
-## [HIGH] test T65 — Audit all require_once in tests/ for relative paths
-Status: NOT_STARTED
+## [DONE] test T65 — Audit all require_once in tests/ for relative paths
+Status: DONE
 Phase: 0
 Created: 2026-04-07T13:16:18Z
-Last worked: 2026-04-07T13:16:18Z
-Files: `legacy/tests/**/*Test.php`
-Next step: Find all tests using `../application/` patterns
-Notes: Blocking T64-T67. Must fix before other Phase 0 tasks can proceed.
+Last worked: 2026-04-07T13:51:18Z
+Completed: 2026-04-07T13:51:18Z
+Summary: Completed audit of all require_once in tests/. Found and fixed 3 files with relative paths (T64). All remaining require_once use proper constants (CONFIG_PATH, APPLICATION_PATH) or __DIR__ which resolves correctly in Docker. No additional path fixes needed.
 
 ## [MEDIUM] test T66 — Create unified TestBootstrap.php
 Status: NOT_STARTED

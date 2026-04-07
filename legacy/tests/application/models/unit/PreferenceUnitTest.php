@@ -1,6 +1,6 @@
 <?php
 
-require_once '../application/configs/conf.php';
+require_once CONFIG_PATH . '/conf.php';
 
 /**
  * @internal

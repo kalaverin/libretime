@@ -1,6 +1,6 @@
 <?php
 
-require_once '../application/configs/conf.php';
+require_once CONFIG_PATH . '/conf.php';
 
 /*
  * All dates in the xml files are hard coded and in the year 2044

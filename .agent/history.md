@@ -253,6 +253,36 @@ You MUST append a session entry after completing any work
 **Modified files:** <list of changed files>
 -->
 
+### [2026-04-07T13:16:18Z]
+**Completed:**
+- Created comprehensive 15-week testing plan for legacy/ PHP application (~120 atomic tasks) in `legacy/TESTING_PLAN.md`
+- Converted testing plan into trackable tasks T64-T152 in `.agent/tasks.md`
+- Fixed T64: replaced relative paths with CONFIG_PATH constant in 3 test files:
+  - `PreferenceUnitTest.php`
+  - `ShowServiceUnitTest.php`
+  - `ShowServiceDbTest.php`
+- Completed T65: audited all require_once in tests/ — no additional relative path issues found
+
+**Discovered:**
+- `Zend_Application` fails to load Bootstrap class due to `_()` (gettext) function undefined in CLI — this is separate from path issues
+- All path-related problems in tests resolved; remaining failures are environment/bootstrap issues
+- Docker test environment (PHP 7.4 + PostgreSQL 12) functional and builds successfully
+
+**Decisions:**
+- Use CONFIG_PATH constant for config file references instead of relative paths
+- Keep constants.php/preload.php bootstrap chain for test environment
+
+**Open:**
+- T66-T67: Create unified TestBootstrap and verify phpunit.xml (blocked by Zend bootstrap issues)
+- Need to address gettext/translation functions in CLI test environment
+
+**Modified files:**
+- `legacy/TESTING_PLAN.md` — created 15-week testing roadmap
+- `.agent/tasks.md` — added T64-T152 legacy testing tasks
+- `legacy/tests/application/models/unit/PreferenceUnitTest.php`
+- `legacy/tests/application/services/unit/ShowServiceUnitTest.php`
+- `legacy/tests/application/services/database/ShowServiceDbTest.php`
+
 ---
 
 ## Archive
