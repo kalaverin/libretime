@@ -31,9 +31,10 @@ RUN docker-php-ext-install -j$(nproc) \
     curl \
     zip \
     exif \
+    sockets \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd \
-    && docker-php-ext-enable pdo_pgsql pgsql
+    && docker-php-ext-enable pdo_pgsql pgsql sockets
 
 # Install Xdebug 2.9.x for code coverage (PHP 7.4 compatible)
 RUN pecl install xdebug-2.9.8 \
@@ -50,28 +51,25 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /app
 
-# Copy composer files first for better layer caching
+# Copy application and test dirs first (needed for composer autoloader classmap)
+COPY application/ application/
+COPY tests/application/ tests/application/
+
+# Copy composer files
 COPY composer.json composer.lock ./
 
-# Install dependencies (without scripts/plugins as per original Makefile)
+# Install all dependencies (including dev) in one go
+# --ignore-platform-reqs needed because lock file may be out of sync
 RUN COMPOSER_ALLOW_SUPERUSER=1 composer install \
     --no-interaction \
     --no-progress \
     --no-plugins \
     --no-scripts \
     --optimize-autoloader \
-    --no-dev
+    --ignore-platform-reqs
 
 # Copy the rest of the application
 COPY . .
-
-# Install dev dependencies separately for testing
-RUN COMPOSER_ALLOW_SUPERUSER=1 composer install \
-    --no-interaction \
-    --no-progress \
-    --no-plugins \
-    --no-scripts \
-    --optimize-autoloader
 
 # Create test directories and set permissions
 RUN mkdir -p tests/log \
