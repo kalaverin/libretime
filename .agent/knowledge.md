@@ -2,7 +2,7 @@
 # Machine Index
 version: 1
 schema: knowledge-graph
-last_updated: 2026-04-07T12:49:46Z
+last_updated: 2026-04-07T13:16:18Z
 graph_hash: ""
 ---
 
@@ -179,6 +179,500 @@ investigation_log:
 3. **No caching** — check MCP availability each session
 <!-- END OF PROTOCOL COPY -->
 
+# LEGACY PHP PROJECT — COMPLETE TESTING PREREQUISITES
+
+> **Status**: FROZEN — PHP 7.4 only, no updates allowed  
+> **Scope**: Unit testing, bug detection, bug fixing (no refactoring)  
+> **Generated**: 2026-04-07T13:16:18Z
+
+---
+
+## 1. PROJECT OVERVIEW
+
+```yaml
+legacy_project:
+  path: legacy/
+  language: PHP 7.4 (FROZEN — no 8.x migration)
+  framework: Zend Framework 1 (zf1s fork v1.13)
+  orm: Propel 1.6 (libretime fork, dev-main)
+  lines_of_code: ~45,000 PHP (excluding generated Propel models)
+  architecture: MVC with REST API module
+  status: Maintenance mode only
+```
+
+---
+
+## 2. REQUIRED BINARIES IN PATH
+
+### Core Runtime
+| Binary | Version | Purpose |
+|--------|---------|---------|
+| `php` | 7.4.x (exact) | PHP interpreter |
+| `php-fpm` | 7.4.x | FastCGI for integration tests |
+| `composer` | ^2.0 | Dependency management |
+| `psql` | 12+ | PostgreSQL client |
+| `pg_config` | — | PHP extension compilation |
+
+### Project Tools (via composer)
+| Binary | Version | Purpose |
+|--------|---------|---------|
+| `vendor/bin/phpunit` | 5.7 (locked) | Unit testing framework |
+| `vendor/bin/propel-gen` | 1.6 | ORM model generator |
+
+---
+
+## 3. REQUIRED PHP EXTENSIONS
+
+### Mandatory for Application
+```
+pdo_pgsql    - PostgreSQL PDO driver
+pgsql        - PostgreSQL procedural interface
+mbstring     - Multi-byte string handling
+json         - JSON encoding/decoding
+xml          - XML processing
+ctype        - Character type checking
+tokenizer    - PHP tokenization
+session      - Session handling
+curl         - HTTP requests
+fileinfo     - File type detection
+exif         - Metadata extraction
+```
+
+### For Testing & Coverage
+```
+xdebug v2.9.x  - Code coverage (recommended for accuracy)
+# OR
+pcov           - Alternative coverage driver (faster)
+```
+
+---
+
+## 4. DEPENDENCY VERSIONS (LOCKED)
+
+### Production Dependencies (composer.json)
+```yaml
+php: "^7.4"
+adbario/php-dot-notation: "^3.0.0"
+composer/semver: "^3.2"
+james-heinrich/getid3: "^1.9"
+league/uri: "^6.7"
+libretime/celery-php: "dev-main" (fork)
+libretime/propel1: "dev-main" (fork)
+php-amqplib/php-amqplib: "^3.0"
+simplepie/simplepie: "^1.5"
+symfony/config: "^5.4"
+zf1s/zend-acl: "^1.13"
+zf1s/zend-application: "^1.13"
+zf1s/zend-auth: "^1.13"
+zf1s/zend-cache: "^1.13"
+zf1s/zend-controller: "^1.13"
+zf1s/zend-date: "^1.13"
+zf1s/zend-db: "^1.13"
+zf1s/zend-file: "^1.13"
+zf1s/zend-file-transfer: "^1.13"
+zf1s/zend-filter: "^1.13"
+zf1s/zend-form: "^1.13"
+zf1s/zend-http: "^1.13"
+zf1s/zend-json: "^1.13"
+zf1s/zend-layout: "^1.13"
+zf1s/zend-loader: "^1.13"
+zf1s/zend-log: "^1.13"
+zf1s/zend-navigation: "^1.13"
+zf1s/zend-rest: "^1.13"
+zf1s/zend-session: "^1.13"
+zf1s/zend-validate: "^1.13"
+zf1s/zend-version: "^1.13"
+zf1s/zend-view: "^1.13"
+```
+
+### Development Dependencies
+```yaml
+phpunit/dbunit: "^2.0"
+phpunit/phpunit: "^5.7" (DEPRECATED, locked — migration breaks compatibility)
+zf1s/zend-test: "^1.13"
+```
+
+---
+
+## 5. PROJECT STRUCTURE
+
+```
+legacy/
+├── application/
+│   ├── Bootstrap.php              # Application bootstrap
+│   ├── preload.php                # Pre-load initialization
+│   ├── airtime-boot.php           # Airtime-specific boot
+│   ├── check.php                  # System requirements check
+│   ├── auth/                      # Auth adapters
+│   │   ├── FreeIpa.php            # FreeIPA/LDAP auth
+│   │   └── HeaderAuth.php         # Header-based auth
+│   ├── common/                    # Utility classes (48 files)
+│   │   ├── Assets.php
+│   │   ├── AutoPlaylistManager.php
+│   │   ├── CeleryManager.php
+│   │   ├── Database.php
+│   │   ├── DateHelper.php
+│   │   ├── FileDataHelper.php
+│   │   ├── FileIO.php
+│   │   ├── HTTPHelper.php
+│   │   ├── LocaleHelper.php
+│   │   ├── PodcastManager.php
+│   │   ├── SecurityHelper.php
+│   │   ├── SessionHelper.php
+│   │   ├── Storage.php
+│   │   ├── TaskManager.php
+│   │   ├── Timezone.php
+│   │   ├── TuneIn.php
+│   │   ├── UsabilityHints.php
+│   │   └── WidgetHelper.php
+│   ├── configs/                   # Configuration
+│   │   ├── application.ini        # ZF1 application config
+│   │   ├── conf.php               # Main config (Symfony Config)
+│   │   ├── constants.php          # Constants
+│   │   ├── ACL.php                # Access control lists
+│   │   ├── navigation.php         # Menu navigation
+│   │   └── classmap-airtime-conf.php
+│   ├── controllers/               # MVC Controllers (26 files)
+│   │   ├── ApiController.php
+│   │   ├── DashboardController.php
+│   │   ├── LibraryController.php
+│   │   ├── LoginController.php
+│   │   ├── PlaylistController.php
+│   │   ├── ScheduleController.php
+│   │   ├── UserController.php
+│   │   └── plugins/               # Controller plugins
+│   │       ├── Acl_plugin.php
+│   │       ├── Maintenance.php
+│   │       ├── PageLayoutInitPlugin.php
+│   │       └── RabbitMqPlugin.php
+│   ├── forms/                     # Zend_Form (35+ forms)
+│   │   ├── Login.php
+│   │   ├── AddUser.php
+│   │   ├── EditUser.php
+│   │   ├── AddShow*.php           # Multiple show forms
+│   │   ├── Preferences.php
+│   │   ├── customfilters/         # Custom form filters
+│   │   ├── customvalidators/      # Custom validators
+│   │   └── helpers/               # Form helpers
+│   ├── layouts/                   # View layouts (.phtml)
+│   ├── logging/                   # Logging
+│   │   ├── AirtimeLog.php
+│   │   └── Logging.php
+│   ├── models/                    # Business logic + ORM
+│   │   ├── airtime/               # Propel generated models
+│   │   │   ├── om/                # Object Model (Base* classes)
+│   │   │   ├── map/               # Table maps
+│   │   │   └── [60+ Table].php    # Model classes
+│   │   ├── formatters/            # Data formatters
+│   │   └── tests/                 # Old test files (legacy)
+│   ├── modules/rest/              # REST API module
+│   │   ├── Bootstrap.php
+│   │   ├── controllers/           # REST controllers
+│   │   │   ├── MediaController.php
+│   │   │   ├── PodcastController.php
+│   │   │   └── RouteController.php
+│   │   └── helpers/RestAuth.php
+│   ├── services/                  # Service layer (11 services)
+│   │   ├── CalendarService.php
+│   │   ├── CeleryServiceFactory.php
+│   │   ├── HistoryService.php
+│   │   ├── MediaService.php
+│   │   ├── PodcastService.php
+│   │   ├── SchedulerService.php
+│   │   ├── ShowFormService.php
+│   │   ├── ShowService.php
+│   │   └── UserService.php
+│   ├── validate/                  # Validators
+│   └── views/                     # View scripts (.phtml)
+├── build/                         # Propel build configuration
+│   ├── build.properties
+│   └── schema.xml
+├── install/                       # Installation files
+├── locale/                        # i18n (16 languages)
+├── public/                        # Document root
+├── tests/                         # PHPUnit tests
+│   ├── application/
+│   │   ├── bootstrap.php          # Test bootstrap
+│   │   ├── helpers/
+│   │   │   ├── AirtimeInstall.php
+│   │   │   └── TestHelper.php
+│   │   ├── models/
+│   │   │   ├── database/          # DB integration tests
+│   │   │   │   ├── BlockDbTest.php
+│   │   │   │   └── ScheduleDbTest.php
+│   │   │   └── unit/              # Unit tests
+│   │   │       ├── PreferenceUnitTest.php
+│   │   │       └── ScheduleUnitTest.php
+│   │   ├── services/
+│   │   │   ├── database/          # Service DB tests
+│   │   │   │   └── ShowServiceDbTest.php
+│   │   │   └── unit/              # Service unit tests
+│   │   │       └── ShowServiceUnitTest.php
+│   │   └── testdata/              # Test data providers
+│   ├── config/
+│   │   └── config.yml             # Test configuration
+│   └── phpunit.xml                # PHPUnit configuration
+├── composer.json
+├── composer.lock
+├── Makefile
+└── .php-cs-fixer.php
+```
+
+---
+
+## 6. DATABASE REQUIREMENTS
+
+### PostgreSQL Schema (60+ tables via Propel)
+
+#### Core Tables
+| Table | Purpose |
+|-------|---------|
+| cc_files | Audio file metadata |
+| cc_playlist | Playlist definitions |
+| cc_playlistcontents | Playlist track ordering |
+| cc_block | Smart block definitions |
+| cc_blockcontents | Smart block content |
+| cc_blockcriteria | Smart block criteria |
+| cc_show | Show definitions |
+| cc_show_instances | Show occurrences |
+| cc_show_days | Show repeat patterns |
+| cc_show_schedule | Show content scheduling |
+| cc_schedule | Master schedule |
+| cc_subjs | Users/subjects |
+| cc_access | ACL assignments |
+| cc_pref | System preferences |
+| cc_listener_count | Listener statistics |
+| cc_playout_history | Play history |
+| cc_webstream | Web stream definitions |
+| cc_podcast | Podcast feeds |
+| cc_podcast_episodes | Podcast episodes |
+| celery_tasks | Celery task queue |
+| sessions | PHP sessions |
+
+### Test Database Setup
+```yaml
+test_database:
+  name: airtimeunittests (configurable)
+  privileges_required: [CREATE, DROP, INSERT, SELECT, UPDATE, DELETE]
+  schema_generation: Via TestHelper::installTestDatabase()
+  fixture_format: YAML (PHPUnit_Extensions_Database_DataSet_YamlDataSet)
+```
+
+---
+
+## 7. TESTING INFRASTRUCTURE
+
+### Current State
+```yaml
+testing_status:
+  existing_test_files: ~10
+  test_frameworks: ["PHPUnit 5.7", "Zend_Test_PHPUnit"]
+  coverage: "<5%"
+  coverage_tool: "Disabled (autoloader issues)"
+  db_test_framework: "PHPUnit_Extensions_Database (YAML fixtures)"
+```
+
+### Test Types Required for 100% Coverage
+1. **Unit Tests** — Services, helpers, formatters (no DB)
+2. **Database Tests** — Models (require Propel + PostgreSQL)
+3. **Controller Tests** — MVC (require Zend_Test + DB)
+4. **Integration Tests** — REST API endpoints
+
+### Test Configuration (tests/phpunit.xml)
+```xml
+<phpunit bootstrap="./application/bootstrap.php" colors="true">
+    <testsuite name="My Application Tests">
+        <directory>./</directory>
+    </testsuite>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">../application/</directory>
+            <exclude>
+                <directory suffix=".phtml">../application/</directory>
+                <file>../application/Bootstrap.php</file>
+                <file>../application/controllers/ErrorController.php</file>
+            </exclude>
+        </whitelist>
+    </filter>
+    <php>
+        <env name="ENVIRONMENT" value="testing" />
+        <env name="APPLICATION_ENV" value="testing" />
+        <env name="LIBRETIME_UNIT_TEST" value="1" />
+        <env name="LIBRETIME_CONFIG_DIR" value="./config" />
+        <env name="LIBRETIME_LOG_DIR" value="./log" />
+    </php>
+</phpunit>
+```
+
+### Test Bootstrap Flow
+```php
+// tests/application/bootstrap.php
+1. error_reporting(E_ALL | E_STRICT)
+2. require preload.php
+3. Set include paths (library, vendor, propel, etc)
+4. Logging::setLogPath()
+5. Propel::init() with airtime-conf-production.php
+6. Zend_Session::start()
+```
+
+---
+
+## 8. ENVIRONMENT VARIABLES
+
+```bash
+# Required
+ENVIRONMENT=testing
+APPLICATION_ENV=testing
+LIBRETIME_UNIT_TEST=1
+LIBRETIME_CONFIG_DIR=./config
+LIBRETIME_LOG_DIR=./log
+
+# Optional (defaults used if not set)
+LIBRETIME_CONFIG_FILEPATH=/path/to/config.yml
+LIBRETIME_LEGACY_ROOT=/path/to/legacy
+```
+
+---
+
+## 9. CRITICAL CONSTRAINTS & LIMITATIONS
+
+```yaml
+constraints:
+  - id: C1
+    description: "PHP 7.4 ONLY — No migration to 8.x allowed (project frozen)"
+    impact: Blocks all modernization
+    
+  - id: C2
+    description: "PHPUnit 5.7 locked — Deprecated but migration breaks compatibility"
+    impact: Cannot use modern PHPUnit features
+    
+  - id: C3
+    description: "ZF1 is EOL — Using zf1s community fork for PHP 7.4 support"
+    impact: Limited documentation, security risk
+    
+  - id: C4
+    description: "Propel 1.6 legacy ORM — All models require active DB connection"
+    impact: True unit testing impossible for models
+    
+  - id: C5
+    description: "Session dependency — Zend_Session::start() required in bootstrap"
+    impact: Complicates CLI testing
+    
+  - id: C6
+    description: "Code coverage disabled due to autoloader issues"
+    impact: Cannot measure coverage accurately
+```
+
+---
+
+## 10. INSTALLATION & SETUP
+
+### macOS (Homebrew)
+```bash
+# 1. Install PHP 7.4
+tap shivammathur/php
+brew install shivammathur/php/php@7.4
+
+# 2. Install extensions
+brew install php@7.4-pdo-pgsql php@7.4-pgsql php@7.4-xdebug
+
+# 3. Install tools
+brew install composer postgresql@12
+
+# 4. Configure PATH
+export PATH="/usr/local/opt/php@7.4/bin:$PATH"
+export PATH="/usr/local/opt/php@7.4/sbin:$PATH"
+export PATH="/usr/local/opt/postgresql@12/bin:$PATH"
+
+# 5. Verify
+php -v                    # PHP 7.4.x
+php -m | grep pdo_pgsql   # Should show
+php -m | grep xdebug      # Should show
+```
+
+### Project Setup
+```bash
+cd legacy/
+
+# 1. Install dependencies
+composer install \
+    --no-interaction \
+    --no-progress \
+    --no-plugins \
+    --no-scripts \
+    --optimize-autoloader
+
+# 2. Configure test database
+cp tests/config/config.yml.dist tests/config/config.yml
+# Edit: set PostgreSQL credentials for test DB
+
+# 3. Create test database
+createdb airtimeunittests
+
+# 4. Run tests
+cd tests && ../vendor/bin/phpunit
+
+# Or via Makefile
+make test
+```
+
+---
+
+## 11. MAKEFILE TARGETS
+
+```makefile
+make vendor      # Install composer dependencies
+make test        # Run PHPUnit tests
+make format      # Run php-cs-fixer
+make lint        # Run php-cs-fixer --dry-run
+make build       # Production build (no-dev)
+make propel-gen  # Regenerate Propel models
+```
+
+---
+
+## 12. COVERAGE REPORTING ISSUE
+
+Current phpunit.xml comment:
+```xml
+<!-- Disabling broken code coverage report. 
+     It's not using our autoloader for some reason... -->
+```
+
+### To Enable Coverage
+1. Fix autoloader path in coverage whitelist, OR
+2. Switch to `pcov` extension (faster, simpler), OR
+3. Use `xdebug` with proper `include_path` configuration
+
+---
+
+## 13. TESTING WORK ESTIMATE
+
+| Metric | Value |
+|--------|-------|
+| Lines of Code | ~45,000 |
+| Current Test Coverage | <5% |
+| Existing Test Files | ~10 |
+| Estimated Tests Needed | 800-1,200 |
+| Time Estimate (single dev) | 3-6 months |
+| Complexity | Very High |
+
+### Priority Order for Testing
+1. `Application_Service_ShowService` — Critical path
+2. `Application_Service_SchedulerService` — Core functionality
+3. `Application_Model_Block` — Smart blocks
+4. `Application_Model_Schedule` — Scheduling logic
+5. `Application_Model_Show` — Show management
+6. Common helpers — `DateHelper`, `FileDataHelper`, etc.
+7. Controllers — Lower priority (integration tests preferred)
+
+---
+
+*Report generated for LibreTime Legacy testing initiative.*  
+*Status: FROZEN — Maintenance mode only, no modernization.*
+
+---
+
 # Dependency Graph
 ```yaml
 dependency_graph:
@@ -218,6 +712,11 @@ dependency_graph:
       type: php-app
       deps: [api]
       entry: legacy/public/index.php
+      php_version: "7.4"
+      framework: "Zend Framework 1 (zf1s)"
+      orm: "Propel 1.6"
+      test_framework: "PHPUnit 5.7"
+      status: "frozen"
   edges:
     - from: worker
       to: api
@@ -240,6 +739,9 @@ dependency_graph:
     - from: analyzer
       to: sdk
       type: imports
+    - from: legacy
+      to: api
+      type: depends-on-django-api
 ```
 
 # Class Hierarchy
@@ -261,6 +763,15 @@ class_hierarchy:
       - playout.liquidsoap.client.LiquidsoapClient
     worker:
       - worker.tasks.podcast.download_podcast
+    legacy:
+      - Application_Service_ShowService
+      - Application_Service_SchedulerService
+      - Application_Service_UserService
+      - Application_Model_Block
+      - Application_Model_Schedule
+      - Application_Model_Show
+      - Application_Model_ShowInstance
+      - Application_Model_StoredFile
   interfaces: {}
 ```
 
@@ -281,6 +792,11 @@ data_flow:
       - User uploads file via API
       - Analyzer extracts metadata/replaygain
       - Results stored via API
+    legacy-ui:
+      - User interacts with ZF1 controllers
+      - Forms validated with Zend_Form
+      - Models use Propel ORM
+      - REST module provides JSON API
 ```
 
 # Database Schema Knowledge
@@ -305,11 +821,21 @@ database:
     history:
       - playout-history
       - listener-stats
+    legacy:
+      - cc_files (Propel model)
+      - cc_playlist (Propel model)
+      - cc_show (Propel model)
+      - cc_schedule (Propel model)
+      - cc_block (Propel model)
+      - cc_subjs (users)
+      - cc_access (ACL)
   indexes: []
   relationships:
     - shows have many playlists
     - playlists have many files
     - users own shows/playlists
+    - blocks have criteria
+    - shows have instances (occurrences)
 ```
 
 # Configuration Registry
@@ -328,6 +854,15 @@ config:
     docker-compose.yml:
       scope: services
       services: [postgres, rabbitmq, liquidsoap]
+    legacy/composer.json:
+      scope: legacy-php
+      php_version: "7.4"
+      framework: "Zend Framework 1"
+      orm: "Propel 1.6"
+    legacy/tests/phpunit.xml:
+      scope: legacy-testing
+      bootstrap: "./application/bootstrap.php"
+      coverage: "disabled"
   secrets:
     - .env (not committed)
     - UV_INDEX_PRIVATE_PASSWORD (for private package index)
@@ -345,12 +880,22 @@ testing:
       runner: pytest-django
       settings: api.settings.testing
       requires: [postgres]
+    legacy:
+      runner: phpunit
+      version: "5.7 (deprecated)"
+      location: legacy/tests/
+      requires: [php-7.4, postgresql, pdo_pgsql]
+      coverage: "<5%"
+      bootstrap: "tests/application/bootstrap.php"
   fixtures:
     - app/api/api/_fixtures/
     - app/playout/tests/conftest.py
+    - legacy/tests/application/testdata/
+    - legacy/tests/application/models/database/datasets/
   mock_rules:
     - Use pytest-mock for unit tests
     - Use requests-mock for HTTP clients
+    - Propel models require real database (cannot mock)
 ```
 
 # Gotchas & Quirks
@@ -372,6 +917,18 @@ gotchas:
     description: Some tests require Docker services (postgres, rabbitmq)
     impact: Medium — tests fail without services
     workarounds: Run `docker compose up -d` before testing
+  - id: G5
+    description: Legacy PHP is FROZEN on PHP 7.4 — no updates allowed
+    impact: Critical — cannot modernize, stuck with deprecated PHPUnit 5.7
+    workarounds: Write tests within existing constraints only
+  - id: G6
+    description: Propel models require active DB connection — no true unit testing
+    impact: High — all model tests are integration tests
+    workarounds: Test business logic in services separately
+  - id: G7
+    description: Code coverage disabled due to autoloader issues
+    impact: Medium — cannot measure test coverage accurately
+    workarounds: Fix phpunit.xml whitelist or switch to pcov
 ```
 
 # Insights & Patterns
@@ -397,16 +954,36 @@ insights:
     description: Liquidsoap integration is external binary dependency
     confidence: high
     refs: [app/playout/playout/liquidsoap/]
+  - id: I5
+    category: legacy-constraints
+    description: Legacy testing requires full LAMP stack (PHP 7.4, PostgreSQL, extensions)
+    confidence: high
+    refs: [legacy/, legacy/tests/]
+  - id: I6
+    category: testing-strategy
+    description: PHPUnit 5.7 + Zend_Test requires database for most tests
+    confidence: high
+    refs: [legacy/tests/phpunit.xml]
 ```
 
 # Investigation Log
 ```yaml
-investigation_log: []
+investigation_log:
+  - id: INV-001
+    topic: "Legacy PHP testing prerequisites analysis"
+    status: resolved
+    conclusion: "Complete inventory created — PHP 7.4, PostgreSQL, PHPUnit 5.7, ZF1, Propel 1.6"
+    discovered: "2026-04-07T13:16:18Z"
+    resolved: "2026-04-07T13:16:18Z"
 ```
 
 # Uncertainty Registry
 ```yaml
-unknowns: []
+unknowns:
+  - id: U1
+    topic: "Exact test data requirements for 100% coverage"
+    blocking: false
+    notes: "Will discover during test implementation"
 ```
 
 # Deprecated Knowledge
@@ -444,6 +1021,12 @@ third_party:
   liquidsoap:
     purpose: Audio streaming engine
     notes: External binary, not Python package
+  legacy_php:
+    php: "^7.4 (frozen)"
+    framework: "Zend Framework 1 (zf1s ^1.13)"
+    orm: "Propel 1.6 (libretime fork)"
+    test_framework: "PHPUnit 5.7 (deprecated, locked)"
+    database: "PostgreSQL 12+"
 ```
 
 # Health Check Endpoints
@@ -460,11 +1043,16 @@ critical_paths:
   - path: playout → liquidsoap → icecast
     description: Audio streaming chain
     failure_impact: Complete broadcast outage
+  - path: legacy → api → postgres
+    description: Legacy UI depends on Django API
+    failure_impact: Web UI non-functional
 single_points_of_failure:
   - component: liquidsoap
     mitigation: Can restart independently
   - component: postgres
     mitigation: Playout caches schedule locally
+  - component: php-7.4-runtime
+    mitigation: Legacy frozen, no upgrade path
 ```
 
 # Auto-Update Rules
@@ -481,6 +1069,8 @@ maintenance:
       update_section: [dependency_graph, data_flow]
     - file_changed: "pyproject.toml"
       update_section: third_party
+    - file_changed: "legacy/**"
+      update_section: [dependency_graph, gotchas, insights]
   
   validation_rules:
     - rule: "All repository classes must have entry in class_hierarchy"
