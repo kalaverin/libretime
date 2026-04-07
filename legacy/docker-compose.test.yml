@@ -11,8 +11,8 @@ services:
       POSTGRES_DB: airtimeunittests
       POSTGRES_USER: libretime
       POSTGRES_PASSWORD: libretime
-    ports:
-      - "5432:5432"
+    # Port not exposed to host - only internal container communication
+    # If you need external access, uncomment: ports: ["5433:5432"]
     volumes:
       - postgres_test_data:/var/lib/postgresql/data
       - ./tests/sql/init:/docker-entrypoint-initdb.d:ro
@@ -45,6 +45,8 @@ services:
       - ./application:/app/application:ro
       - ./tests:/app/tests:rw
       - ./tests/log:/app/tests/log:rw
+      # SQL migrations from Django app (required by tests)
+      - ../app/api/api/legacy/migrations/sql:/app/api/api/legacy/migrations/sql:ro
       # Composer vendor is baked in image for performance
     depends_on:
       postgres:
@@ -71,15 +73,22 @@ services:
       PGDATABASE: airtimeunittests
       PGUSER: libretime
       PGPASSWORD: libretime
+    # Note: vendor is baked into the image
+    # Only SQL migrations are mounted from host
+    volumes:
+      - type: bind
+        source: ../app/api/api/legacy/migrations/sql
+        target: /app/api/api/legacy/migrations/sql
+        read_only: true
     depends_on:
       postgres:
         condition: service_healthy
-    working_dir: /app/tests
+    working_dir: /app
     command: >
       sh -c "
         echo 'Waiting for PostgreSQL...' &&
         sleep 2 &&
-        ../vendor/bin/phpunit --configuration phpunit.xml
+        vendor/bin/phpunit --configuration tests/phpunit.xml
       "
 
   # Coverage runner
@@ -104,13 +113,14 @@ services:
         condition: service_healthy
     volumes:
       - ./coverage:/app/coverage:rw
-    working_dir: /app/tests
+      - ../app/api/api/legacy/migrations/sql:/app/api/api/legacy/migrations/sql:ro
+    working_dir: /app
     command: >
       sh -c "
         echo 'Generating code coverage...' &&
         sleep 2 &&
-        ../vendor/bin/phpunit 
-          --configuration phpunit.xml 
+        vendor/bin/phpunit 
+          --configuration tests/phpunit.xml 
           --coverage-html /app/coverage
           --coverage-text
       "
@@ -137,6 +147,7 @@ services:
         condition: service_healthy
     volumes:
       - .:/app:rw
+      - ../app/api/api/legacy/migrations/sql:/app/api/api/legacy/migrations/sql:ro
     working_dir: /app
     command: ["bash"]
     stdin_open: true

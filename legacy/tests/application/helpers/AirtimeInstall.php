@@ -215,7 +215,24 @@ class AirtimeInstall
     {
         echo ' * Creating database tables' . PHP_EOL;
         $con = Propel::getConnection();
-        $sqlDir = dirname(ROOT_PATH) . '/api/api/legacy/migrations/sql/';
+        // Support both Docker and native environments
+        // Docker: /app/api/api/legacy/migrations/sql/ (mounted from host)
+        // Native: {repo_root}/api/api/legacy/migrations/sql/
+        $possiblePaths = [
+            '/app/api/api/legacy/migrations/sql/',  // Docker path
+            dirname(ROOT_PATH) . '/api/api/legacy/migrations/sql/',  // Native path from legacy/
+            dirname(ROOT_PATH, 2) . '/api/api/legacy/migrations/sql/',  // Native path from repo root
+        ];
+        $sqlDir = null;
+        foreach ($possiblePaths as $path) {
+            if (is_dir($path)) {
+                $sqlDir = $path;
+                break;
+            }
+        }
+        if ($sqlDir === null) {
+            throw new Exception('Could not find SQL migrations directory. Tried: ' . implode(', ', $possiblePaths));
+        }
         $files = ['schema.sql', 'data.sql'];
         foreach ($files as $file) {
             try {

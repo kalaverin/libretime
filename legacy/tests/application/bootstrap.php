@@ -60,6 +60,6 @@ set_include_path(APPLICATION_PATH . '/../tests/application/testdata' . PATH_SEPA
 set_include_path(APPLICATION_PATH . '/../tests/application/helpers' . PATH_SEPARATOR . get_include_path());
 
 require_once 'libretime/propel1/runtime/lib/Propel.php';
-Propel::init('../application/configs/airtime-conf-production.php');
+Propel::init(CONFIG_PATH . '/airtime-conf-production.php');
 
 Zend_Session::start();
