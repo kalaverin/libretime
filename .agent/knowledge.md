@@ -886,10 +886,14 @@ testing:
       location: legacy/tests/
       requires: [php-7.4, postgresql, pdo_pgsql]
       coverage: "<5%"
+      target_coverage: "80%"
       bootstrap: "tests/application/bootstrap.php"
       docker: true
       docker_command: "./test.sh"
       docker_services: [postgres, php]
+      plan: "legacy/TESTING_PLAN.md"
+      plan_duration: "15 weeks"
+      plan_tasks: "~120"
   fixtures:
     - app/api/api/_fixtures/
     - app/playout/tests/conftest.py
@@ -981,6 +985,16 @@ insights:
       - PostgreSQL 12 as test database
       - One-shot and interactive test runners
       - Coverage reports in ./coverage/
+  - id: I8
+    category: planning
+    description: 15-week testing roadmap created for 80% legacy coverage
+    confidence: confirmed
+    refs: [legacy/TESTING_PLAN.md]
+    details:
+      - ~120 atomic tasks across 10 phases
+      - Critical path prioritizes ShowService, Schedule, UserService
+      - 8-10 tasks/week pace for single developer
+      - Foundation → Helpers → Services → Models → Forms → Controllers
 ```
 
 # Investigation Log
@@ -998,6 +1012,12 @@ investigation_log:
     conclusion: "Created full Docker setup — Dockerfile, docker-compose, test.sh script, no local PHP required"
     discovered: "2026-04-07T13:45:00Z"
     resolved: "2026-04-07T13:45:00Z"
+  - id: INV-003
+    topic: "Comprehensive testing plan for legacy coverage"
+    status: resolved
+    conclusion: "Created 15-week, ~120 task roadmap for 80% coverage — see TESTING_PLAN.md"
+    discovered: "2026-04-07T19:00:00Z"
+    resolved: "2026-04-07T19:00:00Z"
 ```
 
 # Uncertainty Registry
@@ -1101,6 +1121,97 @@ maintenance:
     - rule: "All service dependencies must be in dependency_graph"
       severity: warning
 ```
+
+---
+
+# LEGACY TESTING PLAN — 15 Week Coverage Roadmap
+
+> **Location**: `legacy/TESTING_PLAN.md`  
+> **Total Tasks**: ~120 atomic items  
+> **Duration**: 15 weeks (1 developer)  
+> **Target Coverage**: 80%  
+> **Pace**: 8-10 tasks/week
+
+## Phase Overview
+
+| Phase | Weeks | Tasks | Focus Area |
+|-------|-------|-------|------------|
+| 0. Foundation | 1-2 | 12 | Infrastructure, fixtures, path fixes |
+| 1. Common Helpers | 2-3 | 18 | DateHelper, FileDataHelper, SecurityHelper |
+| 2. Service Layer | 3-5 | 27 | ShowService, SchedulerService, UserService |
+| 3. Models | 5-7 | 30 | Show, Schedule, Block, Playlist, User |
+| 4. Forms | 7-8 | 15 | Validation, form processing |
+| 5. Auth & Security | 8-9 | 12 | Authentication, ACL, validators |
+| 6. Controllers | 9-11 | 25 | MVC controllers, AJAX endpoints |
+| 7. Integration | 11-12 | 13 | End-to-end scenarios, edge cases |
+| 8. REST API | 12-13 | 9 | REST module endpoints |
+| 9. Formatters | 13-14 | 4 | Data formatters |
+| 10. Final | 14-15 | 6 | Coverage analysis, docs |
+
+## Critical Path Priority
+
+### Week 1-2: Foundation
+- Fix test paths (PreferenceUnitTest.php, bootstrap.php)
+- Create TestBootstrap.php, ModelFactory
+- Create YAML fixtures for User, Show, File
+
+### Week 3-4: Service Core
+- ShowService::addUpdateShow() — all repeat types
+- ShowService::deleteShow() — single/current/all
+- SchedulerService::scheduleAfter(), removeGaps()
+
+### Week 5-6: Models Core
+- Show Model — CRUD, hosts, recording flag
+- ShowInstance — schedule manipulation
+- Schedule — overlap detection
+- Block — smart block criteria
+
+### Week 7-8: Complete Services + Forms
+- UserService — full CRUD
+- MediaService — upload flow
+- Forms — AddShow*, Login, AddUser
+
+## Key Files to Test First
+
+```
+application/services/ShowService.php          # CRITICAL
+application/services/SchedulerService.php     # CRITICAL
+application/models/Show.php                   # CRITICAL
+application/models/ShowInstance.php           # CRITICAL
+application/models/Schedule.php               # CRITICAL
+application/common/DateHelper.php             # HIGH
+application/common/FileDataHelper.php         # HIGH
+application/common/SecurityHelper.php         # HIGH
+```
+
+## Testing Conventions
+
+```php
+// Test class naming
+class ShowServiceTest extends PHPUnit_Framework_TestCase
+
+// Test method naming
+test<MethodName>_<Condition>_<ExpectedResult>()
+// Example: testAddUpdateShow_WeeklyRepeat_CreatesInstances()
+
+// Run tests
+cd legacy && ./test.sh test
+
+// Run specific test
+cd legacy && ./test.sh phpunit --filter testAddUpdateShow
+```
+
+## Success Metrics by Phase
+
+| Phase | Target | Current | Status |
+|-------|--------|---------|--------|
+| Foundation | 90% | TBD | 🔄 |
+| Helpers | 90% | TBD | 🔄 |
+| Services | 85% | <5% | 🔄 |
+| Models | 80% | <5% | 🔄 |
+| Forms | 75% | 0% | 🔄 |
+| Controllers | 70% | 0% | 🔄 |
+| **TOTAL** | **80%** | **<5%** | 🚀 |
 
 ---
 
