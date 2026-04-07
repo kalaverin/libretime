@@ -887,6 +887,9 @@ testing:
       requires: [php-7.4, postgresql, pdo_pgsql]
       coverage: "<5%"
       bootstrap: "tests/application/bootstrap.php"
+      docker: true
+      docker_command: "./test.sh"
+      docker_services: [postgres, php]
   fixtures:
     - app/api/api/_fixtures/
     - app/playout/tests/conftest.py
@@ -929,6 +932,10 @@ gotchas:
     description: Code coverage disabled due to autoloader issues
     impact: Medium — cannot measure test coverage accurately
     workarounds: Fix phpunit.xml whitelist or switch to pcov
+  - id: G8
+    description: Docker testing environment created — no local PHP 7.4 required
+    impact: High — enables testing without legacy stack installation
+    workarounds: Use ./test.sh script for all testing operations
 ```
 
 # Insights & Patterns
@@ -964,6 +971,16 @@ insights:
     description: PHPUnit 5.7 + Zend_Test requires database for most tests
     confidence: high
     refs: [legacy/tests/phpunit.xml]
+  - id: I7
+    category: infrastructure
+    description: Docker-based testing eliminates local PHP 7.4 dependency
+    confidence: confirmed
+    refs: [legacy/Dockerfile.test, legacy/docker-compose.test.yml, legacy/test.sh]
+    details:
+      - PHP 7.4 + Xdebug 2.9.8 in container
+      - PostgreSQL 12 as test database
+      - One-shot and interactive test runners
+      - Coverage reports in ./coverage/
 ```
 
 # Investigation Log
@@ -975,6 +992,12 @@ investigation_log:
     conclusion: "Complete inventory created — PHP 7.4, PostgreSQL, PHPUnit 5.7, ZF1, Propel 1.6"
     discovered: "2026-04-07T13:16:18Z"
     resolved: "2026-04-07T13:16:18Z"
+  - id: INV-002
+    topic: "Docker-based testing environment for legacy PHP"
+    status: resolved
+    conclusion: "Created full Docker setup — Dockerfile, docker-compose, test.sh script, no local PHP required"
+    discovered: "2026-04-07T13:45:00Z"
+    resolved: "2026-04-07T13:45:00Z"
 ```
 
 # Uncertainty Registry

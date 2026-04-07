@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+
+# Docker files themselves
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Documentation
+*.md
+!TESTING.md
+
+# Test artifacts
+coverage/
+tests/log/*.log
+
+# Locale (not needed for testing)
+locale/*.po
+tmp/
+
+# Build artifacts
+build/
+
+# Vendor is installed during build
+# vendor/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp

@@ -1,0 +1,146 @@
+# LibreTime Legacy Testing Environment
+# PHP 7.4 + PostgreSQL 12 for unit/integration testing
+
+version: '3.8'
+
+services:
+  # PostgreSQL for tests
+  postgres:
+    image: postgres:12-alpine
+    environment:
+      POSTGRES_DB: airtimeunittests
+      POSTGRES_USER: libretime
+      POSTGRES_PASSWORD: libretime
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+      - ./tests/sql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U libretime -d airtimeunittests"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # PHP 7.4 Test Runner
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      ENVIRONMENT: testing
+      APPLICATION_ENV: testing
+      LIBRETIME_UNIT_TEST: "1"
+      LIBRETIME_CONFIG_DIR: /app/tests/config
+      LIBRETIME_LOG_DIR: /app/tests/log
+      LIBRETIME_CONFIG_FILEPATH: /app/tests/config/config.yml
+      # Database connection
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: airtimeunittests
+      PGUSER: libretime
+      PGPASSWORD: libretime
+    volumes:
+      # Mount source for development (code changes reflect immediately)
+      - ./application:/app/application:ro
+      - ./tests:/app/tests:rw
+      - ./tests/log:/app/tests/log:rw
+      # Composer vendor is baked in image for performance
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /app/tests
+    command: ["../vendor/bin/phpunit", "--configuration", "phpunit.xml"]
+    # Keep container running for interactive use
+    # command: ["tail", "-f", "/dev/null"]
+
+  # One-shot test runner (for CI)
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      ENVIRONMENT: testing
+      APPLICATION_ENV: testing
+      LIBRETIME_UNIT_TEST: "1"
+      LIBRETIME_CONFIG_DIR: /app/tests/config
+      LIBRETIME_LOG_DIR: /app/tests/log
+      LIBRETIME_CONFIG_FILEPATH: /app/tests/config/config.yml
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: airtimeunittests
+      PGUSER: libretime
+      PGPASSWORD: libretime
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /app/tests
+    command: >
+      sh -c "
+        echo 'Waiting for PostgreSQL...' &&
+        sleep 2 &&
+        ../vendor/bin/phpunit --configuration phpunit.xml
+      "
+
+  # Coverage runner
+  coverage:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      ENVIRONMENT: testing
+      APPLICATION_ENV: testing
+      LIBRETIME_UNIT_TEST: "1"
+      LIBRETIME_CONFIG_DIR: /app/tests/config
+      LIBRETIME_LOG_DIR: /app/tests/log
+      LIBRETIME_CONFIG_FILEPATH: /app/tests/config/config.yml
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: airtimeunittests
+      PGUSER: libretime
+      PGPASSWORD: libretime
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./coverage:/app/coverage:rw
+    working_dir: /app/tests
+    command: >
+      sh -c "
+        echo 'Generating code coverage...' &&
+        sleep 2 &&
+        ../vendor/bin/phpunit 
+          --configuration phpunit.xml 
+          --coverage-html /app/coverage
+          --coverage-text
+      "
+
+  # Interactive shell for debugging
+  shell:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      ENVIRONMENT: testing
+      APPLICATION_ENV: testing
+      LIBRETIME_UNIT_TEST: "1"
+      LIBRETIME_CONFIG_DIR: /app/tests/config
+      LIBRETIME_LOG_DIR: /app/tests/log
+      LIBRETIME_CONFIG_FILEPATH: /app/tests/config/config.yml
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: airtimeunittests
+      PGUSER: libretime
+      PGPASSWORD: libretime
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app:rw
+    working_dir: /app
+    command: ["bash"]
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_test_data:

@@ -1,0 +1,64 @@
+# LibreTime Legacy Testing Makefile (Docker-based)
+# No local PHP 7.4 installation required
+
+SHELL = bash
+COMPOSE = docker-compose -f docker-compose.test.yml
+
+.PHONY: help
+help:
+	@echo "LibreTime Legacy Testing (Docker)"
+	@echo "================================="
+	@echo ""
+	@echo "Available targets:"
+	@echo "  build       - Build Docker test image"
+	@echo "  test        - Run all PHPUnit tests"
+	@echo "  coverage    - Generate code coverage report"
+	@echo "  shell       - Interactive shell for debugging"
+	@echo "  up          - Start test environment (postgres)"
+	@echo "  down        - Stop test environment"
+	@echo "  clean       - Remove all containers and volumes"
+	@echo ""
+	@echo "Legacy Makefile targets (require local PHP):"
+	@echo "  Use 'make -f Makefile' for local execution"
+
+# Docker-based targets
+.PHONY: build
+test-build:
+	$(COMPOSE) build
+
+.PHONY: test
+test:
+	$(COMPOSE) run --rm test
+
+.PHONY: coverage
+test-coverage:
+	@mkdir -p coverage
+	$(COMPOSE) run --rm coverage
+	@echo "Coverage report: ./coverage/index.html"
+
+.PHONY: shell
+test-shell:
+	$(COMPOSE) run --rm shell
+
+.PHONY: up
+test-up:
+	$(COMPOSE) up -d postgres
+	@echo "Waiting for PostgreSQL..."
+	@sleep 3
+	$(COMPOSE) ps
+
+.PHONY: down
+test-down:
+	$(COMPOSE) down
+
+.PHONY: clean
+test-clean:
+	$(COMPOSE) down -v --remove-orphans
+	docker system prune -f
+
+# Legacy compatibility - use Docker
+.PHONY: test-local
+test-local:
+	@echo "WARNING: Running tests locally requires PHP 7.4"
+	@echo "Use 'make test' for Docker-based testing"
+	@exit 1

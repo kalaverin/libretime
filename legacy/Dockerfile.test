@@ -1,0 +1,83 @@
+# LibreTime Legacy PHP 7.4 Testing Environment
+# Frozen in time — PHP 7.4, ZF1, Propel 1.6
+
+FROM php:7.4-cli-bullseye
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    unzip \
+    wget \
+    libpq-dev \
+    libonig-dev \
+    libxml2-dev \
+    libcurl4-openssl-dev \
+    libzip-dev \
+    libexif-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install PHP extensions required by the project
+RUN docker-php-ext-install -j$(nproc) \
+    pdo_pgsql \
+    pgsql \
+    mbstring \
+    xml \
+    ctype \
+    tokenizer \
+    curl \
+    zip \
+    exif \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd \
+    && docker-php-ext-enable pdo_pgsql pgsql
+
+# Install Xdebug 2.9.x for code coverage (PHP 7.4 compatible)
+RUN pecl install xdebug-2.9.8 \
+    && docker-php-ext-enable xdebug
+
+# Configure Xdebug for coverage
+RUN echo "xdebug.mode=coverage" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.coverage_enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.remote_enable=0" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
+# Install Composer 2
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /app
+
+# Copy composer files first for better layer caching
+COPY composer.json composer.lock ./
+
+# Install dependencies (without scripts/plugins as per original Makefile)
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer install \
+    --no-interaction \
+    --no-progress \
+    --no-plugins \
+    --no-scripts \
+    --optimize-autoloader \
+    --no-dev
+
+# Copy the rest of the application
+COPY . .
+
+# Install dev dependencies separately for testing
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer install \
+    --no-interaction \
+    --no-progress \
+    --no-plugins \
+    --no-scripts \
+    --optimize-autoloader
+
+# Create test directories and set permissions
+RUN mkdir -p tests/log \
+    && chmod -R 777 tests/log \
+    && mkdir -p /tmp/storage \
+    && chmod -R 777 /tmp/storage
+
+# Default command
+CMD ["vendor/bin/phpunit", "--configuration", "tests/phpunit.xml"]
