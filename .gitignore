@@ -8,7 +8,7 @@ __*__/
 
 *.py[cdo]
 
-!*/*.md
+!*/**/*.md
 
 !CHANGELOG.md
 !CONTRIBUTING.md
