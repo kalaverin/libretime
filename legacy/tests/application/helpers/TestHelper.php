@@ -55,6 +55,10 @@ class TestHelper
 
     public static function setupZendBootstrap()
     {
+        // Bootstrap class is already loaded by TestBootstrap.php
+        // We just need to initialize the Zend_Application with proper configuration
+        require_once APPLICATION_PATH . '/Bootstrap.php';
+        
         $application = new Zend_Application(APPLICATION_ENV, CONFIG_PATH . '/application.ini');
         $application->bootstrap();
 
