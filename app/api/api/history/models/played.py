@@ -19,6 +19,7 @@ class PlayoutHistory(models.Model):
 
     class Meta:
         managed = False
+        app_label = "history"
         db_table = "cc_playout_history"
 
 
@@ -32,6 +33,7 @@ class PlayoutHistoryMetadata(models.Model):
 
     class Meta:
         managed = False
+        app_label = "history"
         db_table = "cc_playout_history_metadata"
 
 
@@ -41,6 +43,7 @@ class PlayoutHistoryTemplate(models.Model):
 
     class Meta:
         managed = False
+        app_label = "history"
         db_table = "cc_playout_history_template"
 
 
@@ -57,4 +60,5 @@ class PlayoutHistoryTemplateField(models.Model):
 
     class Meta:
         managed = False
+        app_label = "history"
         db_table = "cc_playout_history_template_field"

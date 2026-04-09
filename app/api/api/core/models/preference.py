@@ -105,4 +105,5 @@ class Preference(models.Model):
     class Meta:
         managed = False
         db_table = "cc_pref"
+        app_label = "core"
         unique_together = (("user", "key"),)

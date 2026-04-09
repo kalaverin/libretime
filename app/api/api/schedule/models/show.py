@@ -25,6 +25,7 @@ class Show(Model):
 
     class Meta:
         managed: bool = False
+        app_label: str = "schedule"
         db_table: str = "cc_show"
 
     name: CharField = CharField(max_length=255)
@@ -145,6 +146,7 @@ class ShowHost(Model):
 
     class Meta:
         managed: bool = False
+        app_label: str = "schedule"
         db_table: str = "cc_show_hosts"
 
     show: ForeignKey = ForeignKey(
@@ -168,6 +170,7 @@ class ShowDays(Model):
 
     class Meta:
         managed: bool = False
+        app_label: str = "schedule"
         db_table: str = "cc_show_days"
 
     class WeekDay(IntegerChoices):
@@ -237,6 +240,7 @@ class ShowInstance(Model):
 
     class Meta:
         managed: bool = False
+        app_label: str = "schedule"
         db_table: str = "cc_show_instances"
 
     created_at: DateTimeField = DateTimeField(db_column="created")
@@ -306,6 +310,7 @@ class ShowRebroadcast(Model):
 
     class Meta:
         managed: bool = False
+        app_label: str = "schedule"
         db_table: str = "cc_show_rebroadcast"
 
     show: ForeignKey = ForeignKey(

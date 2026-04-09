@@ -23,6 +23,7 @@ class Schedule(Model):
 
     class Meta:
         managed: bool = False
+        app_label: str = "schedule"
         db_table: str = "cc_schedule"
         permissions: tuple[tuple[str, str], ...] = (
             ("change_own_schedule", "Change the content on their shows"),

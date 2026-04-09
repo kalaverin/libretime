@@ -21,6 +21,7 @@ class SmartBlock(Model):
 
     class Meta:
         managed: bool = False
+        app_label: str = "schedule"
         db_table: str = "cc_block"
         permissions: tuple[tuple[str, str], ...] = (
             (
@@ -81,6 +82,7 @@ class SmartBlockContent(Model):
 
     class Meta:
         managed: bool = False
+        app_label: str = "schedule"
         db_table: str = "cc_blockcontents"
         permissions: tuple[tuple[str, str], ...] = (
             (
@@ -142,6 +144,7 @@ class SmartBlockCriteria(Model):
 
     class Meta:
         managed: bool = False
+        app_label: str = "schedule"
         db_table: str = "cc_blockcriteria"
         permissions: tuple[tuple[str, str], ...] = (
             (

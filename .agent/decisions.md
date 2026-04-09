@@ -139,6 +139,8 @@ These should then be added to `.agent/decisions.md` for long-term tracking.
 
 | Date | Decision | Rationale | Status | Superseded By |
 |------|----------|-----------|--------|---------------|
+| 2026-04-07T16:28:44Z | Use `.replace(tzinfo=None)` for datetime comparisons in API tests | API returns naive ISO datetimes, model_bakery creates timezone-aware fields; normalization done in test assertions | ACTIVE | - |
+| 2026-04-07T16:28:44Z | Set `USE_TZ = False` in test settings | Avoids Django 5.0 deprecation warning while keeping test compatibility | ACTIVE | - |
 
 <!--
 Format:

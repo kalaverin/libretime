@@ -22,6 +22,7 @@ class Playlist(Model):
 
     class Meta:
         managed: bool = False
+        app_label: str = "schedule"
         db_table: str = "cc_playlist"
 
     created_at: DateTimeField = DateTimeField(
@@ -59,6 +60,7 @@ class PlaylistContent(Model):
 
     class Meta:
         managed: bool = False
+        app_label: str = "schedule"
         db_table: str = "cc_playlistcontents"
 
     class Kind(IntegerChoices):

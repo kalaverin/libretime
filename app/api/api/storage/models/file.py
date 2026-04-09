@@ -23,6 +23,7 @@ class File(Model):
 
     class Meta:
         managed: bool = False
+        app_label: str = "storage"
         db_table: str = "cc_files"
         permissions: tuple[tuple[str, str], ...] = (
             ("change_own_file", "Change the files where they are the owner"),

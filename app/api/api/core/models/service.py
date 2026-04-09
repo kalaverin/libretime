@@ -8,3 +8,4 @@ class ServiceRegister(models.Model):
     class Meta:
         managed = False
         db_table = "cc_service_register"
+        app_label = "core"

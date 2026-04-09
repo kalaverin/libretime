@@ -1,5 +1,5 @@
 import hashlib
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, Sequence
 
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -110,6 +110,7 @@ class User(AbstractBaseUser):
     class Meta:
         managed = False
         db_table = "cc_subjs"
+        app_label = "core"
 
     USERNAME_FIELD = "username"
     EMAIL_FIELD = "email"

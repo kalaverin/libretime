@@ -21,6 +21,7 @@ class ThirdPartyTrackReference(models.Model):
     class Meta:
         managed = False
         db_table = "third_party_track_references"
+        app_label = "core"
 
 
 class CeleryTask(models.Model):
@@ -36,3 +37,4 @@ class CeleryTask(models.Model):
     class Meta:
         managed = False
         db_table = "celery_tasks"
+        app_label = "core"

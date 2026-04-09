@@ -12,6 +12,7 @@ class Webstream(models.Model):
     @final
     class Meta:
         managed: bool = False
+        app_label: str = "schedule"
         db_table: str = "cc_webstream"
         permissions: tuple[tuple[str, str], ...] = (
             (
@@ -57,6 +58,7 @@ class WebstreamMetadata(models.Model):
     @final
     class Meta:
         managed: bool = False
+        app_label: str = "schedule"
         db_table: str = "cc_webstream_metadata"
 
     schedule = models.ForeignKey(

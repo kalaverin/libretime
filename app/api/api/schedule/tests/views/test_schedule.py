@@ -42,7 +42,7 @@ class TestScheduleViewSet(APITestCase):
         result = response.json()
         self.assertEqual(
             dateparse.parse_datetime(result[0]["ends_at"]),
-            schedule_item.ends_at,
+            schedule_item.ends_at.replace(tzinfo=None),
         )
         self.assertEqual(
             dateparse.parse_duration(result[0]["cue_out"]),
@@ -76,7 +76,7 @@ class TestScheduleViewSet(APITestCase):
         result = response.json()
         self.assertEqual(
             dateparse.parse_datetime(result[0]["ends_at"]),
-            show.ends_at,
+            show.ends_at.replace(tzinfo=None),
         )
         expected = show.ends_at - schedule_item.starts_at
         self.assertEqual(
@@ -85,7 +85,7 @@ class TestScheduleViewSet(APITestCase):
         )
         self.assertNotEqual(
             dateparse.parse_datetime(result[0]["ends_at"]),
-            schedule_item.ends_at,
+            schedule_item.ends_at.replace(tzinfo=None),
         )
 
     def test_schedule_item_invalid(self):
@@ -126,7 +126,7 @@ class TestScheduleViewSet(APITestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(
             dateparse.parse_datetime(result[0]["ends_at"]),
-            schedule_item.ends_at,
+            schedule_item.ends_at.replace(tzinfo=None),
         )
         self.assertEqual(
             dateparse.parse_duration(result[0]["cue_out"]),
@@ -182,5 +182,5 @@ class TestScheduleViewSet(APITestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(
             dateparse.parse_datetime(result[0]["starts_at"]),
-            schedule_item.starts_at,
+            schedule_item.starts_at.replace(tzinfo=None),
         )

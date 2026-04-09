@@ -21,6 +21,7 @@ class UserToken(models.Model):
     class Meta:
         managed = False
         db_table = "cc_subjs_token"
+        app_label = "core"
 
 
 class LoginAttempt(models.Model):
@@ -30,3 +31,4 @@ class LoginAttempt(models.Model):
     class Meta:
         managed = False
         db_table = "cc_login_attempts"
+        app_label = "core"

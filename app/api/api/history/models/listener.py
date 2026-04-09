@@ -6,6 +6,7 @@ class MountName(models.Model):
 
     class Meta:
         managed = False
+        app_label = "history"
         db_table = "cc_mount_name"
 
 
@@ -14,6 +15,7 @@ class Timestamp(models.Model):
 
     class Meta:
         managed = False
+        app_label = "history"
         db_table = "cc_timestamp"
 
 
@@ -30,4 +32,5 @@ class ListenerCount(models.Model):
 
     class Meta:
         managed = False
+        app_label = "history"
         db_table = "cc_listener_count"

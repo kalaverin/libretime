@@ -1358,3 +1358,98 @@ reference_document:
 | Migration Report | Schema mapping, Pydantic models, SQLAlchemy | `.agent/research/api_v2_fastapi_migration_report.md` |
 | Test Coverage Plan | 155 test tasks, endpoint matrix, critical path | `.agent/research/api_v2_test_coverage_plan.md` |
 
+
+---
+
+## Test Environment (Docker Compose)
+
+```yaml
+test_environment:
+  file: docker-compose.test.yml
+  type: isolated_ephemeral
+  data_persistence: false  # tmpfs for postgres
+  
+  services:
+    postgres:
+      image: postgres:15-alpine
+      port: 5432
+      credentials:
+        user: libretime
+        password: libretime
+        database: libretime_test
+      
+    rabbitmq:
+      image: rabbitmq:3.13-alpine
+      port: 5672
+      credentials:
+        user: libretime
+        password: libretime
+        vhost: /libretime
+      
+    redis:
+      image: redis:7-alpine
+      port: 6379
+      purpose: cache_sessions_future
+
+  commands:
+    start: "docker compose -f docker-compose.test.yml up -d"
+    status: "docker compose -f docker-compose.test.yml ps"
+    stop: "docker compose -f docker-compose.test.yml down"
+    logs: "docker compose -f docker-compose.test.yml logs -f"
+
+  test_execution:
+    setup: |
+      docker compose -f docker-compose.test.yml up -d
+      sleep 5  # Wait for services
+    
+    run_tests: |
+      cd app/api
+      uv run pytest api/core/tests/models/ -v
+      uv run pytest api/tests/test_permissions.py -v
+    
+    teardown: |
+      docker compose -f docker-compose.test.yml down
+
+  django_settings:
+    database:
+      engine: django.db.backends.postgresql
+      host: localhost
+      port: 5432
+      name: libretime_test
+      user: libretime
+      password: libretime
+    
+    test_runner: api.tests.runner.ManagedModelTestRunner
+    migrations: auto_applied
+```
+
+
+---
+
+## Datetime Handling in API Tests
+
+**Problem:** API returns naive ISO format datetimes (no timezone info), but `model_bakery` creates timezone-aware datetime fields when `USE_TZ=True` or when Django automatically adds timezone info.
+
+**Symptom:**
+```
+AssertionError: datetime.datetime(2026, 4, 9, 6, 19, 47) != datetime.datetime(2026, 4, 9, 11, 19, 47, tzinfo=UTC)
+```
+
+**Solution:** Normalize timezone-aware datetimes to naive before comparison:
+
+```python
+from django.utils import dateparse
+
+# In test assertion:
+self.assertEqual(
+    dateparse.parse_datetime(result[0]["ends_at"]),
+    schedule_item.ends_at.replace(tzinfo=None),  # Strip timezone
+)
+```
+
+**Files affected:**
+- `app/api/api/schedule/tests/views/test_schedule.py` — 4 test methods fixed (T308-T311)
+
+**Related settings:**
+- `USE_TZ = False` in `testing.py` prevents Django 5.0 deprecation warning
+- `TIME_ZONE = "UTC"` sets default timezone for naive datetimes

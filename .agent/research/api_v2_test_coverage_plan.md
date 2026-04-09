@@ -472,3 +472,60 @@ app/api/api/tests/
 ---
 
 *This plan is linked to .agent/tasks.md tasks T153-T307.*
+
+---
+
+## Appendix: Test Environment Setup
+
+### Docker Compose Test Environment
+
+**File:** `docker-compose.test.yml` (isolated, ephemeral)
+
+**Services:**
+| Service | Port | Credentials | Purpose |
+|---------|------|-------------|---------|
+| PostgreSQL | 5432 | libretime/libretime | Test database |
+| RabbitMQ | 5672 | libretime/libretime | Message queue |
+| Redis | 6379 | - | Cache/sessions (future) |
+
+**Start environment:**
+```bash
+docker compose -f docker-compose.test.yml up -d
+```
+
+**Check status:**
+```bash
+docker compose -f docker-compose.test.yml ps
+```
+
+**Stop environment:**
+```bash
+docker compose -f docker-compose.test.yml down
+```
+
+**Full test cycle:**
+```bash
+# 1. Start services
+docker compose -f docker-compose.test.yml up -d
+
+# 2. Wait for services (5-10 sec)
+sleep 5
+
+# 3. Run tests
+cd app/api
+uv run pytest api/core/tests/models/ -v
+uv run pytest api/tests/test_permissions.py -v
+
+# 4. Stop services
+docker compose -f docker-compose.test.yml down
+```
+
+**Environment Variables (auto-configured):**
+- `POSTGRES_DB=libretime_test`
+- `POSTGRES_USER=libretime`
+- `POSTGRES_PASSWORD=libretime`
+- `POSTGRES_HOST=localhost`
+- `POSTGRES_PORT=5432`
+
+**Database Setup:**
+Test runner automatically applies migrations. No manual setup needed.

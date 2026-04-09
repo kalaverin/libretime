@@ -13,6 +13,7 @@ class Library(Model):
 
     class Meta:
         managed: bool = False
+        app_label: str = "storage"
         db_table: str = "cc_track_types"
 
     name: CharField = CharField(

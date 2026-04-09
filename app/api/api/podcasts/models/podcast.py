@@ -35,6 +35,7 @@ class Podcast(models.Model):
 
     class Meta:
         managed = False
+        app_label = "podcasts"
         db_table = "podcast"
         permissions = [
             (
@@ -72,6 +73,7 @@ class PodcastEpisode(models.Model):
 
     class Meta:
         managed = False
+        app_label = "podcasts"
         db_table = "podcast_episodes"
         permissions = [
             (
@@ -96,6 +98,7 @@ class StationPodcast(models.Model):
 
     class Meta:
         managed = False
+        app_label = "podcasts"
         db_table = "station_podcast"
 
 
@@ -118,4 +121,5 @@ class ImportedPodcast(models.Model):
 
     class Meta:
         managed = False
+        app_label = "podcasts"
         db_table = "imported_podcast"

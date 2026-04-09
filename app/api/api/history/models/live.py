@@ -8,4 +8,5 @@ class LiveLog(models.Model):
 
     class Meta:
         managed = False
+        app_label = "history"
         db_table = "cc_live_log"
