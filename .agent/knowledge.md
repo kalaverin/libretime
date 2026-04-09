@@ -1275,3 +1275,86 @@ cd legacy && ./test.sh phpunit --filter testAddUpdateShow
 
 ### Full Report
 See agent analysis output for complete endpoint mapping, pydantic schemas, and permission matrix.
+
+---
+
+## Reference Documents
+
+Critical reference documentation for API v2 and FastAPI migration.
+
+### API v2 FastAPI Migration Report
+
+```yaml
+reference_document:
+  id: api_v2_fastapi_migration_report
+  title: "API v2 FastAPI Migration Analysis Report"
+  path: .agent/research/api_v2_fastapi_migration_report.md
+  size: 45KB
+  lines: 1246
+  created: 2026-04-07T17:00:00Z
+  
+  contents:
+    - section: "Django models with db_column mappings"
+    - section: "Pydantic schemas for FastAPI"
+    - section: "45+ endpoints with methods"
+    - section: "Permission system (IsSystemTokenOrUser, IsAdminOrOwnUser)"
+    - section: "Read/Write serializer patterns"
+    - section: "SQLAlchemy Table definitions"
+  
+  modules_covered:
+    - core: "Users, Preferences, Auth, Public endpoints"
+    - storage: "Files, Libraries"
+    - schedule: "Shows, Playlists, SmartBlocks, Schedule, Webstreams"
+    - history: "PlayoutHistory, ListenerCount, LiveLog"
+    - podcasts: "Podcasts, Episodes"
+  
+  critical_patterns:
+    - "ReadWriteSerializerMixin for Schedule (GET vs POST different schemas)"
+    - "Dual auth: Session + Api-Key"
+    - "X-Accel-Redirect for file download"
+    - "MD5 password hashing (legacy)"
+```
+
+### API v2 Test Coverage Plan
+
+```yaml
+reference_document:
+  id: api_v2_test_coverage_plan
+  title: "API v2 Comprehensive Test Coverage Plan"
+  path: .agent/research/api_v2_test_coverage_plan.md
+  size: 22KB
+  created: 2026-04-07T18:45:00Z
+  linked_tasks: T153-T307
+  
+  purpose: "Contract tests for Django→FastAPI migration"
+  test_count: 155
+  
+  sections:
+    - infrastructure: "T153-T162 - Fixtures and factories"
+    - core_module: "T163-T184 - Users, Preferences, Auth"
+    - storage_module: "T186-T200 - Files (CRITICAL)"
+    - schedule_module: "T201-T258 - Shows, Playlists, Schedule (CRITICAL)"
+    - history_module: "T259-T267 - Playout history"
+    - podcasts_module: "T268-T278 - Podcasts"
+    - auth_tests: "T279-T283 - Session + Api-Key"
+    - edge_cases: "T284-T298 - Serializers, validation"
+    - documentation: "T299-T307 - Guides and benchmarks"
+  
+  critical_path:
+    - "T153-T162: Infrastructure"
+    - "T186-T194: Files (especially T193 download)"
+    - "T201-T258: Schedule (complex relationships)"
+    - "T279-T283: Authentication"
+    - "T284: ReadWriteSerializerMixin behavior"
+  
+  infrastructure_complete: true
+  estimated_time: "2-3 weeks full-time"
+```
+
+### Quick Access
+
+| Document | Purpose | Path |
+|----------|---------|------|
+| Migration Report | Schema mapping, Pydantic models, SQLAlchemy | `.agent/research/api_v2_fastapi_migration_report.md` |
+| Test Coverage Plan | 155 test tasks, endpoint matrix, critical path | `.agent/research/api_v2_test_coverage_plan.md` |
+

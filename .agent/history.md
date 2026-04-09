@@ -712,3 +712,34 @@ Extended `app/api/api/tests/fixtures/recipes.py` with Webstream module:
 ### Next Steps:
 Ready for T163+ — actual API endpoint tests using this infrastructure.
 
+
+---
+
+## Reference Documents Recorded
+
+**Timestamp:** 2026-04-07T18:50:00Z  
+**Action:** Added both research documents to knowledge base
+
+### Documents Registered
+
+| Document | Path | Size | Purpose |
+|----------|------|------|---------|
+| **API v2 FastAPI Migration Report** | `.agent/research/api_v2_fastapi_migration_report.md` | 45KB, 1246 lines | Complete analysis: models, Pydantic schemas, 45+ endpoints, permissions, SQLAlchemy mappings |
+| **API v2 Test Coverage Plan** | `.agent/research/api_v2_test_coverage_plan.md` | 22KB | 155 test tasks, endpoint matrix, critical path for FastAPI migration |
+
+### Location in Knowledge
+
+Both documents indexed in `.agent/knowledge.md` under `Reference Documents` section with YAML metadata for quick lookup.
+
+### Key References
+
+- **Migration analysis:** See `api_v2_fastapi_migration_report.md` for:
+  - Django model → SQLAlchemy table mappings
+  - ReadWriteSerializerMixin behavior
+  - Permission classes (IsSystemTokenOrUser, IsAdminOrOwnUser)
+  
+- **Test plan:** See `api_v2_test_coverage_plan.md` for:
+  - Task-to-endpoint mapping (T153-T307)
+  - Critical path prioritization
+  - Test file organization proposal
+
