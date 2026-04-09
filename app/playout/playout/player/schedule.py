@@ -16,7 +16,7 @@ from playout.player.events import (
     datetime_to_event_key,
     event_isoparse,
 )
-from sdk import UTC
+from sdk import UTC, format_datetime
 
 
 def insert_event(events: Events, event_key: str, event: AnyEvent) -> None:
@@ -43,8 +43,8 @@ def get_schedule(api_client: v2.ApiClient) -> Events:
     current_time = datetime.now(UTC)
     end_time = current_time + timedelta(days=1)
 
-    current_time_str = current_time.isoformat(timespec="seconds")
-    end_time_str = end_time.isoformat(timespec="seconds")
+    current_time_str = format_datetime(current_time)
+    end_time_str = format_datetime(end_time)
 
     schedule = api_client.list_schedule(
         ends_after=current_time_str,

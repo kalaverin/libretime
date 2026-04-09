@@ -44,7 +44,7 @@ SECRET_KEY = "testing-secret-key-for-tests-only"
 # https://docs.djangoproject.com/en/4.2/topics/i18n/timezones/
 
 TIME_ZONE = "UTC"
-USE_TZ = False
+USE_TZ = True
 
 # Email
 # https://docs.djangoproject.com/en/4.2/topics/email/
@@ -55,6 +55,14 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # https://docs.djangoproject.com/en/3.2/ref/settings/#test-runner
 
 TEST_RUNNER = "api.tests.runner.ManagedModelTestRunner"
+
+# Django REST Framework
+# https://www.django-rest-framework.org/api-guide/settings/
+
+REST_FRAMEWORK = {
+    **REST_FRAMEWORK,  # Inherit from _internal.py
+    "DATETIME_FORMAT": "%Y-%m-%dT%H:%M:%SZ",
+}
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases

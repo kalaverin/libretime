@@ -8,9 +8,7 @@ from pydantic import BaseModel, BeforeValidator, Field, parse_obj_as
 
 from playout.config import CACHE_DIR
 from playout.utils import mime_guess_extension
-from sdk import UTC
-
-EVENT_KEY_FORMAT = "%Y-%m-%d-%H-%M-%S"
+from sdk import UTC, format_datetime
 
 
 def event_key_to_datetime(value: str | datetime) -> datetime:
@@ -21,7 +19,7 @@ def event_key_to_datetime(value: str | datetime) -> datetime:
 
 def datetime_to_event_key(value: str | datetime) -> str:
     if isinstance(value, datetime):
-        return value.replace(microsecond=0).isoformat()
+        return format_datetime(value)
     return value
 
 
