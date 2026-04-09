@@ -287,3 +287,428 @@ You MUST append a session entry after completing any work
 
 ## Archive
 <!-- Old sessions summarized here when history.md exceeds 200 lines -->
+
+---
+
+## Session Entry — API v2 Test Infrastructure (T153)
+
+**Timestamp:** 2026-04-07T17:20:00Z  
+**Task:** T153 — Create API test infrastructure base  
+**Status:** COMPLETED
+
+### Work Done
+
+Extended `app/api/api/conftest.py` with comprehensive API testing fixtures:
+
+**New Fixtures Created:**
+1. `api_client` — API client with Api-Key authentication (service-to-service)
+2. `admin_user` — Admin user (role=A) with full permissions
+3. `regular_user` — Host user (role=H) with standard permissions
+4. `manager_user` — Manager user (role=P) with elevated permissions
+5. `guest_user` — Guest user (role=G) with minimal permissions
+6. `authenticated_client` — Session-authenticated as admin
+7. `host_client` — Session-authenticated as host
+8. `manager_client` — Session-authenticated as manager
+9. `guest_client` — Session-authenticated as guest
+
+**Key Design Decisions:**
+- Separated Api-Key auth (services) from session auth (users)
+- All four roles (G/H/P/A) covered for permission matrix testing
+- Model bakery (`baker.make`) used for User creation
+- Type hints for IDE support and clarity
+
+**Files Modified:**
+- `app/api/api/conftest.py` — 2976 bytes (overwritten with extended fixtures)
+
+**Notes:**
+- Project has pre-existing pytest-asyncio version conflict (not related to this work)
+- Syntax validated via AST parse
+- Ready for T154-T162 (model factories)
+
+
+---
+
+## Session Entry — User Model Factory (T154)
+
+**Timestamp:** 2026-04-07T17:25:00Z  
+**Task:** T154 — Create User model factory for API tests  
+**Status:** COMPLETED
+
+### Work Done
+
+Created model_bakery recipe system for User model with all role variants:
+
+**Files Created:**
+1. `app/api/api/tests/fixtures/recipes.py` (2487 bytes)
+   - `get_user_recipe(role, **overrides)` — base recipe generator
+   - `guest_user_recipe`, `host_user_recipe`, `manager_user_recipe`, `admin_user_recipe` — pre-defined recipes
+   - `make_guest_user()`, `make_host_user()`, `make_manager_user()`, `make_admin_user()` — helper functions
+   - `make_user_with_permissions()` — for edge case permission testing
+
+2. `app/api/api/tests/fixtures/__init__.py` (587 bytes)
+   - Exports all recipe functions and classes
+
+**Key Features:**
+- Auto-sequenced usernames (guest_1, guest_2, ...) to avoid conflicts
+- Consistent email pattern: {role}_{seq}@test.com
+- All four LibreTime roles supported: G (Guest), H (Host), P (Manager), A (Admin)
+- Override support for custom field values
+
+**Design Pattern:**
+- Used model_bakery Recipe class for declarative factory definitions
+- Helper functions for common use cases (DRY principle)
+- Module structure allows easy extension for other models (File, Show, etc.)
+
+**Syntax:** Validated via AST parse
+
+
+---
+
+## Session Entry — File Model Factory (T155)
+
+**Timestamp:** 2026-04-07T17:35:00Z  
+**Task:** T155 — Create File model factory for API tests  
+**Status:** COMPLETED
+
+### Work Done
+
+Extended `app/api/api/tests/fixtures/recipes.py` with File and Library recipes:
+
+**Library Recipes:**
+- `library_recipe` — Track type with code, name, enabled=True
+- `make_library(**overrides)` — Helper function
+
+**File Recipes (326-line model coverage):**
+- `file_recipe` — Full audio file with realistic metadata:
+  - Audio: 320kbps MP3, 44.1kHz, stereo, 3:30 duration
+  - Cue points: cue_in=0s, cue_out=3:30 (full track)
+  - Metadata: track_title, artist_name, album_title, genre, mood, ISRC
+  - Status: import_status=SUCCESS, exists=True
+  - Auto-generated: filepath (/tmp/test_audio_{uuid}.mp3), md5, name
+  
+- `make_file(owner, library, **overrides)` — Creates file with auto-generated owner/library if not provided
+- `make_pending_file()` — Import status PENDING
+- `make_failed_file()` — Import status FAILED
+
+**Key Design Decisions:**
+- Used `seq()` for auto-incrementing unique fields (track_1, track_2...)
+- Used lambda for uuid/md5 generation (unique per instance)
+- Realistic audio defaults for typical MP3 file
+- Foreign key handling: auto-creates User and Library if not provided
+
+**Files Modified:**
+- `app/api/api/tests/fixtures/recipes.py` — 201 lines (extended from 76)
+- `app/api/api/tests/fixtures/__init__.py` — Updated exports
+
+
+---
+
+## Session Entry — Show/Instance/Days Factories (T156)
+
+**Timestamp:** 2026-04-07T17:45:00Z  
+**Task:** T156 — Create Show/Instance/Days factories for API tests  
+**Status:** COMPLETED
+
+### Work Done
+
+Extended `app/api/api/tests/fixtures/recipes.py` with Schedule module recipes:
+
+**Show Recipes:**
+- `show_recipe` — Base show with colors, genre, URL
+- `make_show(hosts=None, **overrides)` — Creates show, optionally adds hosts via ShowHost
+- `make_show_with_live_auth()` — Show with live streaming credentials
+
+**ShowHost Recipes:**
+- `show_host_recipe` — Through-model for many-to-many
+- `make_show_host(show, user)` — Creates host relationship
+
+**ShowDays Recipes (Schedule Patterns):**
+- `show_days_recipe` — Base pattern with defaults:
+  - Start: 2:00 PM, Duration: 1 hour
+  - Timezone: UTC
+  - WeekDay: MONDAY
+  - RepeatKind: WEEKLY
+- `make_show_days(show, **overrides)` — Creates schedule pattern
+- `make_weekly_show_days()` — Weekly repeat helper
+- `make_biweekly_show_days()` — Bi-weekly repeat helper  
+- `make_monthly_show_days()` — Monthly repeat helper
+
+**ShowInstance Recipes:**
+- `show_instance_recipe` — Base instance with timestamps
+- `make_show_instance(show)` — Creates instance linked to show
+- `make_modified_instance()` — Instance with modified=True flag
+
+**Key Design Decisions:**
+- Auto-creates related objects (show, user) if not provided
+- Used lambda for datetime fields (fresh timestamps per instance)
+- Repeat kinds mapped: WEEKLY=0, WEEKLY_2=1, MONTHLY=2
+- Through-model (ShowHost) handled explicitly for many-to-many
+
+**Files Modified:**
+- `app/api/api/tests/fixtures/recipes.py` — 373 lines
+- `app/api/api/tests/fixtures/__init__.py` — Updated exports
+
+
+---
+
+## Session Entry — Playlist/Content Factories (T157)
+
+**Timestamp:** 2026-04-07T17:55:00Z  
+**Task:** T157 — Create Playlist/Content factories for API tests  
+**Status:** COMPLETED
+
+### Work Done
+
+Extended `app/api/api/tests/fixtures/recipes.py` with Playlist module:
+
+**Playlist Recipes:**
+- `playlist_recipe` — Base playlist with name, description
+- `make_playlist(owner=None)` — Creates playlist with owner (auto-creates host if needed)
+
+**PlaylistContent Recipes:**
+- `playlist_content_recipe` — Base content with position, offset, fade fields
+- `make_playlist_content(playlist, position)` — Generic content entry
+- `make_playlist_file(file, playlist, position)` — Add File to playlist:
+  - Kind: FILE (0)
+  - Auto-copies length, cue_in, cue_out from file
+- `make_playlist_stream(stream, playlist, position)` — Add Webstream (Kind: STREAM=1)
+- `make_playlist_block(block, playlist, position)` — Add SmartBlock (Kind: BLOCK=2)
+
+**Content Types Supported:**
+- `PlaylistContent.Kind.FILE = 0` — Audio file
+- `PlaylistContent.Kind.STREAM = 1` — Webstream (T162)
+- `PlaylistContent.Kind.BLOCK = 2` — SmartBlock (T158)
+
+**Notes:**
+- Position auto-sequenced if not specified (0, 1, 2...)
+- Stream/Block helpers accept None (for when T158/T162 done)
+- File helper copies metadata from File model
+
+**Files Modified:**
+- `app/api/api/tests/fixtures/recipes.py` — 494 lines
+- `app/api/api/tests/fixtures/__init__.py` — Updated exports
+
+
+---
+
+## Session Entry — SmartBlock Factories (T158)
+
+**Timestamp:** 2026-04-07T18:05:00Z  
+**Task:** T158 — Create SmartBlock factories for API tests  
+**Status:** COMPLETED
+
+### Work Done
+
+Extended `app/api/api/tests/fixtures/recipes.py` with SmartBlock module:
+
+**SmartBlock Recipes:**
+- `smart_block_recipe` — Base block with name, description
+- `make_smart_block(owner, kind)` — Creates block with specified type
+- `make_static_block()` — STATIC block (manual content)
+- `make_dynamic_block()` — DYNAMIC block (criteria-based, default)
+
+**SmartBlockContent Recipes (for STATIC blocks):**
+- `smart_block_content_recipe` — Content entry with position, fade
+- `make_smart_block_content(block, file, position)` — Adds file to static block
+- Auto-copies length, cue points from File
+
+**SmartBlockCriteria Recipes (for DYNAMIC blocks):**
+- `smart_block_criteria_recipe` — Base criteria (genre=Jazz default)
+- `make_smart_block_criteria(block, criteria, condition, value)` — Generic criteria
+- `make_genre_criteria(block, genre)` — Genre-specific helper
+
+**Block Types:**
+- `SmartBlock.Kind.STATIC = "static"` — Manual file list
+- `SmartBlock.Kind.DYNAMIC = "dynamic"` — Criteria-based query
+
+**Criteria Structure:**
+- `criteria`: Field name (genre, artist_name, etc.)
+- `condition`: Modifier (contains, equals, etc.)
+- `value`: Match value
+- `group`: Criteria group for AND/OR logic
+
+**Files Modified:**
+- `app/api/api/tests/fixtures/recipes.py` — 637 lines
+- `app/api/api/tests/fixtures/__init__.py` — Updated exports
+
+
+---
+
+## Session Entry — Podcast Factories (T159)
+
+**Timestamp:** 2026-04-07T18:15:00Z  
+**Task:** T159 — Create Podcast factories for API tests  
+**Status:** COMPLETED
+
+### Work Done
+
+Extended `app/api/api/tests/fixtures/recipes.py` with Podcast module:
+
+**Podcast Recipes:**
+- `podcast_recipe` — Full podcast with iTunes metadata:
+  - Basic: url, title, creator, description, language, copyright
+  - iTunes: author, keywords, summary, subtitle, category, explicit
+- `make_podcast(owner)` — Creates podcast with owner
+
+**PodcastEpisode Recipes:**
+- `podcast_episode_recipe` — Episode with GUID, title, description
+- `make_podcast_episode(podcast, file)` — Links episode to podcast and optional file
+
+**StationPodcast Recipes:**
+- `station_podcast_recipe` — Station's own podcast feed
+- `make_station_podcast(podcast)` — Links podcast as station feed
+
+**ImportedPodcast Recipes:**
+- `imported_podcast_recipe` — External podcast import config
+- `make_imported_podcast(podcast, auto_ingest)` — Auto-import settings
+
+**iTunes Metadata Covered:**
+- `itunes_author`, `itunes_keywords`, `itunes_summary`
+- `itunes_subtitle`, `itunes_category`, `itunes_explicit`
+
+**Files Modified:**
+- `app/api/api/tests/fixtures/recipes.py` — 765 lines
+- `app/api/api/tests/fixtures/__init__.py` — Updated exports
+
+
+---
+
+## Session Entry — History Factories (T160)
+
+**Timestamp:** 2026-04-07T18:25:00Z  
+**Task:** T160 — Create History model factories for API tests  
+**Status:** COMPLETED
+
+### Work Done
+
+Extended `app/api/api/tests/fixtures/recipes.py` with History module:
+
+**PlayoutHistory Recipes:**
+- `playout_history_recipe` — Played item with starts/ends timestamps
+- `make_playout_history(file, instance)` — Records played file in show instance
+
+**PlayoutHistoryTemplate Recipes:**
+- `playout_history_template_recipe` — Template for history display
+- `make_playout_history_template()` — Creates template
+
+**ListenerCount Recipes:**
+- `timestamp_recipe` — Timestamp entity
+- `mount_name_recipe` — Mount point name (/stream)
+- `listener_count_recipe` — Listener count entry
+- `make_listener_count(timestamp, mount_name, count)` — Full listener stats
+
+**LiveLog Recipes:**
+- `live_log_recipe` — Live broadcast state log
+- `make_live_log(state)` — LIVE or off states
+
+**Key Features:**
+- Automatic UTC timestamps with ZoneInfo
+- Default 3-minute playout duration
+- Default 42 listeners ( hitchhiker's reference 😉)
+- Mount point defaults to "/stream"
+
+**Files Modified:**
+- `app/api/api/tests/fixtures/recipes.py` — 881 lines
+- `app/api/api/tests/fixtures/__init__.py` — Updated exports
+
+
+---
+
+## Session Entry — Schedule Factory (T161)
+
+**Timestamp:** 2026-04-07T18:35:00Z  
+**Task:** T161 — Create Schedule factory for API tests  
+**Status:** COMPLETED
+
+### Work Done
+
+Extended `app/api/api/tests/fixtures/recipes.py` with Schedule module (critical model):
+
+**Schedule Recipes:**
+- `schedule_recipe` — Base schedule with position, status, broadcast flags
+- `make_schedule(instance, file, stream, cue_in, cue_out)` — Full schedule creation:
+  - Auto-creates ShowInstance if not provided
+  - Auto-calculates cue_in/cue_out from File if provided
+  - Supports both File and Webstream content
+  - Defaults: position=0, status=INSIDE, broadcasted=0
+
+**Edge Case Helpers:**
+- `make_filler_schedule()` — Filler item (position_status=FILLER) for shows that already started
+- `make_overbooked_schedule()` — Item extending beyond show end (tests overbooked detection):
+  - Sets starts_at after instance.ends_at
+  - Triggers `Schedule.overbooked` property
+
+**Cue Point Logic:**
+- If File provided: uses file.cue_in and file.cue_out
+- If no File: defaults to 0 and 3 minutes
+- Length auto-set from file.length
+
+**PositionStatus Values:**
+- FILLER = -1 (show already started)
+- OUTSIDE = 0 (outside show timeframe)
+- INSIDE = 1 (default, within show)
+- BOUNDARY = 2 (at show boundary)
+
+**Files Modified:**
+- `app/api/api/tests/fixtures/recipes.py` — 994 lines
+- `app/api/api/tests/fixtures/__init__.py` — Updated exports
+
+
+---
+
+## Session Entry — Webstream Factory + Infrastructure Complete (T162)
+
+**Timestamp:** 2026-04-07T18:45:00Z  
+**Task:** T162 — Create Webstream factory for API tests  
+**Status:** COMPLETED (Final task of T153-T162 batch)
+
+### Work Done
+
+Extended `app/api/api/tests/fixtures/recipes.py` with Webstream module:
+
+**Webstream Recipes:**
+- `webstream_recipe` — External stream with URL, mime type, length
+- `make_webstream(owner)` — Creates stream (1 hour default length)
+
+**WebstreamMetadata Recipes:**
+- `webstream_metadata_recipe` — Liquidsoap data for scheduled streams
+- `make_webstream_metadata(schedule)` — Metadata for stream scheduling
+
+**Webstream Fields:**
+- URL: https://example.com/stream.mp3
+- MIME: audio/mpeg
+- Length: 1 hour (timedelta)
+- Auto timestamps (created_at, updated_at)
+
+---
+
+## BATCH SUMMARY: T153-T162 API Test Infrastructure
+
+**All 10 infrastructure tasks completed!** 🖤👹
+
+### Files Created/Modified:
+- `app/api/api/conftest.py` — 9 API fixtures (auth clients, user roles)
+- `app/api/api/tests/fixtures/recipes.py` — 1053 lines, 25+ model recipes
+- `app/api/api/tests/fixtures/__init__.py` — 66 exports
+
+### Coverage by Module:
+- **Core**: User (4 roles), auth fixtures
+- **Storage**: Library, File (50+ fields, 3 statuses)
+- **Schedule**: Show, ShowHost, ShowDays, ShowInstance, Playlist, PlaylistContent, SmartBlock, SmartBlockContent, SmartBlockCriteria, Schedule, Webstream
+- **History**: PlayoutHistory, ListenerCount, LiveLog, templates
+- **Podcasts**: Podcast, PodcastEpisode, StationPodcast, ImportedPodcast
+
+### Key Features:
+- Auto-sequenced unique fields
+- Foreign key auto-creation
+- Role-based user factories (G/H/P/A)
+- Import status variants (pending/success/failed)
+- Show repeat patterns (weekly/bi-weekly/monthly)
+- SmartBlock types (static/dynamic)
+- Schedule edge cases (filler/overbooked)
+- iTunes metadata for podcasts
+- Liquidsoap data for streams
+
+### Next Steps:
+Ready for T163+ — actual API endpoint tests using this infrastructure.
+

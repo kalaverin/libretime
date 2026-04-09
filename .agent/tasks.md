@@ -1679,84 +1679,84 @@ Notes: Project documentation
 # Purpose: Create test suite that will validate both current DRF and future FastAPI implementations
 
 ## [CRITICAL] test T153 — Create API test infrastructure base
-Status: NOT_STARTED
+Status: DONE
 Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
+Last worked: 2026-04-07T17:20:00Z
 Scope: API v2 test foundation
-Next step: Create conftest.py with fixtures for API testing (auth clients, model factories)
-Notes: Base for all API tests. Must include: api_client (Api-Key auth), authenticated_client (session auth), admin_user, regular_user fixtures
+Next step: ✅ COMPLETED - conftest.py extended with all auth fixtures
+Notes: Created fixtures: api_client (Api-Key), admin_user, regular_user, manager_user, guest_user, authenticated_client, host_client, manager_client, guest_client. File: app/api/api/conftest.py (2976 bytes)
 
 ## [CRITICAL] test T154 — Create User model factory for API tests
-Status: NOT_STARTED
+Status: DONE
 Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
+Last worked: 2026-04-07T17:25:00Z
 Scope: API core test data
-Next step: Create model_bakery recipe for User with all roles (G, H, P, A)
-Notes: Required for permission testing across all endpoints
+Next step: ✅ COMPLETED - model_bakery recipes for User with all 4 roles
+Notes: Created: api/tests/fixtures/recipes.py (2487b) + __init__.py. Recipes: guest_user, host_user, manager_user, admin_user. Functions: make_*_user() helpers for all roles.
 
 ## [CRITICAL] test T155 — Create File model factory for API tests
-Status: NOT_STARTED
+Status: DONE
 Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
+Last worked: 2026-04-07T17:35:00Z
 Scope: API storage test data
-Next step: Create model_bakery recipe for File with valid audio metadata
-Notes: Required for storage and schedule module tests
+Next step: ✅ COMPLETED - File recipe with 50+ fields, realistic audio metadata
+Notes: Added to recipes.py: file_recipe (seq track/artist/album), make_file(owner,library), make_pending_file(), make_failed_file(). Realistic MP3: 320kbps, 44.1kHz, 3:30 duration.
 
 ## [CRITICAL] test T156 — Create Show/Instance/Days factories for API tests
-Status: NOT_STARTED
+Status: DONE
 Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
+Last worked: 2026-04-07T17:45:00Z
 Scope: API schedule test data
-Next step: Create model_bakery recipes for Show, ShowInstance, ShowDays with proper relationships
-Notes: Complex relationships needed for schedule tests
+Next step: ✅ COMPLETED - Show, ShowHost, ShowDays, ShowInstance recipes with relationships
+Notes: Added: show_recipe, make_show(hosts), make_show_with_live_auth(), show_host_recipe, show_days_recipe (WEEKLY/BiWEEKLY/MONTHLY variants), show_instance_recipe, make_modified_instance(). 373 lines total.
 
 ## [HIGH] test T157 — Create Playlist/Content factories for API tests
-Status: NOT_STARTED
+Status: DONE
 Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
+Last worked: 2026-04-07T17:55:00Z
 Scope: API schedule test data
-Next step: Create model_bakery recipes for Playlist and PlaylistContent
-Notes: Required for playlist CRUD and content management tests
+Next step: ✅ COMPLETED - Playlist and PlaylistContent recipes
+Notes: Added: playlist_recipe, make_playlist(owner), playlist_content_recipe, make_playlist_content(), make_playlist_file(), make_playlist_stream(), make_playlist_block(). Supports all 3 content types (FILE=0, STREAM=1, BLOCK=2).
 
 ## [HIGH] test T158 — Create SmartBlock factories for API tests
-Status: NOT_STARTED
+Status: DONE
 Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
+Last worked: 2026-04-07T18:05:00Z
 Scope: API schedule test data
-Next step: Create model_bakery recipes for SmartBlock, SmartBlockContent, SmartBlockCriteria
-Notes: Static and dynamic block types
+Next step: ✅ COMPLETED - SmartBlock, SmartBlockContent, SmartBlockCriteria recipes
+Notes: Added: smart_block_recipe, make_smart_block(), make_static_block(), make_dynamic_block(), smart_block_content_recipe (static), smart_block_criteria_recipe (dynamic), make_genre_criteria(). Supports both block types.
 
 ## [HIGH] test T159 — Create Podcast factories for API tests
-Status: NOT_STARTED
+Status: DONE
 Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
+Last worked: 2026-04-07T18:15:00Z
 Scope: API podcasts test data
-Next step: Create model_bakery recipes for Podcast, PodcastEpisode, StationPodcast, ImportedPodcast
-Notes: Including iTunes metadata fields
+Next step: ✅ COMPLETED - All podcast model recipes with iTunes metadata
+Notes: Added: podcast_recipe (iTunes fields), make_podcast(), podcast_episode_recipe, make_podcast_episode(), station_podcast_recipe, make_station_podcast(), imported_podcast_recipe (auto_ingest), make_imported_podcast().
 
 ## [HIGH] test T160 — Create History model factories for API tests
-Status: NOT_STARTED
+Status: DONE
 Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
+Last worked: 2026-04-07T18:25:00Z
 Scope: API history test data
-Next step: Create model_bakery recipes for PlayoutHistory, ListenerCount, LiveLog
-Notes: Timestamp relationships required
+Next step: ✅ COMPLETED - PlayoutHistory, ListenerCount, LiveLog recipes
+Notes: Added: playout_history_recipe, make_playout_history(), playout_history_template_recipe, timestamp_recipe, mount_name_recipe, listener_count_recipe, make_listener_count(), live_log_recipe, make_live_log(). Full history module coverage.
 
 ## [HIGH] test T161 — Create Schedule factory for API tests
-Status: NOT_STARTED
+Status: DONE
 Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
+Last worked: 2026-04-07T18:35:00Z
 Scope: API schedule test data
-Next step: Create model_bakery recipe for Schedule with cue_in/cue_out calculations
-Notes: Most critical model - links files to show instances
+Next step: ✅ COMPLETED - Schedule recipe with cue calculations and edge cases
+Notes: Added: schedule_recipe, make_schedule(instance,file,stream,cue_in,cue_out), make_filler_schedule() (position_status=FILLER), make_overbooked_schedule() (for overbooked detection). Auto-calculates cue from file if provided. 994 lines total.
 
 ## [HIGH] test T162 — Create Webstream factory for API tests
-Status: NOT_STARTED
+Status: DONE
 Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
+Last worked: 2026-04-07T18:45:00Z
 Scope: API schedule test data
-Next step: Create model_bakery recipe for Webstream and WebstreamMetadata
-Notes: Required for stream scheduling tests
+Next step: ✅ COMPLETED - Webstream and WebstreamMetadata recipes
+Notes: Added: webstream_recipe, make_webstream(owner), webstream_metadata_recipe, make_webstream_metadata(schedule). Full webstream support for schedule testing. Infrastructure batch T153-T162 COMPLETE.
 
 # === CORE MODULE TESTS ===
 
