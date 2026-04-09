@@ -41,3 +41,4 @@ retry_queue
 
 !.agent/
 !.agent/*.md
+AGENTS.md

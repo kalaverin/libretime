@@ -1255,3 +1255,23 @@ cd legacy && ./test.sh phpunit --filter testAddUpdateShow
 - ❌ "I remember this"
 - ❌ Batch updates
 - ❌ "This is obvious"
+
+## API v2 Migration Analysis (FastAPI)
+
+### Database Schema (managed=False tables)
+- **core**: cc_subjs, cc_subjs_token, cc_login_attempts, cc_pref, cc_service_register, third_party_track_references, celery_tasks
+- **storage**: cc_files (50+ fields!), cc_track_types
+- **schedule**: cc_show, cc_show_hosts, cc_show_days, cc_show_instances, cc_show_rebroadcast, cc_playlist, cc_playlistcontents, cc_block, cc_blockcontents, cc_blockcriteria, cc_webstream, cc_webstream_metadata, cc_schedule
+- **history**: cc_listener_count, cc_timestamp, cc_mount_name, cc_live_log, cc_playout_history, cc_playout_history_metadata, cc_playout_history_template, cc_playout_history_template_field
+- **podcasts**: podcast, podcast_episodes, station_podcast, imported_podcast
+
+### Key Migration Challenges
+1. MD5 password hashing in User model
+2. Read/Write serializer pattern (Schedule uses different serializers for GET vs POST)
+3. File model has 50+ fields
+4. Complex permission system with "own_" prefix
+5. Custom download action (X-Accel-Redirect)
+6. Dual auth: session for users, API-Key for services
+
+### Full Report
+See agent analysis output for complete endpoint mapping, pydantic schemas, and permission matrix.
