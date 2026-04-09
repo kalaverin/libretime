@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 from django.db.models import (
     DO_NOTHING,
     CharField,
-    DateTimeField,
     DurationField,
     FloatField,
     ForeignKey,
@@ -12,6 +11,8 @@ from django.db.models import (
     TextChoices,
     TimeField,
 )
+
+from api.fields import TimezoneAwareDateTimeField
 
 if TYPE_CHECKING:
     from api.core.models.user import User
@@ -38,12 +39,12 @@ class SmartBlock(Model):
         STATIC = "static", "Static"
         DYNAMIC = "dynamic", "Dynamic"
 
-    created_at: DateTimeField = DateTimeField(
+    created_at: TimezoneAwareDateTimeField = TimezoneAwareDateTimeField(
         blank=True,
         null=True,
         db_column="utime",
     )
-    updated_at: DateTimeField = DateTimeField(
+    updated_at: TimezoneAwareDateTimeField = TimezoneAwareDateTimeField(
         blank=True,
         null=True,
         db_column="mtime",

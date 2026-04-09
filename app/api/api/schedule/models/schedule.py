@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 from django.db.models import (
     DO_NOTHING,
     BooleanField,
-    DateTimeField,
     DurationField,
     ForeignKey,
     IntegerChoices,
@@ -14,6 +13,8 @@ from django.db.models import (
     TimeField,
 )
 from django.utils.timezone import now
+
+from api.fields import TimezoneAwareDateTimeField
 
 if TYPE_CHECKING:
     from api.core.models.user import User
@@ -30,8 +31,12 @@ class Schedule(Model):
             ("delete_own_schedule", "Delete the content on their shows"),
         )
 
-    starts_at: DateTimeField = DateTimeField(db_column="starts")
-    ends_at: DateTimeField = DateTimeField(db_column="ends")
+    starts_at: TimezoneAwareDateTimeField = TimezoneAwareDateTimeField(
+        db_column="starts",
+    )
+    ends_at: TimezoneAwareDateTimeField = TimezoneAwareDateTimeField(
+        db_column="ends",
+    )
 
     instance: ForeignKey = ForeignKey(
         "schedule.ShowInstance",

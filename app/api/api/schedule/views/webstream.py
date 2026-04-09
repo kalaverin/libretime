@@ -23,4 +23,4 @@ class WebstreamMetadataViewSet(viewsets.ModelViewSet[Any]):
 
     queryset = WebstreamMetadata.objects.all()
     serializer_class: type[Serializer[Any]] = WebstreamMetadataSerializer
-    model_permission_name: str = "webstreametadata"
+    model_permission_name: str = "webstreammetadata"

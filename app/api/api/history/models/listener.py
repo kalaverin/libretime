@@ -1,5 +1,7 @@
 from django.db import models
 
+from api.fields import TimezoneAwareDateTimeField
+
 
 class MountName(models.Model):
     mount_name = models.CharField(max_length=1024)
@@ -11,7 +13,7 @@ class MountName(models.Model):
 
 
 class Timestamp(models.Model):
-    timestamp = models.DateTimeField()
+    timestamp = TimezoneAwareDateTimeField()
 
     class Meta:
         managed = False

@@ -121,7 +121,56 @@ Representative files agents should skim when entering an area (2–8 paths). Exa
 
 # Active style notes
 
-<!--
+## S5 — Test isolation: cleanup order and ID assumptions
+Status: ACTIVE
+Created: 2026-04-09T21:03:16Z
+Last touched: 2026-04-09T21:03:16Z
+Refs: `app/api/api/storage/tests/views/test_library_create.py`, `app/api/api/storage/tests/views/test_file_delete_not_found.py`
+Observation:
+- Delete related objects before parent to avoid FK constraint errors
+  File.objects.all().delete()  # First
+  Library.objects.all().delete()  # Second
+- Don't assume auto-increment IDs are predictable in full suite runs
+- Use very large IDs (9999999999999) for "non-existent" resource tests
+- Full suite may create thousands of records before your test runs
+Applies_to: `app/api/**/tests/**`
+
+## S4 — Test isolation: unique values for unique fields
+Status: ACTIVE
+Created: 2026-04-09T21:03:16Z
+Last touched: 2026-04-09T21:03:16Z
+Refs: `app/api/api/storage/tests/views/test_file_list.py`, `app/api/api/schedule/tests/views/test_show_list.py`
+Observation:
+- Never use hardcoded strings for fields with unique constraints in tests
+- Use uuid for unique field values: `f"prefix_{uuid.uuid4().hex[:8]}"`
+- Common unique fields: User.username, Library.code, Show.name (if unique)
+- Transaction rollback between tests is not perfect — tests may share DB state
+Applies_to: `app/api/**/tests/**`
+
+## S3 — model_bakery timezone-aware datetime configuration
+Status: ACTIVE
+Created: 2026-04-09T21:03:16Z
+Last touched: 2026-04-09T21:03:16Z
+Refs: `app/api/api/conftest.py`, `app/api/api/schedule/tests/views/test_show_instance_update.py`
+Observation:
+- model_bakery generates naive datetime by default for DateTimeField
+- Configure globally in conftest.py: `baker.generators.add('DateTimeField', lambda: timezone.now())`
+- Or pass explicit: `baker.make(Model, starts_at=timezone.now())`
+- Django warns: "DateTimeField received a naive datetime while time zone support is active"
+Applies_to: `app/api/**/tests/**`
+
+## S2 — Datetime formatting in API tests
+Status: ACTIVE
+Created: 2026-04-09T21:03:16Z
+Last touched: 2026-04-09T21:03:16Z
+Refs: `src/sdk/sdk/datetime.py`, `app/api/api/schedule/tests/views/test_show_instance_update.py`
+Observation:
+- Use `format_datetime(dt)` from `sdk.datetime` for all timezone-aware datetime formatting
+- Never use `.isoformat().replace('+00:00', 'Z')` — helper does this internally
+- Never use `now().isoformat()` — use `format_datetime(now())` instead
+- Format: ISO 8601 with 'Z' suffix (UTC), seconds precision: `2026-03-26T12:14:56Z`
+Applies_to: `app/api/**/tests/**`
+
 ## S1 — Short title
 Status: ACTIVE
 Created: YYYY-MM-DDTHH:mm:ssZ

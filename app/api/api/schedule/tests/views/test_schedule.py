@@ -2,12 +2,11 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.utils import dateparse
-from django.utils.timezone import now
 from model_bakery import baker
 from rest_framework.test import APITestCase
 
 from api._fixtures import AUDIO_FILENAME
-from sdk import format_datetime
+from sdk import format_datetime, now
 
 
 def now_seconds():

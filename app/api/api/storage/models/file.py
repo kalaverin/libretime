@@ -5,7 +5,6 @@ from django.db.models import (
     DO_NOTHING,
     BooleanField,
     CharField,
-    DateTimeField,
     DecimalField,
     DurationField,
     ForeignKey,
@@ -13,6 +12,8 @@ from django.db.models import (
     Model,
     TextField,
 )
+
+from api.fields import TimezoneAwareDateTimeField
 
 if TYPE_CHECKING:
     from api.core.models.user import User
@@ -80,17 +81,17 @@ class File(Model):
         db_column="is_playlist",
     )
 
-    created_at: DateTimeField = DateTimeField(
+    created_at: TimezoneAwareDateTimeField = TimezoneAwareDateTimeField(
         blank=True,
         null=True,
         db_column="utime",
     )
-    updated_at: DateTimeField = DateTimeField(
+    updated_at: TimezoneAwareDateTimeField = TimezoneAwareDateTimeField(
         blank=True,
         null=True,
         db_column="mtime",
     )
-    last_played_at: DateTimeField = DateTimeField(
+    last_played_at: TimezoneAwareDateTimeField = TimezoneAwareDateTimeField(
         blank=True,
         null=True,
         db_column="lptime",

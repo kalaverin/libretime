@@ -69,7 +69,11 @@ class Session(BaseSession):
 
     @override
     def request(
-        self, method: str, url: str, *args: Any, **kwargs: Any,
+        self,
+        method: str,
+        url: str,
+        *args: Any,
+        **kwargs: Any,
     ) -> Response:
         """Send the request after generating the complete URL."""
         url = self.create_url(url)

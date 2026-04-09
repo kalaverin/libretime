@@ -54,6 +54,17 @@ dock:
         --build-arg UV_INDEX_PRIVATE_PASSWORD="{{UV_INDEX_PRIVATE_PASSWORD}}" \
         -t "{{DOCKER_TAG}}" .
 
+# just tests
+[group('project')]
+test:
+    @uv run \
+    pytest \
+        -svvv \
+        -rs \
+        --cov-report term-missing \
+        --cov app \
+        --cov src/sdk
+
 # development method of running the application
 [group('project')]
 develop:

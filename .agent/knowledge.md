@@ -1426,30 +1426,315 @@ test_environment:
 
 ---
 
-## Datetime Handling in API Tests
+## Datetime Handling in API Tests (Timezone-Aware)
 
-**Problem:** API returns naive ISO format datetimes (no timezone info), but `model_bakery` creates timezone-aware datetime fields when `USE_TZ=True` or when Django automatically adds timezone info.
+**Setup:** `USE_TZ = True` and `DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"` in REST_FRAMEWORK.
+
+**Problem:** `model_bakery` creates datetime with microseconds, DRF serializes seconds only.
 
 **Symptom:**
 ```
-AssertionError: datetime.datetime(2026, 4, 9, 6, 19, 47) != datetime.datetime(2026, 4, 9, 11, 19, 47, tzinfo=UTC)
+AssertionError: datetime.datetime(2026, 4, 9, 11, 51, 28) != datetime.datetime(2026, 4, 9, 11, 51, 28, 860000)
 ```
 
-**Solution:** Normalize timezone-aware datetimes to naive before comparison:
+**Solution:** Use helpers to zero microseconds:
 
 ```python
-from django.utils import dateparse
+from django.utils.timezone import now
+from sdk import format_datetime
 
-# In test assertion:
-self.assertEqual(
-    dateparse.parse_datetime(result[0]["ends_at"]),
-    schedule_item.ends_at.replace(tzinfo=None),  # Strip timezone
+def now_seconds():
+    """Return current time with microseconds zeroed."""
+    return now().replace(microsecond=0)
+
+# In test:
+show = baker.make(
+    "schedule.ShowInstance",
+    starts_at=now_seconds() - timedelta(minutes=5),
+    ends_at=now_seconds() + timedelta(minutes=5),
+)
+
+# For query params use format_datetime:
+range_start = format_datetime(now_seconds() - timedelta(minutes=1))
+```
+
+**Files:**
+- `app/api/api/settings/testing.py` — USE_TZ=True, DATETIME_FORMAT
+- `app/api/api/schedule/tests/views/test_schedule.py` — T308-T311 fixed
+- `src/sdk/sdk/datetime.py` — format_datetime() helper
+
+**API datetime format:** All datetimes returned with Z suffix (UTC), e.g., `2026-04-09T12:00:00Z`
+---
+name: knowledge
+---
+
+# Project Knowledge
+
+Critical information learned during development.
+
+## Django + DRF Testing with Timezone-Aware Datetimes
+
+**Problem:** model_bakery creates timezone-aware datetimes with microseconds; DRF serializes to seconds-only ISO format with Z suffix. Direct comparison fails.
+
+**Example failure:**
+```python
+AssertionError: datetime.datetime(2026, 4, 9, 11, 51, 28) != datetime.datetime(2026, 4, 9, 11, 51, 28, 860000)
+```
+
+**Solution:** Use helpers to zero microseconds:
+
+```python
+from django.utils.timezone import now
+from sdk import format_datetime
+
+def now_seconds():
+    """Return current time with microseconds zeroed."""
+    return now().replace(microsecond=0)
+
+# In test:
+show = baker.make(
+    "schedule.ShowInstance",
+    starts_at=now_seconds() - timedelta(minutes=5),
+    ends_at=now_seconds() + timedelta(minutes=5),
+)
+
+# For query params use format_datetime:
+range_start = format_datetime(now_seconds() - timedelta(minutes=1))
+```
+
+**Files:**
+- `app/api/api/settings/testing.py` — USE_TZ=True, DATETIME_FORMAT
+- `app/api/api/schedule/tests/views/test_schedule.py` — T308-T311 fixed
+- `src/sdk/sdk/datetime.py` — format_datetime() helper
+
+**API datetime format:** All datetimes returned with Z suffix (UTC), e.g., `2026-04-09T12:00:00Z`
+
+
+## Storage Module Known Bugs (T316-T318)
+
+### T316: File DELETE doesn't remove DB record
+**Location:** `app/api/api/storage/views/file.py:perform_destroy()`
+**Bug:** Method removes file from disk via `os.remove()` but missing `instance.delete()` call.
+**Impact:** DELETE returns 204, file gone from disk, but DB record persists. Double DELETE returns 204 instead of 404.
+**Tests:** `test_file_delete.py::test_delete_file_removes_from_db` (xfail)
+
+### T317: File download crashes on None filepath
+**Location:** `app/api/api/storage/views/file.py:download()`
+**Bug:** `os.path.join("/api/_media", instance.filepath)` fails with TypeError when `filepath=None`.
+**Impact:** 500 Internal Server Error instead of 404.
+**Tests:** `test_file_download.py::test_download_no_filepath` (xfail)
+
+### T318: Library DELETE fails with FK constraint
+**Location:** `app/api/api/storage/models/file.py` and `app/api/api/storage/models/library.py`
+**Bug:** File.library (db_column="track_type_id") uses `DO_NOTHING` on delete. When deleting Library with associated Files, FK constraint violation occurs.
+**Impact:** DELETE /api/v2/libraries/{id} returns 500 if library has files.
+**Root cause:** Database-level constraint `cc_files_track_type_fkey` on `cc_files.track_type_id`.
+**Possible fixes:**
+1. Use `SET_NULL` instead of `DO_NOTHING` on File.library FK
+2. Pre-check in view and return 409 Conflict if files exist
+3. Cascade delete files with library (destructive)
+**Tests:** `test_library_delete.py::test_delete_library_with_files_*` (3 xfail tests)
+
+
+## Library Model DB Constraints
+
+**Mismatch between Django model and DB schema:**
+
+| Field | Django Model | Database | Issue |
+|-------|--------------|----------|-------|
+| `description` | `null=True, blank=True` | `NOT NULL` | CREATE without description crashes (T198) |
+| `type_name` | `max_length=255` | `varchar(64)` | Name > 64 chars crashes (T199) |
+
+**Tests documenting this:** `test_library_create.py` — 3 xfail tests
+
+
+## Test Count Summary
+
+| Section | Tasks | Tests | Passed | XFail |
+|---------|-------|-------|--------|-------|
+| Section 1 (T173-T181) | 9 | 133 | 128 | 5 |
+| Section 2 (T182-T184) | 3 | 51 | 51 | 0 |
+| Section 3 (T185-T200) | 16 | 241 | 222 | 19 |
+| **Total** | **28** | **425** | **401** | **24** |
+
+
+## API Test Suite Completion — T279-T307
+
+**Archived:** 2026-04-09T21:03:16Z — All tasks T279-T307 moved to Archive
+
+### Tests Added by Section
+
+| Section | Tasks | Tests | Passed | XFailed |
+|---------|-------|-------|--------|---------|
+| Auth Tests (T279-T283) | 5 | 43 | 40 | 3 |
+| Edge/Integration (T284-T298) | 15 | 157 | 155 | 2 |
+| Documentation (T299-T307) | 9 | 119 | 118 | 1 |
+| **Total** | **29** | **319** | **313** | **6** |
+
+### Key Test Files Created
+
+| File | Purpose | Tests |
+|------|---------|-------|
+| `test_auth_session.py` | Session authentication | 9 |
+| `test_auth_apikey.py` | Api-Key authentication | 13 |
+| `test_auth_public.py` | Public endpoints | 6 |
+| `test_auth_invalid.py` | Invalid auth handling | 9 |
+| `test_schedule_overbooked.py` | Overbooked filter | 4 |
+| `test_show_days_repeat_patterns.py` | Instance generation | 25 |
+| `test_playlist_length.py` | Length field | 6 |
+| `test_smart_block_kind.py` | Dynamic/static kinds | 6 |
+| `test_file_unique.py` | Unique constraints | 5 |
+| `test_cascade_deletes.py` | Delete behavior | 7 |
+| `test_pagination.py` | Pagination disabled | 5 |
+| `test_concurrent_edits.py` | Concurrency | 12 |
+| `test_large_payload.py` | Performance | 15 |
+| `test_fixtures_docs.py` | Fixtures docs | 25 |
+| `test_run_docs.py` | Test running docs | 29 |
+| `test_contract_guide.py` | Contract testing | 22 |
+
+### Active Bug Tasks
+
+| ID | Bug | Location | Impact |
+|----|-----|----------|--------|
+| T308 | `is_superuser()` TypeError | `IsAdminOrOwnUser.has_permission()` | 500 on unauthenticated requests |
+| T341 | `IndexError` on empty Api-Key | `check_authorization_header()` | 500 on `Authorization: Api-Key ` |
+
+**Tests confirming bugs:** `test_auth_session.py::TestBugT308`, `test_auth_apikey.py::TestBugT341`
+
+
+## Datetime Formatting Standard — T342
+
+**Standard:** Use `sdk.format_datetime()` for all timezone-aware datetime formatting in tests.
+
+**Helper:** `src/sdk/sdk/datetime.py::format_datetime(dt: datetime) -> str`
+
+**Rules:**
+1. Always use `format_datetime()` instead of `.isoformat().replace('+00:00', 'Z')`
+2. Always use `format_datetime(now())` instead of `now().isoformat()`
+3. Import: `from sdk.datetime import format_datetime`
+
+**Before (incorrect):**
+```python
+new_start = (start_time + timedelta(hours=2)).isoformat().replace('+00:00', 'Z')
+"created": now().isoformat()
+```
+
+**After (correct):**
+```python
+new_start = format_datetime(start_time + timedelta(hours=2))
+"created": format_datetime(now())
+```
+
+**Files updated in T342:**
+- `api/schedule/tests/views/test_show_instance_update.py` — 6 replacements
+- `api/core/tests/views/test_auth.py` — 4 replacements
+
+
+## Naive Datetime Warnings in Tests — T343 Investigation
+
+**Issue:** model_bakery generates naive datetime for DateTimeField by default, causing Django RuntimeWarning when USE_TZ=True.
+
+**Warning Pattern:**
+```
+RuntimeWarning: DateTimeField {Model}.{field} received a naive datetime (2026-04-09 10:00:00) while time zone support is active.
+```
+
+**Affected Models (API):**
+- ShowInstance (created_at, starts_at, ends_at)
+- Webstream (created_at, updated_at)
+- Schedule (starts_at, ends_at)
+- PlayoutHistory (starts)
+- LiveLog (start_time)
+
+**Solution:** Configure model_bakery in conftest.py:
+```python
+from django.utils import timezone
+from model_bakery import baker
+
+# Configure baker to use timezone-aware datetimes
+baker.generators.add('DateTimeField', lambda: timezone.now())
+```
+
+**Alternative (per-test fix):**
+```python
+from django.utils.timezone import now
+
+instance = baker.make(
+    ShowInstance,
+    starts_at=now(),  # Explicit timezone-aware
+    ends_at=now(),
 )
 ```
 
-**Files affected:**
-- `app/api/api/schedule/tests/views/test_schedule.py` — 4 test methods fixed (T308-T311)
+**Files with warnings:** 7 test files, 23 test cases, 43 total warnings
 
-**Related settings:**
-- `USE_TZ = False` in `testing.py` prevents Django 5.0 deprecation warning
-- `TIME_ZONE = "UTC"` sets default timezone for naive datetimes
+
+## Test Isolation Patterns — T344
+
+**Problem:** Hardcoded unique values in tests cause failures when tests run in sequence.
+
+**Anti-pattern:**
+```python
+# DON'T: Hardcoded unique values
+library = baker.make(Library, code="music")  # Crashes if another test created "music"
+user = baker.make(User, username="host1")    # Crashes if another test created "host1"
+```
+
+**Solution:**
+```python
+import uuid
+
+# DO: Unique values per test
+library = baker.make(Library, code=f"music_{uuid.uuid4().hex[:8]}")
+user = baker.make(User, username=f"host1_{uuid.uuid4().hex[:8]}")
+```
+
+**Files Fixed in T344:**
+- api/storage/tests/views/test_file_list.py
+- api/storage/tests/views/test_file_retrieve.py
+- api/schedule/tests/views/test_show_list.py
+- api/schedule/tests/views/test_show_retrieve.py
+
+**Test Isolation Rule:**
+Never use hardcoded strings for fields with unique constraints when using `@pytest.mark.django_db(transaction=True)` — transaction rollback may not work perfectly between tests.
+
+
+## Test Isolation Patterns — T345
+
+**Rule 1: Never use hardcoded values for unique fields**
+```python
+# BAD - causes UniqueViolation in full suite
+user = User.objects.create_user(username="admin_test")
+
+# GOOD - unique per test
+import uuid
+user = User.objects.create_user(username=f"admin_{uuid.uuid4().hex[:8]}")
+```
+
+**Rule 2: Delete related objects before parent (FK constraints)**
+```python
+# BAD - FK constraint error
+Library.objects.all().delete()  # Fails if File references Library
+
+# GOOD - delete in correct order
+File.objects.all().delete()
+Library.objects.all().delete()
+```
+
+**Rule 3: Don't assume auto-increment ID values**
+```python
+# BAD - assumes no file with ID=123 exists
+response = api_client.delete("/api/v2/files/123")
+assert response.status_code == 404
+
+# GOOD - use ID that definitely won't exist
+response = api_client.delete("/api/v2/files/9999999999999")
+assert response.status_code == 404
+```
+
+**Files fixed in T345:**
+- api/conftest.py — fixture usernames
+- api/core/tests/views/test_user.py — test usernames
+- api/storage/tests/views/test_library_create.py — cleanup order
+- api/storage/tests/views/test_file_delete_not_found.py — ID value
+- api/storage/tests/views/test_file_download_404.py — ID value

@@ -1,3 +1,4 @@
+---
 # LibreTime Legacy Testing Environment
 # PHP 7.4 + PostgreSQL 12 for unit/integration testing
 
@@ -17,7 +18,9 @@ services:
       - postgres_test_data:/var/lib/postgresql/data
       - ./tests/sql/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U libretime -d airtimeunittests"]
+      test:
+        - CMD-SHELL
+        - pg_isready -U libretime -d airtimeunittests
       interval: 5s
       timeout: 5s
       retries: 5
@@ -30,7 +33,7 @@ services:
     environment:
       ENVIRONMENT: testing
       APPLICATION_ENV: testing
-      LIBRETIME_UNIT_TEST: "1"
+      LIBRETIME_UNIT_TEST: '1'
       LIBRETIME_CONFIG_DIR: /app/tests/config
       LIBRETIME_LOG_DIR: /app/tests/log
       LIBRETIME_CONFIG_FILEPATH: /app/tests/config/config.yml
@@ -52,7 +55,10 @@ services:
       postgres:
         condition: service_healthy
     working_dir: /app/tests
-    command: ["../vendor/bin/phpunit", "--configuration", "phpunit.xml"]
+    command:
+      - ../vendor/bin/phpunit
+      - --configuration
+      - phpunit.xml
     # Keep container running for interactive use
     # command: ["tail", "-f", "/dev/null"]
 
@@ -64,7 +70,7 @@ services:
     environment:
       ENVIRONMENT: testing
       APPLICATION_ENV: testing
-      LIBRETIME_UNIT_TEST: "1"
+      LIBRETIME_UNIT_TEST: '1'
       LIBRETIME_CONFIG_DIR: /app/tests/config
       LIBRETIME_LOG_DIR: /app/tests/log
       LIBRETIME_CONFIG_FILEPATH: /app/tests/config/config.yml
@@ -99,7 +105,7 @@ services:
     environment:
       ENVIRONMENT: testing
       APPLICATION_ENV: testing
-      LIBRETIME_UNIT_TEST: "1"
+      LIBRETIME_UNIT_TEST: '1'
       LIBRETIME_CONFIG_DIR: /app/tests/config
       LIBRETIME_LOG_DIR: /app/tests/log
       LIBRETIME_CONFIG_FILEPATH: /app/tests/config/config.yml
@@ -133,7 +139,7 @@ services:
     environment:
       ENVIRONMENT: testing
       APPLICATION_ENV: testing
-      LIBRETIME_UNIT_TEST: "1"
+      LIBRETIME_UNIT_TEST: '1'
       LIBRETIME_CONFIG_DIR: /app/tests/config
       LIBRETIME_LOG_DIR: /app/tests/log
       LIBRETIME_CONFIG_FILEPATH: /app/tests/config/config.yml
@@ -149,7 +155,8 @@ services:
       - .:/app:rw
       - ../app/api/api/legacy/migrations/sql:/app/api/api/legacy/migrations/sql:ro
     working_dir: /app
-    command: ["bash"]
+    command:
+      - bash
     stdin_open: true
     tty: true
 

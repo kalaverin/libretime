@@ -139,8 +139,13 @@ These should then be added to `.agent/decisions.md` for long-term tracking.
 
 | Date | Decision | Rationale | Status | Superseded By |
 |------|----------|-----------|--------|---------------|
-| 2026-04-07T16:28:44Z | Use `.replace(tzinfo=None)` for datetime comparisons in API tests | API returns naive ISO datetimes, model_bakery creates timezone-aware fields; normalization done in test assertions | ACTIVE | - |
-| 2026-04-07T16:28:44Z | Set `USE_TZ = False` in test settings | Avoids Django 5.0 deprecation warning while keeping test compatibility | ACTIVE | - |
+| 2026-04-07T16:28:44Z | ~~Use `.replace(tzinfo=None)` for datetime comparisons in API tests~~ | API returns naive ISO datetimes, model_bakery creates timezone-aware fields; normalization done in test assertions | SUPERSEDED | Use timezone-aware datetime with Z format |
+| 2026-04-07T16:28:44Z | ~~Set `USE_TZ = False` in test settings~~ | Avoids Django 5.0 deprecation warning while keeping test compatibility | SUPERSEDED | Use USE_TZ=True with DATETIME_FORMAT |
+| 2026-04-09T11:51:00Z | Set `USE_TZ = True` in test settings with `DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"` | API must return UTC datetimes with Z suffix; aligns test env with production | ACTIVE | - |
+| 2026-04-09T11:51:00Z | Use `sdk.format_datetime()` for datetime-to-string conversion | Ensures consistent Z-formatted UTC datetime strings across codebase | ACTIVE | - |
+| 2026-04-09T11:51:00Z | Use `now_seconds()` helper in tests | model_bakery creates microsecond-precision datetimes; DRF serializes seconds only; zero microseconds for consistent assertions | ACTIVE | - |
+| 2026-04-09T14:41:24Z | Use `@pytest.mark.xfail` to document production bugs in tests | Tests should document current behavior including bugs; xfail with reason="BUG T<n>: description" creates regression test that passes when bug is fixed | ACTIVE | - |
+| 2026-04-09T14:41:24Z | Create T<n> bug entries in tasks.md for each documented bug | Centralized bug tracking with unique IDs (T316, T317, T318) enables cross-referencing in tests, decisions, and history | ACTIVE | - |
 
 <!--
 Format:

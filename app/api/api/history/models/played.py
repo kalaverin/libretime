@@ -1,5 +1,7 @@
 from django.db import models
 
+from api.fields import TimezoneAwareDateTimeField
+
 
 class PlayoutHistory(models.Model):
     file = models.ForeignKey(
@@ -8,8 +10,8 @@ class PlayoutHistory(models.Model):
         blank=True,
         null=True,
     )
-    starts = models.DateTimeField()
-    ends = models.DateTimeField(blank=True, null=True)
+    starts = TimezoneAwareDateTimeField()
+    ends = TimezoneAwareDateTimeField(blank=True, null=True)
     instance = models.ForeignKey(
         "schedule.ShowInstance",
         on_delete=models.DO_NOTHING,

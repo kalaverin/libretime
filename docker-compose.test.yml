@@ -12,9 +12,11 @@ services:
       POSTGRES_PASSWORD: libretime
       POSTGRES_DB: libretime_test
     ports:
-      - "5432:5432"
+      - 5432:5432
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U libretime -d libretime_test"]
+      test:
+        - CMD-SHELL
+        - pg_isready -U libretime -d libretime_test
       interval: 5s
       timeout: 5s
       retries: 10
@@ -30,10 +32,13 @@ services:
       RABBITMQ_DEFAULT_USER: libretime
       RABBITMQ_DEFAULT_PASS: libretime
     ports:
-      - "5672:5672"
-      - "15672:15672"  # Management UI (optional)
+      - 5672:5672
+      - 15672:15672  # Management UI (optional)
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      test:
+        - CMD
+        - rabbitmq-diagnostics
+        - ping
       interval: 5s
       timeout: 5s
       retries: 10
@@ -43,9 +48,12 @@ services:
     image: redis:7-alpine
     container_name: libretime-test-redis
     ports:
-      - "6379:6379"
+      - 6379:6379
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test:
+        - CMD
+        - redis-cli
+        - ping
       interval: 5s
       timeout: 3s
       retries: 10

@@ -1,5 +1,7 @@
 import hashlib
-from typing import TYPE_CHECKING, ClassVar, Sequence
+
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, ClassVar
 
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -9,6 +11,7 @@ from django.contrib.auth.models import (
 from django.db import models
 
 from api.core.models.role import Role
+from api.fields import TimezoneAwareDateTimeField
 from api.permission_constants import GROUPS
 
 if TYPE_CHECKING:
@@ -77,12 +80,12 @@ class User(AbstractBaseUser):
         null=True,
         db_column="login_attempts",
     )
-    last_login = models.DateTimeField(
+    last_login = TimezoneAwareDateTimeField(
         blank=True,
         null=True,
         db_column="lastlogin",
     )
-    last_failed_login = models.DateTimeField(
+    last_failed_login = TimezoneAwareDateTimeField(
         blank=True,
         null=True,
         db_column="lastfail",
@@ -155,7 +158,8 @@ class User(AbstractBaseUser):
         return []
 
     def get_group_permissions(
-        self, obj: object | None = None
+        self,
+        obj: object | None = None,
     ) -> list[Permission]:
         permissions = GROUPS[self.role]
         if obj is not None:
@@ -168,7 +172,8 @@ class User(AbstractBaseUser):
         return list(Permission.objects.filter(query))
 
     def get_all_permissions(
-        self, obj: object | None = None
+        self,
+        obj: object | None = None,
     ) -> list[str] | list[Permission]:
         return self.get_user_permissions(obj) + self.get_group_permissions(obj)
 
@@ -185,7 +190,9 @@ class User(AbstractBaseUser):
             return False
 
     def has_perms(
-        self, perm_list: Sequence[str], obj: object | None = None
+        self,
+        perm_list: Sequence[str],
+        obj: object | None = None,
     ) -> bool:
         result = True
         for permission in perm_list:

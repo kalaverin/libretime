@@ -3,7 +3,13 @@ from typing import Any
 
 from sdk import cli, config, logging
 from sdk.compat import UTC
-from sdk.datetime import format_datetime, to_naive, to_utc
+from sdk.datetime import (
+    format_datetime,
+    now,
+    reformat_datetime,
+    to_naive,
+    to_utc,
+)
 
 PACKAGE = __name__
 VERSION = get_version(__name__)
@@ -18,6 +24,8 @@ __all__ = (
     "config",
     "format_datetime",
     "logging",
+    "now",
+    "reformat_datetime",
     "to_naive",
     "to_utc",
 )

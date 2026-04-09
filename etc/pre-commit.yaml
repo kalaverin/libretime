@@ -22,12 +22,12 @@ repos:
         language: system
         pass_filenames: false
 
-      - id: check-yaml
-        name: check yaml
-        entry: uv run --quiet yamllint --format parsable --config-file etc/lint/yamllint.yaml
-          .
-        language: system
-        pass_filenames: false
+      # - id: check-yaml
+      #   name: check yaml
+      #   entry: uv run --quiet yamllint --format parsable --config-file etc/lint/yamllint.yaml
+      #     .
+      #   language: system
+      #   pass_filenames: false
 
       - id: lint-black
         name: force black

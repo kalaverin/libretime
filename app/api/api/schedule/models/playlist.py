@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 from django.db.models import (
     DO_NOTHING,
     CharField,
-    DateTimeField,
     DurationField,
     FloatField,
     ForeignKey,
@@ -13,6 +12,8 @@ from django.db.models import (
     SmallIntegerField,
     TimeField,
 )
+
+from api.fields import TimezoneAwareDateTimeField
 
 if TYPE_CHECKING:
     from api.core.models.user import User
@@ -25,12 +26,12 @@ class Playlist(Model):
         app_label: str = "schedule"
         db_table: str = "cc_playlist"
 
-    created_at: DateTimeField = DateTimeField(
+    created_at: TimezoneAwareDateTimeField = TimezoneAwareDateTimeField(
         blank=True,
         null=True,
         db_column="utime",
     )
-    updated_at: DateTimeField = DateTimeField(
+    updated_at: TimezoneAwareDateTimeField = TimezoneAwareDateTimeField(
         blank=True,
         null=True,
         db_column="mtime",

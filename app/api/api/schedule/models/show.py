@@ -5,7 +5,6 @@ from django.db.models import (
     BooleanField,
     CharField,
     DateField,
-    DateTimeField,
     DurationField,
     ForeignKey,
     IntegerChoices,
@@ -14,6 +13,8 @@ from django.db.models import (
     SmallIntegerField,
     TimeField,
 )
+
+from api.fields import TimezoneAwareDateTimeField
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -243,7 +244,9 @@ class ShowInstance(Model):
         app_label: str = "schedule"
         db_table: str = "cc_show_instances"
 
-    created_at: DateTimeField = DateTimeField(db_column="created")
+    created_at: TimezoneAwareDateTimeField = TimezoneAwareDateTimeField(
+        db_column="created",
+    )
 
     show: ForeignKey = ForeignKey(
         "schedule.Show",
@@ -256,15 +259,19 @@ class ShowInstance(Model):
         null=True,
     )
 
-    starts_at: DateTimeField = DateTimeField(db_column="starts")
-    ends_at: DateTimeField = DateTimeField(db_column="ends")
+    starts_at: TimezoneAwareDateTimeField = TimezoneAwareDateTimeField(
+        db_column="starts",
+    )
+    ends_at: TimezoneAwareDateTimeField = TimezoneAwareDateTimeField(
+        db_column="ends",
+    )
     filled_time: DurationField = DurationField(
         blank=True,
         null=True,
         db_column="time_filled",
     )
 
-    last_scheduled_at: DateTimeField = DateTimeField(
+    last_scheduled_at: TimezoneAwareDateTimeField = TimezoneAwareDateTimeField(
         blank=True,
         null=True,
         db_column="last_scheduled",

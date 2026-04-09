@@ -11,9 +11,10 @@ os.environ.setdefault("LIBRETIME_STORAGE_PATH", str(fixture_path))
 # pylint: disable=wrong-import-position,unused-import
 
 # Import base settings (INSTALLED_APPS, etc.)
+from sdk.config import DatabaseConfig, GeneralConfig, RabbitMQConfig
+
 from api.settings._internal import *
 from api.settings._schema import Config
-from sdk.config import DatabaseConfig, GeneralConfig, RabbitMQConfig
 
 # Test configuration
 CONFIG = Config(

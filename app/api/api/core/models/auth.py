@@ -2,6 +2,8 @@ from typing import TYPE_CHECKING
 
 from django.db import models
 
+from api.fields import TimezoneAwareDateTimeField
+
 if TYPE_CHECKING:
     from api.core.models.user import User
 
@@ -13,7 +15,7 @@ class UserToken(models.Model):
     )
     action = models.CharField(max_length=255)
     token = models.CharField(unique=True, max_length=40)
-    created = models.DateTimeField()
+    created = TimezoneAwareDateTimeField()
 
     def get_owner(self) -> "User":
         return self.user

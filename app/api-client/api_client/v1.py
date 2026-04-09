@@ -1,9 +1,9 @@
 import logging
 
+from collections.abc import Callable
 from contextlib import suppress
 from functools import partial, wraps
 from time import sleep
-from collections.abc import Callable
 from typing import Any, TypeVar
 
 import orjson

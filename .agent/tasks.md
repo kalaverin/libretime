@@ -18,7 +18,7 @@ Task tracking system for managing active, blocked, and completed work items acro
 Every task has:
 
 - **`scope`** — one English word, **lowercase**, Latin alphabet only: the *kind* of work (feature, bugfix, chore, audit, …).
-- **`T<n>`** — **global** task identifier: literal **`T`** plus a decimal integer **`n`** with **no leading zeros** (`T1`, `T12`, `T1042`). **One sequence per repository:** backlog, active, completed, and cancelled entries all share the same counter. **`n` never decreases and is never reused** (cancelled tasks keep their `T<n>` in the file).
+- **`T<n>`** — **global** task identifier: literal **`T`** plus a decimal integer **`n`** with **no leading zeros** (`T1`, `Tn`, `T...`). **One sequence per repository:** backlog, active, completed, and cancelled entries all share the same counter. **`n` never decreases and is never reused** (cancelled tasks keep their `T<n>` in the file).
 
 **Canonical heading (H2):**
 
@@ -294,13 +294,6 @@ Notes: (optional)
 ```
 **(Placement)** this block must appear only under **`# Backlog`**, not under **`# Active Tasks`**.
 <!-- END OF PROTOCOL COPY -->
-
-## [DONE] meta T1 — Initialize project documentation
-Status: DONE
-Created: 2026-04-06T16:28:17Z
-Last worked: 2026-04-06T16:28:17Z
-Next step: Review .agent/intro.md for accuracy
-Notes: Initial setup by repo-init-agent; migrated from agent.old structure
 
 ## [CRITICAL] fix T2 — Fix unreachable code in SDK logging setup
 Status: NOT_STARTED
@@ -679,13 +672,6 @@ Last worked: 2026-04-06T16:53:26Z
 File: `app/playout/playout/history/stats.py:39`
 Notes: TCP connection leak on shutdown.
 
-## [LOW] chore T51 — Fix typo in webstream permission name
-Status: NOT_STARTED
-Created: 2026-04-06T16:53:26Z
-Last worked: 2026-04-06T16:53:26Z
-File: `app/api/api/schedule/views/webstream.py:26`
-Notes: "webstreametadata" should be "webstreammetadata".
-
 ## [LOW] chore T52 — Remove unused import in file view
 Status: NOT_STARTED
 Created: 2026-04-06T16:53:26Z
@@ -776,82 +762,6 @@ File: `tests/unit/sdk/config/test_fields.py`
 Next step: Fix test expectations for StrNoTrailingSlash and AnyUrlStr validation
 Notes: Tests expect validation errors that don't occur (int coerced to str) or don't raise on invalid URL scheme.
 
-# Backlog
-
-<!--
-New work queue (optional):
-## [PRIORITY] <scope> T<n> — Short title
-Status: NOT_STARTED | POSTPONED
-Created: YYYY-MM-DDTHH:mm:ssZ (UTC)
-Last worked: YYYY-MM-DDTHH:mm:ssZ (UTC)
-Postponed: (if POSTPONED — why / until; POSTPONED rows must stay under # Backlog only, never under # Active Tasks)
-Blockers: (if BLOCKED)
-Next step: (concrete action)
-Notes: (optional context; reference other tasks as T<id>)
--->
-
-# Completed Tasks
-
-<!-- 
-When done, move under # Completed Tasks:
-## [DONE] <scope> T<n> — Short title
-Completed: YYYY-MM-DDTHH:mm:ssZ (UTC)
-Summary: (what was accomplished)
-
-User command "archive tasks"/"compact tasks" moves these to # Archive in table format.
--->
-
-## [DONE] meta T1 — Initialize project documentation
-Status: DONE
-Created: 2026-04-06T16:28:17Z
-Last worked: 2026-04-06T16:28:17Z
-Next step: Review .agent/intro.md for accuracy
-Notes: Initial setup by repo-init-agent; migrated from agent.old structure
-
-# Cancelled Tasks
-
-<!--
-Cancelled work (optional):
-## [CANCELLED] <scope> T<n> — Short title
-Status: CANCELLED
-Created: YYYY-MM-DDTHH:mm:ssZ (UTC)
-Cancelled: YYYY-MM-DDTHH:mm:ssZ (UTC)
-Reason: (why cancelled)
-
-User command "archive tasks"/"compact tasks" moves these to # Archive in table format.
--->
-
-# Archive
-
-<!--
-Compressed history — user-commanded archive of completed/cancelled tasks.
-Append-only: never edit or delete rows. T<n> preserved for ID continuity.
-Scan this section when allocating next T<n> (max+1 rule).
-
-| ID | Date | Scope | Status | Title |
-|----|------|-------|--------|-------|
--->
-
----
-
-# LEGACY TESTING PLAN — Phase 0: Foundation (Weeks 1-2)
-
-## [DONE] test T64 — Fix PreferenceUnitTest.php path issue
-Status: DONE
-Phase: 0
-Created: 2026-04-07T13:16:18Z
-Last worked: 2026-04-07T13:46:18Z
-Completed: 2026-04-07T13:46:18Z
-Summary: Fixed relative path issues in 3 test files by replacing `../application/configs/conf.php` with `CONFIG_PATH . '/conf.php'`. Files: PreferenceUnitTest.php, ShowServiceUnitTest.php, ShowServiceDbTest.php. Tests now load successfully in Docker environment.
-
-## [DONE] test T65 — Audit all require_once in tests/ for relative paths
-Status: DONE
-Phase: 0
-Created: 2026-04-07T13:16:18Z
-Last worked: 2026-04-07T13:51:18Z
-Completed: 2026-04-07T13:51:18Z
-Summary: Completed audit of all require_once in tests/. Found and fixed 3 files with relative paths (T64). All remaining require_once use proper constants (CONFIG_PATH, APPLICATION_PATH) or __DIR__ which resolves correctly in Docker. No additional path fixes needed.
-
 ## [MEDIUM] test T66 — Create unified TestBootstrap.php
 Status: NOT_STARTED
 Phase: 0
@@ -932,10 +842,6 @@ Last worked: 2026-04-07T13:16:18Z
 File: `legacy/tests/fixtures/files.yml`
 Next step: Create YAML fixture with test file data
 Notes: Required for MediaService tests
-
----
-
-# LEGACY TESTING PLAN — Phase 1: Common Helpers (Weeks 2-3)
 
 ## [MEDIUM] test T75 — Test DateHelper::getUTCDateTime()
 Status: NOT_STARTED
@@ -1117,10 +1023,6 @@ File: `legacy/tests/application/helpers/TimezoneTest.php`
 Next step: Test getUserTimezone, convertToUTC, getTimezoneList
 Notes: Timezone handling
 
----
-
-# LEGACY TESTING PLAN — Phase 2: Service Layer — Core (Weeks 3-5)
-
 ## [CRITICAL] test T95 — Test ShowService::addUpdateShow() without repeat
 Status: NOT_STARTED
 Phase: 2
@@ -1265,10 +1167,6 @@ File: `legacy/tests/application/services/PodcastServiceTest.php`
 Next step: Test importPodcast, updatePodcast, deletePodcast, syncEpisodes
 Notes: RSS podcast integration
 
----
-
-# LEGACY TESTING PLAN — Phase 3: Models — Core (Weeks 5-7)
-
 ## [CRITICAL] test T111 — Test Show Model basic CRUD
 Status: NOT_STARTED
 Phase: 3
@@ -1377,10 +1275,6 @@ File: `legacy/tests/application/models/WebstreamModelTest.php`
 Next step: Test create, getUrl, setMetadata
 Notes: Webstream support
 
----
-
-# LEGACY TESTING PLAN — Phase 4: Forms (Weeks 7-8)
-
 ## [MEDIUM] test T123 — Test Login Form validation
 Status: NOT_STARTED
 Phase: 4
@@ -1426,10 +1320,6 @@ File: `legacy/tests/application/forms/PreferencesFormsTest.php`
 Next step: Test GeneralPreferences, LiveStreamingPreferences, StreamSetting
 Notes: System settings
 
----
-
-# LEGACY TESTING PLAN — Phase 5: Auth & Security (Weeks 8-9)
-
 ## [CRITICAL] test T128 — Test Auth Model authentication
 Status: NOT_STARTED
 Phase: 5
@@ -1456,10 +1346,6 @@ Last worked: 2026-04-07T13:16:18Z
 File: `legacy/tests/application/validators/CustomValidatorsTest.php`
 Next step: Test UserNameValidate, NotDemoValidate, ConditionalNotEmpty
 Notes: Input validation
-
----
-
-# LEGACY TESTING PLAN — Phase 6: Controllers — Core (Weeks 9-11)
 
 ## [HIGH] test T131 — Test LoginController
 Status: NOT_STARTED
@@ -1514,10 +1400,6 @@ Last worked: 2026-04-07T13:16:18Z
 File: `legacy/tests/application/controllers/ApiControllerTest.php`
 Next step: Test dispatchMetadata, listAllFiles, status
 Notes: API endpoints controller
-
----
-
-# LEGACY TESTING PLAN — Phase 7: Integration & Edge Cases (Weeks 11-12)
 
 ## [HIGH] test T137 — Test Full Show Lifecycle
 Status: NOT_STARTED
@@ -1582,10 +1464,6 @@ File: `legacy/tests/integration/PermissionScenariosTest.php`
 Next step: Test host editing others' shows, guest restrictions, program manager rights
 Notes: Authorization scenarios
 
----
-
-# LEGACY TESTING PLAN — Phase 8: REST API Module (Weeks 12-13)
-
 ## [MEDIUM] test T144 — Test REST MediaController
 Status: NOT_STARTED
 Phase: 8
@@ -1613,10 +1491,6 @@ File: `legacy/tests/application/modules/rest/ShowImageControllerTest.php`
 Next step: Test GET/POST show image endpoints
 Notes: Show image API
 
----
-
-# LEGACY TESTING PLAN — Phase 9: Formatters & Utilities (Weeks 13-14)
-
 ## [LOW] test T147 — Test Formatters
 Status: NOT_STARTED
 Phase: 9
@@ -1625,10 +1499,6 @@ Last worked: 2026-04-07T13:16:18Z
 File: `legacy/tests/application/models/formatters/FormattersTest.php`
 Next step: Test LengthFormatter, BitrateFormatter, SamplerateFormatter, TimeFilledFormatter
 Notes: Display formatting utilities
-
----
-
-# LEGACY TESTING PLAN — Phase 10: Final Coverage & Polish (Weeks 14-15)
 
 ## [MEDIUM] test T148 — Generate coverage report and identify gaps
 Status: NOT_STARTED
@@ -1672,1293 +1542,337 @@ File: `legacy/TESTING.md`
 Next step: Document final coverage metrics and testing approach
 Notes: Project documentation
 
----
-
-# API v2 COMPREHENSIVE TEST COVERAGE PLAN
-# Target: 100% API external interface + database behavior coverage
-# Purpose: Create test suite that will validate both current DRF and future FastAPI implementations
-
-## [CRITICAL] test T153 — Create API test infrastructure base
-Status: DONE
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T17:20:00Z
-Scope: API v2 test foundation
-Next step: ✅ COMPLETED - conftest.py extended with all auth fixtures
-Notes: Created fixtures: api_client (Api-Key), admin_user, regular_user, manager_user, guest_user, authenticated_client, host_client, manager_client, guest_client. File: app/api/api/conftest.py (2976 bytes)
-
-## [CRITICAL] test T154 — Create User model factory for API tests
-Status: DONE
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T17:25:00Z
-Scope: API core test data
-Next step: ✅ COMPLETED - model_bakery recipes for User with all 4 roles
-Notes: Created: api/tests/fixtures/recipes.py (2487b) + __init__.py. Recipes: guest_user, host_user, manager_user, admin_user. Functions: make_*_user() helpers for all roles.
-
-## [CRITICAL] test T155 — Create File model factory for API tests
-Status: DONE
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T17:35:00Z
-Scope: API storage test data
-Next step: ✅ COMPLETED - File recipe with 50+ fields, realistic audio metadata
-Notes: Added to recipes.py: file_recipe (seq track/artist/album), make_file(owner,library), make_pending_file(), make_failed_file(). Realistic MP3: 320kbps, 44.1kHz, 3:30 duration.
-
-## [CRITICAL] test T156 — Create Show/Instance/Days factories for API tests
-Status: DONE
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T17:45:00Z
-Scope: API schedule test data
-Next step: ✅ COMPLETED - Show, ShowHost, ShowDays, ShowInstance recipes with relationships
-Notes: Added: show_recipe, make_show(hosts), make_show_with_live_auth(), show_host_recipe, show_days_recipe (WEEKLY/BiWEEKLY/MONTHLY variants), show_instance_recipe, make_modified_instance(). 373 lines total.
-
-## [HIGH] test T157 — Create Playlist/Content factories for API tests
-Status: DONE
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T17:55:00Z
-Scope: API schedule test data
-Next step: ✅ COMPLETED - Playlist and PlaylistContent recipes
-Notes: Added: playlist_recipe, make_playlist(owner), playlist_content_recipe, make_playlist_content(), make_playlist_file(), make_playlist_stream(), make_playlist_block(). Supports all 3 content types (FILE=0, STREAM=1, BLOCK=2).
-
-## [HIGH] test T158 — Create SmartBlock factories for API tests
-Status: DONE
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T18:05:00Z
-Scope: API schedule test data
-Next step: ✅ COMPLETED - SmartBlock, SmartBlockContent, SmartBlockCriteria recipes
-Notes: Added: smart_block_recipe, make_smart_block(), make_static_block(), make_dynamic_block(), smart_block_content_recipe (static), smart_block_criteria_recipe (dynamic), make_genre_criteria(). Supports both block types.
-
-## [HIGH] test T159 — Create Podcast factories for API tests
-Status: DONE
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T18:15:00Z
-Scope: API podcasts test data
-Next step: ✅ COMPLETED - All podcast model recipes with iTunes metadata
-Notes: Added: podcast_recipe (iTunes fields), make_podcast(), podcast_episode_recipe, make_podcast_episode(), station_podcast_recipe, make_station_podcast(), imported_podcast_recipe (auto_ingest), make_imported_podcast().
-
-## [HIGH] test T160 — Create History model factories for API tests
-Status: DONE
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T18:25:00Z
-Scope: API history test data
-Next step: ✅ COMPLETED - PlayoutHistory, ListenerCount, LiveLog recipes
-Notes: Added: playout_history_recipe, make_playout_history(), playout_history_template_recipe, timestamp_recipe, mount_name_recipe, listener_count_recipe, make_listener_count(), live_log_recipe, make_live_log(). Full history module coverage.
-
-## [HIGH] test T161 — Create Schedule factory for API tests
-Status: DONE
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T18:35:00Z
-Scope: API schedule test data
-Next step: ✅ COMPLETED - Schedule recipe with cue calculations and edge cases
-Notes: Added: schedule_recipe, make_schedule(instance,file,stream,cue_in,cue_out), make_filler_schedule() (position_status=FILLER), make_overbooked_schedule() (for overbooked detection). Auto-calculates cue from file if provided. 994 lines total.
-
-## [HIGH] test T162 — Create Webstream factory for API tests
-Status: DONE
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T18:45:00Z
-Scope: API schedule test data
-Next step: ✅ COMPLETED - Webstream and WebstreamMetadata recipes
-Notes: Added: webstream_recipe, make_webstream(owner), webstream_metadata_recipe, make_webstream_metadata(schedule). Full webstream support for schedule testing. Infrastructure batch T153-T162 COMPLETE.
-
-# === CORE MODULE TESTS ===
-
-## [HIGH] test T163 — Test Users LIST (GET /api/v2/users)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core users
-Next step: Test LIST endpoint - verify response structure, pagination if present, field types
-Notes: Must test: 200 OK, response schema matches UserSerializer, all expected fields present
-
-## [HIGH] test T164 — Test Users CREATE (POST /api/v2/users)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core users
-Next step: Test CREATE with valid data - verify user created, password hashed with MD5
-Notes: Test: 201 Created, MD5 hash stored (not plaintext), all fields saved correctly
-
-## [HIGH] test T165 — Test Users CREATE validation errors
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core users
-Next step: Test CREATE with invalid data - duplicate username, invalid role, missing required fields
-Notes: Test: 400 Bad Request, appropriate error messages, no DB record created
-
-## [HIGH] test T166 — Test Users RETRIEVE (GET /api/v2/users/{id})
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core users
-Next step: Test RETRIEVE existing user - verify all fields returned, password NOT in response
-Notes: Critical: password field must never be exposed in API responses
-
-## [HIGH] test T167 — Test Users RETRIEVE 404 for non-existent
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core users
-Next step: Test RETRIEVE with invalid ID - verify 404 Not Found
-Notes: Edge case handling
-
-## [HIGH] test T168 — Test Users UPDATE (PUT /api/v2/users/{id})
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core users
-Next step: Test full UPDATE - verify all fields updated, partial data rejected
-Notes: PUT requires all fields (DRF behavior)
-
-## [HIGH] test T169 — Test Users PARTIAL_UPDATE (PATCH /api/v2/users/{id})
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core users
-Next step: Test partial update - verify only provided fields change, others unchanged
-Notes: PATCH allows partial updates
-
-## [HIGH] test T170 — Test Users DELETE (DELETE /api/v2/users/{id})
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core users
-Next step: Test DELETE - verify 204 No Content, user removed from DB
-Notes: Test cascade behavior if user owns resources
-
-## [HIGH] test T171 — Test Users permissions (admin vs regular user)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core users
-Next step: Test permission matrix: admin can CRUD all users, regular user can only view/update self
-Notes: IsAdminOrOwnUser permission logic
-
-## [MEDIUM] test T172 — Test Users LIST filtered by role
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core users
-Next step: Test filtering users by role parameter if supported
-Notes: Check query params (?role=H)
-
-## [HIGH] test T173 — Test Preferences LIST (GET /api/v2/preferences)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core preferences
-Next step: Test LIST preferences - verify key-value structure
-Notes: Site preferences vs user preferences
-
-## [HIGH] test T174 — Test Preferences CREATE (POST /api/v2/preferences)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core preferences
-Next step: Test CREATE preference - verify saved to DB
-Notes: Test both site and user-specific preferences
-
-## [HIGH] test T175 — Test Preferences UPDATE (PATCH /api/v2/preferences/{id})
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core preferences
-Next step: Test UPDATE preference value - verify change persisted
-Notes: Stream settings stored as preferences
-
-## [MEDIUM] test T176 — Test ServiceRegister LIST
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core services
-Next step: Test LIST service registers
-Notes: Internal service registration tracking
-
-## [MEDIUM] test T177 — Test ServiceRegister heartbeat/update
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core services
-Next step: Test service registration update endpoint
-Notes: Services register themselves with IP
-
-## [MEDIUM] test T178 — Test UserToken LIST/CREATE/DELETE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core tokens
-Next step: Test full CRUD for UserToken (password reset tokens)
-Notes: Token generation for password reset flow
-
-## [MEDIUM] test T179 — Test LoginAttempt tracking
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core auth
-Next step: Test login attempt recording and retrieval
-Notes: Rate limiting data
-
-## [MEDIUM] test T180 — Test CeleryTask LIST
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core tasks
-Next step: Test LIST celery tasks
-Notes: Background task status tracking
-
-## [MEDIUM] test T181 — Test ThirdPartyTrackReference LIST/CREATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core external
-Next step: Test external track reference CRUD
-Notes: Integration with external services
-
-## [HIGH] test T182 — Test Info endpoint (GET /api/v2/info)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core public
-Next step: Test info endpoint - verify station_name in response
-Notes: No auth required (AllowAny)
-
-## [HIGH] test T183 — Test Version endpoint (GET /api/v2/version)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core public
-Next step: Test version endpoint - verify api_version format
-Notes: No auth required (AllowAny)
-
-## [HIGH] test T184 — Test StreamPreferences endpoint
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core stream
-Next step: Test GET /api/v2/stream/preferences - verify all fields present
-Notes: Computed from Preference model
-
-## [HIGH] test T185 — Test StreamState endpoint
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API core stream
-Next step: Test GET /api/v2/stream/state - verify boolean flags
-Notes: Computed from Preference model
-
-# === STORAGE MODULE TESTS ===
-
-## [CRITICAL] test T186 — Test Files LIST (GET /api/v2/files)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage files
-Next step: Test LIST files - verify all 50+ fields in response, proper typing
-Notes: Largest model, critical for migration
-
-## [CRITICAL] test T187 — Test Files LIST with filters (md5, genre)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage files
-Next step: Test filtering: ?md5=xxx, ?genre=Soul, combined filters
-Notes: Existing test covers this - verify and expand
-
-## [CRITICAL] test T188 — Test Files CREATE (POST /api/v2/files)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage files
-Next step: Test CREATE file with all metadata fields - verify saved correctly
-Notes: ImportStatus transitions, filepath validation
-
-## [CRITICAL] test T189 — Test Files RETRIEVE (GET /api/v2/files/{id})
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage files
-Next step: Test RETRIEVE file - verify all metadata, computed fields
-Notes: File metadata extraction result
-
-## [CRITICAL] test T190 — Test Files UPDATE metadata
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage files
-Next step: Test UPDATE file metadata - artist, title, etc.
-Notes: Editable fields vs computed fields
-
-## [CRITICAL] test T191 — Test Files DELETE (DELETE /api/v2/files/{id})
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage files
-Next step: Test DELETE file - verify file removed from filesystem AND DB
-Notes: Uses os.remove on storage path, test with mock
-
-## [CRITICAL] test T192 — Test Files DELETE non-existent
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage files
-Next step: Test DELETE with invalid ID - verify 404
-Notes: Edge case
-
-## [CRITICAL] test T193 — Test Files DOWNLOAD action (GET /api/v2/files/{id}/download)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage files
-Next step: Test download endpoint - verify X-Accel-Redirect header for nginx
-Notes: Custom action, critical for file serving
-
-## [CRITICAL] test T194 — Test Files DOWNLOAD 404
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage files
-Next step: Test download with non-existent file - verify 404
-Notes: Edge case
-
-## [HIGH] test T195 — Test Files permissions (owner vs admin)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage files
-Next step: Test permission matrix: owner can edit own files, admin can edit all, others read-only
-Notes: change_own_file, delete_own_file permissions
-
-## [HIGH] test T196 — Test Files validation (invalid mime, size)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage files
-Next step: Test CREATE with invalid data - verify 400 errors
-Notes: File validation rules
-
-## [HIGH] test T197 — Test Libraries LIST
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage libraries
-Next step: Test LIST libraries (track types)
-Notes: cc_track_types table
-
-## [HIGH] test T198 — Test Libraries CREATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage libraries
-Next step: Test CREATE library with code, name, description
-Notes: Track type definition
-
-## [HIGH] test T199 — Test Libraries UPDATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage libraries
-Next step: Test UPDATE library - change description, enabled flag
-Notes: Visibility settings
-
-## [HIGH] test T200 — Test Libraries DELETE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage libraries
-Next step: Test DELETE library - verify cascade behavior with files
-Notes: Check if files lose library reference
-
-
-# === SCHEDULE MODULE TESTS ===
-
-## [CRITICAL] test T201 — Test Shows LIST (GET /api/v2/shows)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule shows
-Next step: Test LIST shows - verify all fields, hosts relationship
-Notes: Complex model with many-to-many hosts
-
-## [CRITICAL] test T202 — Test Shows CREATE with hosts
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule shows
-Next step: Test CREATE show with hosts assigned - verify relationships created
-Notes: Many-to-many through ShowHost
-
-## [CRITICAL] test T203 — Test Shows CREATE with live auth
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule shows
-Next step: Test CREATE show with live_stream_user/pass - verify stored
-Notes: Live streaming credentials
-
-## [CRITICAL] test T204 — Test Shows CREATE with autoplaylist
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule shows
-Next step: Test CREATE show with autoplaylist_id - verify linked
-Notes: Auto-playlist feature
-
-## [CRITICAL] test T205 — Test Shows RETRIEVE with computed fields
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule shows
-Next step: Test RETRIEVE - verify live_enabled computed property
-Notes: Computed from live_auth_registered + live_auth_custom
-
-## [CRITICAL] test T206 — Test Shows UPDATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule shows
-Next step: Test UPDATE show metadata - name, description, colors
-Notes: Editable fields
-
-## [CRITICAL] test T207 — Test Shows UPDATE hosts
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule shows
-Next step: Test UPDATE show hosts - add/remove hosts
-Notes: Many-to-many relationship management
-
-## [CRITICAL] test T208 — Test Shows DELETE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule shows
-Next step: Test DELETE show - verify cascade to instances, days
-Notes: Cascade behavior critical
-
-## [CRITICAL] test T209 — Test Shows permissions (host can edit own)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule shows
-Next step: Test permission: show host can edit show, non-host cannot
-Notes: change_own_show permission
-
-## [CRITICAL] test T210 — Test ShowDays LIST
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule show-days
-Next step: Test LIST show days - verify repeat patterns
-Notes: Weekly, bi-weekly, monthly repeats
-
-## [CRITICAL] test T211 — Test ShowDays CREATE (weekly repeat)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule show-days
-Next step: Test CREATE show day with weekly repeat
-Notes: RepeatKind.WEEKLY = 0
-
-## [CRITICAL] test T212 — Test ShowDays CREATE (monthly repeat)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule show-days
-Next step: Test CREATE show day with monthly repeat
-Notes: RepeatKind.MONTHLY = 2
-
-## [CRITICAL] test T213 — Test ShowDays UPDATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule show-days
-Next step: Test UPDATE repeat pattern, start time
-Notes: Changing schedule pattern
-
-## [CRITICAL] test T214 — Test ShowDays DELETE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule show-days
-Next step: Test DELETE show day - verify instances affected
-Notes: Instance generation logic
-
-## [CRITICAL] test T215 — Test ShowInstances LIST
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule instances
-Next step: Test LIST instances for a show
-Notes: Generated instances from pattern
-
-## [CRITICAL] test T216 — Test ShowInstances RETRIEVE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule instances
-Next step: Test RETRIEVE instance - verify starts/ends, filled_time
-Notes: Instance details
-
-## [CRITICAL] test T217 — Test ShowInstances UPDATE (modified instance)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule instances
-Next step: Test UPDATE instance - mark as modified, change description
-Notes: modified_instance flag
-
-## [CRITICAL] test T218 — Test ShowInstances DELETE (single instance)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule instances
-Next step: Test DELETE single instance vs delete all following
-Notes: Instance deletion behavior
-
-## [CRITICAL] test T219 — Test ShowRebroadcasts LIST/CREATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule rebroadcasts
-Next step: Test CRUD for rebroadcast schedules
-Notes: Day offset and time
-
-## [CRITICAL] test T220 — Test ShowHosts LIST
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule hosts
-Next step: Test LIST hosts for a show
-Notes: Through relationship
-
-## [CRITICAL] test T221 — Test ShowHosts CREATE (add host to show)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule hosts
-Next step: Test CREATE show host relationship
-Notes: Adding host to show
-
-## [CRITICAL] test T222 — Test ShowHosts DELETE (remove host)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule hosts
-Next step: Test DELETE show host
-Notes: Removing host from show
-
-## [CRITICAL] test T223 — Test Playlists LIST
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule playlists
-Next step: Test LIST playlists - verify length computed
-Notes: Playlist metadata
-
-## [CRITICAL] test T224 — Test Playlists CREATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule playlists
-Next step: Test CREATE playlist with owner
-Notes: Creator assignment
-
-## [CRITICAL] test T225 — Test Playlists UPDATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule playlists
-Next step: Test UPDATE playlist name/description
-Notes: Metadata editing
-
-## [CRITICAL] test T226 — Test Playlists DELETE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule playlists
-Next step: Test DELETE playlist - verify contents deleted
-Notes: Cascade behavior
-
-## [CRITICAL] test T227 — Test Playlists permissions
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule playlists
-Next step: Test owner can edit, others read-only
-Notes: change_own_playlist permission
-
-## [CRITICAL] test T228 — Test PlaylistContents LIST
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule playlist-contents
-Next step: Test LIST contents of playlist - verify order
-Notes: Position field for ordering
-
-## [CRITICAL] test T229 — Test PlaylistContents CREATE (add file)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule playlist-contents
-Next step: Test CREATE content - add file to playlist
-Notes: Kind.FILE = 0
-
-## [CRITICAL] test T230 — Test PlaylistContents CREATE (add stream)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule playlist-contents
-Next step: Test CREATE content - add webstream to playlist
-Notes: Kind.STREAM = 1
-
-## [CRITICAL] test T231 — Test PlaylistContents CREATE (add block)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule playlist-contents
-Next step: Test CREATE content - add smart block to playlist
-Notes: Kind.BLOCK = 2
-
-## [CRITICAL] test T232 — Test PlaylistContents UPDATE (reorder)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule playlist-contents
-Next step: Test UPDATE content position - reorder playlist
-Notes: Position field update
-
-## [CRITICAL] test T233 — Test PlaylistContents DELETE (remove item)
+## [CRITICAL] test T308 — Fix IsAdminOrOwnUser permission crash on unauthenticated requests
+Status: NOT_STARTED
+Created: 2026-04-09T12:00:00Z
+Last worked: 2026-04-09T12:10:00Z
+Scope: api/permissions.py
+Next step: Add is_authenticated check before calling is_superuser()
+Notes: |
+  TypeError: 'bool' object is not callable when AnonymousUser accesses UserViewSet.
+  Line 85: return bool(request.user.is_superuser())
+  Fix: Check request.user.is_authenticated first
+  Ref: test_user.py::TestUserKnownBugs::test_bug_b001_*
+
+## [HIGH] test T309 — Add role-based filtering to UserViewSet
+Status: NOT_STARTED
+Created: 2026-04-09T12:00:00Z
+Last worked: 2026-04-09T12:10:00Z
+Scope: api/core/views/user.py
+Next step: Add filterset_fields = ["role"] and DjangoFilterBackend
+Notes: |
+  Query param ?role=H is silently ignored, returns all users.
+  When fixed, update test_user.py::TestUserKnownBugs::test_bug_b002_*
+
+## [MEDIUM] test T310 — Decide API Key access to user management
+Status: NOT_STARTED
+Created: 2026-04-09T12:00:00Z
+Last worked: 2026-04-09T12:10:00Z
+Scope: api/permissions.py
+Next step: Decide if system token should access user management
+Notes: |
+  Currently API Key returns 403 (after T308 fix), but maybe should work for service accounts?
+  Ref: test_user.py::TestUserKnownBugs::test_bug_b003_*
+
+## [CRITICAL] test T311 — Fix Preference unique_together validation in CREATE
+Status: NOT_STARTED
+Created: 2026-04-09T12:25:00Z
+Last worked: 2026-04-09T12:35:00Z
+Scope: api/core/serializers/preference.py
+Next step: Fix serializer to properly validate unique_together (user, key) in CREATE
+Notes: |
+  BUG: Serializer validates uniqueness by key only, ignoring user in CREATE.
+  Model has unique_together = (("user", "key"),) - same key can exist for different users.
+  But serializer rejects: {"key":["preference with this key already exists."]}
+  INTERESTING: UPDATE works correctly (test passes), issue only in CREATE serializer.
+  Ref: test_preference.py::TestPreferenceViewSetCreate::test_create_same_key_different_user_succeeds
+
+## [HIGH] test T312 — Fix Preference value handling for special characters
+Status: NOT_STARTED
+Created: 2026-04-09T12:25:00Z
+Last worked: 2026-04-09T12:25:00Z
+Scope: api/core/serializers/preference.py
+Next step: Debug which characters cause serialization issues
+Notes: |
+  BUG: Some value types fail to create - likely JSON encoding issue.
+  Failing: json with complex structures, possibly unicode/newline handling.
+  Error: 400 Bad Request
+  Ref: test_preference.py::TestPreferenceViewSetCreate::test_create_preference_value_types
+
+## [CRITICAL] test T313 — Fix UserToken lookup_field for RETRIEVE/UPDATE/DELETE
+Status: NOT_STARTED
+Created: 2026-04-09T12:40:00Z
+Last worked: 2026-04-09T12:40:00Z
+Scope: api/core/views/auth.py
+Next step: Add lookup_field = "token" to UserTokenViewSet
+Notes: |
+  BUG: UserToken model has no 'id' field, token is unique CharField (40 chars).
+  DRF default lookup uses 'pk' which doesn't exist.
+  GET/DELETE /api/v2/user-tokens/{token}/ returns 404.
+  Fix: lookup_field = "token" or define get_object()
+  Ref: test_auth.py::TestUserTokenViewSetDelete
+
+## [CRITICAL] test T314 — Fix LoginAttempt lookup_field for RETRIEVE/UPDATE/DELETE
+Status: NOT_STARTED
+Created: 2026-04-09T13:20:00Z
+Last worked: 2026-04-09T13:20:00Z
+Scope: api/core/views/auth.py
+Next step: Add lookup_field = "ip" to LoginAttemptViewSet
+Notes: |
+  BUG: LoginAttempt model has no 'id' field, ip is CharField(primary_key=True).
+  DRF default lookup uses 'pk'.
+  GET/PATCH/DELETE /api/v2/login-attempts/{ip}/ returns 404.
+  Fix: lookup_field = "ip"
+  Ref: test_auth.py::TestLoginAttemptViewSetUpdate, TestLoginAttemptViewSetDelete
+
+## [HIGH] test T315 — Fix CeleryTask model db_column for track_reference
+Status: NOT_STARTED
+Created: 2026-04-09T13:30:00Z
+Last worked: 2026-04-09T13:30:00Z
+Scope: api/core/models/worker.py
+Next step: Add db_column="track_reference" to track_reference ForeignKey
+Notes: |
+  BUG: Model has ForeignKey with db_column default (track_reference_id),
+  but DB column is named "track_reference" (without _id suffix).
+  Query fails: column celery_tasks.track_reference_id does not exist.
+  HINT suggests: Perhaps you meant to reference the column "track_reference".
+  Fix: track_reference = ForeignKey(..., db_column="track_reference")
+  Ref: test_worker.py::TestCeleryTaskViewSetList
+
+## [CRITICAL] fix T316 — FileViewSet.perform_destroy missing instance.delete()
+Status: NOT_STARTED
+Created: 2026-04-09T14:45:00Z
+Last worked: 2026-04-09T14:45:00Z
+Scope: api/storage/views/file.py
+Next step: Add super().perform_destroy(instance) after remove(path)
+Notes: |
+  BUG: perform_destroy removes file from disk but never deletes DB record.
+  Current flow: check Schedule -> check filepath -> isfile? -> remove(path) -> return
+  Missing: instance.delete() call after successful remove.
+  Result: DELETE returns 204, file removed from disk, but row remains in cc_files.
+  Ref: test_file_delete.py::TestFileViewSetDelete::test_delete_file_removes_from_db
+
+## [CRITICAL] fix T317 — FileViewSet.download crashes on None filepath
+Status: NOT_STARTED
+Created: 2026-04-09T15:15:00Z
+Last worked: 2026-04-09T15:15:00Z
+Scope: api/storage/views/file.py:48-49
+Next step: Add null check before os.path.join or provide default
+Notes: |
+  BUG: download action crashes with TypeError when instance.filepath is None.
+  Code: os.path.join("/api/_media", instance.filepath)  # filepath=None -> TypeError
+  Result: 500 Internal Server Error instead of graceful handling.
+  Fix: Check if filepath is None and return 400 or use empty string.
+  Ref: test_file_download.py::TestFileViewSetDownload::test_download_no_filepath
+
+## [CRITICAL] fix T318 — Library DELETE fails when Files reference it (track_type FK)
+Status: NOT_STARTED
+Created: 2026-04-09T16:30:00Z
+Last worked: 2026-04-09T16:30:00Z
+Scope: api/storage/models/file.py and api/storage/models/library.py
+Next step: Fix DB constraint - use SET_NULL or CASCADE for track_type FK
+Notes: |
+  BUG: Cannot delete Library that has associated Files due to FK constraint violation.
+  Root cause: File.track_type_id (db_column) references Library.id via DO_NOTHING.
+  Error: "update or delete on table cc_track_types violates foreign key constraint cc_files_track_type_fkey"
+  Impact: DELETE /api/v2/libraries/{id} returns 500 if library has files.
+  Fix options: 1) SET_NULL on File.library FK, 2) Prevent delete if files exist (409).
+  Ref: test_library_delete.py - 3 xfailed tests documenting this bug.
+
+## [CRITICAL] fix T319 — ShowSerializer missing live_auth fields
+Status: NOT_STARTED
+Created: 2026-04-09T14:41:24Z
+Scope: api/schedule/serializers/show.py
+Next step: Add live_auth_registered, live_auth_custom, live_auth_custom_user, live_auth_custom_password to serializer fields
+Notes: live_enabled property works but can't be set via API because source fields not exposed
+
+## [CRITICAL] fix T320 — ShowHost duplicate entries not prevented
+Status: NOT_STARTED
+Created: 2026-04-09T14:41:24Z
+Scope: api/schedule/models/show.py (ShowHost Meta)
+Next step: Add unique_together = ('show', 'user') to ShowHost model
+Notes: Creating same show-host pair multiple times succeeds instead of returning 400/409
+
+## [CRITICAL] fix T321 — Playlist CREATE allows null owner
 Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule playlist-contents
-Next step: Test DELETE content from playlist
-Notes: Removal, verify position recalculation
-
-## [CRITICAL] test T234 — Test SmartBlocks LIST (static and dynamic)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule smart-blocks
-Next step: Test LIST smart blocks - verify kind field
-Notes: Static vs Dynamic
-
-## [CRITICAL] test T235 — Test SmartBlocks CREATE static
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule smart-blocks
-Next step: Test CREATE static smart block
-Notes: Kind.STATIC = "static"
-
-## [CRITICAL] test T236 — Test SmartBlocks CREATE dynamic
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule smart-blocks
-Next step: Test CREATE dynamic smart block
-Notes: Kind.DYNAMIC = "dynamic"
-
-## [CRITICAL] test T237 — Test SmartBlocks UPDATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule smart-blocks
-Next step: Test UPDATE smart block
-Notes: Metadata editing
-
-## [CRITICAL] test T238 — Test SmartBlocks DELETE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule smart-blocks
-Next step: Test DELETE smart block - verify contents/criteria deleted
-Notes: Cascade
-
-## [CRITICAL] test T239 — Test SmartBlockContents LIST
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule smart-block-contents
-Next step: Test LIST contents of static smart block
-Notes: For static blocks only
-
-## [CRITICAL] test T240 — Test SmartBlockContents CREATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule smart-block-contents
-Next step: Test CREATE content in static block
-Notes: Adding files to static block
-
-## [CRITICAL] test T241 — Test SmartBlockCriteria LIST
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule smart-block-criteria
-Next step: Test LIST criteria for dynamic block
-Notes: For dynamic blocks
-
-## [CRITICAL] test T242 — Test SmartBlockCriteria CREATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule smart-block-criteria
-Next step: Test CREATE criteria (genre=Jazz, etc.)
-Notes: Dynamic block rules
-
-## [CRITICAL] test T243 — Test SmartBlockCriteria UPDATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule smart-block-criteria
-Next step: Test UPDATE criteria condition/value
-Notes: Modifying rules
-
-## [CRITICAL] test T244 — Test SmartBlockCriteria DELETE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule smart-block-criteria
-Next step: Test DELETE criteria
-Notes: Remove rule from dynamic block
-
-## [CRITICAL] test T245 — Test Webstreams LIST
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule webstreams
-Next step: Test LIST webstreams
-Notes: External streams
-
-## [CRITICAL] test T246 — Test Webstreams CREATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule webstreams
-Next step: Test CREATE webstream with URL
-Notes: URL validation
-
-## [CRITICAL] test T247 — Test Webstreams UPDATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule webstreams
-Next step: Test UPDATE webstream URL
-Notes: Edit stream URL
-
-## [CRITICAL] test T248 — Test Webstreams DELETE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule webstreams
-Next step: Test DELETE webstream
-Notes: Remove stream
-
-## [CRITICAL] test T249 — Test WebstreamMetadata LIST
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule webstream-metadata
-Next step: Test LIST metadata for scheduled streams
-Notes: Liquidsoap data
-
-## [CRITICAL] test T250 — Test Schedule LIST with filters
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule schedule
-Next step: Test LIST with: ?starts_after=, ?starts_before=, ?overbooked=
-Notes: Complex filtering existing test covers
-
-## [CRITICAL] test T251 — Test Schedule LIST overbooked filter
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule schedule
-Next step: Test ?overbooked=true/false filter
-Notes: Items extending beyond show instance
-
-## [CRITICAL] test T252 — Test Schedule CREATE (schedule file)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule schedule
-Next step: Test CREATE schedule item with file
-Notes: File scheduling
-
-## [CRITICAL] test T253 — Test Schedule CREATE (schedule stream)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule schedule
-Next step: Test CREATE schedule item with webstream
-Notes: Stream scheduling
-
-## [CRITICAL] test T254 — Test Schedule RETRIEVE with computed cue_out
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule schedule
-Next step: Test RETRIEVE - verify cue_out_calculated when truncated by show end
-Notes: Read serializer computes truncated cue_out
-
-## [CRITICAL] test T255 — Test Schedule RETRIEVE with computed ends_at
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule schedule
-Next step: Test RETRIEVE - verify ends_at_calculated when truncated
-Notes: Read serializer computes truncated ends_at
-
-## [CRITICAL] test T256 — Test Schedule UPDATE (reschedule)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule schedule
-Next step: Test UPDATE schedule item - change time
-Notes: Moving scheduled item
-
-## [CRITICAL] test T257 — Test Schedule DELETE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule schedule
-Next step: Test DELETE schedule item
-Notes: Unscheduling
-
-## [CRITICAL] test T258 — Test Schedule permissions (host can edit own show)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule schedule
-Next step: Test permission: show host can modify schedule
-Notes: change_own_schedule permission
-
-
-# === HISTORY MODULE TESTS ===
-
-## [HIGH] test T259 — Test PlayoutHistory LIST with filters
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API history playout
-Next step: Test LIST with: ?instance_id=, ?starts_after=, ?starts_before=
-Notes: Filter by show instance and time range
-
-## [HIGH] test T260 — Test PlayoutHistory CREATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API history playout
-Next step: Test CREATE playout history entry
-Notes: Record played item
-
-## [HIGH] test T261 — Test PlayoutHistory RETRIEVE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API history playout
-Next step: Test RETRIEVE history entry
-Notes: Get details
-
-## [HIGH] test T262 — Test PlayoutHistoryTemplate LIST
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API history templates
-Next step: Test LIST templates
-Notes: History display templates
-
-## [HIGH] test T263 — Test PlayoutHistoryTemplate CREATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API history templates
-Next step: Test CREATE template
-Notes: Define template
-
-## [HIGH] test T264 — Test ListenerCount LIST
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API history listener-counts
-Next step: Test LIST listener counts - verify timestamp ordering
-Notes: Aggregated listener data
-
-## [HIGH] test T265 — Test LiveLog LIST with filters
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API history live-log
-Next step: Test LIST with: ?starts_after=, ?starts_before=, ?show_id=
-Notes: Live broadcast events
-
-## [HIGH] test T266 — Test LiveLog CREATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API history live-log
-Next step: Test CREATE live log entry
-Notes: Record live event
-
-## [MEDIUM] test T267 — Test MountName LIST
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API history mounts
-Next step: Test LIST mount names
-Notes: Icecast mount points
-
-# === PODCASTS MODULE TESTS ===
-
-## [HIGH] test T268 — Test Podcasts LIST
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API podcasts podcasts
-Next step: Test LIST podcasts - verify all iTunes metadata
-Notes: RSS feed metadata
-
-## [HIGH] test T269 — Test Podcasts CREATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API podcasts podcasts
-Next step: Test CREATE podcast with RSS URL
-Notes: URL validation
-
-## [HIGH] test T270 — Test Podcasts UPDATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API podcasts podcasts
-Next step: Test UPDATE podcast metadata
-Notes: Edit podcast details
-
-## [HIGH] test T271 — Test Podcasts DELETE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API podcasts podcasts
-Next step: Test DELETE podcast
-Notes: Remove podcast
-
-## [HIGH] test T272 — Test Podcasts sync action
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API podcasts podcasts
-Next step: Test sync action - fetches latest episodes
-Notes: Manual refresh
-
-## [HIGH] test T273 — Test PodcastEpisodes LIST
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API podcasts episodes
-Next step: Test LIST episodes for a podcast
-Notes: Episode metadata
-
-## [HIGH] test T274 — Test PodcastEpisodes CREATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API podcasts episodes
-Next step: Test CREATE episode
-Notes: Add episode manually
-
-## [HIGH] test T275 — Test PodcastEpisodes UPDATE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API podcasts episodes
-Next step: Test UPDATE episode
-Notes: Edit episode
-
-## [HIGH] test T276 — Test PodcastEpisodes DELETE
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API podcasts episodes
-Next step: Test DELETE episode
-Notes: Remove episode
-
-## [HIGH] test T277 — Test StationPodcast LIST/GET
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API podcasts station
-Next step: Test station podcast endpoints
-Notes: Station's own podcast feed
-
-## [HIGH] test T278 — Test ImportedPodcast LIST/GET
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API podcasts imported
-Next step: Test imported podcast endpoints
-Notes: Auto-imported episodes
-
-# === AUTHENTICATION TESTS ===
-
-## [CRITICAL] test T279 — Test session auth (login required)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API auth
-Next step: Test that logged-in user can access protected endpoints
-Notes: Standard DRF session auth
-
-## [CRITICAL] test T280 — Test Api-Key auth (service token)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API auth
-Next step: Test that service can auth with Api-Key header
-Notes: IsSystemTokenOrUser permission
-
-## [CRITICAL] test T281 — Test no auth returns 403
+Created: 2026-04-09T14:41:24Z
+Scope: api/schedule/serializers/playlist.py
+Next step: Add owner required validation in serializer
+Notes: Creating playlist without owner returns 201 instead of 400
+
+## [CRITICAL] fix T322 — PlaylistContent filter by playlist not implemented
 Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API auth
-Next step: Test that unauthenticated requests are rejected
-Notes: 403 Forbidden
+Created: 2026-04-09T15:30:00Z
+Scope: api/schedule/views/playlist.py
+Next step: Add filterset_fields or filter_backends to PlaylistContentViewSet
+Notes: Query param ?playlist={id} is silently ignored, returns all contents instead of filtering.
+
+## [CRITICAL] fix T323 — PlaylistContent ordering by position not implemented
+Status: NOT_STARTED
+Created: 2026-04-09T15:30:00Z
+Scope: api/schedule/views/playlist.py
+Next step: Add ordering_fields = ["position"] and ordering = ["position"] to ViewSet
+Notes: Results returned in arbitrary order instead of playlist position sequence.
+
+## [CRITICAL] fix T324 — PlaylistContent offset is required but model allows null
+Status: NOT_STARTED
+Created: 2026-04-09T16:05:00Z
+Scope: api/schedule/serializers/playlist.py
+Next step: Make offset optional in serializer or add default value
+Notes: Serializer rejects requests without offset even though model field allows null.
+
+## [CRITICAL] fix T325 — PlaylistContent missing playlist not validated
+Status: NOT_STARTED
+Created: 2026-04-09T16:05:00Z
+Scope: api/schedule/serializers/playlist.py
+Next step: Add required validation for playlist field
+Notes: Creating content without playlist returns 201 instead of 400.
+
+## [CRITICAL] fix T326 — PlaylistContent FILE kind without file not validated
+Status: NOT_STARTED
+Created: 2026-04-09T16:05:00Z
+Scope: api/schedule/serializers/playlist.py
+Next step: Add validation to require file when kind=FILE
+Notes: Creating FILE content without file ID returns 201 instead of 400.
 
-## [CRITICAL] test T282 — Test invalid Api-Key returns 403
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API auth
-Next step: Test that invalid token is rejected
-Notes: IsSystemTokenOrUser rejects bad tokens
-
-## [CRITICAL] test T283 — Test public endpoints (info, version)
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API auth
-Next step: Test that info/version don't require auth
-Notes: AllowAny permission
-
-# === EDGE CASE & INTEGRATION TESTS ===
-
-## [CRITICAL] test T284 — Test ReadWriteSerializerMixin behavior
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule serializers
-Next step: Test that Schedule GET vs POST use different serializers
-Notes: Read excludes cue_out, write allows it
-
-## [CRITICAL] test T285 — Test schedule overbooked detection
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule logic
-Next step: Test that item extending beyond show instance is marked overbooked
-Notes: Business logic
-
-## [CRITICAL] test T286 — Test show instance generation from pattern
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule logic
-Next step: Test that show days generate instances correctly
-Notes: Celery task or model method
-
-## [HIGH] test T287 — Test playlist length calculation
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule playlist
-Next step: Test that playlist length is computed from contents
-Notes: Computed field
-
-## [HIGH] test T288 — Test smart block dynamic query
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API schedule smart-block
-Next step: Test that dynamic block criteria generate correct file query
-Notes: SQL generation from criteria
-
-## [HIGH] test T289 — Test file unique together constraint
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage files
-Next step: Test that duplicate filepath+md5 is rejected
-Notes: UniqueConstraint
+## [CRITICAL] fix T327 — SmartBlock filter by kind not implemented
+Status: NOT_STARTED
+Created: 2026-04-09T17:00:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add filterset_fields = ["kind"] to SmartBlockViewSet
+Notes: Query param ?kind=static is silently ignored, returns all blocks.
 
-## [HIGH] test T290 — Test cascade deletes
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API relations
-Next step: Test various cascade behaviors (show->instances, playlist->contents)
-Notes: Data integrity
-
-## [HIGH] test T291 — Test pagination if present
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API pagination
-Next step: Test LIST endpoints with large datasets - verify pagination
-Notes: ?page=, ?limit= params
-
-## [MEDIUM] test T292 — Test concurrent edits
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API concurrency
-Next step: Test that concurrent edits don't corrupt data
-Notes: Transaction isolation
-
-## [MEDIUM] test T293 — Test large payload handling
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API performance
-Next step: Test LIST with 1000+ items - verify reasonable response time
-Notes: Performance baseline
-
-## [MEDIUM] test T294 — Test file metadata extraction on upload
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage upload
-Next step: Test that uploaded file triggers metadata extraction
-Notes: Celery task integration
-
-## [MEDIUM] test T295 — Test replaygain calculation
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API storage analysis
-Next step: Test that analyzer computes replaygain for files
-Notes: Audio analysis
-
-## [LOW] test T296 — Test API version compatibility
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API versioning
-Next step: Test that /api/v2/ prefix is required
-Notes: URL routing
-
-## [LOW] test T297 — Test CORS headers
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API security
-Next step: Test CORS headers for browser clients
-Notes: Cross-origin requests
-
-## [LOW] test T298 — Test rate limiting
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API security
-Next step: Test rate limiting on auth endpoints
-Notes: DRF throttling
-
-
-# === TEST DOCUMENTATION & INTEGRATION ===
-
-## [HIGH] test T299 — Create API test fixtures documentation
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API test docs
-Next step: Document all fixtures in conftest.py with usage examples
-Notes: README for API test suite
-
-## [HIGH] test T300 — Create API test run documentation
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API test docs
-Next step: Document how to run tests: cd app/api && uv run pytest
-Notes: Include coverage reporting
-
-## [HIGH] test T301 — Create API contract test guide
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API test docs
-Next step: Document contract test philosophy for FastAPI migration
-Notes: Tests must pass on both DRF and FastAPI
-
-## [HIGH] test T302 — Verify existing tests still pass
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API test baseline
-Next step: Run current tests: cd app/api && uv run pytest -v
-Notes: Ensure no regressions before adding new tests
-
-## [HIGH] test T303 — Set up API test coverage reporting
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API test coverage
-Next step: Configure pytest-cov for API tests: --cov=api --cov-report=html
-Notes: Track coverage progress toward 100%
-
-## [MEDIUM] test T304 — Create API test troubleshooting guide
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API test docs
-Next step: Document common issues: DB setup, auth fixtures, model_bakery
-Notes: Developer onboarding
-
-## [MEDIUM] test T305 — Create mock utilities for external services
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API test utils
-Next step: Create mocks for: file storage, podcast RSS fetch, email
-Notes: Isolate external dependencies
-
-## [MEDIUM] test T306 — Create parameterized test examples
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API test patterns
-Next step: Create examples using @pytest.mark.parametrize for permissions
-Notes: DRY test code
-
-## [MEDIUM] test T307 — Create API test performance benchmarks
-Status: NOT_STARTED
-Created: 2026-04-07T20:00:00Z
-Last worked: 2026-04-07T20:00:00Z
-Scope: API test performance
-Next step: Add timing assertions to critical endpoints
-Notes: Baseline for FastAPI comparison
-
-# === SUMMARY ===
-# Total API v2 test tasks: 155 tasks (T153-T307)
-# 
-# Breakdown by component:
-# - Infrastructure (T153-T162): 10 tasks - fixtures, factories, base classes
-# - Core module (T163-T184): 22 tasks - users, preferences, auth, public endpoints
-# - Storage module (T185-T200): 16 tasks - files, libraries with download action
-# - Schedule module (T201-T258): 58 tasks - shows, instances, playlists, smart blocks, schedule
-# - History module (T259-T267): 9 tasks - playout history, listener counts, live log
-# - Podcasts module (T268-T278): 11 tasks - podcasts, episodes, station/imported
-# - Auth tests (T279-T283): 5 tasks - session, api-key, permissions
-# - Edge cases (T284-T298): 15 tasks - serializers, validation, pagination, performance
-# - Documentation (T299-T307): 9 tasks - docs, guides, benchmarks
-#
-# Critical path (must have for FastAPI migration):
-# T153-T162: Infrastructure
-# T163-T168, T173-T184: Core endpoints
-# T186-T194: Files (especially T193 download)
-# T201-T258: Schedule (complex relationships)
-# T279-T283: Authentication
-# T284: ReadWriteSerializerMixin behavior
-#
-# Estimated implementation time: 2-3 weeks full-time
-# Test files to create: ~25-30 new test files
-# Total test functions: ~200-250 test cases
+## [CRITICAL] fix T328 — SmartBlockContent filter by block not implemented
+Status: NOT_STARTED
+Created: 2026-04-09T18:00:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add filterset_fields = ["block"] to SmartBlockContentViewSet
+Notes: Query param ?block={id} is silently ignored.
+
+## [CRITICAL] fix T329 — SmartBlockContent ordering by position not implemented
+Status: NOT_STARTED
+Created: 2026-04-09T18:00:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add ordering_fields = ["position"] and ordering = ["position"]
+Notes: Results returned in arbitrary order.
+
+## [CRITICAL] fix T330 — SmartBlockContent missing block not validated
+Status: NOT_STARTED
+Created: 2026-04-09T18:10:00Z
+Scope: api/schedule/serializers/smart_block.py
+Next step: Add required validation for block field
+Notes: Creating content without block returns 201 instead of 400.
+
+## [CRITICAL] fix T331 — SmartBlockContent missing file not validated
+Status: NOT_STARTED
+Created: 2026-04-09T18:10:00Z
+Scope: api/schedule/serializers/smart_block.py
+Next step: Add required validation for file field
+Notes: Creating content without file returns 201 instead of 400.
+
+## [CRITICAL] fix T332 — SmartBlockCriteria filter by block not implemented
+Status: NOT_STARTED
+Created: 2026-04-09T18:20:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add filterset_fields = ["block"] to SmartBlockCriteriaViewSet
+Notes: Query param ?block={id} is silently ignored.
+
+## [CRITICAL] fix T333 — Webstream serializer requires optional fields on CREATE
+Status: NOT_STARTED
+Created: 2026-04-09T19:10:00Z
+Scope: api/schedule/serializers/webstream.py
+Next step: Make created_at, updated_at, length optional with defaults
+Notes: Serializer rejects requests without created_at, updated_at, length which should be auto-populated.
+
+## [CRITICAL] fix T334 — Webstream PUT requires optional fields
+Status: NOT_STARTED
+Created: 2026-04-09T19:20:00Z
+Scope: api/schedule/serializers/webstream.py
+Next step: Make created_at, updated_at, length optional for PUT
+Notes: PUT full update fails without optional fields.
+
+## [MEDIUM] fix T335 — Schedule filter by instance not implemented
+Status: NOT_STARTED
+Created: 2026-04-09T16:16:18Z
+Last worked: 2026-04-09T16:16:18Z
+File: `app/api/api/schedule/views/schedule.py`
+Next step: Add instance filter to ScheduleFilter class
+Notes: Filter ?instance={id} silently ignored, returns all schedules. Should filter schedules by show instance ID.
+
+## [MEDIUM] fix T336 — Schedule CREATE missing file/stream validation
+Status: NOT_STARTED
+Created: 2026-04-09T16:16:18Z
+Last worked: 2026-04-09T16:16:18Z
+File: `app/api/api/schedule/serializers/schedule.py`
+Next step: Add validate() to WriteScheduleSerializer requiring either file or stream
+Notes: POST /api/v2/schedule with neither file nor stream returns 201. Should return 400 with validation error.
+
+## [HIGH] fix T337 — Schedule datetime comparison bug in get_cue_out/get_ends_at
+Status: NOT_STARTED
+Created: 2026-04-09T16:16:18Z
+Last worked: 2026-04-10T00:25:00Z
+File: `app/api/api/schedule/models/schedule.py:120,127`
+Next step: Ensure timezone-aware comparison in get_cue_out() and get_ends_at()
+Notes: TypeError: can't compare offset-naive and offset-aware datetimes. Triggers on UPDATE when serializing response. VERIFIED 2026-04-10: Bug still reproduces - test_update_change_cue_times fails with AssertionError: '00:05:00' == '00:10:00'
+
+## [MEDIUM] fix T338 — Schedule CREATE permissions for host user
+Status: NOT_STARTED
+Created: 2026-04-09T16:16:18Z
+Last worked: 2026-04-09T16:16:18Z
+File: `app/api/api/schedule/views/schedule.py`
+Next step: Review permission classes, ensure host can create schedule for their shows
+Notes: Host user (role=H) gets 403 on POST /api/v2/schedule. Admin works fine. Likely missing change_own_schedule permission check.
+
+## [LOW] fix T339 — PlayoutHistory CREATE doesn't validate ends > starts
+Status: NOT_STARTED
+Created: 2026-04-09T16:16:18Z
+Last worked: 2026-04-09T17:00:00Z
+File: `app/api/api/history/serializers/played.py`
+Next step: Add validate() to PlayoutHistorySerializer checking ends > starts
+Notes: POST with ends before starts returns 201. Should return 400 with validation error. Found during T260.
+
+## [CRITICAL] fix T340 — Podcast model owner field DB schema mismatch
+Status: NOT_STARTED
+Created: 2026-04-09T17:05:00Z
+Last worked: 2026-04-09T17:05:00Z
+File: `app/api/api/podcasts/models/podcast.py:26-31`
+Next step: Add db_column to owner field or fix schema
+Notes: Django model expects 'owner_id' column but DB has different column name. All Podcast operations fail with 'column owner_id does not exist'. Blocks T268-T278.
+
+## [CRITICAL] test T341 — Fix IndexError in check_authorization_header with empty Api-Key
+Status: NOT_STARTED
+Created: 2026-04-09T18:30:00Z
+Scope: api/permissions.py
+Next step: Add bounds check before accessing split()[1]
+Notes: |
+  BUG: check_authorization_header() crashes with IndexError when
+  Authorization header is "Api-Key " (with space but no actual key value).
+  Line 70: token = auth_header.split()[1]  # IndexError: list index out of range
+  Fix: Check len(split_result) > 1 before accessing [1].
+  Ref: test_auth_apikey.py::TestBugT341
+
+## [HIGH] fix T352 — Fix Schedule.ends_at not saving via API
+Status: NOT_STARTED
+Created: 2026-04-10T00:55:00Z
+Last worked: 2026-04-10T00:55:00Z
+File: `app/api/api/schedule/serializers/schedule.py`
+Next step: Investigate why DRF doesn't save ends_at when model has get_ends_at method
+Notes: WriteScheduleSerializer cannot save ends_at field due to conflict with get_ends_at method on Schedule model. This causes test_update_change_times_success to fail. The starts_at field works correctly.
+
+# Archive
+
+<!--
+Compressed history — user-commanded archive of completed/cancelled tasks.
+Append-only: never edit or delete rows. T<n> preserved for ID continuity.
+Scan this section when allocating next T<n> (max+1 rule).
+-->
+
+| ID | Date | Scope | Status | Title |
+|----|------|-------|--------|-------|
+| T1 | 2026-04-06 | meta | DONE | Initialize project documentation |
+| T342 | 2026-04-09 | test | DONE | Standardize datetime formatting in API tests |
+| T344 | 2026-04-09 | test | DONE | Fix failing API tests (isolation issues) |
+| T345 | 2026-04-09 | test | DONE | Fix test suite isolation for full run |
+| T346 | 2026-04-10 | test | DONE | Eliminate all hardcoded values in API tests |
+
+<!-- 153 tasks archived. Max T<n> remains T351. -->

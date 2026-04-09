@@ -1,5 +1,12 @@
-from datetime import datetime, time, timezone
+from datetime import datetime, time
 from re import match
+
+from dateutil import parser
+
+from sdk.compat import UTC
+
+
+class TimezoneExpectedError(TypeError): ...
 
 
 def format_datetime(dt: datetime) -> str:
@@ -19,17 +26,17 @@ def format_datetime(dt: datetime) -> str:
 
     Example:
         >>> from datetime import datetime, timezone
-        >>> dt = datetime(2026, 3, 26, 12, 14, 56, tzinfo=timezone.utc)
+        >>> dt = datetime(2026, 3, 26, 12, 14, 56, tzinfo=UTC)
         >>> format_datetime(dt)
         '2026-03-26T12:14:56Z'
     """
 
     # timezone-aware datetimes are required for unambiguous formatting
     if not dt.tzinfo:
-        raise ValueError("Datetime must be timezone-aware")
+        raise TimezoneExpectedError("Datetime must be timezone-aware")
 
     # always convert taken datetime to UTC
-    result = dt.astimezone(timezone.utc).isoformat(timespec="seconds")
+    result = dt.astimezone(UTC).isoformat(timespec="seconds")
 
     # and format with 'Z' suffix
     if m := match(r"^(.+?)(\+00:00$)", result):
@@ -38,6 +45,13 @@ def format_datetime(dt: datetime) -> str:
     # if we got here, something went wrong with formatting
     msg = f"Unexpected datetime format: {result}"
     raise ValueError(msg)
+
+
+def reformat_datetime(dt: str) -> str:
+    """Parse datetime string from API and format it -
+    triggers TimezoneExpectedError if naive.
+    """
+    return format_datetime(parser.parse(dt))
 
 
 def time_in_seconds(value: time) -> float:
@@ -57,11 +71,15 @@ def to_utc(dt: datetime) -> datetime:
     if dt.tzinfo is not None:
         raise ValueError
 
-    return dt.replace(tzinfo=timezone.utc)
+    return dt.replace(tzinfo=UTC)
 
 
 def to_naive(dt: datetime) -> datetime:
     if dt.tzinfo is None:
         raise ValueError
 
-    return dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt.astimezone(UTC).replace(tzinfo=None)
+
+
+def now() -> datetime:
+    return datetime.now(UTC)

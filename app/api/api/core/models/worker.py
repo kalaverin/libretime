@@ -1,5 +1,7 @@
 from django.db import models
 
+from api.fields import TimezoneAwareDateTimeField
+
 
 class ThirdPartyTrackReference(models.Model):
     service = models.CharField(max_length=256)
@@ -15,7 +17,7 @@ class ThirdPartyTrackReference(models.Model):
         blank=True,
         null=True,
     )
-    upload_time = models.DateTimeField(blank=True, null=True)
+    upload_time = TimezoneAwareDateTimeField(blank=True, null=True)
     status = models.CharField(max_length=256, blank=True, null=True)
 
     class Meta:
@@ -31,7 +33,7 @@ class CeleryTask(models.Model):
         on_delete=models.DO_NOTHING,
     )
     name = models.CharField(max_length=256, blank=True, null=True)
-    dispatch_time = models.DateTimeField(blank=True, null=True)
+    dispatch_time = TimezoneAwareDateTimeField(blank=True, null=True)
     status = models.CharField(max_length=256)
 
     class Meta:

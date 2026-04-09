@@ -6,25 +6,26 @@ All recipes ensure consistent test data across the test suite.
 """
 
 import uuid
+
 from datetime import timedelta
 
-from model_bakery import baker
 from model_bakery.recipe import Recipe, seq
 
 from api.core.models.role import Role
 from api.core.models.user import User
 from api.storage.models.file import File
 from api.storage.models.library import Library
+from sdk import now
 
 
 def get_user_recipe(role: str, **overrides) -> Recipe:
     """
     Get a base User recipe with specified role.
-    
+
     Args:
         role: One of Role.GUEST, Role.HOST, Role.MANAGER, Role.ADMIN
         **overrides: Additional field overrides
-    
+
     Returns:
         Recipe configured for the specified role
     """
@@ -34,7 +35,7 @@ def get_user_recipe(role: str, **overrides) -> Recipe:
         Role.MANAGER: "manager",
         Role.ADMIN: "admin",
     }.get(role, "user")
-    
+
     base_fields = {
         "role": role,
         "username": f"{role_prefix}_{{seq}}",
@@ -43,7 +44,7 @@ def get_user_recipe(role: str, **overrides) -> Recipe:
         "last_name": "Test",
     }
     base_fields.update(overrides)
-    
+
     return Recipe(User, **base_fields)
 
 
@@ -77,12 +78,12 @@ def make_admin_user(**overrides) -> User:
 def make_user_with_permissions(role: str, *perms: str, **overrides) -> User:
     """
     Create a user with specific permissions.
-    
+
     Args:
         role: User role (G/H/P/A)
         *perms: Permission codenames to grant
         **overrides: Additional field overrides
-    
+
     Returns:
         User instance with specified permissions
     """
@@ -121,7 +122,6 @@ file_recipe = Recipe(
     size=10_000_000,  # 10MB
     mime="audio/mpeg",
     md5=lambda: uuid.uuid4().hex,
-    
     # Status
     import_status=File.ImportStatus.SUCCESS,
     exists=True,
@@ -129,21 +129,17 @@ file_recipe = Recipe(
     accessed=0,
     scheduled=False,
     part_of_list=False,
-    
     # Audio properties (typical MP3)
     bit_rate=320_000,  # 320 kbps
     sample_rate=44_100,  # 44.1 kHz
     format="mp3",
     channels=2,
     length=timedelta(minutes=3, seconds=30),  # 3:30
-    
     # ReplayGain
     replay_gain="-8.50",
-    
     # Cue points (full track by default)
     cue_in=timedelta(seconds=0),
     cue_out=timedelta(minutes=3, seconds=30),
-    
     # Metadata
     track_title=seq("Test Track "),
     artist_name=seq("Test Artist "),
@@ -160,7 +156,6 @@ file_recipe = Recipe(
     conductor=seq("Test Conductor "),
     encoder="LAME",
     isrc=seq("ISRC"),
-    
     # Ownership - must be provided or use subfactory
     # owner=foreign_key(user_recipe),
     # library=foreign_key(library_recipe),
@@ -170,12 +165,12 @@ file_recipe = Recipe(
 def make_file(owner=None, library=None, **overrides) -> File:
     """
     Create a file with valid audio metadata for testing.
-    
+
     Args:
         owner: User who owns the file (created if None)
         library: Library/track type (created if None)
         **overrides: Additional field overrides
-    
+
     Returns:
         File instance with realistic audio metadata
     """
@@ -183,7 +178,7 @@ def make_file(owner=None, library=None, **overrides) -> File:
         owner = make_host_user()
     if library is None:
         library = make_library()
-    
+
     return file_recipe.make(owner=owner, library=library, **overrides)
 
 
@@ -205,8 +200,7 @@ def make_failed_file(**overrides) -> File:
 # SCHEDULE MODELS
 # =============================================================================
 
-from datetime import datetime, time
-from zoneinfo import ZoneInfo
+from datetime import time
 
 from api.schedule.models.show import (
     Record,
@@ -215,7 +209,6 @@ from api.schedule.models.show import (
     ShowHost,
     ShowInstance,
 )
-
 
 # Show recipes
 show_recipe = Recipe(
@@ -240,20 +233,20 @@ show_recipe = Recipe(
 def make_show(hosts=None, **overrides) -> Show:
     """
     Create a show with optional hosts.
-    
+
     Args:
         hosts: List of User objects to add as hosts (created if None/empty)
         **overrides: Additional field overrides
-    
+
     Returns:
         Show instance
     """
     show = show_recipe.make(**overrides)
-    
+
     if hosts:
         for host in hosts:
             ShowHost.objects.create(show=show, user=host)
-    
+
     return show
 
 
@@ -275,7 +268,7 @@ show_host_recipe = Recipe(ShowHost)
 def make_show_host(show=None, user=None, **overrides) -> ShowHost:
     """
     Create a show-host relationship.
-    
+
     Args:
         show: Show instance (created if None)
         user: User instance (created if None)
@@ -284,14 +277,14 @@ def make_show_host(show=None, user=None, **overrides) -> ShowHost:
         show = make_show()
     if user is None:
         user = make_host_user()
-    
+
     return show_host_recipe.make(show=show, user=user, **overrides)
 
 
 # ShowDays recipes
 show_days_recipe = Recipe(
     ShowDays,
-    first_show_on=lambda: datetime.now().date(),
+    first_show_on=lambda: now().date(),
     last_show_on=None,  # No end date (indefinite)
     start_time=time(14, 0),  # 2:00 PM
     timezone="UTC",
@@ -306,20 +299,27 @@ show_days_recipe = Recipe(
 def make_show_days(show=None, **overrides) -> ShowDays:
     """
     Create show schedule pattern (days).
-    
+
     Args:
         show: Show instance (created if None)
         **overrides: Field overrides including repeat_kind
     """
     if show is None:
         show = make_show()
-    
+
     return show_days_recipe.make(show=show, **overrides)
 
 
-def make_weekly_show_days(show=None, week_day=ShowDays.WeekDay.MONDAY, **overrides):
+def make_weekly_show_days(
+    show=None,
+    week_day=ShowDays.WeekDay.MONDAY,
+    **overrides,
+):
     """Create weekly repeating show pattern."""
-    defaults = {"repeat_kind": ShowDays.RepeatKind.WEEKLY, "week_day": week_day}
+    defaults = {
+        "repeat_kind": ShowDays.RepeatKind.WEEKLY,
+        "week_day": week_day,
+    }
     defaults.update(overrides)
     return make_show_days(show, **defaults)
 
@@ -341,9 +341,9 @@ def make_monthly_show_days(show=None, **overrides):
 # ShowInstance recipe
 show_instance_recipe = Recipe(
     ShowInstance,
-    created_at=lambda: datetime.now(ZoneInfo("UTC")),
-    starts_at=lambda: datetime.now(ZoneInfo("UTC")),
-    ends_at=lambda: datetime.now(ZoneInfo("UTC")) + timedelta(hours=1),
+    created_at=now,
+    starts_at=now,
+    ends_at=lambda: now() + timedelta(hours=1),
     filled_time=None,
     last_scheduled_at=None,
     description="",
@@ -355,20 +355,23 @@ show_instance_recipe = Recipe(
 def make_show_instance(show=None, **overrides) -> ShowInstance:
     """
     Create a show instance.
-    
+
     Args:
         show: Show instance (created if None)
         **overrides: Field overrides
     """
     if show is None:
         show = make_show()
-    
+
     return show_instance_recipe.make(show=show, **overrides)
 
 
 def make_modified_instance(show=None, **overrides):
     """Create a modified show instance."""
-    defaults = {"modified": True, "description": "Modified instance description"}
+    defaults = {
+        "modified": True,
+        "description": "Modified instance description",
+    }
     defaults.update(overrides)
     return make_show_instance(show, **defaults)
 
@@ -378,7 +381,6 @@ def make_modified_instance(show=None, **overrides):
 # =============================================================================
 
 from api.schedule.models.playlist import Playlist, PlaylistContent
-
 
 # Playlist recipes
 playlist_recipe = Recipe(
@@ -392,14 +394,14 @@ playlist_recipe = Recipe(
 def make_playlist(owner=None, **overrides) -> Playlist:
     """
     Create a playlist with optional owner.
-    
+
     Args:
         owner: User who owns the playlist (created if None)
         **overrides: Field overrides
     """
     if owner is None:
         owner = make_host_user()
-    
+
     return playlist_recipe.make(owner=owner, **overrides)
 
 
@@ -416,10 +418,14 @@ playlist_content_recipe = Recipe(
 )
 
 
-def make_playlist_content(playlist=None, position=None, **overrides) -> PlaylistContent:
+def make_playlist_content(
+    playlist=None,
+    position=None,
+    **overrides,
+) -> PlaylistContent:
     """
     Create playlist content entry.
-    
+
     Args:
         playlist: Playlist instance (created if None)
         position: Position in playlist (auto if None)
@@ -427,17 +433,17 @@ def make_playlist_content(playlist=None, position=None, **overrides) -> Playlist
     """
     if playlist is None:
         playlist = make_playlist()
-    
+
     if position is not None:
         overrides["position"] = position
-    
+
     return playlist_content_recipe.make(playlist=playlist, **overrides)
 
 
 def make_playlist_file(file=None, playlist=None, position=None, **overrides):
     """
     Add a file to playlist content.
-    
+
     Args:
         file: File instance (created if None)
         playlist: Playlist instance (created if None)
@@ -445,7 +451,7 @@ def make_playlist_file(file=None, playlist=None, position=None, **overrides):
     """
     if file is None:
         file = make_file()
-    
+
     defaults = {
         "kind": PlaylistContent.Kind.FILE,
         "file": file,
@@ -454,14 +460,19 @@ def make_playlist_file(file=None, playlist=None, position=None, **overrides):
         "cue_out": file.cue_out,
     }
     defaults.update(overrides)
-    
+
     return make_playlist_content(playlist, position, **defaults)
 
 
-def make_playlist_stream(stream=None, playlist=None, position=None, **overrides):
+def make_playlist_stream(
+    stream=None,
+    playlist=None,
+    position=None,
+    **overrides,
+):
     """
     Add a webstream to playlist content.
-    
+
     Args:
         stream: Webstream instance (created if None - requires T162)
         playlist: Playlist instance (created if None)
@@ -472,14 +483,14 @@ def make_playlist_stream(stream=None, playlist=None, position=None, **overrides)
         "stream": stream,  # May be None if T162 not done yet
     }
     defaults.update(overrides)
-    
+
     return make_playlist_content(playlist, position, **defaults)
 
 
 def make_playlist_block(block=None, playlist=None, position=None, **overrides):
     """
     Add a smart block to playlist content.
-    
+
     Args:
         block: SmartBlock instance (created if None - requires T158)
         playlist: Playlist instance (created if None)
@@ -490,7 +501,7 @@ def make_playlist_block(block=None, playlist=None, position=None, **overrides):
         "block": block,  # May be None if T158 not done yet
     }
     defaults.update(overrides)
-    
+
     return make_playlist_content(playlist, position, **defaults)
 
 
@@ -503,7 +514,6 @@ from api.schedule.models.smart_block import (
     SmartBlockContent,
     SmartBlockCriteria,
 )
-
 
 # SmartBlock recipes
 smart_block_recipe = Recipe(
@@ -518,7 +528,7 @@ smart_block_recipe = Recipe(
 def make_smart_block(owner=None, kind=None, **overrides) -> SmartBlock:
     """
     Create a smart block.
-    
+
     Args:
         owner: User who owns the block (created if None)
         kind: STATIC or DYNAMIC (defaults to DYNAMIC)
@@ -528,7 +538,7 @@ def make_smart_block(owner=None, kind=None, **overrides) -> SmartBlock:
         owner = make_host_user()
     if kind is not None:
         overrides["kind"] = kind
-    
+
     return smart_block_recipe.make(owner=owner, **overrides)
 
 
@@ -555,10 +565,15 @@ smart_block_content_recipe = Recipe(
 )
 
 
-def make_smart_block_content(block=None, file=None, position=None, **overrides):
+def make_smart_block_content(
+    block=None,
+    file=None,
+    position=None,
+    **overrides,
+):
     """
     Add content to a static smart block.
-    
+
     Args:
         block: SmartBlock instance (created if None)
         file: File instance (created if None)
@@ -568,17 +583,17 @@ def make_smart_block_content(block=None, file=None, position=None, **overrides):
         block = make_static_block()
     if file is None:
         file = make_file()
-    
+
     if position is not None:
         overrides["position"] = position
-    
+
     defaults = {
         "length": file.length,
         "cue_in": file.cue_in,
         "cue_out": file.cue_out,
     }
     defaults.update(overrides)
-    
+
     return smart_block_content_recipe.make(
         block=block,
         file=file,
@@ -606,7 +621,7 @@ def make_smart_block_criteria(
 ):
     """
     Add criteria to a dynamic smart block.
-    
+
     Args:
         block: SmartBlock instance (created if None - will be dynamic)
         criteria: Field name (genre, artist_name, etc.)
@@ -615,14 +630,14 @@ def make_smart_block_criteria(
     """
     if block is None:
         block = make_dynamic_block()
-    
+
     if criteria:
         overrides["criteria"] = criteria
     if condition:
         overrides["condition"] = condition
     if value:
         overrides["value"] = value
-    
+
     return smart_block_criteria_recipe.make(block=block, **overrides)
 
 
@@ -648,7 +663,6 @@ from api.podcasts.models.podcast import (
     StationPodcast,
 )
 
-
 # Podcast recipes
 podcast_recipe = Recipe(
     Podcast,
@@ -672,21 +686,21 @@ podcast_recipe = Recipe(
 def make_podcast(owner=None, **overrides) -> Podcast:
     """
     Create a podcast with iTunes metadata.
-    
+
     Args:
         owner: User who owns the podcast (created if None)
         **overrides: Field overrides
     """
     if owner is None:
         owner = make_host_user()
-    
+
     return podcast_recipe.make(owner=owner, **overrides)
 
 
 # PodcastEpisode recipes
 podcast_episode_recipe = Recipe(
     PodcastEpisode,
-    published_at=lambda: datetime.now(ZoneInfo("UTC")),
+    published_at=lambda: now,
     download_url=seq("https://example.com/episode/"),
     episode_guid=lambda: str(uuid.uuid4()),
     episode_title=seq("Test Episode "),
@@ -694,10 +708,14 @@ podcast_episode_recipe = Recipe(
 )
 
 
-def make_podcast_episode(podcast=None, file=None, **overrides) -> PodcastEpisode:
+def make_podcast_episode(
+    podcast=None,
+    file=None,
+    **overrides,
+) -> PodcastEpisode:
     """
     Create a podcast episode.
-    
+
     Args:
         podcast: Podcast instance (created if None)
         file: File instance for episode audio (optional)
@@ -705,7 +723,7 @@ def make_podcast_episode(podcast=None, file=None, **overrides) -> PodcastEpisode
     """
     if podcast is None:
         podcast = make_podcast()
-    
+
     return podcast_episode_recipe.make(
         podcast=podcast,
         file=file,
@@ -720,13 +738,13 @@ station_podcast_recipe = Recipe(StationPodcast)
 def make_station_podcast(podcast=None, **overrides) -> StationPodcast:
     """
     Create station podcast link.
-    
+
     Args:
         podcast: Podcast instance (created if None)
     """
     if podcast is None:
         podcast = make_podcast()
-    
+
     return station_podcast_recipe.make(podcast=podcast, **overrides)
 
 
@@ -746,7 +764,7 @@ def make_imported_podcast(
 ) -> ImportedPodcast:
     """
     Create imported podcast configuration.
-    
+
     Args:
         podcast: Podcast instance (created if None)
         auto_ingest: Whether to auto-import episodes
@@ -754,14 +772,14 @@ def make_imported_podcast(
     """
     if podcast is None:
         podcast = make_podcast()
-    
+
     defaults = {
         "auto_ingest": auto_ingest,
     }
     if auto_ingest:
-        defaults["auto_ingested_at"] = datetime.now(ZoneInfo("UTC"))
+        defaults["auto_ingested_at"] = now()
     defaults.update(overrides)
-    
+
     return imported_podcast_recipe.make(podcast=podcast, **defaults)
 
 
@@ -769,32 +787,29 @@ def make_imported_podcast(
 # HISTORY MODELS
 # =============================================================================
 
-from api.history.models.played import (
-    PlayoutHistory,
-    PlayoutHistoryMetadata,
-    PlayoutHistoryTemplate,
-    PlayoutHistoryTemplateField,
-)
 from api.history.models.listener import (
     ListenerCount,
     MountName,
     Timestamp,
 )
 from api.history.models.live import LiveLog
-
+from api.history.models.played import (
+    PlayoutHistory,
+    PlayoutHistoryTemplate,
+)
 
 # PlayoutHistory recipes
 playout_history_recipe = Recipe(
     PlayoutHistory,
-    starts=lambda: datetime.now(ZoneInfo("UTC")),
-    ends=lambda: datetime.now(ZoneInfo("UTC")) + timedelta(minutes=3),
+    starts=now,
+    ends=lambda: now() + timedelta(minutes=3),
 )
 
 
 def make_playout_history(file=None, instance=None, **overrides):
     """
     Create playout history entry.
-    
+
     Args:
         file: File that was played (optional)
         instance: ShowInstance when played (optional)
@@ -822,7 +837,7 @@ def make_playout_history_template(**overrides):
 # ListenerCount recipes
 timestamp_recipe = Recipe(
     Timestamp,
-    timestamp=lambda: datetime.now(ZoneInfo("UTC")),
+    timestamp=now,
 )
 
 mount_name_recipe = Recipe(
@@ -836,10 +851,15 @@ listener_count_recipe = Recipe(
 )
 
 
-def make_listener_count(timestamp=None, mount_name=None, count=None, **overrides):
+def make_listener_count(
+    timestamp=None,
+    mount_name=None,
+    count=None,
+    **overrides,
+):
     """
     Create listener count entry.
-    
+
     Args:
         timestamp: Timestamp instance (created if None)
         mount_name: MountName instance (created if None)
@@ -851,7 +871,7 @@ def make_listener_count(timestamp=None, mount_name=None, count=None, **overrides
         mount_name = mount_name_recipe.make()
     if count is not None:
         overrides["listener_count"] = count
-    
+
     return listener_count_recipe.make(
         timestamp=timestamp,
         mount_name=mount_name,
@@ -863,7 +883,7 @@ def make_listener_count(timestamp=None, mount_name=None, count=None, **overrides
 live_log_recipe = Recipe(
     LiveLog,
     state="LIVE",
-    start_time=lambda: datetime.now(ZoneInfo("UTC")),
+    start_time=now,
     end_time=None,
 )
 
@@ -871,7 +891,7 @@ live_log_recipe = Recipe(
 def make_live_log(state="LIVE", **overrides):
     """
     Create live log entry.
-    
+
     Args:
         state: LIVE or off state
         **overrides: Field overrides
@@ -887,12 +907,11 @@ def make_live_log(state="LIVE", **overrides):
 
 from api.schedule.models.schedule import Schedule
 
-
 # Schedule recipes
 schedule_recipe = Recipe(
     Schedule,
-    starts_at=lambda: datetime.now(ZoneInfo("UTC")),
-    ends_at=lambda: datetime.now(ZoneInfo("UTC")) + timedelta(minutes=3),
+    starts_at=now,
+    ends_at=lambda: now() + timedelta(minutes=3),
     position=0,
     position_status=Schedule.PositionStatus.INSIDE,
     broadcasted=0,
@@ -912,9 +931,9 @@ def make_schedule(
 ) -> Schedule:
     """
     Create a schedule entry linking content to show instance.
-    
+
     This is the critical model connecting files/streams to show instances.
-    
+
     Args:
         instance: ShowInstance when scheduled (created if None)
         file: File to schedule (optional, for audio files)
@@ -922,13 +941,13 @@ def make_schedule(
         cue_in: Cue in point (default 0)
         cue_out: Cue out point (default file length or 3 min)
         **overrides: Field overrides
-    
+
     Returns:
         Schedule instance
     """
     if instance is None:
         instance = make_show_instance()
-    
+
     # Calculate defaults from file if provided
     if file is not None:
         if cue_in is None:
@@ -942,13 +961,13 @@ def make_schedule(
             cue_in = timedelta(0)
         if cue_out is None:
             cue_out = timedelta(minutes=3)
-    
+
     defaults = {
         "cue_in": cue_in,
         "cue_out": cue_out,
     }
     defaults.update(overrides)
-    
+
     return schedule_recipe.make(
         instance=instance,
         file=file,
@@ -960,7 +979,7 @@ def make_schedule(
 def make_filler_schedule(instance=None, **overrides):
     """
     Create a filler schedule item (for shows that already started).
-    
+
     Args:
         instance: ShowInstance (created if None)
     """
@@ -974,23 +993,23 @@ def make_filler_schedule(instance=None, **overrides):
 def make_overbooked_schedule(instance=None, file=None, **overrides):
     """
     Create an overbooked schedule item (extends beyond show end).
-    
+
     This tests the overbooked detection logic.
-    
+
     Args:
         instance: ShowInstance (created if None)
         file: File to schedule
     """
     if instance is None:
         instance = make_show_instance()
-    
+
     # Set starts_at after instance ends to trigger overbooked
     defaults = {
         "starts_at": instance.ends_at + timedelta(minutes=1),
         "ends_at": instance.ends_at + timedelta(minutes=4),
     }
     defaults.update(overrides)
-    
+
     return make_schedule(instance, file, **defaults)
 
 
@@ -1000,12 +1019,11 @@ def make_overbooked_schedule(instance=None, file=None, **overrides):
 
 from api.schedule.models.webstream import Webstream, WebstreamMetadata
 
-
 # Webstream recipes
 webstream_recipe = Recipe(
     Webstream,
-    created_at=lambda: datetime.now(ZoneInfo("UTC")),
-    updated_at=lambda: datetime.now(ZoneInfo("UTC")),
+    created_at=now,
+    updated_at=now,
     last_played_at=None,
     name=seq("Test Webstream "),
     description="Test webstream description",
@@ -1018,29 +1036,29 @@ webstream_recipe = Recipe(
 def make_webstream(owner=None, **overrides) -> Webstream:
     """
     Create a webstream.
-    
+
     Args:
         owner: User who owns the stream (created if None)
         **overrides: Field overrides
     """
     if owner is None:
         owner = make_host_user()
-    
+
     return webstream_recipe.make(owner=owner, **overrides)
 
 
 # WebstreamMetadata recipes
 webstream_metadata_recipe = Recipe(
     WebstreamMetadata,
-    starts_at=lambda: datetime.now(ZoneInfo("UTC")),
-    data="input.http(id=\"test\", \"https://example.com/stream.mp3\")",
+    starts_at=now,
+    data='input.http(id="test", "https://example.com/stream.mp3")',
 )
 
 
 def make_webstream_metadata(schedule=None, **overrides) -> WebstreamMetadata:
     """
     Create webstream metadata for scheduled stream.
-    
+
     Args:
         schedule: Schedule instance (created if None)
         **overrides: Field overrides
@@ -1049,5 +1067,5 @@ def make_webstream_metadata(schedule=None, **overrides) -> WebstreamMetadata:
         # Create schedule with stream instead of file
         stream = make_webstream()
         schedule = make_schedule(stream=stream)
-    
+
     return webstream_metadata_recipe.make(schedule=schedule, **overrides)

@@ -2,9 +2,10 @@ from typing import TYPE_CHECKING
 
 from django.db import models
 
+from api.fields import TimezoneAwareDateTimeField
+
 if TYPE_CHECKING:
     from api.core.models.user import User
-    from api.storage.models.file import File
 
 
 class Podcast(models.Model):
@@ -62,7 +63,7 @@ class PodcastEpisode(models.Model):
         null=True,
     )
 
-    published_at = models.DateTimeField(db_column="publication_date")
+    published_at = TimezoneAwareDateTimeField(db_column="publication_date")
     download_url = models.CharField(max_length=4096)
     episode_guid = models.CharField(max_length=4096)
     episode_title = models.CharField(max_length=4096)
@@ -110,7 +111,7 @@ class ImportedPodcast(models.Model):
     override_album = models.BooleanField(db_column="album_override")
 
     auto_ingest = models.BooleanField()
-    auto_ingested_at = models.DateTimeField(
+    auto_ingested_at = TimezoneAwareDateTimeField(
         blank=True,
         null=True,
         db_column="auto_ingest_timestamp",

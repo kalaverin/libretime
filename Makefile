@@ -88,3 +88,8 @@ website/node_modules: website
 
 docs-dev: website website/node_modules
 	DOCS_PATH="../docs" yarn --cwd website start
+
+%:
+	@just $@
+
+.DEFAULT_GOAL := default

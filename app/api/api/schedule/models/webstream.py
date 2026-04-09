@@ -2,6 +2,8 @@ from typing import TYPE_CHECKING, final
 
 from django.db import models
 
+from api.fields import TimezoneAwareDateTimeField
+
 if TYPE_CHECKING:
     from api.core.models.user import User
 
@@ -25,10 +27,10 @@ class Webstream(models.Model):
             ),
         )
 
-    created_at = models.DateTimeField(db_column="utime")
-    updated_at = models.DateTimeField(db_column="mtime")
+    created_at = TimezoneAwareDateTimeField(db_column="utime")
+    updated_at = TimezoneAwareDateTimeField(db_column="mtime")
 
-    last_played_at = models.DateTimeField(
+    last_played_at = TimezoneAwareDateTimeField(
         blank=True,
         null=True,
         db_column="lptime",
@@ -66,7 +68,7 @@ class WebstreamMetadata(models.Model):
         on_delete=models.DO_NOTHING,
         db_column="instance_id",
     )
-    starts_at = models.DateTimeField(db_column="start_time")
+    starts_at = TimezoneAwareDateTimeField(db_column="start_time")
     data = models.CharField(max_length=1024, db_column="liquidsoap_data")
 
     def get_owner(self) -> "User | None":
