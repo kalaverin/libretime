@@ -2381,6 +2381,57 @@ Notes: |
   
   Red team test: test_list_shows_only_own_preferences returns 403 instead of filtered list
 
+## [HIGH] fix T373 — UserToken token value mutable via PATCH
+Status: NOT_STARTED
+Created: 2026-04-10T01:35:00Z
+Scope: api/core/serializers/auth.py
+Next step: Add token to read_only_fields
+Notes: |
+  SECURITY ISSUE: Token value can be modified via PATCH.
+  
+  Tokens should be immutable once created.
+  
+  Red team test: test_update_token_value fails - returns 200
+
+## [CRITICAL] fix T374 — LoginAttempt counter mutable via PATCH
+Status: NOT_STARTED
+Created: 2026-04-10T01:35:00Z
+Scope: api/core/views/auth.py
+Next step: Remove update permission or add validation
+Notes: |
+  CRITICAL: Login attempt counter can be reset via PATCH.
+  
+  Attack scenario:
+  - Attacker has 5 failed attempts (blocked)
+  - Attacker PATCH /api/v2/login-attempts/{ip} {"attempts": 0}
+  - Counter reset, can brute force again
+  
+  This bypasses brute force protection!
+  
+  Red team test: test_modify_login_attempt_count fails - returns 200
+
+## [HIGH] fix T375 — LoginAttempt record deletable
+Status: NOT_STARTED
+Created: 2026-04-10T01:35:00Z
+Scope: api/core/views/auth.py
+Next step: Remove delete permission
+Notes: |
+  SECURITY ISSUE: Login attempt records can be deleted.
+  
+  Attack scenario:
+  - Attacker deletes their login attempt record
+  - No audit trail of failed attempts
+  
+  Red team test: test_delete_login_attempt_record fails - returns 204
+Status: NOT_STARTED
+Created: 2026-04-10T01:30:00Z
+Scope: api/core/views/preference.py
+Next step: Add user filtering to get_queryset
+Notes: |
+  CRITICAL BOLA: Preference list returns ALL preferences.
+  
+  Red team test: test_list_shows_only_own_preferences returns 403 instead of filtered list
+
 ## [HIGH] fix T352 — Fix Schedule.ends_at not saving via API
 Status: NOT_STARTED
 Created: 2026-04-10T00:55:00Z
