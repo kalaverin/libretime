@@ -917,6 +917,103 @@ Last worked: 2026-04-06T16:53:26Z
 File: `app/worker/worker/config.py:18`
 Notes: "amqp" deprecated in Celery 5.x.
 
+## [CRITICAL] fix T496 — BOLA: SmartBlockCriteria CREATE for other user's block
+Status: NOT_STARTED
+Created: 2026-04-10T13:55:00Z
+Last worked: 2026-04-10T13:55:00Z
+File: `app/api/api/schedule/views/smart_block.py:71-77`
+Next step: Add block ownership validation in create/serializer
+Notes: |
+  API1:2023 Broken Object Level Authorization. Attacker can create criteria
+  for victim's SmartBlock by specifying victim's block ID.
+  Ref: test_smartblockcriteria_create_redteam_t242.py::test_bola_create_for_other_users_block
+
+## [HIGH] fix T497 — BOPLA: SmartBlockCriteria CREATE mass assignment id field
+Status: NOT_STARTED
+Created: 2026-04-10T13:55:00Z
+Last worked: 2026-04-10T13:55:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:34-38`
+Next step: Add read_only=True for id field
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. Client can specify id field.
+  Ref: test_smartblockcriteria_create_redteam_t242.py::test_bopla_mass_assignment_id_field
+
+## [MEDIUM] fix T498 — SmartBlockCriteria CREATE accepts extra fields
+Status: NOT_STARTED
+Created: 2026-04-10T13:55:00Z
+Last worked: 2026-04-10T13:55:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:34-38`
+Next step: Add strict validation or use explicit fields list
+Notes: |
+  Extra fields like "is_admin", "role" silently ignored instead of rejected.
+  Ref: test_smartblockcriteria_create_redteam_t242.py::test_bopla_extra_fields_rejected
+
+## [LOW] fix T499 — Very long SmartBlockCriteria value not validated
+Status: NOT_STARTED
+Created: 2026-04-10T13:55:00Z
+Last worked: 2026-04-10T13:55:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:34-38`
+Next step: Add max_length validation for value field
+Notes: |
+  Value field accepts very long strings (10k+ chars) without validation.
+  Should enforce reasonable limits.
+  Ref: test_smartblockcriteria_create_redteam_t242.py::test_overflow_criteria_value
+
+## [LOW] fix T500 — Negative group value accepted
+Status: NOT_STARTED
+Created: 2026-04-10T13:55:00Z
+Last worked: 2026-04-10T13:55:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:34-38`
+Next step: Add MinValueValidator(0) for group field
+Notes: |
+  Negative group values don't make sense for criteria grouping.
+  Should reject negative values.
+  Ref: test_smartblockcriteria_create_redteam_t242.py::test_negative_group_value
+
+## [LOW] fix T501 — Duplicate SmartBlockCriteria not handled
+Status: NOT_STARTED
+Created: 2026-04-10T13:55:00Z
+Last worked: 2026-04-10T13:55:00Z
+File: `app/api/api/schedule/models/smart_block.py:144-159`
+Next step: Decide if duplicates allowed or add unique constraint
+Notes: |
+  Multiple identical criteria can be created for same block.
+  May be intentional or need deduplication.
+  Ref: test_smartblockcriteria_create_redteam_t242.py::test_duplicate_criteria_same_block
+
+## [MEDIUM] fix T502 — Invalid criteria type not validated
+Status: NOT_STARTED
+Created: 2026-04-10T13:55:00Z
+Last worked: 2026-04-10T13:55:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:34-38`
+Next step: Add choices validation for criteria field
+Notes: |
+  Invalid criteria types like "invalid_criteria_type" are accepted.
+  Should validate against allowed types (genre, artist, album, etc.)
+  Ref: test_smartblockcriteria_create_redteam_t242.py::test_invalid_criteria_type
+
+## [LOW] fix T503 — Invalid condition type not validated
+Status: NOT_STARTED
+Created: 2026-04-10T13:55:00Z
+Last worked: 2026-04-10T13:55:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:34-38`
+Next step: Add choices validation for condition field
+Notes: |
+  Invalid condition types are accepted. Should validate against
+  allowed conditions (contains, starts, ends, is, etc.)
+  Ref: test_smartblockcriteria_create_redteam_t242.py::test_invalid_condition_type
+
+## [LOW] fix T504 — Race condition in SmartBlockCriteria CREATE
+Status: NOT_STARTED
+Created: 2026-04-10T13:55:00Z
+Last worked: 2026-04-10T13:55:00Z
+File: `app/api/api/schedule/views/smart_block.py:61-77`
+Next step: Add appropriate locking if needed
+Notes: |
+  Concurrent CREATE requests may cause race conditions.
+  Need unique constraints or proper locking if duplicates not allowed.
+  Ref: test_smartblockcriteria_create_redteam_t242.py::test_race_condition_concurrent_create
+
 ## [LOW] chore T54 — Replace MD5 with SHA256 for file hashes
 Status: NOT_STARTED
 Created: 2026-04-06T16:53:26Z
