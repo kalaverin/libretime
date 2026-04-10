@@ -6692,3 +6692,39 @@ Notes: |
   Deleting library with files causes 500 error due to FK constraint.
   Should return 409 Conflict with meaningful error message.
   Ref: test_cascade_delete_redteam_t290.py::test_delete_with_active_references_blocked
+
+## [CRITICAL] fix T912 — Header Injection: Newline in API Key bypasses auth validation
+Status: NOT_STARTED
+Created: 2026-04-10T18:45:00Z
+Last worked: 2026-04-10T18:45:00Z
+File: `app/api/api/permissions.py`
+Next step: Sanitize Authorization header values, reject newlines
+Notes: |
+  API2:2023 Broken Authentication. Newline character (\\n) in Api-Key header
+  allows header injection and auth bypass. Server returns 200 instead of 403.
+  Attacker can inject additional headers or bypass auth checks.
+  Ref: test_fixtures_redteam_t299.py::test_api_client_with_newline_in_api_key
+
+## [CRITICAL] fix T913 — Header Injection: CR in API Key bypasses auth validation
+Status: NOT_STARTED
+Created: 2026-04-10T18:45:00Z
+Last worked: 2026-04-10T18:45:00Z
+File: `app/api/api/permissions.py`
+Next step: Sanitize Authorization header values, reject CR characters
+Notes: |
+  API2:2023 Broken Authentication. Carriage Return (\\r) in Api-Key header
+  allows header injection and auth bypass. Server returns 200 instead of 403.
+  Combined with newline can lead to HTTP request splitting attacks.
+  Ref: test_fixtures_redteam_t299.py::test_api_client_with_carriage_return_in_api_key
+
+## [HIGH] fix T914 — manager_user fixture incorrectly has is_superuser=True
+Status: NOT_STARTED
+Created: 2026-04-10T18:45:00Z
+Last worked: 2026-04-10T18:45:00Z
+File: `app/api/api/conftest.py:287-300`
+Next step: Fix manager_user fixture to not set is_superuser
+Notes: |
+  Test fixture bug. Manager user (role=P) should not have is_superuser=True.
+  This breaks role-based permission tests and can mask BFLA vulnerabilities.
+  Manager should have elevated permissions but not full superuser access.
+  Ref: test_fixtures_redteam_t299.py::test_manager_vs_admin_privileges
