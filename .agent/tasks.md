@@ -4970,3 +4970,27 @@ Notes: |
   Can lead to database spam and resource exhaustion.
   Ref: test_playout_history_create_redteam_t260.py::test_create_rapid_fire
 
+## [MEDIUM] fix T624 — BOPLA: PlayoutHistory UPDATE accepts extra fields
+Status: NOT_STARTED
+Created: 2026-04-10T15:40:00Z
+Last worked: 2026-04-10T15:40:00Z
+File: `app/api/api/history/serializers/played.py:13-17`
+Next step: Add strict validation on UPDATE/PATCH for unknown fields
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. PUT/PATCH accepts extra fields
+  like "is_admin", "role", "invalid_field" and silently ignores them.
+  Should reject with 400 for unknown fields to prevent mass assignment attempts.
+  Ref: test_playout_history_rud_redteam_t261.py::test_bopla_full_update_with_invalid_field
+
+## [MEDIUM] fix T625 — BOPLA: PlayoutHistory PATCH accepts extra fields
+Status: NOT_STARTED
+Created: 2026-04-10T15:40:00Z
+Last worked: 2026-04-10T15:40:00Z
+File: `app/api/api/history/serializers/played.py:13-17`
+Next step: Add strict validation on PATCH for unknown fields
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. PATCH silently ignores
+  unknown fields like "hacked": True, "role": "superuser" instead of rejecting.
+  Can mask attempted mass assignment attacks.
+  Ref: test_playout_history_rud_redteam_t261.py::test_bopla_patch_extra_fields_ignored
+
