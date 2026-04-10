@@ -3845,6 +3845,117 @@ Notes: |
   
   Red team test: test_file_stereo_redteam_t297.py::test_negative_channels_rejected
 
+## [CRITICAL] fix T901 — BOLA: File organization lacks user isolation
+Status: NOT_STARTED
+Created: 2026-04-10T18:05:00Z
+Last worked: 2026-04-10T18:05:00Z
+File: `app/api/api/storage/views/file.py`
+Next step: Add get_queryset() filtering by owner
+Notes: |
+  API1:2023 Broken Object Level Authorization. FileViewSet has no get_queryset()
+  filtering, allowing users to see other users' file paths via LIST/RETRIEVE.
+  Filepath enumeration via ID iteration also works.
+  
+  Red team test: test_file_organization_redteam_t298.py::TestFileOrganizationBOLA
+
+## [HIGH] fix T902 — Mass assignment allows changing filepath
+Status: NOT_STARTED
+Created: 2026-04-10T18:05:00Z
+Last worked: 2026-04-10T18:05:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add filepath to read_only_fields
+Notes: |
+  API6:2023 - Mass assignment. Filepath should be immutable after creation,
+  but PATCH/PUT allows modifying it. Could redirect to malicious paths.
+  
+  Red team test: test_file_organization_redteam_t298.py::test_mass_assignment_filepath_blocked
+
+## [HIGH] fix T903 — Mass assignment allows changing file_size
+Status: NOT_STARTED
+Created: 2026-04-10T18:05:00Z
+Last worked: 2026-04-10T18:05:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add file_size to read_only_fields
+Notes: |
+  API6:2023 - Mass assignment. File size should be read-only from actual file,
+  but PATCH/PUT allows faking it. Could bypass storage quotas or hide data.
+  
+  Red team test: test_file_organization_redteam_t298.py::test_mass_assignment_file_size_blocked
+
+## [CRITICAL] fix T904 — Mass assignment allows library hijacking
+Status: NOT_STARTED
+Created: 2026-04-10T18:05:00Z
+Last worked: 2026-04-10T18:05:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add library validation on update
+Notes: |
+  API6:2023 - Mass assignment. Changing library assignment could allow:
+  1. Data exfiltration to attacker's library
+  2. Bypassing library-based access controls
+  3. Organization confusion attacks
+  
+  Red team test: test_file_organization_redteam_t298.py::test_mass_assignment_library_change_blocked
+
+## [HIGH] fix T905 — Mass assignment allows changing import_status
+Status: NOT_STARTED
+Created: 2026-04-10T18:05:00Z
+Last worked: 2026-04-10T18:05:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add import_status to read_only_fields
+Notes: |
+  API6:2023 - Mass assignment. Import status controls processing workflow.
+  Changing it could bypass analysis, mark failed files as processed, etc.
+  
+  Red team test: test_file_organization_redteam_t298.py::test_mass_assignment_import_status_blocked
+
+## [MEDIUM] fix T906 — Path traversal in filepath field
+Status: NOT_STARTED
+Created: 2026-04-10T18:05:00Z
+Last worked: 2026-04-10T18:05:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add path traversal validation
+Notes: |
+  Relative path traversal (../../../etc/passwd) and absolute system paths
+  (/etc/shadow) are accepted. Should validate paths are within storage root.
+  
+  Red team test: test_file_organization_redteam_t298.py::TestFileOrganizationPathTraversal
+
+## [CRITICAL] fix T909 — Filter bypass exposes other users' files
+Status: NOT_STARTED
+Created: 2026-04-10T18:05:00Z
+Last worked: 2026-04-10T18:05:00Z
+File: `app/api/api/storage/views/file.py`
+Next step: Add user filtering to filtered queryset
+Notes: |
+  API1:2023 BOLA. Filtering by library or import_status returns files from
+  all users, not just the authenticated user. Missing auth in filtered queries.
+  
+  Red team test: test_file_organization_redteam_t298.py::TestFileOrganizationFilterBypass
+
+## [MEDIUM] fix T910 — Information disclosure via timing attacks
+Status: NOT_STARTED
+Created: 2026-04-10T18:05:00Z
+Last worked: 2026-04-10T18:05:00Z
+File: `app/api/api/storage/views/file.py`
+Next step: Ensure consistent response times
+Notes: |
+  Timing difference between existent (404 with check) and non-existent (404
+  immediate) files could allow file existence enumeration without access.
+  
+  Red team test: test_file_organization_redteam_t298.py::test_file_size_timing_attack
+
+## [HIGH] fix T911 — Workflow bypass via organization manipulation
+Status: NOT_STARTED
+Created: 2026-04-10T18:05:00Z
+Last worked: 2026-04-10T18:05:00Z
+File: `app/api/api/storage/views/file.py`
+Next step: Block library changes for pending files
+Notes: |
+  Users can move PENDING files to PROCESSED libraries and fake import_status
+  to appear processed without actual analysis. Workflow state bypass.
+  
+  Red team test: test_file_organization_redteam_t298.py::TestFileOrganizationWorkflowBypass
+
 # Archive
 
 <!--
@@ -6142,6 +6253,19 @@ Summary: |
   enumeration attacks, data integrity (negative/zero channels), and rate limiting.
   10 tests passed, 9 xfailed with security bugs (T892-T900), 3 xpassed (already fixed).
   Ref: test_file_stereo_redteam_t297.py
+
+## [DONE] test T298 — File organization redteam security tests
+Status: DONE
+Created: 2026-04-10T18:00:00Z
+Completed: 2026-04-10T18:05:00Z
+Summary: |
+  Created comprehensive red team test suite for file organization endpoints.
+  Tests cover: BOLA (filepath disclosure, ID enumeration), mass assignment
+  (filepath, file_size, library, import_status), path traversal, SQL injection,
+  business logic bypass (fake file sizes), filter bypass, information disclosure,
+  and workflow bypass (moving pending files). 9 tests passed, 12 xfailed with
+  security bugs (T901-T911), 6 xpassed (already fixed).
+  Ref: test_file_organization_redteam_t298.py
 
 ## [CRITICAL] fix T806 — BOLA: Playlist retrieve shows other user's playlist
 Status: NOT_STARTED
