@@ -2965,3 +2965,33 @@ Notes: |
   
   Red team tests confirming bug: test_playlist_redteam_t226.py
 
+
+## [CRITICAL] fix T421 — PlaylistContentViewSet 500 error on invalid playlist filter
+Status: NOT_STARTED
+Created: 2026-04-10T12:10:00Z
+Scope: api/schedule/views/playlist.py:37
+Next step: Add input validation for playlist_id parameter in get_queryset
+Notes: |
+  CRITICAL: Unhandled exception causes 500 Internal Server Error.
+  
+  Current behavior (BROKEN):
+  - GET /api/v2/playlist-contents?playlist=invalid' returns 500
+  - GET /api/v2/playlist-contents?playlist={"$ne":null} returns 500
+  - Django ValueError not caught: "Field 'id' expected a number but got '...'"
+  
+  Expected behavior:
+  - Invalid playlist parameter should return 400 Bad Request
+  - Or return 404 Not Found
+  - Never expose 500 errors to client
+  
+  Root cause:
+  - get_queryset() directly passes playlist_id to filter() without validation
+  - No try/except around queryset.filter(playlist_id=playlist_id)
+  
+  Fix needed:
+  - Validate playlist_id is numeric before filtering
+  - Or catch ValueError and return 400/404
+  - Add tests for invalid input handling
+  
+  Red team tests: test_playlistcontent_list_redteam_t228.py
+
