@@ -2298,6 +2298,40 @@ Notes: |
   Red team test: test_list_shows_only_own_history returns 404 (wrong endpoint?)
   but need to verify filtering behavior
 
+## [CRITICAL] fix T367 — SmartBlockCriteria filter crashes on invalid block_id
+Status: NOT_STARTED
+Created: 2026-04-10T01:15:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add validation for block_id parameter
+Notes: |
+  CRITICAL: Same pattern as T356/T357 - filter crashes on invalid input.
+  
+  - ?block=invalid → ValueError
+  - ?block=1.5 → ValueError
+  - ?block=1' OR '1'='1 → ValueError
+  
+  Fix needed: Validate block_id before filtering.
+
+## [CRITICAL] fix T368 — SmartBlockCriteria anonymous filter access
+Status: NOT_STARTED
+Created: 2026-04-10T01:15:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add authentication requirement
+Notes: |
+  CRITICAL: Anonymous users can filter smart block criteria.
+  
+  Red team test: test_filter_without_auth returns 200 instead of 403
+
+## [CRITICAL] fix T369 — SmartBlockCriteria list shows all criteria (BOLA)
+Status: NOT_STARTED
+Created: 2026-04-10T01:15:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add owner-based filtering
+Notes: |
+  CRITICAL BOLA: SmartBlockCriteria list returns ALL criteria.
+  
+  Red team test: test_list_shows_only_own_criteria fails
+
 ## [HIGH] fix T352 — Fix Schedule.ends_at not saving via API
 Status: NOT_STARTED
 Created: 2026-04-10T00:55:00Z
