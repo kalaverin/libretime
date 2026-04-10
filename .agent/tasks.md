@@ -4831,3 +4831,59 @@ Notes: |
   allow attackers to enumerate which schedule IDs exist.
   Ref: test_schedule_delete_redteam_t255.py::test_error_message_leaks_existence_delete
 
+## [CRITICAL] fix T602 — Info Leak: DELETE error reveals schedule existence
+Status: NOT_STARTED
+Created: 2026-04-10T16:15:00Z
+Last worked: 2026-04-10T16:15:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Unify error responses for existing/non-existing on unauthorized
+Notes: |
+  Different status codes for existing (permission denied) vs non-existing schedules
+  allow attackers to enumerate which schedule IDs exist.
+  Ref: test_schedule_delete_redteam_t255.py::test_error_message_leaks_existence_delete
+
+
+## [CRITICAL] fix T612 — BOLA: Cross-instance access reveals schedules
+Status: NOT_STARTED
+Created: 2026-04-10T13:30:00Z
+Last worked: 2026-04-10T13:30:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Add cross-instance permission checks
+Notes: |
+  API1:2023 BOLA. User can access schedules across different show instances.
+  No validation ensures user can only access schedules for shows they own.
+  Ref: test_schedule_permissions_redteam_t256.py::test_cross_instance_access
+
+## [HIGH] fix T613 — Injection: SQLi in overbooked filter parameter
+Status: NOT_STARTED
+Created: 2026-04-10T13:30:00Z
+Last worked: 2026-04-10T13:30:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Validate and sanitize overbooked parameter
+Notes: |
+  API8:2023 Injection. Malicious payloads in overbooked filter can cause
+  unexpected behavior or potential SQL injection.
+  Ref: test_schedule_overbooked_redteam_t257.py::test_overbooked_sql_injection
+
+## [MEDIUM] fix T615 — Filter: overbooked logic bypass
+Status: NOT_STARTED
+Created: 2026-04-10T13:30:00Z
+Last worked: 2026-04-10T13:30:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Fix overbooked filter logic for edge cases
+Notes: |
+  API6:2023 Unsafe Business Flows. Filter logic can be bypassed when
+  show instance has no ends_at or unusual date configurations.
+  Ref: test_schedule_overbooked_redteam_t257.py::test_overbooked_logic_bypass
+
+## [CRITICAL] fix T616 — BOLA: overbooked filter reveals other users' schedules
+Status: NOT_STARTED
+Created: 2026-04-10T13:30:00Z
+Last worked: 2026-04-10T13:30:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Add user isolation to overbooked filter
+Notes: |
+  API1:2023 BOLA. overbooked filter returns schedules from all users,
+  not just the requesting user's schedules.
+  Ref: test_schedule_overbooked_redteam_t257.py::test_overbooked_bola_info_leak
+

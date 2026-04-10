@@ -1694,3 +1694,41 @@ name = faker.name()     # Generate fake name
 **Test Results**: 9 passed, 8 xfailed
 
 **Next**: T253-T254 (Schedule RETRIEVE/UPDATE endpoints)
+
+## 2026-04-10T13:30:00Z — T256-T257 Schedule permissions/overbooked red team tests
+
+**Scope:** Security testing for Schedule permissions (T256) and overbooked filter (T257)
+
+**Actions:**
+- Created `test_schedule_permissions_redteam_t256.py` with 15 tests covering:
+  - BOLA (cross-user modification/deletion)
+  - Broken Authentication (token reuse, session fixation)
+  - BOPLA (permission field manipulation)
+  - BFLA (function-level auth bypass)
+  - Security Misconfiguration (CORS, verbose errors)
+  - Role-based access (guest/host/manager)
+  - Privilege escalation attempts
+  - Cross-instance access
+  
+- Created `test_schedule_overbooked_redteam_t257.py` with 11 tests covering:
+  - SQL/NoSQL injection in filter parameter
+  - Filter bypass (null, logic manipulation)
+  - BOLA via filter (cross-user data leak)
+  - Filter combination attacks
+  - Input validation (invalid values, unicode)
+  - Performance/DoS (large dataset filtering)
+  - Business logic consistency
+
+**Bugs found (4):**
+- T612: Cross-instance BOLA - user can access schedules across show instances
+- T613: SQLi - injection vulnerability in overbooked filter parameter
+- T615: overbooked logic bypass - filter bypass with edge cases
+- T616: BOLA via overbooked filter - reveals other users' schedules
+
+**Commit:** `1caf60c81` on branch `astra`
+
+**Test Results:**
+- T256: 5 passed, 1 xfailed (T612), 9 xpassed (defense working correctly)
+- T257: 4 passed, 3 xfailed (T613, T615, T616), 4 xpassed (defense working)
+
+**DEADBEEF Protocol Progress:** 30 bugs total across Schedule endpoints
