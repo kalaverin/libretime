@@ -4934,3 +4934,39 @@ Notes: |
   Can lead to DoS via resource exhaustion.
   Ref: test_playout_history_list_redteam_t259.py::test_rapid_sequential_requests
 
+## [MEDIUM] fix T621 — BOPLA: PlayoutHistory CREATE accepts extra/unknown fields
+Status: NOT_STARTED
+Created: 2026-04-10T15:35:00Z
+Last worked: 2026-04-10T15:35:00Z
+File: `app/api/api/history/serializers/played.py:13-17`
+Next step: Add strict validation or use explicit fields list instead of __all__
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. CREATE accepts extra fields
+  like "is_admin", "role", "password" and silently ignores them instead of rejecting.
+  Can mask typos or attempted mass assignment attacks.
+  Ref: test_playout_history_create_redteam_t260.py::test_bopla_extra_fields_not_rejected
+
+## [CRITICAL] fix T622 — BOLA: PlayoutHistory CREATE links to other user's instance
+Status: NOT_STARTED
+Created: 2026-04-10T15:35:00Z
+Last worked: 2026-04-10T15:35:00Z
+File: `app/api/api/history/serializers/played.py:13-28`
+Next step: Add instance ownership validation in serializer or viewset
+Notes: |
+  API1:2023 Broken Object Level Authorization. CREATE allows specifying any instance_id
+  regardless of show ownership. Attacker can link playout to victim's private show.
+  No validation that requesting user owns the referenced show instance.
+  Ref: test_playout_history_create_redteam_t260.py::test_bola_create_with_other_users_instance
+
+## [MEDIUM] fix T623 — No rate limiting on PlayoutHistory CREATE endpoint
+Status: NOT_STARTED
+Created: 2026-04-10T15:35:00Z
+Last worked: 2026-04-10T15:35:00Z
+File: `app/api/api/history/views/played.py:21-26`
+Next step: Add Django Ratelimit or DRF throttling
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. CREATE endpoint has no rate limiting.
+  Rapid sequential CREATE requests (20 requests) all succeed with 201.
+  Can lead to database spam and resource exhaustion.
+  Ref: test_playout_history_create_redteam_t260.py::test_create_rapid_fire
+
