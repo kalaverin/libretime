@@ -1429,6 +1429,170 @@ Notes: |
   Found during SQLi test in description field.
   Ref: test_webstream_create_redteam_t246.py::test_sqli_in_description_field
 
+## [CRITICAL] fix T541 — BOLA: Webstream UPDATE other user's stream
+Status: NOT_STARTED
+Created: 2026-04-10T14:30:00Z
+Last worked: 2026-04-10T14:30:00Z
+File: `app/api/api/schedule/views/webstream.py:14-25`
+Next step: Add ownership check in update/patch operations
+Notes: |
+  API1:2023 Broken Object Level Authorization. Attacker can UPDATE victim's
+  webstream by knowing the ID. No ownership validation.
+  Ref: test_webstream_update_redteam_t247.py::test_bola_update_other_users_stream
+
+## [CRITICAL] fix T542 — BOLA: Webstream DELETE other user's stream
+Status: NOT_STARTED
+Created: 2026-04-10T14:30:00Z
+Last worked: 2026-04-10T14:30:00Z
+File: `app/api/api/schedule/views/webstream.py:14-25`
+Next step: Add ownership check in destroy operation
+Notes: |
+  Attacker can DELETE victim's webstream by knowing the ID.
+  Critical data loss vulnerability.
+  Ref: test_webstream_update_redteam_t247.py::test_bola_delete_other_users_stream
+
+## [MEDIUM] fix T543 — Webstream error message leaks existence
+Status: NOT_STARTED
+Created: 2026-04-10T14:30:00Z
+Last worked: 2026-04-10T14:30:00Z
+File: `app/api/api/schedule/views/webstream.py:14-25`
+Next step: Unify error responses for existing/non-existing on unauthorized
+Notes: |
+  Different error messages for existing (permission denied) vs non-existing
+  allow attackers to enumerate which webstream IDs exist.
+  Ref: test_webstream_update_redteam_t247.py::test_error_message_leaks_existence
+
+## [CRITICAL] fix T544 — SSRF: Webstream UPDATE URL to internal
+Status: NOT_STARTED
+Created: 2026-04-10T14:30:00Z
+Last worked: 2026-04-10T14:30:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-38`
+Next step: Add URL validation on update to block internal addresses
+Notes: |
+  Attacker can UPDATE existing stream URL to internal network address.
+  Combined with LIST BOLA (T518), leaks internal topology.
+  Ref: test_webstream_update_redteam_t247.py::test_ssrf_url_update_to_internal
+
+## [CRITICAL] fix T545 — SSRF: Webstream UPDATE URL to cloud metadata
+Status: NOT_STARTED
+Created: 2026-04-10T14:30:00Z
+Last worked: 2026-04-10T14:30:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-38`
+Next step: Block cloud metadata IP ranges on update
+Notes: |
+  Attacker can UPDATE URL to cloud metadata endpoints (169.254.169.254).
+  Can lead to credential exposure.
+  Ref: test_webstream_update_redteam_t247.py::test_ssrf_url_update_to_metadata
+
+## [HIGH] fix T546 — BOPLA: Webstream change owner on update
+Status: NOT_STARTED
+Created: 2026-04-10T14:30:00Z
+Last worked: 2026-04-10T14:30:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-38`
+Next step: Add read_only=True for owner field
+Notes: |
+  Client can change owner field via PATCH/PUT to transfer ownership.
+  Should be read_only.
+  Ref: test_webstream_update_redteam_t247.py::test_bopla_change_owner_on_update
+
+## [MEDIUM] fix T547 — BOPLA: Webstream modify id on update
+Status: NOT_STARTED
+Created: 2026-04-10T14:30:00Z
+Last worked: 2026-04-10T14:30:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-38`
+Next step: Ensure id field is read_only
+Notes: |
+  Client can attempt to modify id field on update.
+  Should be read_only to prevent ID manipulation.
+  Ref: test_webstream_update_redteam_t247.py::test_bopla_modify_id_on_update
+
+## [MEDIUM] fix T548 — BOPLA: Webstream set created_at on update
+Status: NOT_STARTED
+Created: 2026-04-10T14:30:00Z
+Last worked: 2026-04-10T14:30:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-38`
+Next step: Ensure created_at is read_only
+Notes: |
+  Client can attempt to set created_at timestamp on update.
+  Should be read_only and immutable.
+  Ref: test_webstream_update_redteam_t247.py::test_bopla_set_created_at_on_update
+
+## [MEDIUM] fix T549 — XSS: Webstream UPDATE name with script tags
+Status: NOT_STARTED
+Created: 2026-04-10T14:30:00Z
+Last worked: 2026-04-10T14:30:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-38`
+Next step: Add HTML sanitization for name field on update
+Notes: |
+  Script tags accepted in name field on PATCH/PUT.
+  XSS vector if rendered without escaping.
+  Ref: test_webstream_update_redteam_t247.py::test_xss_update_name
+
+## [MEDIUM] fix T550 — XSS: Webstream UPDATE description with script tags
+Status: NOT_STARTED
+Created: 2026-04-10T14:30:00Z
+Last worked: 2026-04-10T14:30:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-38`
+Next step: Add HTML sanitization for description on update
+Notes: |
+  Script tags and event handlers accepted in description on update.
+  Ref: test_webstream_update_redteam_t247.py::test_xss_update_description
+
+## [HIGH] fix T551 — SSRF: Webstream PUT allows dangerous URL
+Status: NOT_STARTED
+Created: 2026-04-10T14:30:00Z
+Last worked: 2026-04-10T14:30:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-38`
+Next step: Add URL validation on PUT full update
+Notes: |
+  PUT full update accepts internal/dangerous URLs.
+  Same issue as PATCH (T544/T545) but via PUT.
+  Ref: test_webstream_update_redteam_t247.py::test_put_full_update_ssrf
+
+## [HIGH] fix T552 — BOPLA: Webstream PUT allows owner change
+Status: NOT_STARTED
+Created: 2026-04-10T14:30:00Z
+Last worked: 2026-04-10T14:30:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-38`
+Next step: Ensure owner is read_only on PUT
+Notes: |
+  PUT full update allows changing owner field.
+  Same issue as PATCH (T546) but via PUT.
+  Ref: test_webstream_update_redteam_t247.py::test_put_full_update_owner_change
+
+## [MEDIUM] fix T553 — Webstream UPDATE accepts empty name
+Status: NOT_STARTED
+Created: 2026-04-10T14:30:00Z
+Last worked: 2026-04-10T14:30:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-38`
+Next step: Add MinLengthValidator for name on update
+Notes: |
+  Empty string name accepted on PATCH/PUT.
+  Should require non-empty name.
+  Ref: test_webstream_update_redteam_t247.py::test_update_empty_name
+
+## [HIGH] fix T554 — Webstream UPDATE accepts invalid URL format
+Status: NOT_STARTED
+Created: 2026-04-10T14:30:00Z
+Last worked: 2026-04-10T14:30:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-38`
+Next step: Add URL validation on update
+Notes: |
+  Invalid URLs like "not-a-url", "javascript:alert(1)" accepted on update.
+  Should validate same as CREATE.
+  Ref: test_webstream_update_redteam_t247.py::test_update_invalid_url_format
+
+## [LOW] fix T555 — Race condition in Webstream concurrent update
+Status: NOT_STARTED
+Created: 2026-04-10T14:30:00Z
+Last worked: 2026-04-10T14:30:00Z
+File: `app/api/api/schedule/views/webstream.py:14-25`
+Next step: Add optimistic locking if needed
+Notes: |
+  Concurrent UPDATE requests may cause lost updates.
+  Consider adding versioning/locking.
+  Ref: test_webstream_update_redteam_t247.py::test_race_condition_concurrent_update
+
 ## [LOW] chore T57 — Fix variable scoping in fetch.py exception handler
 Status: NOT_STARTED
 Created: 2026-04-06T16:53:26Z
