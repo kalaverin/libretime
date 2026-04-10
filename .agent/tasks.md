@@ -2423,6 +2423,48 @@ Notes: |
   - No audit trail of failed attempts
   
   Red team test: test_delete_login_attempt_record fails - returns 204
+
+## [HIGH] fix T376 — Api-Key unicode handling crash
+Status: NOT_STARTED
+Created: 2026-04-10T01:40:00Z
+Scope: api/permissions.py
+Next step: Add unicode validation or error handling
+Notes: |
+  BUG: Unicode characters in Api-Key token cause UnicodeEncodeError.
+  
+  Error: 'latin-1' codec can't encode characters
+  Location: rest_framework/authentication.py:23
+  
+  This causes 500 error instead of graceful 403.
+  
+  Red team test: test_unicode_token fails with UnicodeEncodeError
+
+## [MEDIUM] fix T377 — Api-Key token revocation delay
+Status: NOT_STARTED
+Created: 2026-04-10T01:40:00Z
+Scope: api/core/views/auth.py
+Next step: Investigate caching or implement immediate revocation
+Notes: |
+  ISSUE: Deleted tokens still work immediately after deletion.
+  
+  Expected: Token should be immediately revoked
+  Actual: Returns 403 (but test expects 200 for working token)
+  
+  May indicate caching issue or test timing issue.
+  
+  Red team test: test_token_revocation fails
+Status: NOT_STARTED
+Created: 2026-04-10T01:35:00Z
+Scope: api/core/views/auth.py
+Next step: Remove delete permission
+Notes: |
+  SECURITY ISSUE: Login attempt records can be deleted.
+  
+  Attack scenario:
+  - Attacker deletes their login attempt record
+  - No audit trail of failed attempts
+  
+  Red team test: test_delete_login_attempt_record fails - returns 204
 Status: NOT_STARTED
 Created: 2026-04-10T01:30:00Z
 Scope: api/core/views/preference.py
