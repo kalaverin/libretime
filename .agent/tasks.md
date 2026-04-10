@@ -2007,6 +2007,27 @@ Notes: |
   
   Result: Empty Api-Key header now returns 403 instead of crashing with IndexError.
 
+## [HIGH] fix T355 — SmartBlockContent allows null block/file despite required validation
+Status: NOT_STARTED
+Created: 2026-04-10T09:45:00Z
+Scope: api/schedule/serializers/smart_block.py
+Next step: Add null check to validator
+Notes: |
+  RED TEAM FINDING from T330/T331 tests:
+  
+  The serializer has required=True for block and file fields, but:
+  - POST with "block": null returns 201 (creates with null block)
+  - POST with "file": null returns 201 (creates with null file)
+  
+  Root cause: required=True only checks field presence, not null value.
+  Need additional validation to reject null values explicitly.
+  
+  Impact: Content without block/file is orphaned - cannot be properly managed.
+  
+  Red team tests confirming: 
+  - test_create_with_null_block: FAIL (returns 201)
+  - test_create_with_null_file: FAIL (returns 201)
+
 ## [CRITICAL] fix T354 — Webstream security issues (created_at mutable, owner transferable)
 Status: NOT_STARTED
 Created: 2026-04-10T09:40:00Z
