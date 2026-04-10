@@ -2712,3 +2712,46 @@ Scan this section when allocating next T<n> (max+1 rule).
 | T346 | 2026-04-10 | test | DONE | Eliminate all hardcoded values in API tests |
 
 <!-- 153 tasks archived. Max T<n> remains T351. -->
+
+## [CRITICAL] bug T388 — Anonymous users can LIST ShowDays
+Status: OPEN
+Created: 2026-04-10T03:25:00Z
+Scope: api/schedule/views/show.py
+Next step: Add authentication required to ShowDaysViewSet
+Notes: |
+  SECURITY ISSUE: Anonymous GET /api/v2/show-days returns 200 OK with all data.
+
+  Attack scenario:
+  - Unauthenticated attacker lists all show schedules
+  - Information disclosure of station programming
+
+  Red team test: test_list_without_auth fails - returns 200 instead of 403
+
+## [CRITICAL] bug T389 — ShowDays BOLA: no owner filtering
+Status: OPEN
+Created: 2026-04-10T03:25:00Z
+Scope: api/schedule/views/show.py
+Next step: Add owner filtering to ShowDaysViewSet.get_queryset
+Notes: |
+  CRITICAL BOLA: ShowDays list returns ALL show days regardless of owner.
+
+  Attack scenario:
+  - User A can see User B's show schedules
+  - Complete information disclosure across tenants
+
+  Red team test: test_list_shows_only_own_days fails - shows other users' data
+
+## [CRITICAL] bug T390 — ShowDays BOLA via show filter
+Status: OPEN
+Created: 2026-04-10T03:25:00Z
+Scope: api/schedule/views/show.py
+Next step: Add authorization check for show filter
+Notes: |
+  CRITICAL BOLA: Filtering by show_id doesn't verify ownership.
+
+  Attack scenario:
+  - Attacker filters by another user's show ID
+  - Can enumerate and access others' show days
+
+  Red team test: test_filter_by_other_user_show fails - returns other users' data
+
