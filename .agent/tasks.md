@@ -4419,112 +4419,114 @@ Notes: |
   These values are common in JavaScript/frontend contexts.
   
   Red team test: test_fuzzing_query_params in test_smartblockcontent_list_redteam_t239.py
-## [HIGH] fix T556 — BOLA: DELETE other user's webstream returns wrong status
-**Created**: 2026-04-10T13:33:00Z
-**Status**: NOT_STARTED
 
-### Problem
-When attempting to DELETE another user's webstream, the API returns 404 instead of 403. This leaks information about stream existence.
-
-### Expected
-- Status: 403 Forbidden (don't reveal stream exists)
-
-### Actual
-- Status: 404 Not Found (reveals stream exists if unauthorized)
-
-### File
-`app/api/api/schedule/views/webstream.py`
-
----
+## [HIGH] fix T556 — BOLA: DELETE returns 404 instead of 403 for other user's stream
+Status: NOT_STARTED
+Created: 2026-04-10T13:33:00Z
+Last worked: 2026-04-10T13:33:00Z
+File: `app/api/api/schedule/views/webstream.py:14-25`
+Next step: Return 403 for unauthorized access instead of 404 to prevent info leak
+Notes: |
+  DELETE of other user's stream returns 404 (not found) instead of 403 (forbidden).
+  This leaks information about stream existence (different error for existing vs non-existing).
+  Ref: test_webstream_delete_redteam_t248.py::test_bola_delete_other_users_stream_status
 
 ## [CRITICAL] fix T557 — BOLA: Batch delete affects multiple streams
-**Created**: 2026-04-10T13:33:00Z
-**Status**: NOT_STARTED
-
-### Problem
-DELETE request may affect multiple streams instead of single target, indicating lack of proper object-level authorization.
-
-### Expected
-- Only one stream deleted per request
-
-### Actual
-- Multiple streams may be affected (batch scope issue)
-
-### File
-`app/api/api/schedule/views/webstream.py`
-
----
+Status: NOT_STARTED
+Created: 2026-04-10T13:33:00Z
+Last worked: 2026-04-10T13:33:00Z
+File: `app/api/api/schedule/views/webstream.py:14-25`
+Next step: Add proper query filtering to ensure single-record scope
+Notes: |
+  DELETE request may affect multiple streams instead of single target.
+  Indicates lack of proper object-level authorization scope.
+  Ref: test_webstream_delete_redteam_t248.py::test_bola_batch_delete_scope
 
 ## [MEDIUM] fix T558 — Error message leaks webstream existence
-**Created**: 2026-04-10T13:33:00Z
-**Status**: NOT_STARTED
-
-### Problem
-Different error messages for existing vs non-existing streams allow ID enumeration.
-
-### Expected
-- Same response for existing (unauthorized) and non-existing streams
-
-### Actual
-- Different status codes leak existence information
-
-### File
-`app/api/api/schedule/views/webstream.py`
-
----
+Status: NOT_STARTED
+Created: 2026-04-10T13:33:00Z
+Last worked: 2026-04-10T13:33:00Z
+File: `app/api/api/schedule/views/webstream.py:14-25`
+Next step: Unify error responses for existing/non-existing on unauthorized
+Notes: |
+  Different error messages for existing (permission denied) vs non-existing streams
+  allow attackers to enumerate which webstream IDs exist.
+  Ref: test_webstream_delete_redteam_t248.py::test_error_message_leaks_existence
 
 ## [MEDIUM] fix T559 — Race condition in concurrent webstream delete
-**Created**: 2026-04-10T13:33:00Z
-**Status**: NOT_STARTED
-
-### Problem
-Multiple concurrent DELETE requests for the same stream may cause inconsistent results.
-
-### Expected
-- Exactly one request succeeds (204)
-- Others get 404
-
-### Actual
-- Race condition behavior observed
-
-### File
-`app/api/api/schedule/views/webstream.py`
-
----
+Status: NOT_STARTED
+Created: 2026-04-10T13:33:00Z
+Last worked: 2026-04-10T13:33:00Z
+File: `app/api/api/schedule/views/webstream.py:14-25`
+Next step: Add row-level locking or optimistic concurrency control
+Notes: |
+  Multiple concurrent DELETE requests for same stream cause inconsistent results.
+  Race condition can lead to data corruption or unexpected behavior.
+  Ref: test_webstream_delete_redteam_t248.py::test_race_condition_concurrent_delete
 
 ## [LOW] fix T560 — Invalid auth token returns inconsistent status
-**Created**: 2026-04-10T13:33:00Z
-**Status**: NOT_STARTED
-
-### Problem
-DELETE with invalid token returns wrong status code.
-
-### Expected
-- Status: 403 Forbidden
-
-### Actual
-- Inconsistent status codes
-
-### File
-`app/api/api/schedule/views/webstream.py`
-
----
+Status: NOT_STARTED
+Created: 2026-04-10T13:33:00Z
+Last worked: 2026-04-10T13:33:00Z
+File: `app/api/api/permissions.py:85-95`
+Next step: Standardize auth error responses to always return 401/403
+Notes: |
+  DELETE with invalid token returns wrong status code instead of consistent 403.
+  Inconsistent error handling may reveal implementation details.
+  Ref: test_webstream_delete_redteam_t248.py::test_delete_with_invalid_token
 
 ## [MEDIUM] fix T561 — HTTP method override bypasses delete protection
-**Created**: 2026-04-10T13:33:00Z
-**Status**: NOT_STARTED
+Status: NOT_STARTED
+Created: 2026-04-10T13:33:00Z
+Last worked: 2026-04-10T13:33:00Z
+File: `app/api/api/schedule/views/webstream.py:14-25`
+Next step: Block or properly handle X-HTTP-Method-Override headers
+Notes: |
+  HTTP method override (X-HTTP-Method-Override: DELETE) may bypass delete restrictions.
+  Method override protection not properly enforced.
+  Ref: test_webstream_delete_redteam_t248.py::test_http_method_override_delete
 
-### Problem
-HTTP method override (X-HTTP-Method-Override: DELETE) may bypass delete restrictions.
+## [CRITICAL] fix T562 — BOLA: Any user can modify other user's webstream
+Status: NOT_STARTED
+Created: 2026-04-10T14:00:00Z
+Last worked: 2026-04-10T14:00:00Z
+File: `app/api/api/schedule/views/webstream.py:14-25`
+Next step: Add ownership check in update/patch operations
+Notes: |
+  API1:2023 Broken Object Level Authorization. Attacker can UPDATE victim's
+  webstream by knowing the ID. No ownership validation.
+  Ref: test_webstream_permissions_redteam_t249.py::test_bola_modify_other_users_webstream
 
-### Expected
-- Method override should not allow unauthorized deletions
+## [CRITICAL] fix T563 — BOLA: Any user can delete other user's webstream
+Status: NOT_STARTED
+Created: 2026-04-10T14:00:00Z
+Last worked: 2026-04-10T14:00:00Z
+File: `app/api/api/schedule/views/webstream.py:14-25`
+Next step: Add ownership check in destroy operation
+Notes: |
+  Attacker can DELETE victim's webstream by knowing the ID.
+  Critical data loss vulnerability.
+  Ref: test_webstream_permissions_redteam_t249.py::test_bola_delete_other_users_webstream
 
-### Actual
-- Delete protection may be bypassed via method override
+## [HIGH] fix T564 — BOLA: LIST endpoint returns all users' webstreams
+Status: NOT_STARTED
+Created: 2026-04-10T14:00:00Z
+Last worked: 2026-04-10T14:00:00Z
+File: `app/api/api/schedule/views/webstream.py:14-25`
+Next step: Filter queryset to only current user's webstreams
+Notes: |
+  GET /api/v2/webstreams returns webstreams from all users instead of only current user.
+  Information disclosure vulnerability allowing ID enumeration for further BOLA attacks.
+  Ref: test_webstream_permissions_redteam_t249.py::test_bola_batch_access_all_streams
 
-### File
-`app/api/api/schedule/views/webstream.py`
-
----
+## [HIGH] fix T567 — BOPLA: Can change owner to another user during UPDATE
+Status: NOT_STARTED
+Created: 2026-04-10T14:00:00Z
+Last worked: 2026-04-10T14:00:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-38`
+Next step: Remove owner from writable fields or add validation
+Notes: |
+  PATCH request with owner field allows changing webstream ownership to another user.
+  Mass assignment vulnerability enabling privilege escalation and account hijacking.
+  Ref: test_webstream_permissions_redteam_t249.py::test_bopla_mass_assignment_owner_update
 
