@@ -4922,3 +4922,15 @@ Notes: |
   Allows moving schedule between shows without permission validation.
   Ref: test_schedule_show_host_permissions_redteam_t258.py::test_host_cannot_change_to_other_show_instance
 
+## [MEDIUM] fix T620 — No rate limiting on PlayoutHistory LIST endpoint
+Status: NOT_STARTED
+Created: 2026-04-10T15:30:00Z
+Last worked: 2026-04-10T15:30:00Z
+File: `app/api/api/history/views/played.py:21-26`
+Next step: Add Django Ratelimit or DRF throttling to PlayoutHistoryViewSet
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. LIST endpoint has no rate limiting.
+  Rapid sequential requests (20 requests) all succeed with 200.
+  Can lead to DoS via resource exhaustion.
+  Ref: test_playout_history_list_redteam_t259.py::test_rapid_sequential_requests
+
