@@ -2158,6 +2158,42 @@ Notes: |
   
   Fix needed: Validate and sanitize input before filtering.
 
+## [CRITICAL] fix T362 — SmartBlock anonymous filter access
+Status: NOT_STARTED
+Created: 2026-04-10T00:55:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add authentication requirement to ViewSet
+Notes: |
+  CRITICAL: Anonymous users can filter smart blocks.
+  
+  Attack scenario:
+  - GET /api/v2/smart-blocks?kind=static WITHOUT auth returns 200
+  - Should return 403 Forbidden
+  
+  This allows unauthenticated enumeration of smart blocks.
+  
+  Red team test: test_filter_without_auth returns 200 instead of 403
+
+## [CRITICAL] fix T363 — SmartBlock filter by kind shows other users' blocks
+Status: NOT_STARTED
+Created: 2026-04-10T00:55:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add owner filtering to get_queryset
+Notes: |
+  CRITICAL BOLA: Filtering smart blocks by kind returns ALL blocks, not just user's.
+  
+  Current behavior:
+  - User A has block "Admin Static" (kind=static)
+  - User B has block "User Static" (kind=static)
+  - User B calls GET /api/v2/smart-blocks?kind=static
+  - Response includes BOTH blocks
+  
+  This is Broken Object Level Authorization (BOLA/API1).
+  
+  Expected: User B should only see "User Static"
+  
+  Red team test: test_filter_shows_only_own_by_kind fails - shows admin block
+
 ## [CRITICAL] fix T354 — Webstream security issues (created_at mutable, owner transferable)
 Status: NOT_STARTED
 Created: 2026-04-10T09:40:00Z
