@@ -4775,3 +4775,59 @@ Notes: |
   Authentication bypass allowing unauthorized schedule modification.
   Ref: test_schedule_update_redteam_t254.py::test_update_with_invalid_token
 
+
+## [CRITICAL] fix T598 — BOLA: Can delete other user's schedule
+Status: NOT_STARTED
+Created: 2026-04-10T16:15:00Z
+Last worked: 2026-04-10T16:15:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Add ownership check in destroy operation
+Notes: |
+  API1:2023 Broken Object Level Authorization. Attacker can DELETE victim's
+  schedule entry by knowing the ID. No object-level permission validation.
+  Ref: test_schedule_delete_redteam_t255.py::test_bola_delete_other_users_schedule
+
+## [HIGH] fix T599 — BOLA: DELETE returns wrong status for other's schedule
+Status: NOT_STARTED
+Created: 2026-04-10T16:15:00Z
+Last worked: 2026-04-10T16:15:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Return 403 for unauthorized delete instead of 404/204
+Notes: |
+  DELETE of other user's schedule returns wrong status (404 or 204 instead of 403).
+  404 leaks schedule existence, 204 allows deletion - both are vulnerabilities.
+  Ref: test_schedule_delete_redteam_t255.py::test_bola_delete_other_users_schedule_status
+
+## [CRITICAL] fix T600 — Auth: DELETE with invalid token returns 200
+Status: NOT_STARTED
+Created: 2026-04-10T16:15:00Z
+Last worked: 2026-04-10T16:15:00Z
+File: `app/api/api/permissions.py:85-95`
+Next step: Reject requests with invalid/malformed authentication tokens
+Notes: |
+  Same as T575/T584/T589/T597. DELETE with invalid Bearer token returns 200/204.
+  Authentication bypass allowing unauthorized schedule deletion.
+  Ref: test_schedule_delete_redteam_t255.py::test_delete_with_invalid_token
+
+## [MEDIUM] fix T601 — Mass deletion: No rate limiting on delete
+Status: NOT_STARTED
+Created: 2026-04-10T16:15:00Z
+Last worked: 2026-04-10T16:15:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Implement rate limiting for DELETE operations
+Notes: |
+  Rapid sequential DELETE requests not rate limited. Can mass-delete schedules.
+  DoS vector through schedule deletion flooding.
+  Ref: test_schedule_delete_redteam_t255.py::test_mass_deletion_rate_limit
+
+## [MEDIUM] fix T602 — Info Leak: DELETE error reveals schedule existence
+Status: NOT_STARTED
+Created: 2026-04-10T16:15:00Z
+Last worked: 2026-04-10T16:15:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Unify error responses for existing/non-existing on unauthorized
+Notes: |
+  Different status codes for existing (permission denied) vs non-existing schedules
+  allow attackers to enumerate which schedule IDs exist.
+  Ref: test_schedule_delete_redteam_t255.py::test_error_message_leaks_existence_delete
+
