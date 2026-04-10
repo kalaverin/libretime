@@ -2770,6 +2770,22 @@ Notes: |
 
   Red team test: test_create_without_auth fails - returns 201 instead of 403
 
+## [HIGH] bug T402 — ShowInstances description XSS vulnerability
+Status: OPEN
+Created: 2026-04-10T11:30:00Z
+Scope: api/schedule/serializers/show.py
+Next step: Add HTML escaping or use JSON serializer for description
+Notes: |
+  CRITICAL SECURITY ISSUE: XSS payloads stored unescaped in description.
+
+  Attack scenario:
+  - Attacker stores <script>alert('XSS')</script> in description
+  - When another user views the show instance, script executes
+  - Session hijacking, credential theft possible
+
+  Red team test: test_description_xss fails - payload stored as-is
+  Payloads tested: <script>, <img onerror>, javascript: URLs
+
 ## [LOW] bug T400 — ShowInstances 404 leaks query keyword
 Status: OPEN
 Created: 2026-04-10T11:28:00Z
