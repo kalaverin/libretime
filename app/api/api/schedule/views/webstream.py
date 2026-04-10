@@ -3,6 +3,7 @@ from typing import Any, final
 from rest_framework import viewsets
 from rest_framework.serializers import Serializer
 
+from api.mixins import AutoAssignOwnerMixin
 from api.permissions import check_authorization_header
 from api.schedule.models import Webstream, WebstreamMetadata
 from api.schedule.serializers import (
@@ -12,7 +13,7 @@ from api.schedule.serializers import (
 
 
 @final
-class WebstreamViewSet(viewsets.ModelViewSet[Any]):
+class WebstreamViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
 
     queryset = Webstream.objects.all()
     serializer_class: type[Serializer[Any]] = WebstreamSerializer
@@ -32,18 +33,6 @@ class WebstreamViewSet(viewsets.ModelViewSet[Any]):
             return Webstream.objects.all()
         # Regular user sees only their own webstreams
         return Webstream.objects.filter(owner=user)
-
-    def perform_create(self, serializer: WebstreamSerializer) -> None:
-        """Create webstream with current user as owner (if authenticated)."""
-        user = self.request.user
-        if user.is_authenticated and not user.is_anonymous:
-            from api.core.models import User
-
-            if isinstance(user, User):
-                serializer.save(owner=user)
-                return
-        # API-Key auth or anonymous - requires owner in data or fails
-        serializer.save()
 
 
 @final

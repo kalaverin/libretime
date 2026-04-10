@@ -4,6 +4,7 @@ from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter
 from rest_framework.serializers import Serializer
 
+from api.mixins import AutoAssignOwnerMixin
 from api.schedule.models import Playlist, PlaylistContent
 from api.schedule.serializers import (
     PlaylistContentSerializer,
@@ -12,7 +13,7 @@ from api.schedule.serializers import (
 
 
 @final
-class PlaylistViewSet(viewsets.ModelViewSet[Any]):
+class PlaylistViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
 
     queryset = Playlist.objects.all()
     serializer_class: type[Serializer[Any]] = PlaylistSerializer

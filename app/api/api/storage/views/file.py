@@ -14,6 +14,7 @@ from rest_framework.request import Request
 from structlog import get_logger
 from typing_extensions import override
 
+from api.mixins import AutoAssignOwnerMixin
 from api.schedule.models import Schedule
 from api.storage.models import File
 from api.storage.serializers import FileSerializer
@@ -30,7 +31,7 @@ class FileInUse(APIException):
 
 
 @final
-class FileViewSet(viewsets.ModelViewSet[Any]):
+class FileViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
 
     queryset = File.objects.all()
     serializer_class: type[serializers.ModelSerializer[Any]] = FileSerializer

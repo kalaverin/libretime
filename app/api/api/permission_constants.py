@@ -100,8 +100,18 @@ MANAGER_PERMISSIONS = [
     "delete_webstream",
 ]
 
+# ADMIN has all MANAGER permissions + user management
+ADMIN_PERMISSIONS = [
+    *MANAGER_PERMISSIONS,
+    "add_user",
+    "change_user",
+    "delete_user",
+    "view_user",
+]
+
 GROUPS = {
     Role.GUEST.value: GUEST_PERMISSIONS,
     Role.HOST.value: HOST_PERMISSIONS,
     Role.MANAGER.value: MANAGER_PERMISSIONS,
+    Role.ADMIN.value: ADMIN_PERMISSIONS,
 }

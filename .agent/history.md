@@ -2418,3 +2418,123 @@ def test_host_cannot_update_other_playlist(self, host_client, faker):
 - ADMIN read tests: all passed ✅
 
 Remaining 26 failures are real ViewSet bugs (ownership filtering, auto-assign, etc.)
+
+
+---
+
+### [2026-04-11T02:00:00Z]
+
+**Fixed:** Critical permission bug — POST mapped to "change" instead of "add"
+
+**Root Cause:**
+```python
+# REQUEST_PERMISSION_TYPE_MAP was:
+"POST": "change",  # WRONG! Should be "add"
+```
+
+This meant CREATE operations required `change_*` permission instead of `add_*`!
+
+**Fix:**
+```python
+"POST": "add",  # CORRECT
+```
+
+**Test Results:**
+- Before: 95 passed, 26 failed
+- After: 100 passed, 21 failed (+5 tests fixed)
+
+**Files Changed:**
+- `app/api/api/permissions.py` — POST → "add"
+
+**Added:** Centralized owner assignment mixin
+
+**New File:** `app/api/api/mixins/ownership.py`
+```python
+class AutoAssignOwnerMixin:
+    """Automatically assigns current user as owner on create."""
+```
+
+**Applied to ViewSets:**
+- `PlaylistViewSet` — `AutoAssignOwnerMixin`
+- `SmartBlockViewSet` — `AutoAssignOwnerMixin`
+- `WebstreamViewSet` — `AutoAssignOwnerMixin` (replaced inline perform_create)
+- `FileViewSet` — `AutoAssignOwnerMixin`
+
+**Remaining 21 failures:**
+- File creation (400 — validation requirements)
+- Show update/delete (permission logic issues)
+- Webstream queryset filtering (404 for cross-user access)
+- BOLA prevention (object-level permissions not enforced)
+
+
+---
+
+### [2026-04-11T02:15:00Z]
+
+**Created:** Comprehensive CREATE permission matrix tests (`test_role_create_matrix.py`)
+
+**Coverage:**
+- All roles: GUEST, HOST, MANAGER, ADMIN
+- All entities with owner: Playlist, SmartBlock, Webstream, Podcast, File
+- Schedule entities: Show (MANAGER only)
+
+**Test Classes:**
+1. `TestCreatePermissionMatrix` — permission checks for all roles × entities
+2. `TestAutoAssignOwnerMixin` — owner assignment verification
+3. `TestCreatePermissionEdgeCases` — boundary conditions
+
+**Key Tests:**
+- `test_guest_cannot_create_any_entity` — 403 on all CREATE attempts
+- `test_host_can_create_own_entities` — 201 + owner = self
+- `test_manager_can_create_schedule_entities` — MANAGER creates shows
+- `test_different_users_get_different_owners` — isolation verification
+
+**Applied AutoAssignOwnerMixin to:**
+- `PodcastViewSet` (was missing)
+
+**Results:** 11/11 passed — full coverage of CREATE permissions and owner assignment 🔥💀
+
+
+---
+
+### [2026-04-11T02:25:00Z]
+
+**Fixed:** ADMIN now has all permissions
+
+**Changes in `permission_constants.py`:**
+```python
+ADMIN_PERMISSIONS = [
+    *MANAGER_PERMISSIONS,
+    "add_user",
+    "change_user", 
+    "delete_user",
+    "view_user",
+]
+
+GROUPS = {
+    Role.GUEST.value: GUEST_PERMISSIONS,
+    Role.HOST.value: HOST_PERMISSIONS,
+    Role.MANAGER.value: MANAGER_PERMISSIONS,
+    Role.ADMIN.value: ADMIN_PERMISSIONS,  # Added
+}
+```
+
+**Updated `test_role_create_matrix.py`:**
+- ADMIN can create all entities (playlist, smartblock, webstream, podcast, show)
+- Owner assignment verified for ADMIN creations
+- 12/12 tests passing
+
+**Permission Matrix (CREATE):**
+| Entity | GUEST | HOST | MANAGER | ADMIN |
+|--------|-------|------|---------|-------|
+| playlist | 403 | 201 ✅ | 201 ✅ | 201 ✅ |
+| smartblock | 403 | 201 ✅ | 201 ✅ | 201 ✅ |
+| webstream | 403 | 201 ✅ | 201 ✅ | 201 ✅ |
+| podcast | 403 | 201 ✅ | 201 ✅ | 201 ✅ |
+| show | 403 | 403 | 201 ✅ | 201 ✅ |
+
+**Owner Assignment:**
+- HOST → owner = HOST
+- MANAGER → owner = MANAGER
+- ADMIN → owner = ADMIN
+- All verified by `test_role_create_matrix.py` 🔥💀

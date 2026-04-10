@@ -3,6 +3,7 @@ from typing import Any, final
 from rest_framework import filters, viewsets
 from rest_framework.serializers import Serializer
 
+from api.mixins import AutoAssignOwnerMixin
 from api.schedule.models import (
     SmartBlock,
     SmartBlockContent,
@@ -16,7 +17,7 @@ from api.schedule.serializers import (
 
 
 @final
-class SmartBlockViewSet(viewsets.ModelViewSet[Any]):
+class SmartBlockViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
 
     queryset = SmartBlock.objects.all()
     serializer_class: type[Serializer[Any]] = SmartBlockSerializer

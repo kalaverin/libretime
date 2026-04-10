@@ -3,6 +3,7 @@ from typing import Any, final
 from rest_framework import viewsets
 from rest_framework.serializers import Serializer
 
+from api.mixins import AutoAssignOwnerMixin
 from api.podcasts.models import (
     ImportedPodcast,
     Podcast,
@@ -18,7 +19,7 @@ from api.podcasts.serializers import (
 
 
 @final
-class PodcastViewSet(viewsets.ModelViewSet[Any]):
+class PodcastViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
 
     queryset = Podcast.objects.all()
     serializer_class: type[Serializer[Any]] = PodcastSerializer

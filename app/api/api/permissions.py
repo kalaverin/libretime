@@ -17,7 +17,7 @@ REQUEST_PERMISSION_TYPE_MAP = {
     "GET": "view",
     "HEAD": "view",
     "OPTIONS": "view",
-    "POST": "change",
+    "POST": "add",
     "PUT": "change",
     "DELETE": "delete",
     "PATCH": "change",
