@@ -1172,6 +1172,94 @@ Notes: |
   auth check happens after resource lookup or not at all.
   Ref: test_smartblockcriteria_delete_redteam_t244.py::test_delete_with_invalid_token
 
+## [CRITICAL] fix T518 — BOLA: Webstreams LIST shows all users' streams
+Status: NOT_STARTED
+Created: 2026-04-10T14:15:00Z
+Last worked: 2026-04-10T14:15:00Z
+File: `app/api/api/schedule/views/webstream.py:14-25`
+Next step: Add get_queryset() to filter by owner
+Notes: |
+  API1:2023 Broken Object Level Authorization. LIST endpoint returns all webstreams
+  regardless of owner. Attacker can see victim's private webstream URLs.
+  Ref: test_webstream_list_redteam_t245.py::test_bola_list_shows_all_users_webstreams
+
+## [MEDIUM] fix T519 — Webstream serializer __all__ may expose sensitive fields
+Status: NOT_STARTED
+Created: 2026-04-10T14:15:00Z
+Last worked: 2026-04-10T14:15:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-21`
+Next step: Review and explicitly list allowed fields instead of __all__
+Notes: |
+  Using __all__ in serializer may expose fields not intended for API.
+  Should explicitly define fields list for security.
+  Ref: test_webstream_list_redteam_t245.py::test_field_exposure_all_fields_review
+
+## [HIGH] fix T520 — URL field reflects internal network addresses
+Status: NOT_STARTED
+Created: 2026-04-10T14:15:00Z
+Last worked: 2026-04-10T14:15:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-21`
+Next step: Add URL validation to block internal network addresses
+Notes: |
+  Internal URLs (localhost, 192.168.x.x, 10.x.x.x) are stored and reflected.
+  Combined with BOLA (T518), this leaks internal network topology.
+  Ref: test_webstream_list_redteam_t245.py::test_url_field_ssrf_reflection
+
+## [MEDIUM] fix T521 — MIME type field accepts arbitrary values
+Status: NOT_STARTED
+Created: 2026-04-10T14:15:00Z
+Last worked: 2026-04-10T14:15:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-21`
+Next step: Add MIME type validation or choices
+Notes: |
+  MIME type field accepts any string including XSS payloads like
+  text/html<script>alert(1)</script>. May lead to XSS if reflected.
+  Ref: test_webstream_list_redteam_t245.py::test_mime_type_arbitrary_values
+
+## [LOW] fix T522 — URL length not validated
+Status: NOT_STARTED
+Created: 2026-04-10T14:15:00Z
+Last worked: 2026-04-10T14:15:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-21`
+Next step: Add URL max_length validation
+Notes: |
+  URL field accepts very long strings (up to 512 chars per model).
+  Should validate reasonable URL length.
+  Ref: test_webstream_list_redteam_t245.py::test_url_length_overflow
+
+## [HIGH] fix T523 — Invalid URL format accepted
+Status: NOT_STARTED
+Created: 2026-04-10T14:15:00Z
+Last worked: 2026-04-10T14:15:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-21`
+Next step: Add URL format validation using URLValidator
+Notes: |
+  Invalid URLs like "not-a-url", "javascript:alert(1)", "file:///etc/passwd"
+  are accepted. Should validate URL format and scheme (http/https only).
+  Ref: test_webstream_list_redteam_t245.py::test_url_format_validation
+
+## [LOW] fix T524 — Special query params cause 500 error
+Status: NOT_STARTED
+Created: 2026-04-10T14:15:00Z
+Last worked: 2026-04-10T14:15:00Z
+File: `app/api/api/schedule/views/webstream.py:14-25`
+Next step: Add exception handling for invalid query params
+Notes: |
+  Query params like ?page=undefined or ?page=null may cause 500 errors.
+  Should handle gracefully and return 400.
+  Ref: test_webstream_list_redteam_t245.py::test_fuzzing_query_params
+
+## [MEDIUM] fix T525 — Description field XSS not sanitized
+Status: NOT_STARTED
+Created: 2026-04-10T14:15:00Z
+Last worked: 2026-04-10T14:15:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-21`
+Next step: Add HTML sanitization for description field
+Notes: |
+  Description field accepts and reflects HTML/JS without sanitization.
+  Potential XSS vector if rendered in frontend without escaping.
+  Ref: test_webstream_list_redteam_t245.py::test_description_xss_protection
+
 ## [LOW] chore T56 — Fix inconsistent media_id typing
 Status: NOT_STARTED
 Created: 2026-04-06T16:53:26Z
