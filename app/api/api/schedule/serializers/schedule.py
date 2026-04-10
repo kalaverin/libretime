@@ -5,6 +5,7 @@ from rest_framework.serializers import (
     DateTimeField,
     DurationField,
     ModelSerializer,
+    ValidationError,
 )
 
 from api.schedule.models import Schedule
@@ -27,3 +28,15 @@ class WriteScheduleSerializer(ModelSerializer[Any]):
     class Meta:
         model: type[Model] = Schedule
         fields: str = "__all__"
+
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Validate that either file or stream is provided."""
+        file_obj = data.get("file")
+        stream = data.get("stream")
+
+        if not file_obj and not stream:
+            raise ValidationError(
+                {"file": "Either file or stream is required."}
+            )
+
+        return data

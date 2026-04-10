@@ -141,7 +141,6 @@ class TestScheduleViewSetList:
         assert response.status_code == 200
         assert "ends_at" in response.json()[0]
 
-    @pytest.mark.xfail(reason="T335: filter by instance not implemented")
     def test_list_filter_by_instance(self, api_client):
         user = baker.make(User, username="testsched_user")
         show = baker.make(Show, name="Test Show")

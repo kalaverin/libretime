@@ -154,7 +154,6 @@ class TestScheduleViewSetCreate:
         )
         assert response.status_code == 400
 
-    @pytest.mark.xfail(reason="T336: missing file/stream not validated")
     def test_create_missing_file_and_stream_fails(self, api_client):
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)

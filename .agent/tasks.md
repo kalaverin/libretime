@@ -1895,21 +1895,33 @@ Notes: |
   
   Result: PUT full update now works without sending created_at, updated_at, length.
 
-## [MEDIUM] fix T335 — Schedule filter by instance not implemented
-Status: NOT_STARTED
+## [DONE] fix T335 — Schedule filter by instance not implemented
+Status: DONE
 Created: 2026-04-09T16:16:18Z
-Last worked: 2026-04-09T16:16:18Z
+Last worked: 2026-04-10T03:35:00Z
 File: `app/api/api/schedule/views/schedule.py`
-Next step: Add instance filter to ScheduleFilter class
-Notes: Filter ?instance={id} silently ignored, returns all schedules. Should filter schedules by show instance ID.
+Notes: |
+  FIXED: Added instance filter to ScheduleFilter.
+  
+  Changes:
+  - schedule.py view: Added instance = filters.NumberFilter(field_name="instance_id") to ScheduleFilter
+  - test_schedule_list.py: Removed xfail marker from test_list_filter_by_instance
+  
+  Result: Filter ?instance={id} now correctly filters schedules by show instance ID.
 
-## [MEDIUM] fix T336 — Schedule CREATE missing file/stream validation
-Status: NOT_STARTED
+## [DONE] fix T336 — Schedule CREATE missing file/stream validation
+Status: DONE
 Created: 2026-04-09T16:16:18Z
-Last worked: 2026-04-09T16:16:18Z
+Last worked: 2026-04-10T03:35:00Z
 File: `app/api/api/schedule/serializers/schedule.py`
-Next step: Add validate() to WriteScheduleSerializer requiring either file or stream
-Notes: POST /api/v2/schedule with neither file nor stream returns 201. Should return 400 with validation error.
+Notes: |
+  FIXED: Added file/stream validation to WriteScheduleSerializer.
+  
+  Changes:
+  - schedule.py serializer: Added validate() method to require either file or stream
+  - test_schedule_create.py: Removed xfail marker from test_create_missing_file_and_stream_fails
+  
+  Result: POST /api/v2/schedule with neither file nor stream now returns 400.
 
 ## [HIGH] fix T337 — Schedule datetime comparison bug in get_cue_out/get_ends_at
 Status: NOT_STARTED

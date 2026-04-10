@@ -25,6 +25,7 @@ class ScheduleFilter(filters.FilterSet):
     ends = filters.DateTimeFromToRangeFilter(field_name="ends_at")
     position_status = filters.NumberFilter()
     broadcasted = filters.NumberFilter()
+    instance = filters.NumberFilter(field_name="instance_id")
 
     overbooked = filters.BooleanFilter(method="overbooked_filter")
 
