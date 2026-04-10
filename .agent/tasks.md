@@ -2597,6 +2597,34 @@ Notes: |
   Red team tests:
   - test_patch_description_with_script: FAIL
   - test_patch_description_with_event_handler: FAIL
+
+## [CRITICAL] fix T387 — Show DELETE allows anonymous access
+Status: NOT_STARTED
+Created: 2026-04-10T02:30:00Z
+Scope: api/schedule/views/show.py
+Next step: Add authentication requirement for DELETE
+Notes: |
+  CRITICAL: Anonymous users can delete shows.
+  
+  Attack scenario:
+  - DELETE /api/v2/shows/{id} without auth returns 204
+  - Anyone can delete all shows
+  
+  Red team test: test_delete_without_auth fails - returns 204
+Status: NOT_STARTED
+Created: 2026-04-10T02:20:00Z
+Scope: api/schedule/serializers/show.py
+Next step: Add HTML sanitization to PATCH
+Notes: |
+  SECURITY ISSUE: XSS injection works via PATCH.
+  
+  Can inject scripts via description PATCH:
+  - <script>alert('xss')</script>
+  - <img src=x onerror=alert('xss')>
+  
+  Red team tests:
+  - test_patch_description_with_script: FAIL
+  - test_patch_description_with_event_handler: FAIL
 Status: NOT_STARTED
 Created: 2026-04-10T02:10:00Z
 Scope: api/schedule/views/show.py
