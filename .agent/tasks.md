@@ -2516,6 +2516,50 @@ Notes: |
   Actual: Any 6-character string accepted
   
   Red team test: test_color_with_invalid_chars fails
+
+## [CRITICAL] fix T382 — Show RETRIEVE allows anonymous access
+Status: NOT_STARTED
+Created: 2026-04-10T02:10:00Z
+Scope: api/schedule/views/show.py
+Next step: Add authentication requirement
+Notes: |
+  CRITICAL: Anonymous users can retrieve show details.
+  
+  Attack scenario:
+  - GET /api/v2/shows/{id} without auth returns 200
+  - Information disclosure
+  
+  Red team test: test_retrieve_without_auth fails - returns 200
+
+## [CRITICAL] fix T383 — Show BOLA/IDOR - no owner filtering
+Status: NOT_STARTED
+Created: 2026-04-10T02:10:00Z
+Scope: api/schedule/views/show.py
+Next step: Add owner-based filtering to get_queryset
+Notes: |
+  CRITICAL BOLA/IDOR: Any user can access any show by ID.
+  
+  Attack scenario:
+  - User A has private show
+  - User B calls GET /api/v2/shows/{show_id}
+  - User B can see User A's private show
+  
+  No ownership verification in place.
+  
+  Red team tests:
+  - test_access_other_user_show: FAIL
+  - test_access_show_via_idor: FAIL
+Status: NOT_STARTED
+Created: 2026-04-10T02:00:00Z
+Scope: api/schedule/serializers/show.py
+Next step: Add color format validation
+Notes: |
+  VALIDATION GAP: Show accepts invalid hex colors like "GGGGGG".
+  
+  Expected: Only valid hex colors (0-9, A-F) should be accepted
+  Actual: Any 6-character string accepted
+  
+  Red team test: test_color_with_invalid_chars fails
 Status: NOT_STARTED
 Created: 2026-04-10T01:40:00Z
 Scope: api/core/views/auth.py
