@@ -6728,3 +6728,51 @@ Notes: |
   This breaks role-based permission tests and can mask BFLA vulnerabilities.
   Manager should have elevated permissions but not full superuser access.
   Ref: test_fixtures_redteam_t299.py::test_manager_vs_admin_privileges
+
+## [MEDIUM] fix T915 — Hardcoded database password in testing settings
+Status: NOT_STARTED
+Created: 2026-04-10T19:00:00Z
+Last worked: 2026-04-10T19:00:00Z
+File: `app/api/api/settings/testing.py`
+Next step: Use environment variable or secrets management for test DB password
+Notes: |
+  API8:2023 Security Misconfiguration. Database password 'libretime' is hardcoded
+  in testing settings. Should use environment variable or secure secrets management.
+  Test environments should mirror production security practices.
+  Ref: test_run_redteam_t300.py::TestSettingsSecurity::test_database_password_not_in_settings
+
+## [HIGH] fix T916 — API key too short in testing environment
+Status: NOT_STARTED
+Created: 2026-04-10T19:00:00Z
+Last worked: 2026-04-10T19:00:00Z
+File: `app/api/api/settings/testing.py`
+Next step: Generate longer API key (min 32 chars) for testing
+Notes: |
+  API2:2023 Broken Authentication. Test API key 'testing' is only 7 characters.
+  Should be at least 32 characters for adequate entropy.
+  Short keys are vulnerable to brute force attacks.
+  Ref: test_run_redteam_t300.py::TestSettingsSecurity::test_api_key_length_adequate
+
+## [MEDIUM] fix T917 — SECRET_KEY too short in testing environment
+Status: NOT_STARTED
+Created: 2026-04-10T19:00:00Z
+Last worked: 2026-04-10T19:00:00Z
+File: `app/api/api/settings/testing.py`
+Next step: Generate longer SECRET_KEY (min 50 chars) for testing
+Notes: |
+  API8:2023 Security Misconfiguration. Django SECRET_KEY in tests is only 33 chars.
+  Should be at least 50 characters as recommended by Django documentation.
+  Short SECRET_KEY weakens cryptographic protections.
+  Ref: test_run_redteam_t300.py::TestSettingsSecurity::test_secret_key_length_adequate
+
+## [MEDIUM] fix T918 — CSRF_COOKIE_HTTPONLY is False in test settings
+Status: NOT_STARTED
+Created: 2026-04-10T19:05:00Z
+Last worked: 2026-04-10T19:05:00Z
+File: `app/api/api/settings/testing.py`
+Next step: Set CSRF_COOKIE_HTTPONLY = True for security
+Notes: |
+  API8:2023 Security Misconfiguration. CSRF_COOKIE_HTTPONLY is False in testing.py.
+  HttpOnly flag prevents XSS attacks from accessing CSRF tokens.
+  Should be True even in test environment to match production security.
+  Ref: test_run_redteam_t300.py::TestSessionFixturesSecurity::test_csrf_cookie_secure_in_tests
