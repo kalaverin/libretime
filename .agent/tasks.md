@@ -5215,3 +5215,79 @@ Notes: |
   Rapid sequential requests (20) all succeed with 201. Can create field spam.
   Ref: test_playout_history_template_field_redteam_t264.py::test_rapid_field_creation
 
+## [MEDIUM] fix T646 — BOPLA: ListenerCount CREATE accepts extra fields
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/history/serializers/listener.py`
+Next step: Add strict validation to reject unknown fields
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. ListenerCount CREATE accepts
+  extra fields like "is_admin", "station_id" and silently ignores them.
+  Ref: test_listener_count_redteam_t265.py::test_bopla_create_extra_fields_ignored
+
+## [CRITICAL] fix T647 — BOPLA: Can manipulate listener count statistics
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/history/serializers/listener.py`
+Next step: Add validation to prevent arbitrary count manipulation
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. UPDATE allows setting arbitrary
+  listener_count values (e.g., 999999). Can fake statistics to show false popularity.
+  Ref: test_listener_count_redteam_t265.py::test_bopla_update_listener_count_manipulation
+
+## [LOW] fix T648 — Validation: Negative listener count accepted
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/history/serializers/listener.py`
+Next step: Add MinValueValidator(0) for listener_count field
+Notes: |
+  Negative listener_count values are accepted but don't make sense.
+  Should reject negative values with validation error.
+  Ref: test_listener_count_redteam_t265.py::test_bopla_negative_listener_count
+
+## [MEDIUM] fix T649 — No rate limiting on ListenerCount CREATE endpoint
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/history/views/listener.py`
+Next step: Add Django Ratelimit or DRF throttling
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. ListenerCount CREATE has no rate limiting.
+  Rapid sequential requests (20) all succeed with 201. Can spam fake statistics.
+  Ref: test_listener_count_redteam_t265.py::test_rapid_listener_count_creation
+
+## [MEDIUM] fix T650 — Pagination missing on ListenerCount LIST
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/history/views/listener.py`
+Next step: Add pagination to ListenerCountViewSet
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. LIST returns all records without pagination.
+  Large datasets (>100 records) returned in single response. Can cause DoS.
+  Ref: test_listener_count_redteam_t265.py::test_bulk_listener_count_query
+
+## [LOW] fix T651 — Validation: Future timestamp accepted for listener counts
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/history/serializers/listener.py`
+Next step: Add validation to reject future timestamps
+Notes: |
+  Future timestamps are accepted but listener counts can't exist for future time.
+  Should validate timestamp <= now().
+  Ref: test_listener_count_redteam_t265.py::test_create_with_future_timestamp
+
+## [LOW] fix T652 — Validation: End before start date range accepted
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/history/views/listener.py`
+Next step: Add date range validation (end >= start)
+Notes: |
+  Query with end date before start date is accepted. Should return 400 for invalid range.
+  Ref: test_listener_count_redteam_t265.py::test_end_before_start_date_range
+
