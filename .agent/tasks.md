@@ -3063,3 +3063,86 @@ Notes: |
   
   Red team tests confirming bug: test_smartblock_redteam_t234.py
 
+## [HIGH] fix T426 — SmartBlock CREATE accepts custom id (mass assignment)
+Status: NOT_STARTED
+Created: 2026-04-10T12:35:00Z
+Scope: api/schedule/serializers/smart_block.py
+Next step: Remove 'id' from writable fields in SmartBlockSerializer
+Notes: |
+  BOPLA VULNERABILITY: SmartBlockSerializer uses fields = "__all__" which allows
+  setting custom id during CREATE.
+  
+  Attack: POST /api/v2/smart-blocks {"id": 99999, "name": "Test"}
+  Result: Block created with attacker-controlled ID, potentially overwriting existing
+  records or creating collisions.
+  
+  Red team test: test_bopla_mass_assignment_id in test_smartblock_create_redteam_t235.py
+
+## [HIGH] fix T427 — SmartBlock CREATE accepts created_at manipulation (mass assignment)
+Status: NOT_STARTED
+Created: 2026-04-10T12:35:00Z
+Scope: api/schedule/serializers/smart_block.py
+Next step: Remove 'created_at' from writable fields in SmartBlockSerializer
+Notes: |
+  BOPLA VULNERABILITY: SmartBlockSerializer uses fields = "__all__" which allows
+  setting created_at timestamp during CREATE.
+  
+  Attack: POST /api/v2/smart-blocks {"name": "Test", "created_at": "2020-01-01T00:00:00Z"}
+  Result: Block appears to be created in the past, potentially bypassing time-based
+  business logic or audit trails.
+  
+  Red team test: test_bopla_mass_assignment_created_at in test_smartblock_create_redteam_t235.py
+
+## [CRITICAL] fix T428 — SmartBlock CREATE accepts owner manipulation (BOLA vector)
+Status: NOT_STARTED
+Created: 2026-04-10T12:40:00Z
+Scope: api/schedule/serializers/smart_block.py
+Next step: Remove 'owner' from writable fields in SmartBlockSerializer
+Notes: |
+  CRITICAL BOPLA/BOLA VULNERABILITY: Attacker can create SmartBlock owned by another user.
+  
+  Attack: POST /api/v2/smart-blocks {"name": "Malicious", "owner": victim_id}
+  Result: Block appears to be owned by victim, potentially hiding malicious content
+  or polluting victim's library. Combined with BOLA in LIST, victim sees attacker's block.
+  
+  Red team test: test_bopla_mass_assignment_owner in test_smartblock_create_redteam_t235.py
+
+## [HIGH] fix T431 — SmartBlock CREATE accepts updated_at manipulation
+Status: NOT_STARTED
+Created: 2026-04-10T12:40:00Z
+Scope: api/schedule/serializers/smart_block.py
+Next step: Remove 'updated_at' from writable fields in SmartBlockSerializer
+Notes: |
+  BOPLA VULNERABILITY: Attacker can set arbitrary updated_at timestamp.
+  
+  Attack: POST /api/v2/smart-blocks {"name": "Test", "updated_at": "2030-12-31T23:59:59Z"}
+  Result: Block appears to be updated in future, breaking sorting and audit logic.
+  
+  Red team test: test_bopla_mass_assignment_updated_at in test_smartblock_create_redteam_t235.py
+
+## [MEDIUM] fix T432 — SmartBlock CREATE accepts arbitrary length values
+Status: NOT_STARTED
+Created: 2026-04-10T12:40:00Z
+Scope: api/schedule/serializers/smart_block.py
+Next step: Add validation for length field (reasonable min/max)
+Notes: |
+  BOPLA VULNERABILITY: Attacker can set arbitrary duration values.
+  
+  Attack: POST /api/v2/smart-blocks {"name": "Test", "length": "PT999999H"}
+  Result: Block with impossible duration, may cause UI issues or scheduling errors.
+  
+  Red team test: test_bopla_mass_assignment_length in test_smartblock_create_redteam_t235.py
+
+## [LOW] fix T433 — No unique constraint on SmartBlock name (race condition possible)
+Status: NOT_STARTED
+Created: 2026-04-10T12:40:00Z
+Scope: api/schedule/models/smart_block.py
+Next step: Add unique_together constraint on (name, owner) if business requires
+Notes: |
+  RACE CONDITION: Multiple blocks with same name can be created concurrently.
+  
+  Current behavior allows duplicate names which may confuse users.
+  Not a security issue but potential data quality concern.
+  
+  Red team test: test_create_race_condition_duplicate_names in test_smartblock_create_redteam_t235.py
+
