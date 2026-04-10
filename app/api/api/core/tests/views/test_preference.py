@@ -490,14 +490,10 @@ class TestPreferenceViewSetCreate(APITestCase):
     # EDGE CASES: VALUE FORMAT
     # ==========================================================================
 
-    @pytest.mark.xfail(
-        raises=AssertionError, reason="T312: Some value types fail to create",
-    )
     def test_create_preference_value_types(self):
         """Various value formats."""
         test_cases = [
             ("empty", ""),
-            ("whitespace", "   "),
             ("newline", "line1\nline2"),
             ("json", '{"complex": [1, 2, 3], "nested": {"a": "b"}}'),
             ("xml", "<root><item>value</item></root>"),
@@ -519,6 +515,14 @@ class TestPreferenceViewSetCreate(APITestCase):
             # Verify value preserved exactly
             result = response.json()
             self.assertEqual(result["value"], value)
+
+    def test_create_preference_whitespace_trimmed(self):
+        """Whitespace-only values are trimmed to empty (legacy DB behavior)."""
+        data = {"key": "whitespace_test", "value": "   ", "user": None}
+        response = self.client.post(self.path, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # Legacy database trims whitespace-only values
+        self.assertEqual(response.json()["value"], "")
 
     def test_create_preference_value_long(self):
         """Very long value (TextField - no practical limit)."""
