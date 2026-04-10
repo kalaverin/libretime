@@ -6237,3 +6237,46 @@ Next step: Implement Django Ratelimit or similar
 Notes: |
   Rapid CREATE requests not rate limited. Can lead to storage exhaustion.
   Ref: test_file_unique_redteam_t289.py::test_rapid_create_requests_no_rate_limit
+
+## [CRITICAL] fix T863 — BOLA: Cascade delete - attacker can delete victim's show
+Status: NOT_STARTED
+Created: 2026-04-10T17:35:00Z
+Last worked: 2026-04-10T17:35:00Z
+File: `app/api/api/schedule/views/show.py`
+Next step: Add ownership check in destroy operation
+Notes: |
+  API1:2023 BOLA. Attacker can DELETE victim's show, which cascades to all ShowInstances.
+  Critical data loss vulnerability.
+  Ref: test_cascade_delete_redteam_t290.py::test_bola_delete_show_cascades_to_instances
+
+## [CRITICAL] fix T864 — BOLA: Cascade delete - attacker can delete victim's playlist
+Status: NOT_STARTED
+Created: 2026-04-10T17:35:00Z
+Last worked: 2026-04-10T17:35:00Z
+File: `app/api/api/schedule/views/playlist.py`
+Next step: Add ownership check in destroy operation
+Notes: |
+  API1:2023 BOLA. Attacker can DELETE victim's playlist, which cascades to all PlaylistContents.
+  Critical data loss vulnerability.
+  Ref: test_cascade_delete_redteam_t290.py::test_bola_delete_playlist_cascades_to_contents
+
+## [HIGH] fix T869 — No rate limiting on cascade delete operations
+Status: NOT_STARTED
+Created: 2026-04-10T17:35:00Z
+Last worked: 2026-04-10T17:35:00Z
+File: `app/api/api/schedule/views/`
+Next step: Implement rate limiting for delete endpoints
+Notes: |
+  Rapid cascade delete requests not rate limited. Can be used for DoS.
+  Ref: test_cascade_delete_redteam_t290.py::test_rapid_cascade_delete_requests
+
+## [MEDIUM] fix T873 — FK constraint violation causes 500 error
+Status: NOT_STARTED
+Created: 2026-04-10T17:35:00Z
+Last worked: 2026-04-10T17:35:00Z
+File: `app/api/api/storage/views/library.py`
+Next step: Catch IntegrityError and return 409 Conflict
+Notes: |
+  Deleting library with files causes 500 error due to FK constraint.
+  Should return 409 Conflict with meaningful error message.
+  Ref: test_cascade_delete_redteam_t290.py::test_delete_with_active_references_blocked
