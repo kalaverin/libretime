@@ -181,7 +181,4 @@ class TestPlayoutHistoryViewSetCreate:
             data,
             format="json",
         )
-        if response.status_code == 201:
-            pytest.xfail("T339: ends before starts not validated")
-        else:
-            assert response.status_code == 400
+        assert response.status_code == 400

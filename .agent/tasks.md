@@ -1939,13 +1939,19 @@ File: `app/api/api/schedule/views/schedule.py`
 Next step: Review permission classes, ensure host can create schedule for their shows
 Notes: Host user (role=H) gets 403 on POST /api/v2/schedule. Admin works fine. Likely missing change_own_schedule permission check.
 
-## [LOW] fix T339 — PlayoutHistory CREATE doesn't validate ends > starts
-Status: NOT_STARTED
+## [DONE] fix T339 — PlayoutHistory CREATE doesn't validate ends > starts
+Status: DONE
 Created: 2026-04-09T16:16:18Z
-Last worked: 2026-04-09T17:00:00Z
+Last worked: 2026-04-10T03:40:00Z
 File: `app/api/api/history/serializers/played.py`
-Next step: Add validate() to PlayoutHistorySerializer checking ends > starts
-Notes: POST with ends before starts returns 201. Should return 400 with validation error. Found during T260.
+Notes: |
+  FIXED: Added ends > starts validation to PlayoutHistorySerializer.
+  
+  Changes:
+  - played.py serializer: Added validate() method to check ends > starts
+  - test_playout_history_create.py: Simplified test_create_ends_before_starts_fails (removed conditional xfail)
+  
+  Result: POST with ends before starts now returns 400.
 
 ## [DONE] fix T340 — Podcast model owner field DB schema mismatch
 Status: DONE
