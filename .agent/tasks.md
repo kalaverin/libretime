@@ -2354,6 +2354,33 @@ Notes: |
   - test_password_visible_in_detail: FAIL - password exposed
   - test_other_user_password_not_visible: FAIL - any user can see password
 
+## [HIGH] fix T371 — Preference user field transferable via PATCH
+Status: NOT_STARTED
+Created: 2026-04-10T01:30:00Z
+Scope: api/core/serializers/preference.py
+Next step: Add user to read_only_fields
+Notes: |
+  SECURITY ISSUE: Preference can be transferred to another user via PATCH.
+  
+  Attack scenario:
+  - User A has preference P1
+  - User A calls PATCH /api/v2/preferences/{P1} {"user": UserB.id}
+  - Preference now belongs to User B
+  
+  This enables preference theft/transfer.
+  
+  Red team test: test_update_user_field fails - returns 200 with transferred user
+
+## [CRITICAL] fix T372 — Preference list shows all preferences (BOLA)
+Status: NOT_STARTED
+Created: 2026-04-10T01:30:00Z
+Scope: api/core/views/preference.py
+Next step: Add user filtering to get_queryset
+Notes: |
+  CRITICAL BOLA: Preference list returns ALL preferences.
+  
+  Red team test: test_list_shows_only_own_preferences returns 403 instead of filtered list
+
 ## [HIGH] fix T352 — Fix Schedule.ends_at not saving via API
 Status: NOT_STARTED
 Created: 2026-04-10T00:55:00Z
