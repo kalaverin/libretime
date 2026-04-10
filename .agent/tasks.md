@@ -5413,3 +5413,90 @@ Summary: |
   authentication bypass, HTTP method tampering, unicode/edge cases.
   All tests pass (15 passed).
   Files: `app/api/api/history/tests/views/test_mount_name_list_redteam_t267.py`
+
+## [CRITICAL] fix T663 — BOLA: Podcast LIST shows all users' podcasts regardless of owner
+Status: NOT_STARTED
+Created: 2026-04-10T15:25:00Z
+Last worked: 2026-04-10T15:25:00Z
+File: `app/api/api/podcasts/views/podcast.py:21-26`
+Next step: Add owner-based queryset filtering in PodcastViewSet
+Notes: |
+  API1:2023 Broken Object Level Authorization. PodcastViewSet.queryset = Podcast.objects.all()
+  without owner filtering. Any authenticated user can see ALL podcasts.
+  Ref: test_podcast_list_redteam_t268.py::test_bola_t353_list_shows_all_users_podcasts
+
+## [HIGH] fix T664 — BFLA: Guest user can access podcast LIST endpoint
+Status: NOT_STARTED
+Created: 2026-04-10T15:25:00Z
+Last worked: 2026-04-10T15:25:00Z
+File: `app/api/api/podcasts/views/podcast.py:25`
+Next step: Restrict podcast permission to authenticated non-guest users
+Notes: |
+  API5:2023 Broken Function Level Authorization. Guest users (role=G) can list podcasts.
+  Should require at least HOST role for LIST operations.
+  Ref: test_podcast_list_redteam_t268.py::test_bola_t353_guest_user_can_list_podcasts
+
+## [MEDIUM] fix T665 — BOLA: ID format confusion allows access manipulation
+Status: NOT_STARTED
+Created: 2026-04-10T15:25:00Z
+Last worked: 2026-04-10T15:25:00Z
+File: `app/api/api/podcasts/views/podcast.py:21-26`
+Next step: Add strict ID format validation (integer only)
+Notes: |
+  API1:2023 BOLA. Non-standard ID formats (1.0, trailing spaces, null bytes) may bypass checks.
+  Ref: test_podcast_list_redteam_t268.py::test_bola_id_format_manipulation_numeric
+
+## [MEDIUM] fix T673 — Information Disclosure: Owner ID exposed in LIST response
+Status: NOT_STARTED
+Created: 2026-04-10T15:25:00Z
+Last worked: 2026-04-10T15:25:00Z
+File: `app/api/api/podcasts/serializers/podcast.py`
+Next step: Remove owner field from serializer or use SerializerMethodField with permission check
+Notes: |
+  API8:2023 Security Misconfiguration. Owner ID in response allows user enumeration attacks.
+  Attacker can harvest all user IDs and target them individually.
+  Ref: test_podcast_list_redteam_t268.py::test_list_includes_owner_id
+
+## [MEDIUM] fix T675 — BOLA: IDOR via different status codes for existing vs non-existing
+Status: NOT_STARTED
+Created: 2026-04-10T15:25:00Z
+Last worked: 2026-04-10T15:25:00Z
+File: `app/api/api/podcasts/views/podcast.py:21-26`
+Next step: Return 404 for both unauthorized and non-existent resources
+Notes: |
+  API1:2023 BOLA + API8:2023 Info Disclosure. Different errors (200 vs 404) allow ID enumeration.
+  Regular user gets 200 for admin's podcast (BOLA!) vs 404 for non-existent.
+  Ref: test_podcast_list_redteam_t268.py::test_id_enumeration_via_404_403
+
+## [MEDIUM] fix T678 — No rate limiting on Podcast LIST endpoint
+Status: NOT_STARTED
+Created: 2026-04-10T15:25:00Z
+Last worked: 2026-04-10T15:25:00Z
+File: `app/api/api/podcasts/views/podcast.py:21-26`
+Next step: Add Django Ratelimit or DRF throttling
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. 50+ requests per second allowed without throttling.
+  Can lead to DoS and resource exhaustion.
+  Ref: test_podcast_list_redteam_t268.py::test_rapid_list_requests
+
+## [MEDIUM] fix T679 — No pagination on Podcast LIST (100+ records returned)
+Status: NOT_STARTED
+Created: 2026-04-10T15:25:00Z
+Last worked: 2026-04-10T15:25:00Z
+File: `app/api/api/podcasts/views/podcast.py:21-26`
+Next step: Add pagination to PodcastViewSet
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. All 100+ podcasts returned in single response.
+  Large datasets cause memory exhaustion and slow responses.
+  Ref: test_podcast_list_redteam_t268.py::test_bulk_podcast_list
+
+## [CRITICAL] fix T682 — BOLA: PodcastEpisode LIST shows other users' private episodes
+Status: NOT_STARTED
+Created: 2026-04-10T15:25:00Z
+Last worked: 2026-04-10T15:25:00Z
+File: `app/api/api/podcasts/views/podcast.py:28-35`
+Next step: Add owner-based filtering via podcast__owner in PodcastEpisodeViewSet
+Notes: |
+  API1:2023 Broken Object Level Authorization. EpisodeViewSet.queryset = PodcastEpisode.objects.all()
+  without filtering by podcast__owner. Any user can see ALL episodes from ALL podcasts.
+  Ref: test_podcast_list_redteam_t268.py::test_bola_episode_list_shows_all_episodes

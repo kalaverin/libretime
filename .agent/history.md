@@ -1790,3 +1790,55 @@ name = faker.name()     # Generate fake name
 - `.agent/tasks.md` — added T267 to Completed
 
 **DEADBEEF Protocol Progress:** Continuing API security test coverage
+
+
+---
+
+## Session: 2026-04-10T15:30:00Z
+
+**Context:** T268 Podcast LIST redteam - expanded with paranoid security tests
+
+**Task:** T268 — Podcast LIST redteam security tests (expanded)
+
+**Completed:**
+1. Extended `test_podcast_list_redteam_t268.py` with 47 total tests:
+   - TestPodcastListRedTeamBOLA: 6 tests (BOLA, ID manipulation)
+   - TestPodcastListRedTeamInjection: 6 tests (SQLi, NoSQLi, Command injection)
+   - TestPodcastListRedTeamInformationDisclosure: 5 tests (owner ID, errors)
+   - TestPodcastListRedTeamResourceConsumption: 5 tests (rate limiting, bulk)
+   - TestPodcastListRedTeamAuthentication: 5 tests (no auth, bad tokens)
+   - TestPodcastEpisodeListRedTeamBOLA: 1 test (episode BOLA)
+   - TestPodcastStationListRedTeamBOLA: 1 test (station BOLA)
+   - TestImportedPodcastListRedTeamBOLA: 1 test (imported BOLA)
+   - TestPodcastListRedTeamHTTPMethodTampering: 3 tests (TRACE, method override)
+   - TestPodcastListRedTeamBOPLA: 2 tests (mass assignment, field selection)
+   - TestPodcastListRedTeamFuzzing: 5 tests (SecLists naughty strings, XSS)
+   - TestPodcastListRedTeamSSRF: 2 tests (internal URLs, DNS rebinding)
+   - TestPodcastListRedTeamHeaders: 3 tests (CORS, host poisoning, cache)
+   - TestPodcastListRedTeamBusinessLogic: 2 tests (encoding, JSONP)
+
+2. SecLists integration:
+   - SQLI_PAYLOADS (Generic-SQLi.txt)
+   - XSS_PAYLOADS (XSS/)
+   - NAUGHTY_STRINGS (big-list-of-naughty-strings.txt)
+   - PATH_TRAVERSAL (LFI/)
+   - COMMAND_INJECTION
+
+3. Bugs documented (tasks T663-T684):
+   - T663 (CRITICAL): BOLA - LIST shows all users' podcasts
+   - T664 (HIGH): BFLA - Guest user can list podcasts
+   - T665 (MEDIUM): ID format manipulation
+   - T673 (MEDIUM): Owner ID exposed (enumeration)
+   - T675 (MEDIUM): IDOR via different status codes
+   - T678 (MEDIUM): No rate limiting
+   - T679 (MEDIUM): No pagination
+   - T682 (CRITICAL): Episode LIST BOLA
+   - T683, T684: Station/Imported podcast BOLA
+
+**Test Results:** 36 passed, 2 skipped, 9 xfailed
+
+**Files modified:**
+- `app/api/api/podcasts/tests/views/test_podcast_list_redteam_t268.py` (expanded)
+- `.agent/tasks.md` — added T663-T684
+
+**DEADBEEF Protocol Progress:** 47 tests for Podcast LIST security
