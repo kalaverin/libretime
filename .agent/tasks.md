@@ -5291,3 +5291,113 @@ Notes: |
   Query with end date before start date is accepted. Should return 400 for invalid range.
   Ref: test_listener_count_redteam_t265.py::test_end_before_start_date_range
 
+## [MEDIUM] fix T653 — BFLA: Guest user can access live logs
+Status: NOT_STARTED
+Created: 2026-04-10T16:05:00Z
+Last worked: 2026-04-10T16:05:00Z
+File: `app/api/api/history/views/live.py`
+Next step: Add permission check to restrict guest access to live logs
+Notes: |
+  API5:2023 Broken Function Level Authorization. Guest users can LIST live logs.
+  Should be restricted to authenticated users with appropriate permissions.
+  Ref: test_live_log_redteam_t266.py::test_bola_guest_user_can_access_logs
+
+## [MEDIUM] fix T654 — BOPLA: LiveLog CREATE accepts extra fields
+Status: NOT_STARTED
+Created: 2026-04-10T16:05:00Z
+Last worked: 2026-04-10T16:05:00Z
+File: `app/api/api/history/serializers/live.py:6-9`
+Next step: Add strict validation to reject unknown fields
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. LiveLog CREATE accepts
+  extra fields like "is_admin", "station_id", "owner" and silently ignores them.
+  Ref: test_live_log_redteam_t266.py::test_bopla_create_extra_fields_ignored
+
+## [CRITICAL] fix T655 — BOPLA: Can fake stream end time
+Status: NOT_STARTED
+Created: 2026-04-10T16:05:00Z
+Last worked: 2026-04-10T16:05:00Z
+File: `app/api/api/history/serializers/live.py:6-9`
+Next step: Add validation to prevent arbitrary end_time manipulation
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. UPDATE allows setting arbitrary
+  end_time (e.g., 24 hours in future). Can fake stream duration for false analytics.
+  Ref: test_live_log_redteam_t266.py::test_bopla_update_fake_end_time
+
+## [LOW] fix T656 — Validation: LiveLog end_time before start_time accepted
+Status: NOT_STARTED
+Created: 2026-04-10T16:05:00Z
+Last worked: 2026-04-10T16:05:00Z
+File: `app/api/api/history/serializers/live.py:6-9`
+Next step: Add validation: end_time must be >= start_time
+Notes: |
+  end_time before start_time is accepted but creates impossible time ranges.
+  Should validate temporal consistency.
+  Ref: test_live_log_redteam_t266.py::test_bopla_end_time_before_start_time
+
+## [LOW] fix T657 — Validation: Future start_time accepted for live logs
+Status: NOT_STARTED
+Created: 2026-04-10T16:05:00Z
+Last worked: 2026-04-10T16:05:00Z
+File: `app/api/api/history/serializers/live.py:6-9`
+Next step: Add validation to reject future start_time
+Notes: |
+  Future timestamps are accepted but live logs should represent past/current streams.
+  Should validate start_time <= now().
+  Ref: test_live_log_redteam_t266.py::test_bopla_future_start_time
+
+## [MEDIUM] fix T658 — BOPLA: LiveLog PATCH accepts extra fields
+Status: NOT_STARTED
+Created: 2026-04-10T16:05:00Z
+Last worked: 2026-04-10T16:05:00Z
+File: `app/api/api/history/serializers/live.py:6-9`
+Next step: Add strict validation on PATCH for unknown fields
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. PATCH accepts extra fields
+  like "is_system", "internal" and silently ignores them.
+  Ref: test_live_log_redteam_t266.py::test_bopla_patch_extra_fields_ignored
+
+## [HIGH] fix T659 — XSS: LiveLog state field stored unsanitized
+Status: NOT_STARTED
+Created: 2026-04-10T16:05:00Z
+Last worked: 2026-04-10T16:05:00Z
+File: `app/api/api/history/serializers/live.py:6-9`
+Next step: Add HTML sanitization for state field
+Notes: |
+  XSS vulnerability. Script tags and event handlers in state field stored unsanitized.
+  Potential stored XSS if rendered in analytics dashboard.
+  Ref: test_live_log_redteam_t266.py::test_xss_in_state_field
+
+## [MEDIUM] fix T660 — No rate limiting on LiveLog CREATE endpoint
+Status: NOT_STARTED
+Created: 2026-04-10T16:05:00Z
+Last worked: 2026-04-10T16:05:00Z
+File: `app/api/api/history/views/live.py`
+Next step: Add Django Ratelimit or DRF throttling
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. LiveLog CREATE has no rate limiting.
+  Rapid sequential requests (20) all succeed with 201. Can spam log entries.
+  Ref: test_live_log_redteam_t266.py::test_rapid_live_log_creation
+
+## [MEDIUM] fix T661 — Pagination missing on LiveLog LIST
+Status: NOT_STARTED
+Created: 2026-04-10T16:05:00Z
+Last worked: 2026-04-10T16:05:00Z
+File: `app/api/api/history/views/live.py`
+Next step: Add pagination to LiveLogViewSet
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. LIST returns all records without pagination.
+  Large datasets (>100 records) returned in single response. Can cause DoS.
+  Ref: test_live_log_redteam_t266.py::test_bulk_live_log_list
+
+## [MEDIUM] fix T662 — No rate limiting on LiveLog UPDATE endpoint
+Status: NOT_STARTED
+Created: 2026-04-10T16:05:00Z
+Last worked: 2026-04-10T16:05:00Z
+File: `app/api/api/history/views/live.py`
+Next step: Add Django Ratelimit or DRF throttling
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. LiveLog UPDATE has no rate limiting.
+  Rapid sequential updates (20) all succeed with 200. Can cause update storms.
+  Ref: test_live_log_redteam_t266.py::test_rapid_updates
+
