@@ -2770,6 +2770,48 @@ Notes: |
 
   Red team test: test_create_without_auth fails - returns 201 instead of 403
 
+## [CRITICAL] bug T411 — Anonymous users can LIST Playlists
+Status: OPEN
+Created: 2026-04-10T11:40:00Z
+Scope: api/schedule/views/playlist.py
+Next step: Add authentication required to PlaylistViewSet
+Notes: |
+  SECURITY ISSUE: Anonymous GET /api/v2/playlists returns 200 OK.
+
+  Attack scenario:
+  - Unauthenticated attacker lists all station playlists
+  - Information disclosure of programming content
+
+  Red team test: test_list_without_auth fails - returns 200 instead of 403
+
+## [CRITICAL] bug T412 — Playlists BOLA: no owner filtering
+Status: OPEN
+Created: 2026-04-10T11:40:00Z
+Scope: api/schedule/views/playlist.py
+Next step: Add owner filtering to PlaylistViewSet.get_queryset
+Notes: |
+  CRITICAL BOLA: Playlists list returns ALL playlists regardless of owner.
+
+  Attack scenario:
+  - User A can see User B's private playlists
+  - Complete information disclosure
+
+  Red team test: test_list_shows_only_own_playlists fails - shows other users' data
+
+## [CRITICAL] bug T413 — Playlists BOLA via owner filter
+Status: OPEN
+Created: 2026-04-10T11:40:00Z
+Scope: api/schedule/views/playlist.py
+Next step: Add authorization check for owner filter
+Notes: |
+  CRITICAL BOLA: Filtering by owner_id doesn't verify ownership.
+
+  Attack scenario:
+  - Attacker filters by another user's owner ID
+  - Can enumerate all users' playlists
+
+  Red team test: test_filter_by_other_owner fails - returns other users' data
+
 ## [CRITICAL] bug T407 — Anonymous users can LIST ShowHosts
 Status: OPEN
 Created: 2026-04-10T11:35:00Z
