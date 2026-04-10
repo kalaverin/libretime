@@ -2332,6 +2332,28 @@ Notes: |
   
   Red team test: test_list_shows_only_own_criteria fails
 
+## [CRITICAL] fix T370 — Show live_auth_custom_password exposed in API response
+Status: NOT_STARTED
+Created: 2026-04-10T01:25:00Z
+Scope: api/schedule/serializers/show.py
+Next step: Add password to write_only_fields
+Notes: |
+  CRITICAL: live_auth_custom_password exposed in plaintext in API responses.
+  
+  Attack scenarios:
+  - LIST /api/v2/shows returns password for all shows
+  - GET /api/v2/shows/{id} returns password
+  - Any authenticated user can see passwords
+  
+  Impact: Complete compromise of live stream authentication.
+  
+  Fix needed: Add live_auth_custom_password to write_only_fields in serializer.
+  
+  Red team tests confirming:
+  - test_password_visible_in_list: FAIL - password exposed
+  - test_password_visible_in_detail: FAIL - password exposed
+  - test_other_user_password_not_visible: FAIL - any user can see password
+
 ## [HIGH] fix T352 — Fix Schedule.ends_at not saving via API
 Status: NOT_STARTED
 Created: 2026-04-10T00:55:00Z
