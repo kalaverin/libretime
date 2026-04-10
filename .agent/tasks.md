@@ -3581,6 +3581,42 @@ File: `app/api/api/schedule/serializers/schedule.py`
 Next step: Investigate why DRF doesn't save ends_at when model has get_ends_at method
 Notes: WriteScheduleSerializer cannot save ends_at field due to conflict with get_ends_at method on Schedule model. This causes test_update_change_times_success to fail. The starts_at field works correctly.
 
+## [CRITICAL] fix T874 — BOLA: LIST endpoints return all users' data without filtering
+Status: NOT_STARTED
+Created: 2026-04-10T17:55:00Z
+Last worked: 2026-04-10T17:55:00Z
+File: `app/api/api/storage/views/file.py`, `app/api/api/schedule/views/playlist.py`
+Next step: Add get_queryset filtering by request.user to all LIST views
+Notes: |
+  API1:2023 Broken Object Level Authorization. LIST endpoints (/api/v2/files, /api/v2/playlists, 
+  /api/v2/smart-blocks) return ALL records regardless of owner. No user isolation.
+  
+  Red team test: test_files_list_user_isolation, test_playlists_list_user_isolation
+
+## [CRITICAL] fix T875 — Filter by owner_id bypasses authorization
+Status: NOT_STARTED
+Created: 2026-04-10T17:55:00Z
+Last worked: 2026-04-10T17:55:00Z
+File: `app/api/api/storage/views/file.py`
+Next step: Validate that user can only filter by their own ID
+Notes: |
+  Query param ?owner={other_user_id} returns other user's data.
+  Filter parameter bypasses object-level authorization.
+  
+  Red team test: test_filter_by_other_user_id_blocked
+
+## [HIGH] fix T876 — Missing pagination allows resource exhaustion
+Status: NOT_STARTED
+Created: 2026-04-10T17:55:00Z
+Last worked: 2026-04-10T17:55:00Z
+File: `app/api/api/` (all LIST views)
+Next step: Implement pagination or add hard limits to queryset
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. No pagination allows attackers to 
+  exhaust server resources by creating large datasets and requesting them.
+  
+  Red team test: test_list_large_dataset_response_time, test_concurrent_list_requests
+
 # Archive
 
 <!--
