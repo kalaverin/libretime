@@ -67,7 +67,10 @@ def check_authorization_header(request: Request) -> bool:
 
     auth_header = request.headers.get("authorization", "")
     if auth_header.startswith("Api-Key"):
-        token = auth_header.split()[1]
+        parts = auth_header.split()
+        if len(parts) < 2:
+            return False
+        token = parts[1]
         return compare_digest(token, settings.CONFIG.general.api_key)
 
     return False

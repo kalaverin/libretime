@@ -96,7 +96,6 @@ class TestApiKeyAuthEdgeCases:
                 response.status_code == 403
             ), f"Expected 403 for auth {repr(auth[:30])}, got {response.status_code}"
 
-    @pytest.mark.xfail(reason="T341: IndexError on empty Api-Key value")
     def test_empty_api_key_value_rejected(self):
         """Empty Api-Key value should return 403, not crash.
 
@@ -160,9 +159,9 @@ class TestBugT341:
         request = APIRequestFactory().get("/api/v2/files")
         request.headers = {"authorization": "Api-Key "}
 
-        # This should crash with IndexError
-        with pytest.raises(IndexError, match="list index out of range"):
-            check_authorization_header(request)
+        # After fix: should return False gracefully (no crash)
+        result = check_authorization_header(request)
+        assert result is False
 
     def test_t341_empty_api_key_returns_500_instead_of_403(self):
         """Confirm T341: Empty Api-Key causes 500 instead of 403.
@@ -173,13 +172,6 @@ class TestBugT341:
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION="Api-Key ")
 
-        # This will raise IndexError internally
-        try:
-            response = client.get("/api/v2/files")
-            # If we get here without exception, T341 is fixed
-            assert (
-                response.status_code == 403
-            ), f"T341 fixed? Expected 403, got {response.status_code}"
-        except IndexError as e:
-            # This confirms T341 is present
-            assert "list index out of range" in str(e)
+        # After fix: should return 403 (not crash with IndexError)
+        response = client.get("/api/v2/files")
+        assert response.status_code == 403

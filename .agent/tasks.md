@@ -1992,17 +1992,20 @@ Notes: |
   
   Result: All Podcast operations now work correctly. 42 tests pass (1 skipped).
 
-## [CRITICAL] test T341 — Fix IndexError in check_authorization_header with empty Api-Key
-Status: NOT_STARTED
+## [DONE] test T341 — Fix IndexError in check_authorization_header with empty Api-Key
+Status: DONE
 Created: 2026-04-09T18:30:00Z
+Last worked: 2026-04-10T04:10:00Z
 Scope: api/permissions.py
-Next step: Add bounds check before accessing split()[1]
 Notes: |
-  BUG: check_authorization_header() crashes with IndexError when
-  Authorization header is "Api-Key " (with space but no actual key value).
-  Line 70: token = auth_header.split()[1]  # IndexError: list index out of range
-  Fix: Check len(split_result) > 1 before accessing [1].
-  Ref: test_auth_apikey.py::TestBugT341
+  FIXED: Added bounds check before accessing split()[1] in check_authorization_header().
+  
+  Changes:
+  - permissions.py: Added check `len(parts) < 2` before accessing `parts[1]`
+  - test_auth_apikey.py: Removed xfail marker from test_empty_api_key_value_rejected
+  - test_auth_apikey.py: Updated TestBugT341 tests to verify fix (no more IndexError)
+  
+  Result: Empty Api-Key header now returns 403 instead of crashing with IndexError.
 
 ## [HIGH] fix T352 — Fix Schedule.ends_at not saving via API
 Status: NOT_STARTED
