@@ -3700,6 +3700,66 @@ Notes: |
   
   Red team test: test_file_metadata_redteam_t294.py::test_path_traversal_in_filepath_blocked
 
+## [CRITICAL] fix T887 — BOPLA: Mass assignment allows changing import_status (workflow bypass)
+Status: NOT_STARTED
+Created: 2026-04-10T18:35:00Z
+Last worked: 2026-04-10T18:35:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add import_status to read_only_fields
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. PATCH with {"import_status": 0}
+  bypasses workflow from PENDING/FAILED to SUCCESS. Critical business logic bypass.
+  
+  Red team test: test_file_silence_redteam_t296.py::test_mass_assignment_import_status_blocked
+
+## [CRITICAL] fix T888 — BOPLA: Mass assignment allows extreme channel values
+Status: NOT_STARTED
+Created: 2026-04-10T18:35:00Z
+Last worked: 2026-04-10T18:35:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add validation for channels (1-16 max) and sample_rate ranges
+Notes: |
+  Extreme values like channels=999999999 accepted without validation.
+  Could cause DoS or integer overflow in audio processing.
+  
+  Red team test: test_file_silence_redteam_t296.py::test_mass_assignment_extreme_channels_blocked
+
+## [CRITICAL] fix T889 — BOLA: Filter by import_status shows all users' files
+Status: NOT_STARTED
+Created: 2026-04-10T18:35:00Z
+Last worked: 2026-04-10T18:35:00Z
+File: `app/api/api/storage/views/file.py`
+Next step: Add user filtering to get_queryset when filtering by import_status
+Notes: |
+  API1:2023 Broken Object Level Authorization. ?import_status=0 returns all SUCCESS files
+  regardless of owner. Data leak between users.
+  
+  Red team test: test_file_silence_redteam_t296.py::test_filter_by_import_status_shows_only_own_files
+
+## [CRITICAL] fix T890 — Path traversal in filepath field accepted (absolute paths)
+Status: NOT_STARTED
+Created: 2026-04-10T18:35:00Z
+Last worked: 2026-04-10T18:35:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Validate filepath against allowed storage paths only
+Notes: |
+  Absolute paths like /etc/passwd and /etc/shadow are accepted in filepath field.
+  Critical filesystem access vulnerability.
+  
+  Red team test: test_file_silence_redteam_t296.py::test_path_traversal_in_filepath_blocked
+
+## [HIGH] fix T891 — Workflow bypass: PENDING/FAILED to SUCCESS via PATCH
+Status: NOT_STARTED
+Created: 2026-04-10T18:35:00Z
+Last worked: 2026-04-10T18:35:00Z
+File: `app/api/api/storage/views/file.py`
+Next step: Override update/patch to block import_status changes
+Notes: |
+  Users can bypass processing workflow by PATCHing import_status directly.
+  Could mark failed/pending files as successfully processed without actual processing.
+  
+  Red team test: test_file_silence_redteam_t296.py::test_pending_to_success_bypass_blocked
+
 # Archive
 
 <!--
@@ -5973,6 +6033,18 @@ Summary: |
   CORS configuration, injection prevention, HTTP method restrictions, error handling.
   18 tests total, 17 passed, 1 xfailed (rate limiting - T805).
   Ref: test_public_endpoints_redteam_t283.py
+
+## [DONE] test T296 — Silence detection redteam security tests
+Status: DONE
+Created: 2026-04-10T18:25:00Z
+Completed: 2026-04-10T17:45:00Z
+Summary: |
+  Created comprehensive red team test suite for silence detection endpoints.
+  Tests cover: BOLA (filter shows all users' files), mass assignment (import_status,
+  extreme channels), SQL injection, path traversal, MIME confusion, numeric overflow,
+  resource exhaustion, workflow bypass (PENDING/FAILED to SUCCESS), and information
+  disclosure. 39 tests passed, 8 xfailed with security bugs (T887-T891).
+  Ref: test_file_silence_redteam_t296.py
 
 ## [CRITICAL] fix T806 — BOLA: Playlist retrieve shows other user's playlist
 Status: NOT_STARTED
