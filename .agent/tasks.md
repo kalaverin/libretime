@@ -3617,6 +3617,30 @@ Notes: |
   
   Red team test: test_list_large_dataset_response_time, test_concurrent_list_requests
 
+## [CRITICAL] fix T880 — BOPLA: Mass assignment allows changing playlist owner
+Status: NOT_STARTED
+Created: 2026-04-10T18:15:00Z
+Last worked: 2026-04-10T18:15:00Z
+File: `app/api/api/schedule/serializers/playlist.py`
+Next step: Add owner to read_only_fields in PlaylistSerializer
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. PATCH request with {"owner": <user_id>}
+  changes playlist ownership. This is critical privilege escalation.
+  
+  Red team test: test_concurrent_edits_redteam_t292.py::test_concurrent_mass_assignment_owner
+
+## [MEDIUM] fix T881 — Missing optimistic locking (ETag/If-Match)
+Status: NOT_STARTED
+Created: 2026-04-10T18:15:00Z
+Last worked: 2026-04-10T18:15:00Z
+File: `app/api/api/` (all update views)
+Next step: Implement ETag headers and If-Match validation
+Notes: |
+  No optimistic locking means lost updates can occur with concurrent modifications.
+  ETag headers should be returned with resources and validated on PATCH/PUT.
+  
+  Red team test: test_concurrent_edits_redteam_t292.py::test_optimistic_locking_missing
+
 # Archive
 
 <!--
