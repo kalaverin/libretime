@@ -227,9 +227,6 @@ class TestPlaylistContentViewSetCreate:
         assert data["fade_in"] == "00:00:02"
         assert data["fade_out"] == "00:00:03"
 
-    @pytest.mark.xfail(
-        reason="T325: missing playlist not validated, returns 201",
-    )
     def test_create_missing_playlist_fails(self, api_client):
         """CREATE without playlist should return 400."""
         user = baker.make(User, username="testpc_user")
@@ -279,9 +276,6 @@ class TestPlaylistContentViewSetCreate:
         )
         assert response.status_code == 400
 
-    @pytest.mark.xfail(
-        reason="T326: FILE kind without file not validated, returns 201",
-    )
     def test_create_file_without_file_id_fails(self, api_client):
         """CREATE FILE kind without file ID should return 400."""
         user = baker.make(User, username="testpc_user")

@@ -1739,19 +1739,33 @@ Scope: api/schedule/serializers/playlist.py
 Next step: Make offset optional in serializer or add default value
 Notes: Serializer rejects requests without offset even though model field allows null.
 
-## [CRITICAL] fix T325 — PlaylistContent missing playlist not validated
-Status: NOT_STARTED
+## [DONE] fix T325 — PlaylistContent missing playlist not validated
+Status: DONE
 Created: 2026-04-09T16:05:00Z
+Last worked: 2026-04-10T03:05:00Z
 Scope: api/schedule/serializers/playlist.py
-Next step: Add required validation for playlist field
-Notes: Creating content without playlist returns 201 instead of 400.
+Notes: |
+  FIXED: Added required validation for playlist field in PlaylistContentSerializer.
+  
+  Changes:
+  - playlist.py serializer: Added extra_kwargs with required=True for playlist field
+  - test_playlistcontent_create.py: Removed xfail marker from test_create_missing_playlist_fails
+  
+  Result: Creating PlaylistContent without playlist now returns 400 instead of 201.
 
-## [CRITICAL] fix T326 — PlaylistContent FILE kind without file not validated
-Status: NOT_STARTED
+## [DONE] fix T326 — PlaylistContent FILE kind without file not validated
+Status: DONE
 Created: 2026-04-09T16:05:00Z
+Last worked: 2026-04-10T03:05:00Z
 Scope: api/schedule/serializers/playlist.py
-Next step: Add validation to require file when kind=FILE
-Notes: Creating FILE content without file ID returns 201 instead of 400.
+Notes: |
+  FIXED: Added validation to require file when kind=FILE in PlaylistContentSerializer.
+  
+  Changes:
+  - playlist.py serializer: Added validate() method to check that FILE kind has file assigned
+  - test_playlistcontent_create.py: Removed xfail marker from test_create_file_without_file_id_fails
+  
+  Result: Creating PlaylistContent with kind=FILE but without file now returns 400 instead of 201.
 
 ## [CRITICAL] fix T327 — SmartBlock filter by kind not implemented
 Status: NOT_STARTED
