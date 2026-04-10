@@ -822,6 +822,94 @@ Last worked: 2026-04-06T16:53:26Z
 File: `app/api/api/storage/views/file.py:3`
 Notes: `from os import remove` unused (uses os.remove).
 
+## [CRITICAL] fix T488 — BOLA: SmartBlockCriteria LIST shows all users' criteria
+Status: NOT_STARTED
+Created: 2026-04-10T13:45:00Z
+Last worked: 2026-04-10T13:45:00Z
+File: `app/api/api/schedule/views/smart_block.py:71-77`
+Next step: Add ownership filtering through block__owner
+Notes: |
+  API1:2023 Broken Object Level Authorization. LIST endpoint returns criteria
+  for all blocks regardless of owner. Attacker can see victim's SmartBlockCriteria.
+  Ref: test_smartblockcriteria_list_redteam_t241.py::test_bola_list_shows_all_users_criteria
+
+## [CRITICAL] fix T489 — BOLA: SmartBlockCriteria filter by block bypasses ownership
+Status: NOT_STARTED
+Created: 2026-04-10T13:45:00Z
+Last worked: 2026-04-10T13:45:00Z
+File: `app/api/api/schedule/views/smart_block.py:71-77`
+Next step: Verify block ownership before filtering
+Notes: |
+  Attacker can filter by victim's block ID to see all criteria for that block.
+  No ownership check on the block parameter.
+  Ref: test_smartblockcriteria_list_redteam_t241.py::test_bola_filter_by_other_users_block
+
+## [HIGH] fix T490 — SQL injection in SmartBlockCriteria block filter
+Status: NOT_STARTED
+Created: 2026-04-10T13:45:00Z
+Last worked: 2026-04-10T13:45:00Z
+File: `app/api/api/schedule/views/smart_block.py:74-76`
+Next step: Use Django ORM parameterization or validate block_id type
+Notes: |
+  Malformed block parameter may cause SQL errors. Need to ensure proper
+  type casting and parameterization.
+  Ref: test_smartblockcriteria_list_redteam_t241.py::test_filter_sql_injection_block_param
+
+## [MEDIUM] fix T491 — 500 error on non-numeric block_id filter
+Status: NOT_STARTED
+Created: 2026-04-10T13:45:00Z
+Last worked: 2026-04-10T13:45:00Z
+File: `app/api/api/schedule/views/smart_block.py:74-76`
+Next step: Add try/except or validation for block_id parameter
+Notes: |
+  Query param ?block=abc causes 500 error instead of 400.
+  Should validate that block_id is numeric before filtering.
+  Ref: test_smartblockcriteria_list_redteam_t241.py::test_filter_non_numeric_block_id
+
+## [MEDIUM] fix T492 — 500 error on unicode block_id filter
+Status: NOT_STARTED
+Created: 2026-04-10T13:45:00Z
+Last worked: 2026-04-10T13:45:00Z
+File: `app/api/api/schedule/views/smart_block.py:74-76`
+Next step: Add unicode handling or validation
+Notes: |
+  Query param ?block=日本語 causes 500 error instead of 400.
+  Should handle unicode gracefully or reject with 400.
+  Ref: test_smartblockcriteria_list_redteam_t241.py::test_filter_unicode_block_id
+
+## [MEDIUM] fix T493 — Error message leaks database structure
+Status: NOT_STARTED
+Created: 2026-04-10T13:45:00Z
+Last worked: 2026-04-10T13:45:00Z
+File: `app/api/api/schedule/views/smart_block.py`
+Next step: Add custom error handling to hide SQL details
+Notes: |
+  Error messages reveal table names (cc_blockcriteria) and SQL details.
+  Should return generic error messages to prevent information disclosure.
+  Ref: test_smartblockcriteria_list_redteam_t241.py::test_error_message_leaks_structure
+
+## [LOW] fix T494 — 500 error on special query params
+Status: NOT_STARTED
+Created: 2026-04-10T13:45:00Z
+Last worked: 2026-04-10T13:45:00Z
+File: `app/api/api/schedule/views/smart_block.py:74-76`
+Next step: Handle null/undefined/None values gracefully
+Notes: |
+  Query params like ?block=undefined or ?block=null cause 500 errors.
+  Should treat these as invalid and return 400.
+  Ref: test_smartblockcriteria_list_redteam_t241.py::test_fuzzing_query_params
+
+## [HIGH] fix T495 — SmartBlockCriteria values leak block information
+Status: NOT_STARTED
+Created: 2026-04-10T13:45:00Z
+Last worked: 2026-04-10T13:45:00Z
+File: `app/api/api/schedule/views/smart_block.py`
+Next step: Add ownership-based filtering to queryset
+Notes: |
+  Criteria values may contain sensitive configuration data that leaks
+  information about victim's private blocks. Combined with T488.
+  Ref: test_smartblockcriteria_list_redteam_t241.py::test_criteria_value_leaks_block_info
+
 ## [LOW] chore T53 — Update deprecated Celery backend
 Status: NOT_STARTED
 Created: 2026-04-06T16:53:26Z
