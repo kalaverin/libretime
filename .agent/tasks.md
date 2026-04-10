@@ -2007,6 +2007,43 @@ Notes: |
   
   Result: Empty Api-Key header now returns 403 instead of crashing with IndexError.
 
+## [CRITICAL] fix T353 — Podcast ViewSets missing owner-based queryset filtering (BOLA)
+Status: NOT_STARTED
+Created: 2026-04-10T09:35:00Z
+Scope: api/podcasts/views/podcast.py
+Next step: Add get_queryset() filtering by owner to all Podcast ViewSets
+Notes: |
+  CRITICAL BOLA VULNERABILITY: All Podcast ViewSets lack owner-based filtering.
+  
+  Current behavior (BROKEN):
+  - PodcastViewSet.queryset = Podcast.objects.all() - returns ALL podcasts
+  - PodcastEpisodeViewSet.queryset = PodcastEpisode.objects.all() - returns ALL episodes
+  - StationPodcastViewSet.queryset = StationPodcast.objects.all()
+  - ImportedPodcastViewSet.queryset = ImportedPodcast.objects.all()
+  
+  Any authenticated user with 'view_podcast' permission can:
+  - List all podcasts (including other users' private podcasts)
+  - Access any podcast by ID
+  - Access any episode
+  - This is a Broken Object Level Authorization (BOLA/API1) vulnerability
+  
+  Expected behavior:
+  - Regular users should only see their own podcasts (owner=request.user)
+  - Admins can see all podcasts
+  - Same for episodes, station podcasts, imported podcasts
+  
+  Fix needed:
+  - Override get_queryset() in each ViewSet
+  - Filter by owner for non-admin users
+  - Use existing get_own_obj() pattern from api/permissions.py
+  
+  Red team tests confirming bug: test_podcast_redteam_t340.py
+  - test_list_podcasts_shows_only_own: FAIL - user sees all podcasts
+  - test_access_other_user_podcast_directly: FAIL - 200 instead of 403
+  - test_access_episode_of_other_user_podcast: FAIL - 200 instead of 403
+  - test_anonymous_cannot_list_podcasts: FAIL - 200 instead of 403
+  - test_anonymous_cannot_create_podcast: FAIL - 201 instead of 403
+
 ## [HIGH] fix T352 — Fix Schedule.ends_at not saving via API
 Status: NOT_STARTED
 Created: 2026-04-10T00:55:00Z
