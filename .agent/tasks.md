@@ -5652,3 +5652,69 @@ Notes: |
   API4:2023 Unrestricted Resource Consumption. 20+ DELETE requests per second
   allowed. Rapid deletion can cause data loss and DoS.
   Ref: test_podcast_rud_redteam_t270.py::test_rapid_delete_requests
+
+## [MEDIUM] fix T740 — No account lockout after multiple failed login attempts
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/core/auth.py`
+Next step: Implement account lockout after 5 failed attempts
+Notes: |
+  API2:2023 Broken Authentication. 10+ failed login attempts allowed without lockout.
+  Brute force vulnerability - attacker can guess passwords indefinitely.
+  Ref: test_auth_session_redteam_t279.py::test_brute_force_account_lockout
+
+## [MEDIUM] fix T741 — Weak passwords accepted (123456, password, qwerty)
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/core/models/user.py`
+Next step: Add password strength validator
+Notes: |
+  API2:2023 Broken Authentication. Common weak passwords like "123456", "password",
+  "qwerty" are accepted. Should reject passwords from common wordlists.
+  Ref: test_auth_session_redteam_t279.py::test_weak_password_accepted
+
+## [MEDIUM] fix T742 — Common passwords from wordlists accepted
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/core/models/user.py`
+Next step: Integrate password validator with haveibeenpwned or rockyou.txt
+Notes: |
+  API2:2023 Broken Authentication. Passwords like "password123", "iloveyou", "princess"
+  from common wordlists are accepted. Should check against known compromised passwords.
+  Ref: test_auth_session_redteam_t279.py::test_common_passwords_accepted
+
+## [MEDIUM] fix T743 — Short passwords (< 8 chars) accepted
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/core/models/user.py`
+Next step: Enforce minimum password length of 8 characters
+Notes: |
+  API2:2023 Broken Authentication. Passwords with less than 8 characters are accepted.
+  NIST recommends minimum 8 characters for passwords.
+  Ref: test_auth_session_redteam_t279.py::test_password_min_length
+
+## [HIGH] fix T745 — BFLA: Guest user can access protected endpoints
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/permissions.py`
+Next step: Restrict guest access to read-only endpoints only
+Notes: |
+  API5:2023 Broken Function Level Authorization. Guest users (role=G) can access
+  endpoints like /api/v2/files, /api/v2/libraries that should be restricted.
+  Ref: test_auth_session_redteam_t279.py::test_guest_user_access_restrictions
+
+## [LOW] fix T746 — No limit on concurrent user sessions
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/settings/_django.py`
+Next step: Add SESSION_CONCURRENT_LIMIT or similar setting
+Notes: |
+  API2:2023 Broken Authentication. User can have unlimited concurrent sessions.
+  Increases risk of session hijacking and makes session revocation difficult.
+  Ref: test_auth_session_redteam_t279.py::test_concurrent_session_limit
