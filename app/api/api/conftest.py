@@ -332,3 +332,9 @@ def host_client(regular_user) -> APIClient:
     client = APIClient()
     client.force_authenticate(user=regular_user)
     return client
+
+
+@pytest.fixture
+def anonymous_client() -> APIClient:
+    """Anonymous API client - no authentication."""
+    return APIClient()

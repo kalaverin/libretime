@@ -3096,10 +3096,6 @@ Notes: |
      - PATCH {"owner": other_user_id} transfers ownership
      - Owner should be immutable after creation
 
-  3. ANONYMOUS DELETE (CRITICAL):
-     - DELETE /api/v2/webstreams/{id} without auth returns 204
-     - Anyone can delete webstreams!
-
   Red team tests: test_webstream_redteam_t333.py
 
 ## [CRITICAL] fix T353 — Podcast ViewSets missing owner-based queryset filtering (BOLA)
@@ -3403,20 +3399,6 @@ Notes: |
 
   Red team test: test_color_with_invalid_chars fails
 
-## [CRITICAL] fix T382 — Show RETRIEVE allows anonymous access
-Status: NOT_STARTED
-Created: 2026-04-10T02:10:00Z
-Scope: api/schedule/views/show.py
-Next step: Add authentication requirement
-Notes: |
-  CRITICAL: Anonymous users can retrieve show details.
-
-  Attack scenario:
-  - GET /api/v2/shows/{id} without auth returns 200
-  - Information disclosure
-
-  Red team test: test_retrieve_without_auth fails - returns 200
-
 ## [CRITICAL] fix T383 — Show BOLA/IDOR - no owner filtering
 Status: NOT_STARTED
 Created: 2026-04-10T02:10:00Z
@@ -3435,22 +3417,6 @@ Notes: |
   Red team tests:
   - test_access_other_user_show: FAIL
   - test_access_show_via_idor: FAIL
-
-## [CRITICAL] fix T384 — Show UPDATE allows anonymous access
-Status: NOT_STARTED
-Created: 2026-04-10T02:20:00Z
-Scope: api/schedule/views/show.py
-Next step: Add authentication requirement for PUT/PATCH
-Notes: |
-  CRITICAL: Anonymous can modify shows via PATCH/PUT.
-
-  Attack scenarios:
-  - PATCH /api/v2/shows/{id} without auth returns 200
-  - PUT /api/v2/shows/{id} without auth returns 200
-
-  Red team tests:
-  - test_patch_without_auth: FAIL
-  - test_put_without_auth: FAIL
 
 ## [HIGH] fix T385 — Show URL validation missing on PATCH
 Status: NOT_STARTED
@@ -3484,95 +3450,6 @@ Notes: |
   - test_patch_description_with_script: FAIL
   - test_patch_description_with_event_handler: FAIL
 
-## [CRITICAL] fix T387 — Show DELETE allows anonymous access
-Status: NOT_STARTED
-Created: 2026-04-10T02:30:00Z
-Scope: api/schedule/views/show.py
-Next step: Add authentication requirement for DELETE
-Notes: |
-  CRITICAL: Anonymous users can delete shows.
-
-  Attack scenario:
-  - DELETE /api/v2/shows/{id} without auth returns 204
-  - Anyone can delete all shows
-
-  Red team test: test_delete_without_auth fails - returns 204
-Status: NOT_STARTED
-Created: 2026-04-10T02:20:00Z
-Scope: api/schedule/serializers/show.py
-Next step: Add HTML sanitization to PATCH
-Notes: |
-  SECURITY ISSUE: XSS injection works via PATCH.
-
-  Can inject scripts via description PATCH:
-  - <script>alert('xss')</script>
-  - <img src=x onerror=alert('xss')>
-
-  Red team tests:
-  - test_patch_description_with_script: FAIL
-  - test_patch_description_with_event_handler: FAIL
-Status: NOT_STARTED
-Created: 2026-04-10T02:10:00Z
-Scope: api/schedule/views/show.py
-Next step: Add owner-based filtering to get_queryset
-Notes: |
-  CRITICAL BOLA/IDOR: Any user can access any show by ID.
-
-  Attack scenario:
-  - User A has private show
-  - User B calls GET /api/v2/shows/{show_id}
-  - User B can see User A's private show
-
-  No ownership verification in place.
-
-  Red team tests:
-  - test_access_other_user_show: FAIL
-  - test_access_show_via_idor: FAIL
-Status: NOT_STARTED
-Created: 2026-04-10T02:00:00Z
-Scope: api/schedule/serializers/show.py
-Next step: Add color format validation
-Notes: |
-  VALIDATION GAP: Show accepts invalid hex colors like "GGGGGG".
-
-  Expected: Only valid hex colors (0-9, A-F) should be accepted
-  Actual: Any 6-character string accepted
-
-  Red team test: test_color_with_invalid_chars fails
-Status: NOT_STARTED
-Created: 2026-04-10T01:40:00Z
-Scope: api/core/views/auth.py
-Next step: Investigate caching or implement immediate revocation
-Notes: |
-  ISSUE: Deleted tokens still work immediately after deletion.
-
-  Expected: Token should be immediately revoked
-  Actual: Returns 403 (but test expects 200 for working token)
-
-  May indicate caching issue or test timing issue.
-
-  Red team test: test_token_revocation fails
-Status: NOT_STARTED
-Created: 2026-04-10T01:35:00Z
-Scope: api/core/views/auth.py
-Next step: Remove delete permission
-Notes: |
-  SECURITY ISSUE: Login attempt records can be deleted.
-
-  Attack scenario:
-  - Attacker deletes their login attempt record
-  - No audit trail of failed attempts
-
-  Red team test: test_delete_login_attempt_record fails - returns 204
-Status: NOT_STARTED
-Created: 2026-04-10T01:30:00Z
-Scope: api/core/views/preference.py
-Next step: Add user filtering to get_queryset
-Notes: |
-  CRITICAL BOLA: Preference list returns ALL preferences.
-
-  Red team test: test_list_shows_only_own_preferences returns 403 instead of filtered list
-
 ## [HIGH] fix T352 — Fix Schedule.ends_at not saving via API
 Status: NOT_STARTED
 Created: 2026-04-10T00:55:00Z
@@ -3588,9 +3465,9 @@ Last worked: 2026-04-10T17:55:00Z
 File: `app/api/api/storage/views/file.py`, `app/api/api/schedule/views/playlist.py`
 Next step: Add get_queryset filtering by request.user to all LIST views
 Notes: |
-  API1:2023 Broken Object Level Authorization. LIST endpoints (/api/v2/files, /api/v2/playlists, 
+  API1:2023 Broken Object Level Authorization. LIST endpoints (/api/v2/files, /api/v2/playlists,
   /api/v2/smart-blocks) return ALL records regardless of owner. No user isolation.
-  
+
   Red team test: test_files_list_user_isolation, test_playlists_list_user_isolation
 
 ## [CRITICAL] fix T875 — Filter by owner_id bypasses authorization
@@ -3602,7 +3479,7 @@ Next step: Validate that user can only filter by their own ID
 Notes: |
   Query param ?owner={other_user_id} returns other user's data.
   Filter parameter bypasses object-level authorization.
-  
+
   Red team test: test_filter_by_other_user_id_blocked
 
 ## [HIGH] fix T876 — Missing pagination allows resource exhaustion
@@ -3612,9 +3489,9 @@ Last worked: 2026-04-10T17:55:00Z
 File: `app/api/api/` (all LIST views)
 Next step: Implement pagination or add hard limits to queryset
 Notes: |
-  API4:2023 Unrestricted Resource Consumption. No pagination allows attackers to 
+  API4:2023 Unrestricted Resource Consumption. No pagination allows attackers to
   exhaust server resources by creating large datasets and requesting them.
-  
+
   Red team test: test_list_large_dataset_response_time, test_concurrent_list_requests
 
 ## [CRITICAL] fix T880 — BOPLA: Mass assignment allows changing playlist owner
@@ -3626,7 +3503,7 @@ Next step: Add owner to read_only_fields in PlaylistSerializer
 Notes: |
   API3:2023 Broken Object Property Level Authorization. PATCH request with {"owner": <user_id>}
   changes playlist ownership. This is critical privilege escalation.
-  
+
   Red team test: test_concurrent_edits_redteam_t292.py::test_concurrent_mass_assignment_owner
 
 ## [MEDIUM] fix T881 — Missing optimistic locking (ETag/If-Match)
@@ -3638,7 +3515,7 @@ Next step: Implement ETag headers and If-Match validation
 Notes: |
   No optimistic locking means lost updates can occur with concurrent modifications.
   ETag headers should be returned with resources and validated on PATCH/PUT.
-  
+
   Red team test: test_concurrent_edits_redteam_t292.py::test_optimistic_locking_missing
 
 ## [CRITICAL] fix T882 — BOPLA: Mass assignment allows changing file owner via metadata
@@ -3648,9 +3525,9 @@ Last worked: 2026-04-10T18:25:00Z
 File: `app/api/api/storage/serializers/file.py`
 Next step: Add owner to read_only_fields in FileSerializer
 Notes: |
-  API3:2023 Broken Object Property Level Authorization. PATCH with {"owner": <id>} 
+  API3:2023 Broken Object Property Level Authorization. PATCH with {"owner": <id>}
   changes file ownership. Privilege escalation vulnerability.
-  
+
   Red team test: test_file_metadata_redteam_t294.py::test_mass_assignment_owner_field
 
 ## [CRITICAL] fix T883 — Stored XSS in metadata fields
@@ -3662,7 +3539,7 @@ Next step: Add HTML sanitization to text fields or reject HTML tags
 Notes: |
   XSS payloads like <script>alert(1)</script> are stored and returned as-is.
   Affects track_title, artist_name, album_title fields.
-  
+
   Red team test: test_file_metadata_redteam_t294.py::test_xss_in_track_title_blocked
 
 ## [CRITICAL] fix T884 — Mass assignment allows changing filepath
@@ -3674,7 +3551,7 @@ Next step: Add filepath to read_only_fields
 Notes: |
   PATCH request can modify filepath field, allowing path traversal attacks.
   Critical filesystem access vulnerability.
-  
+
   Red team test: test_file_metadata_redteam_t294.py::test_mass_assignment_readonly_fields_blocked
 
 ## [CRITICAL] fix T885 — Mass assignment allows changing created_at
@@ -3685,7 +3562,7 @@ File: `app/api/api/storage/serializers/file.py`
 Next step: Add created_at to read_only_fields
 Notes: |
   Audit field created_at can be modified via PATCH, breaking audit trail.
-  
+
   Red team test: test_file_metadata_redteam_t294.py::test_mass_assignment_created_at_blocked
 
 ## [CRITICAL] fix T886 — Path traversal in filepath field accepted
@@ -3697,7 +3574,7 @@ Next step: Add path traversal validation to filepath field
 Notes: |
   Path traversal patterns like ../../../etc/passwd are accepted in filepath.
   Could allow access to arbitrary filesystem locations.
-  
+
   Red team test: test_file_metadata_redteam_t294.py::test_path_traversal_in_filepath_blocked
 
 ## [CRITICAL] fix T887 — BOPLA: Mass assignment allows changing import_status (workflow bypass)
@@ -3709,7 +3586,7 @@ Next step: Add import_status to read_only_fields
 Notes: |
   API3:2023 Broken Object Property Level Authorization. PATCH with {"import_status": 0}
   bypasses workflow from PENDING/FAILED to SUCCESS. Critical business logic bypass.
-  
+
   Red team test: test_file_silence_redteam_t296.py::test_mass_assignment_import_status_blocked
 
 ## [CRITICAL] fix T888 — BOPLA: Mass assignment allows extreme channel values
@@ -3721,7 +3598,7 @@ Next step: Add validation for channels (1-16 max) and sample_rate ranges
 Notes: |
   Extreme values like channels=999999999 accepted without validation.
   Could cause DoS or integer overflow in audio processing.
-  
+
   Red team test: test_file_silence_redteam_t296.py::test_mass_assignment_extreme_channels_blocked
 
 ## [CRITICAL] fix T889 — BOLA: Filter by import_status shows all users' files
@@ -3733,7 +3610,7 @@ Next step: Add user filtering to get_queryset when filtering by import_status
 Notes: |
   API1:2023 Broken Object Level Authorization. ?import_status=0 returns all SUCCESS files
   regardless of owner. Data leak between users.
-  
+
   Red team test: test_file_silence_redteam_t296.py::test_filter_by_import_status_shows_only_own_files
 
 ## [CRITICAL] fix T890 — Path traversal in filepath field accepted (absolute paths)
@@ -3745,7 +3622,7 @@ Next step: Validate filepath against allowed storage paths only
 Notes: |
   Absolute paths like /etc/passwd and /etc/shadow are accepted in filepath field.
   Critical filesystem access vulnerability.
-  
+
   Red team test: test_file_silence_redteam_t296.py::test_path_traversal_in_filepath_blocked
 
 ## [HIGH] fix T891 — Workflow bypass: PENDING/FAILED to SUCCESS via PATCH
@@ -3757,7 +3634,7 @@ Next step: Override update/patch to block import_status changes
 Notes: |
   Users can bypass processing workflow by PATCHing import_status directly.
   Could mark failed/pending files as successfully processed without actual processing.
-  
+
   Red team test: test_file_silence_redteam_t296.py::test_pending_to_success_bypass_blocked
 
 ## [CRITICAL] fix T892 — BOLA: Stereo/mono endpoint lacks user isolation
@@ -3770,7 +3647,7 @@ Notes: |
   API1:2023 Broken Object Level Authorization. FileViewSet has no get_queryset()
   filtering, allowing users to see other users' stereo/mono channel info via
   LIST and RETRIEVE endpoints. Anonymous access also returns 200 instead of 401/403.
-  
+
   Red team test: test_file_stereo_redteam_t297.py::TestStereoMonoBOLA
 
 ## [CRITICAL] fix T893 — Mass assignment allows modifying channels
@@ -3782,7 +3659,7 @@ Next step: Add channels to read_only_fields
 Notes: |
   API6:2023 - Mass assignment. Channels field should be read-only from audio analysis,
   but PATCH/PUT allows modifying it. Users can fake mono/stereo/surround detection.
-  
+
   Red team test: test_file_stereo_redteam_t297.py::test_mass_assignment_channels_blocked
 
 ## [HIGH] fix T894 — No validation for extreme channel values
@@ -3794,7 +3671,7 @@ Next step: Add validators for channels range (1-16)
 Notes: |
   Values like 1000, 999999, negative numbers accepted for channels field.
   Should validate realistic audio channel counts (1-16 for surround sound).
-  
+
   Red team test: test_file_stereo_redteam_t297.py::test_extreme_channel_values_blocked
 
 ## [HIGH] fix T895 — Mass assignment allows modifying sample_rate
@@ -3806,7 +3683,7 @@ Next step: Add sample_rate to read_only_fields
 Notes: |
   API6:2023 - Mass assignment. Sample rate affects audio processing but can be
   modified via PATCH/PUT. Should be read-only from actual audio file analysis.
-  
+
   Red team test: test_file_stereo_redteam_t297.py::test_mass_assignment_sample_rate_blocked
 
 ## [CRITICAL] fix T897 — Filter by channels shows all users' files
@@ -3818,7 +3695,7 @@ Next step: Add user filtering to queryset for filtered views
 Notes: |
   API1:2023 BOLA. Filtering by channels (mono/stereo) returns files from all users,
   not just the authenticated user. Missing authorization in filtered queries.
-  
+
   Red team test: test_file_stereo_redteam_t297.py::test_filter_by_channels_cross_user
 
 ## [MEDIUM] fix T899 — Anonymous enumeration of channel data
@@ -3830,7 +3707,7 @@ Next step: Add authentication requirement
 Notes: |
   Anonymous users can access /api/v2/files endpoints and enumerate channel data
   without authentication. Should return 401/403 for anonymous requests.
-  
+
   Red team test: test_file_stereo_redteam_t297.py::TestStereoMonoEnumeration
 
 ## [MEDIUM] fix T900 — No validation for negative channel values
@@ -3842,7 +3719,7 @@ Next step: Add MinValueValidator for channels
 Notes: |
   Negative channel values accepted via PATCH/PUT. Should validate channels >= 1
   (or >= 0 with special handling for unknown).
-  
+
   Red team test: test_file_stereo_redteam_t297.py::test_negative_channels_rejected
 
 ## [CRITICAL] fix T901 — BOLA: File organization lacks user isolation
@@ -3855,7 +3732,7 @@ Notes: |
   API1:2023 Broken Object Level Authorization. FileViewSet has no get_queryset()
   filtering, allowing users to see other users' file paths via LIST/RETRIEVE.
   Filepath enumeration via ID iteration also works.
-  
+
   Red team test: test_file_organization_redteam_t298.py::TestFileOrganizationBOLA
 
 ## [HIGH] fix T902 — Mass assignment allows changing filepath
@@ -3867,7 +3744,7 @@ Next step: Add filepath to read_only_fields
 Notes: |
   API6:2023 - Mass assignment. Filepath should be immutable after creation,
   but PATCH/PUT allows modifying it. Could redirect to malicious paths.
-  
+
   Red team test: test_file_organization_redteam_t298.py::test_mass_assignment_filepath_blocked
 
 ## [HIGH] fix T903 — Mass assignment allows changing file_size
@@ -3879,7 +3756,7 @@ Next step: Add file_size to read_only_fields
 Notes: |
   API6:2023 - Mass assignment. File size should be read-only from actual file,
   but PATCH/PUT allows faking it. Could bypass storage quotas or hide data.
-  
+
   Red team test: test_file_organization_redteam_t298.py::test_mass_assignment_file_size_blocked
 
 ## [CRITICAL] fix T904 — Mass assignment allows library hijacking
@@ -3893,7 +3770,7 @@ Notes: |
   1. Data exfiltration to attacker's library
   2. Bypassing library-based access controls
   3. Organization confusion attacks
-  
+
   Red team test: test_file_organization_redteam_t298.py::test_mass_assignment_library_change_blocked
 
 ## [HIGH] fix T905 — Mass assignment allows changing import_status
@@ -3905,7 +3782,7 @@ Next step: Add import_status to read_only_fields
 Notes: |
   API6:2023 - Mass assignment. Import status controls processing workflow.
   Changing it could bypass analysis, mark failed files as processed, etc.
-  
+
   Red team test: test_file_organization_redteam_t298.py::test_mass_assignment_import_status_blocked
 
 ## [MEDIUM] fix T906 — Path traversal in filepath field
@@ -3917,7 +3794,7 @@ Next step: Add path traversal validation
 Notes: |
   Relative path traversal (../../../etc/passwd) and absolute system paths
   (/etc/shadow) are accepted. Should validate paths are within storage root.
-  
+
   Red team test: test_file_organization_redteam_t298.py::TestFileOrganizationPathTraversal
 
 ## [CRITICAL] fix T909 — Filter bypass exposes other users' files
@@ -3929,7 +3806,7 @@ Next step: Add user filtering to filtered queryset
 Notes: |
   API1:2023 BOLA. Filtering by library or import_status returns files from
   all users, not just the authenticated user. Missing auth in filtered queries.
-  
+
   Red team test: test_file_organization_redteam_t298.py::TestFileOrganizationFilterBypass
 
 ## [MEDIUM] fix T910 — Information disclosure via timing attacks
@@ -3941,7 +3818,7 @@ Next step: Ensure consistent response times
 Notes: |
   Timing difference between existent (404 with check) and non-existent (404
   immediate) files could allow file existence enumeration without access.
-  
+
   Red team test: test_file_organization_redteam_t298.py::test_file_size_timing_attack
 
 ## [HIGH] fix T911 — Workflow bypass via organization manipulation
@@ -3953,7 +3830,7 @@ Next step: Block library changes for pending files
 Notes: |
   Users can move PENDING files to PROCESSED libraries and fake import_status
   to appear processed without actual analysis. Workflow state bypass.
-  
+
   Red team test: test_file_organization_redteam_t298.py::TestFileOrganizationWorkflowBypass
 
 # Archive

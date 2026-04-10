@@ -135,31 +135,37 @@ class TestShowRetrievePathTraversal:
 class TestShowRetrieveBOLA:
     """Broken Object Level Authorization."""
 
-    def test_access_other_user_show(
-        self, api_client, admin_user, regular_user,
-    ):
-        """Try to access another user's show."""
+    def test_access_other_user_show(self, host_client, admin_user, regular_user):
+        """Try to access another user's show - should be blocked (BOLA fix)."""
+        from api.schedule.models import ShowHost
+
         show = baker.make("schedule.Show", name="Admin Show")
+        # Assign admin as host
+        baker.make(ShowHost, show=show, user=admin_user)
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get(f"/api/v2/shows/{show.id}")
+        # Regular user tries to access admin's show
+        response = host_client.get(f"/api/v2/shows/{show.id}")
 
-        # Should be 404 (not found) or 403 (forbidden)
-        # 200 means BOLA vulnerability
-        if response.status_code == 200:
-            pytest.fail("CRITICAL BUG: Can access other user's show (BOLA)")
+        # Fixed: Should be 404 (not found for this user) or 403 (forbidden)
+        assert response.status_code in [403, 404], (
+            f"BOLA: Got {response.status_code}, expected 403/404"
+        )
 
-    def test_access_show_via_idor(self, api_client, admin_user, regular_user):
-        """Try IDOR by guessing sequential IDs."""
-        # Create show
+    def test_access_show_via_idor(self, host_client, admin_user, regular_user):
+        """Try IDOR by guessing sequential IDs - should be blocked."""
+        from api.schedule.models import ShowHost
+
+        # Create show with admin as host
         show = baker.make("schedule.Show", name="Private Show")
+        baker.make(ShowHost, show=show, user=admin_user)
 
         # Regular user tries to access
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get(f"/api/v2/shows/{show.id}")
+        response = host_client.get(f"/api/v2/shows/{show.id}")
 
-        if response.status_code == 200:
-            pytest.fail("CRITICAL BUG: IDOR - can access show by ID")
+        # Fixed: Should be 404 (not found) or 403 (forbidden)
+        assert response.status_code in [403, 404], (
+            f"IDOR: Got {response.status_code}, expected 403/404"
+        )
 
 
 @pytest.mark.django_db
@@ -243,14 +249,16 @@ class TestShowRetrieveMassAssignment:
 class TestShowRetrieveBusinessLogic:
     """Business logic bypasses."""
 
-    def test_retrieve_without_auth(self, api_client):
-        """Try to retrieve show without authentication."""
+    def test_retrieve_without_auth(self, anonymous_client):
+        """Try to retrieve show without authentication - should be blocked."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        response = api_client.get(f"/api/v2/shows/{show.id}")
+        response = anonymous_client.get(f"/api/v2/shows/{show.id}")
 
-        if response.status_code == 200:
-            pytest.fail("CRITICAL BUG: Anonymous can retrieve shows")
+        # Fixed: Should return 403 Forbidden for anonymous
+        assert response.status_code == 403, (
+            f"Expected 403, got {response.status_code}"
+        )
 
     def test_retrieve_deleted_show(self, api_client, admin_user):
         """Try to retrieve deleted show."""

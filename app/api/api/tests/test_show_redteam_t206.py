@@ -160,14 +160,16 @@ class TestShowDeleteRaceCondition:
 class TestShowDeleteBusinessLogic:
     """Business logic bypass attacks."""
 
-    def test_delete_without_auth(self, api_client):
-        """Try to DELETE without authentication."""
+    def test_delete_without_auth(self, anonymous_client):
+        """Try to DELETE without authentication - should be blocked."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        response = api_client.delete(f"/api/v2/shows/{show.id}")
+        response = anonymous_client.delete(f"/api/v2/shows/{show.id}")
 
-        if response.status_code == 204:
-            pytest.fail("CRITICAL BUG: Anonymous can DELETE shows")
+        # Fixed: Should return 403 Forbidden for anonymous
+        assert response.status_code == 403, (
+            f"Expected 403, got {response.status_code}"
+        )
 
     def test_delete_nonexistent_show(self, api_client, admin_user):
         """Try to DELETE non-existent show."""
@@ -207,12 +209,24 @@ class TestShowDeleteBusinessLogic:
 
     def test_put_to_delete_endpoint(self, api_client, admin_user):
         """Try PUT instead of DELETE."""
+        from api.schedule.models import ShowHost
+
         show = baker.make("schedule.Show", name="Test Show")
+        # Assign admin as host
+        baker.make(ShowHost, show=show, user=admin_user)
 
         api_client.force_authenticate(user=admin_user)
         response = api_client.put(
             f"/api/v2/shows/{show.id}",
-            {"name": "Test"},
+            {
+                "name": "Test",
+                "linked": False,
+                "linkable": True,
+                "auto_playlist_enabled": False,
+                "auto_playlist_repeat": False,
+                "override_intro_playlist": False,
+                "override_outro_playlist": False,
+            },
             format="json",
         )
 

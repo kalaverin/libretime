@@ -43,6 +43,8 @@ class TestShowLiveAuthExposure:
 
     def test_password_visible_in_detail(self, api_client, admin_user):
         """Check if live_auth_custom_password is visible in detail."""
+        from api.schedule.models import ShowHost
+
         show = baker.make(
             "schedule.Show",
             name="Test Show",
@@ -51,9 +53,11 @@ class TestShowLiveAuthExposure:
             live_auth_custom_user="admin",
             live_auth_custom_password="secret123",
         )
+        # Assign admin as host so they can access
+        baker.make(ShowHost, show=show, user=admin_user)
 
         api_client.force_authenticate(user=admin_user)
-        response = api_client.get(f"/api/v2/shows{show.id}/")
+        response = api_client.get(f"/api/v2/shows/{show.id}")
 
         assert response.status_code == 200
         data = response.json()
@@ -65,30 +69,29 @@ class TestShowLiveAuthExposure:
             )
 
     def test_other_user_password_not_visible(
-        self, api_client, admin_user, regular_user,
+        self, host_client, admin_user, regular_user,
     ):
-        """Verify other users can't see password."""
+        """Verify other users can't access show or see password (BOLA fix)."""
+        from api.schedule.models import ShowHost
+
         show = baker.make(
             "schedule.Show",
             name="Admin Show",
-            owner=admin_user,
             live_auth_registered=True,
             live_auth_custom=True,
             live_auth_custom_user="admin",
             live_auth_custom_password="admin_secret",
         )
+        # Assign admin as host
+        baker.make(ShowHost, show=show, user=admin_user)
 
-        # Regular user tries to access show
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get(f"/api/v2/shows{show.id}/")
+        # Regular user tries to access show - should be blocked
+        response = host_client.get(f"/api/v2/shows/{show.id}")
 
-        if response.status_code == 200:
-            data = response.json()
-            password = data.get("live_auth_custom_password")
-            if password and "admin_secret" in str(password):
-                pytest.fail(
-                    "CRITICAL BUG: Other user can see plaintext password",
-                )
+        # Fixed: BOLA protection should block access (404 or 403)
+        assert response.status_code in [403, 404], (
+            f"Expected 403/404, got {response.status_code}"
+        )
 
 
 @pytest.mark.django_db
@@ -96,20 +99,23 @@ class TestShowLiveAuthModification:
     """Unauthorized live auth modification attacks."""
 
     def test_other_user_can_modify_live_auth(
-        self, api_client, admin_user, regular_user,
+        self, host_client, admin_user, regular_user,
     ):
-        """Try to modify live auth settings on another user's show."""
+        """Try to modify live auth settings on another user's show - should be blocked."""
+        from api.schedule.models import ShowHost
+
         show = baker.make(
             "schedule.Show",
             name="Admin Show",
             live_auth_registered=True,
             live_auth_custom=False,
         )
+        # Assign admin as host
+        baker.make(ShowHost, show=show, user=admin_user)
 
-        # Regular user tries to enable live auth
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.patch(
-            f"/api/v2/shows{show.id}/",
+        # Regular user tries to enable live auth - should be blocked
+        response = host_client.patch(
+            f"/api/v2/shows/{show.id}",
             {
                 "live_auth_custom": True,
                 "live_auth_custom_user": "hacker",
@@ -118,15 +124,17 @@ class TestShowLiveAuthModification:
             format="json",
         )
 
-        if response.status_code == 200:
-            pytest.fail(
-                "CRITICAL BUG: Can modify other user's live auth settings",
-            )
+        # Fixed: BOLA protection should block modification
+        assert response.status_code in [403, 404], (
+            f"Expected 403/404, got {response.status_code}"
+        )
 
     def test_disable_live_auth_on_other_show(
-        self, api_client, admin_user, regular_user,
+        self, host_client, admin_user, regular_user,
     ):
-        """Try to disable live auth on another user's show."""
+        """Try to disable live auth on another user's show - should be blocked."""
+        from api.schedule.models import ShowHost
+
         show = baker.make(
             "schedule.Show",
             name="Admin Show",
@@ -135,79 +143,97 @@ class TestShowLiveAuthModification:
             live_auth_custom_user="admin",
             live_auth_custom_password="secret",
         )
+        # Assign admin as host
+        baker.make(ShowHost, show=show, user=admin_user)
 
-        # Regular user tries to disable
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.patch(
-            f"/api/v2/shows{show.id}/",
+        # Regular user tries to disable - should be blocked
+        response = host_client.patch(
+            f"/api/v2/shows/{show.id}",
             {"live_auth_registered": False, "live_auth_custom": False},
             format="json",
         )
 
-        if response.status_code == 200:
-            pytest.fail("BUG: Can disable other user's live auth")
+        # Fixed: BOLA protection should block modification
+        assert response.status_code in [403, 404], (
+            f"Expected 403/404, got {response.status_code}"
+        )
 
 
 @pytest.mark.django_db
 class TestShowLiveAuthBOLA:
     """Broken Object Level Authorization for shows."""
 
-    def test_list_shows_only_own(self, api_client, admin_user, regular_user):
-        """Verify list returns only user's own shows."""
+    def test_list_shows_only_own(self, host_client, admin_user, regular_user):
+        """Verify list returns only user's own shows (BOLA fix)."""
+        from api.schedule.models import ShowHost
+
+        # Create admin's show with admin as host
         admin_show = baker.make(
             "schedule.Show",
             name="Admin Show",
             live_auth_registered=True,
         )
+        baker.make(ShowHost, show=admin_show, user=admin_user)
+
+        # Create user's show with regular_user as host
         user_show = baker.make(
             "schedule.Show",
             name="User Show",
             live_auth_registered=True,
         )
+        baker.make(ShowHost, show=user_show, user=regular_user)
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get("/api/v2/shows")
+        # Regular user lists shows
+        response = host_client.get("/api/v2/shows")
 
         assert response.status_code == 200
         data = response.json()
 
         show_names = [s["name"] for s in data]
+        # User should see only their show
         assert "User Show" in show_names
+        # Should NOT see admin's show
+        assert "Admin Show" not in show_names, "BOLA: User can see admin's show"
 
-        if "Admin Show" in show_names:
-            pytest.fail("CRITICAL BUG: List shows other users' shows (BOLA)")
+    def test_access_other_user_show(self, host_client, admin_user, regular_user):
+        """Try to access another user's show - should be blocked (BOLA fix)."""
+        from api.schedule.models import ShowHost
 
-    def test_access_other_user_show(
-        self, api_client, admin_user, regular_user,
-    ):
-        """Try to access another user's show."""
         show = baker.make(
             "schedule.Show",
             name="Admin Show",
             live_auth_registered=True,
         )
+        # Assign admin as host
+        baker.make(ShowHost, show=show, user=admin_user)
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get(f"/api/v2/shows{show.id}/")
+        # Regular user tries to access
+        response = host_client.get(f"/api/v2/shows/{show.id}")
 
-        if response.status_code == 200:
-            pytest.fail("CRITICAL BUG: Can access other user's show (BOLA)")
+        # Fixed: BOLA protection should block access
+        assert response.status_code in [403, 404], (
+            f"Expected 403/404, got {response.status_code}"
+        )
 
-    def test_delete_other_user_show(
-        self, api_client, admin_user, regular_user,
-    ):
-        """Try to delete another user's show."""
+    def test_delete_other_user_show(self, host_client, admin_user, regular_user):
+        """Try to delete another user's show - should be blocked (BOLA fix)."""
+        from api.schedule.models import ShowHost
+
         show = baker.make(
             "schedule.Show",
             name="Admin Show",
             live_auth_registered=True,
         )
+        # Assign admin as host
+        baker.make(ShowHost, show=show, user=admin_user)
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.delete(f"/api/v2/shows{show.id}/")
+        # Regular user tries to delete
+        response = host_client.delete(f"/api/v2/shows/{show.id}")
 
-        if response.status_code == 204:
-            pytest.fail("CRITICAL BUG: Can delete other user's show (BOLA)")
+        # Fixed: BOLA protection should block delete
+        assert response.status_code in [403, 404], (
+            f"Expected 403/404, got {response.status_code}"
+        )
 
 
 @pytest.mark.django_db
@@ -290,16 +316,18 @@ class TestShowLiveAuthValidation:
 class TestShowLiveAuthBusinessLogic:
     """Business logic bypasses."""
 
-    def test_create_without_auth(self, api_client):
-        """Try to create show without authentication."""
-        response = api_client.post(
+    def test_create_without_auth(self, anonymous_client):
+        """Try to create show without authentication - should be blocked."""
+        response = anonymous_client.post(
             "/api/v2/shows",
             {"name": "Anonymous Show"},
             format="json",
         )
 
-        if response.status_code == 201:
-            pytest.fail("CRITICAL BUG: Anonymous can create show")
+        # Fixed: Should return 403 Forbidden for anonymous
+        assert response.status_code == 403, (
+            f"Expected 403, got {response.status_code}"
+        )
 
     def test_create_duplicate_name(self, api_client, admin_user):
         """Try to create show with duplicate name."""

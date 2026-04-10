@@ -416,9 +416,9 @@ class TestShowCreateDuplicateBypass:
 class TestShowCreateBusinessLogic:
     """Business logic bypass attacks."""
 
-    def test_create_without_auth(self, api_client):
-        """Try to create show without authentication."""
-        response = api_client.post(
+    def test_create_without_auth(self, anonymous_client):
+        """Try to create show without authentication - should be blocked."""
+        response = anonymous_client.post(
             "/api/v2/shows",
             {
                 "name": "Anonymous Show",
@@ -432,8 +432,10 @@ class TestShowCreateBusinessLogic:
             format="json",
         )
 
-        if response.status_code == 201:
-            pytest.fail("CRITICAL BUG: Anonymous can create show")
+        # Fixed: Should return 403 Forbidden for anonymous
+        assert response.status_code == 403, (
+            f"Expected 403, got {response.status_code}"
+        )
 
     def test_create_with_empty_name(self, api_client, admin_user):
         """Try to create show with empty name."""

@@ -280,24 +280,26 @@ class TestShowUpdateDescriptionXSS:
 class TestShowUpdateBusinessLogic:
     """Business logic bypass attacks."""
 
-    def test_patch_without_auth(self, api_client):
-        """Try to PATCH without authentication."""
+    def test_patch_without_auth(self, anonymous_client):
+        """Try to PATCH without authentication - should be blocked."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        response = api_client.patch(
+        response = anonymous_client.patch(
             f"/api/v2/shows/{show.id}",
             {"name": "Hacked"},
             format="json",
         )
 
-        if response.status_code == 200:
-            pytest.fail("CRITICAL BUG: Anonymous can PATCH shows")
+        # Fixed: Should return 403 Forbidden for anonymous
+        assert response.status_code == 403, (
+            f"Expected 403, got {response.status_code}"
+        )
 
-    def test_put_without_auth(self, api_client):
-        """Try to PUT without authentication."""
+    def test_put_without_auth(self, anonymous_client):
+        """Try to PUT without authentication - should be blocked."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        response = api_client.put(
+        response = anonymous_client.put(
             f"/api/v2/shows/{show.id}",
             {
                 "name": "Hacked Show",
@@ -311,8 +313,10 @@ class TestShowUpdateBusinessLogic:
             format="json",
         )
 
-        if response.status_code == 200:
-            pytest.fail("CRITICAL BUG: Anonymous can PUT shows")
+        # Fixed: Should return 403 Forbidden for anonymous
+        assert response.status_code == 403, (
+            f"Expected 403, got {response.status_code}"
+        )
 
     def test_patch_nonexistent_show(self, api_client, admin_user):
         """Try to PATCH non-existent show."""
