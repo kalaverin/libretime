@@ -1,5 +1,137 @@
 # Active Tasks
 
+## [CRITICAL] fix T806 — BOLA: Playlist retrieve shows other user's playlist
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/views/playlist.py:15-20`
+Next step: Add get_queryset() to filter by owner
+Notes: |
+  API1:2023 Broken Object Level Authorization. Attacker can retrieve victim's
+  private playlist by ID. No ownership filtering in queryset.
+  Ref: test_playlist_length_redteam_t287.py::test_bola_retrieve_other_users_playlist_length
+
+## [CRITICAL] fix T807 — BOLA: Playlist LIST shows all users' playlists
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/views/playlist.py:15-20`
+Next step: Add get_queryset() to filter by owner
+Notes: |
+  API1:2023 BOLA. LIST endpoint returns all playlists regardless of owner.
+  Attacker can enumerate all playlists including private ones.
+  Ref: test_playlist_length_redteam_t287.py::test_bola_list_shows_all_playlists
+
+## [CRITICAL] fix T808 — BOLA: Playlist UPDATE allows modifying other user's playlist
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/views/playlist.py:15-20`
+Next step: Add ownership check in update operation
+Notes: |
+  API1:2023 BOLA. Attacker can PATCH victim's playlist including length field.
+  No ownership validation on update.
+  Ref: test_playlist_length_redteam_t287.py::test_bola_update_other_users_playlist_length
+
+## [CRITICAL] fix T809 — BOLA: Playlist DELETE allows deleting other user's playlist
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/views/playlist.py:15-20`
+Next step: Add ownership check in destroy operation
+Notes: |
+  API1:2023 BOLA. Attacker can DELETE victim's playlist by knowing ID.
+  Critical data loss vulnerability.
+  Ref: test_playlist_length_redteam_t287.py::test_bola_delete_other_users_playlist
+
+## [HIGH] fix T810 — BOPLA: Playlist CREATE allows mass assignment of id field
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/serializers/playlist.py:14`
+Next step: Add read_only=True for id field
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. Client can specify id
+  field in CREATE request, potentially causing ID collisions.
+  Ref: test_playlist_length_redteam_t287.py::test_bopla_mass_assignment_id_field
+
+## [HIGH] fix T811 — BOPLA: Playlist CREATE allows mass assignment of created_at
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/serializers/playlist.py:14`
+Next step: Add read_only=True for created_at/updated_at fields
+Notes: |
+  API3:2023 BOPLA. Client can set created_at timestamp manually.
+  Timestamp fields should be auto-generated and read_only.
+  Ref: test_playlist_length_redteam_t287.py::test_bopla_mass_assignment_created_at
+
+## [HIGH] fix T812 — BOPLA: Playlist UPDATE allows changing owner
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/serializers/playlist.py:14`
+Next step: Add read_only=True for owner field
+Notes: |
+  API3:2023 BOPLA. Client can change playlist owner via PATCH.
+  Owner field should be read_only after creation.
+  Ref: test_playlist_length_redteam_t287.py::test_bopla_change_owner_via_update
+
+## [MEDIUM] fix T813 — BOPLA: Playlist CREATE accepts extra fields silently
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/serializers/playlist.py:14`
+Next step: Add strict validation or use explicit fields list
+Notes: |
+  Extra fields like "is_admin", "role", "password" are silently ignored
+  instead of rejected with 400 error. Could mask typo or mass assignment attempts.
+  Ref: test_playlist_length_redteam_t287.py::test_bopla_extra_fields_not_rejected
+
+## [MEDIUM] fix T814 — SQL injection in length field CREATE
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/serializers/playlist.py:10-14`
+Next step: Add proper input validation/sanitization for length field
+Notes: |
+  SQL injection payloads in length field may cause database errors.
+  Need to validate duration format strictly.
+  Ref: test_playlist_length_redteam_t287.py::test_sqli_in_length_field_create
+
+## [MEDIUM] fix T817 — Invalid time format accepted in length field
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/serializers/playlist.py:10-14`
+Next step: Add DurationField validation for valid time ranges
+Notes: |
+  Invalid formats like "99:99:99" are accepted. Should validate HH:MM:SS
+  format with valid ranges (HH: 0-99, MM: 0-59, SS: 0-59).
+  Ref: test_playlist_length_redteam_t287.py::test_invalid_time_format_accepted
+
+## [MEDIUM] fix T818 — Overflow length value not validated
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/serializers/playlist.py:10-14`
+Next step: Add max_value validation for length field
+Notes: |
+  Very large values like "999999:00:00" are accepted without validation.
+  Should enforce reasonable maximum duration.
+  Ref: test_playlist_length_redteam_t287.py::test_overflow_length_value
+
+## [MEDIUM] fix T823 — No rate limiting on playlist CREATE endpoint
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/views/playlist.py:15-20`
+Next step: Implement Django Ratelimit or similar
+Notes: |
+  50+ rapid CREATE requests all succeeded. No brute force/DoS protection.
+  Should implement rate limiting per user/IP.
+  Ref: test_playlist_length_redteam_t287.py::test_rapid_create_requests
+
 <!-- Protocol: ~/.config/kimi/skills/task-protocol/SKILL.md (modified: 2026-04-07T12:03:05Z, commit: 8407a3fffae7e8a6a45e80fb73eeded8078dafa7) -->
 <!-- The following section is a FULL COPY of ~/.config/kimi/skills/task-protocol/SKILL.md
      Protocol commit: 8407a3fffae7e8a6a45e80fb73eeded8078dafa7
