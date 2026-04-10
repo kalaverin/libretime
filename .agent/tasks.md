@@ -2282,6 +2282,22 @@ Notes: |
   
   Red team test: test_list_shows_only_own_schedules fails - shows admin schedule
 
+## [CRITICAL] fix T366 — PlayoutHistory list shows all history (BOLA)
+Status: NOT_STARTED
+Created: 2026-04-10T01:10:00Z
+Scope: api/history/views/played.py
+Next step: Add owner-based filtering to PlayoutHistoryViewSet
+Notes: |
+  CRITICAL BOLA: PlayoutHistory list returns ALL history entries.
+  
+  Current behavior:
+  - User can see other users' playout history in LIST
+  
+  Expected: User should only see their own history
+  
+  Red team test: test_list_shows_only_own_history returns 404 (wrong endpoint?)
+  but need to verify filtering behavior
+
 ## [HIGH] fix T352 — Fix Schedule.ends_at not saving via API
 Status: NOT_STARTED
 Created: 2026-04-10T00:55:00Z
