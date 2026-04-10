@@ -3641,6 +3641,65 @@ Notes: |
   
   Red team test: test_concurrent_edits_redteam_t292.py::test_optimistic_locking_missing
 
+## [CRITICAL] fix T882 — BOPLA: Mass assignment allows changing file owner via metadata
+Status: NOT_STARTED
+Created: 2026-04-10T18:25:00Z
+Last worked: 2026-04-10T18:25:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add owner to read_only_fields in FileSerializer
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. PATCH with {"owner": <id>} 
+  changes file ownership. Privilege escalation vulnerability.
+  
+  Red team test: test_file_metadata_redteam_t294.py::test_mass_assignment_owner_field
+
+## [CRITICAL] fix T883 — Stored XSS in metadata fields
+Status: NOT_STARTED
+Created: 2026-04-10T18:25:00Z
+Last worked: 2026-04-10T18:25:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add HTML sanitization to text fields or reject HTML tags
+Notes: |
+  XSS payloads like <script>alert(1)</script> are stored and returned as-is.
+  Affects track_title, artist_name, album_title fields.
+  
+  Red team test: test_file_metadata_redteam_t294.py::test_xss_in_track_title_blocked
+
+## [CRITICAL] fix T884 — Mass assignment allows changing filepath
+Status: NOT_STARTED
+Created: 2026-04-10T18:25:00Z
+Last worked: 2026-04-10T18:25:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add filepath to read_only_fields
+Notes: |
+  PATCH request can modify filepath field, allowing path traversal attacks.
+  Critical filesystem access vulnerability.
+  
+  Red team test: test_file_metadata_redteam_t294.py::test_mass_assignment_readonly_fields_blocked
+
+## [CRITICAL] fix T885 — Mass assignment allows changing created_at
+Status: NOT_STARTED
+Created: 2026-04-10T18:25:00Z
+Last worked: 2026-04-10T18:25:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add created_at to read_only_fields
+Notes: |
+  Audit field created_at can be modified via PATCH, breaking audit trail.
+  
+  Red team test: test_file_metadata_redteam_t294.py::test_mass_assignment_created_at_blocked
+
+## [CRITICAL] fix T886 — Path traversal in filepath field accepted
+Status: NOT_STARTED
+Created: 2026-04-10T18:25:00Z
+Last worked: 2026-04-10T18:25:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add path traversal validation to filepath field
+Notes: |
+  Path traversal patterns like ../../../etc/passwd are accepted in filepath.
+  Could allow access to arbitrary filesystem locations.
+  
+  Red team test: test_file_metadata_redteam_t294.py::test_path_traversal_in_filepath_blocked
+
 # Archive
 
 <!--
