@@ -670,43 +670,17 @@ class TestUserKnownBugs(APITestCase):
     def setUpTestData(cls):
         cls.admin_user = baker.make("core.User", role=Role.ADMIN)
 
-    @pytest.mark.xfail(
-        reason="T308: IsAdminOrOwnUser crashes on unauthenticated",
-        strict=False,
-    )
-    def test_bug_b001_unauthenticated_crashes_with_typeerror(self):
-        """
-        BUG B001: Unauthenticated request crashes with TypeError instead of 403.
-
-        Expected: 403 Forbidden
-        Actual: TypeError: 'bool' object is not callable (500)
-
-        Fix: Add is_authenticated check in IsAdminOrOwnUser.has_permission()
-
-        This test PASSES when bug is present (status == 500).
-        When fixed, change assertion to assertEqual(403).
-        """
-        # Don't authenticate - make request as AnonymousUser
+    def test_unauthenticated_returns_403(self):
+        """Unauthenticated request returns 403 Forbidden."""
         response = self.client.get("/api/v2/users")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Bug present: crashes with TypeError -> 500
-        self.assertEqual(
-            response.status_code,
-            500,
-            "T308 present: crashes with TypeError. "
-            "When fixed, this should return 403",
-        )
-
-    @pytest.mark.xfail(
-        reason="T308: API Key crashes with TypeError", strict=False,
-    )
-    def test_bug_b001_api_key_crashes_with_typeerror(self):
-        """BUG B001: API Key request also crashes with TypeError."""
+    def test_api_key_returns_403(self):
+        """API Key request returns 403 Forbidden (not superuser)."""
         api_key = settings.CONFIG.general.api_key
         self.client.credentials(HTTP_AUTHORIZATION=f"Api-Key {api_key}")
         response = self.client.get("/api/v2/users")
-        # Bug present: crashes with TypeError -> 500
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     # T309: Role filtering not implemented
     def test_bug_b002_role_filter_silently_ignored(self):
@@ -742,25 +716,9 @@ class TestUserKnownBugs(APITestCase):
             "When fixed, GUEST should not be in filtered results",
         )
 
-    @pytest.mark.xfail(
-        reason="T310: API Key access decision pending",
-        raises=(TypeError, AssertionError),
-    )
-    def test_bug_b003_api_key_access_decision_pending(self):
-        """
-        BUG B003: Undecided - should API Key allow user management access?
-
-        Status: Currently crashes (B001). After B001 fix: returns 403.
-
-        This test documents current behavior (crash).
-        """
+    def test_api_key_forbidden_for_user_management(self):
+        """API Key does not grant user management access (returns 403)."""
         api_key = settings.CONFIG.general.api_key
         self.client.credentials(HTTP_AUTHORIZATION=f"Api-Key {api_key}")
         response = self.client.get("/api/v2/users")
-
-        # Currently crashes (500). After B001 fix: should be 403.
-        self.assertIn(
-            response.status_code,
-            [status.HTTP_403_FORBIDDEN, status.HTTP_500_INTERNAL_SERVER_ERROR],
-            "T310: Documenting API Key access behavior",
-        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

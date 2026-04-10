@@ -1542,17 +1542,24 @@ File: `legacy/TESTING.md`
 Next step: Document final coverage metrics and testing approach
 Notes: Project documentation
 
-## [CRITICAL] test T308 — Fix IsAdminOrOwnUser permission crash on unauthenticated requests
-Status: NOT_STARTED
+## [DONE] fix T308 — Fix IsAdminOrOwnUser permission crash on unauthenticated requests
+Status: DONE
 Created: 2026-04-09T12:00:00Z
-Last worked: 2026-04-09T12:10:00Z
+Last worked: 2026-04-10T00:30:00Z
 Scope: api/permissions.py
-Next step: Add is_authenticated check before calling is_superuser()
 Notes: |
-  TypeError: 'bool' object is not callable when AnonymousUser accesses UserViewSet.
-  Line 85: return bool(request.user.is_superuser())
-  Fix: Check request.user.is_authenticated first
-  Ref: test_user.py::TestUserKnownBugs::test_bug_b001_*
+  FIXED: Added is_authenticated check before calling is_superuser() in both
+  has_permission() and has_object_permission() methods.
+  
+  Root cause: AnonymousUser.is_superuser is a bool property, while User.is_superuser()
+  is a method. Calling is_superuser() on AnonymousUser raised TypeError.
+  
+  Changes:
+  - api/permissions.py: Added is_authenticated check in IsAdminOrOwnUser
+  - test_user.py: Updated TestUserKnownBugs tests to expect 403 instead of 500
+  - test_auth_session.py: Replaced TestBugT308 with TestIsAdminOrOwnUserPermission
+  
+  Tests: 8 new tests covering all permission scenarios
 
 ## [HIGH] test T309 — Add role-based filtering to UserViewSet
 Status: NOT_STARTED

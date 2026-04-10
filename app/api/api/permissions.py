@@ -82,6 +82,8 @@ class IsAdminOrOwnUser(BasePermission):
 
     @override
     def has_permission(self, request: Request, view: Any) -> bool:
+        if not request.user.is_authenticated:
+            return False
         return bool(request.user.is_superuser())
 
     @override
@@ -91,6 +93,8 @@ class IsAdminOrOwnUser(BasePermission):
         view: "APIView",
         obj: Any,
     ) -> bool:
+        if not request.user.is_authenticated:
+            return False
         if request.user.is_superuser():
             return True
         return obj.username == request.user
