@@ -2453,6 +2453,82 @@ Notes: |
   May indicate caching issue or test timing issue.
   
   Red team test: test_token_revocation fails
+
+## [CRITICAL] fix T378 — Show creation allows anonymous access
+Status: NOT_STARTED
+Created: 2026-04-10T02:00:00Z
+Scope: api/schedule/views/show.py
+Next step: Add authentication requirement to ShowViewSet
+Notes: |
+  CRITICAL: Anyone can create shows without authentication.
+  
+  Attack scenario:
+  - POST /api/v2/shows without auth returns 201
+  - Anonymous user can flood system with shows
+  
+  Red team test: test_create_without_auth fails - returns 201
+
+## [HIGH] fix T379 — Show accepts dangerous URL protocols
+Status: NOT_STARTED
+Created: 2026-04-10T02:00:00Z
+Scope: api/schedule/serializers/show.py
+Next step: Add URL validation to reject dangerous protocols
+Notes: |
+  SECURITY ISSUE: Show URL field accepts dangerous protocols:
+  - javascript:alert('xss') - XSS attack
+  - data:text/html,<script>alert('xss')</script> - XSS attack  
+  - file:///etc/passwd - LFI attack
+  
+  These can lead to XSS when displayed in web UI.
+  
+  Red team tests:
+  - test_url_with_javascript_protocol: FAIL
+  - test_url_with_data_protocol: FAIL
+  - test_url_with_file_protocol: FAIL
+
+## [HIGH] fix T380 — Show description stored without XSS sanitization
+Status: NOT_STARTED
+Created: 2026-04-10T02:00:00Z
+Scope: api/schedule/serializers/show.py
+Next step: Add HTML sanitization or escape output
+Notes: |
+  SECURITY ISSUE: HTML/JS in description stored as-is (stored XSS).
+  
+  Payloads that work:
+  - <script>alert('xss')</script>
+  - <img src=x onerror=alert('xss')>
+  
+  When displayed in UI, these execute JavaScript.
+  
+  Red team tests:
+  - test_description_with_html_script: FAIL
+  - test_description_with_event_handlers: FAIL
+
+## [MEDIUM] fix T381 — Show accepts invalid color format
+Status: NOT_STARTED
+Created: 2026-04-10T02:00:00Z
+Scope: api/schedule/serializers/show.py
+Next step: Add color format validation
+Notes: |
+  VALIDATION GAP: Show accepts invalid hex colors like "GGGGGG".
+  
+  Expected: Only valid hex colors (0-9, A-F) should be accepted
+  Actual: Any 6-character string accepted
+  
+  Red team test: test_color_with_invalid_chars fails
+Status: NOT_STARTED
+Created: 2026-04-10T01:40:00Z
+Scope: api/core/views/auth.py
+Next step: Investigate caching or implement immediate revocation
+Notes: |
+  ISSUE: Deleted tokens still work immediately after deletion.
+  
+  Expected: Token should be immediately revoked
+  Actual: Returns 403 (but test expects 200 for working token)
+  
+  May indicate caching issue or test timing issue.
+  
+  Red team test: test_token_revocation fails
 Status: NOT_STARTED
 Created: 2026-04-10T01:35:00Z
 Scope: api/core/views/auth.py
