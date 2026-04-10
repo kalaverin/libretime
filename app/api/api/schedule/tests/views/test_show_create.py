@@ -242,9 +242,6 @@ class TestShowViewSetCreate:
         assert response.status_code == 201
         assert response.json()["description"] == long_desc
 
-    @pytest.mark.xfail(
-        reason="BUG T319: live_auth fields not in serializer - can't set via API",
-    )
     def test_create_show_with_live_auth_registered(self, api_client):
         """CREATE with live_auth_registered should succeed."""
         data = {
@@ -266,9 +263,6 @@ class TestShowViewSetCreate:
         # live_enabled is computed property from live_auth fields
         assert response.json()["live_enabled"] is True
 
-    @pytest.mark.xfail(
-        reason="BUG T319: live_auth fields not in serializer - can't set via API",
-    )
     def test_create_show_with_live_auth_custom(self, api_client):
         """CREATE with live_auth_custom should succeed."""
         data = {

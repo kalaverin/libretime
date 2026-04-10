@@ -1697,12 +1697,19 @@ Notes: |
   Fix options: 1) SET_NULL on File.library FK, 2) Prevent delete if files exist (409).
   Ref: test_library_delete.py - 3 xfailed tests documenting this bug.
 
-## [CRITICAL] fix T319 — ShowSerializer missing live_auth fields
-Status: NOT_STARTED
+## [DONE] fix T319 — ShowSerializer missing live_auth fields
+Status: DONE
 Created: 2026-04-09T14:41:24Z
+Last worked: 2026-04-10T03:50:00Z
 Scope: api/schedule/serializers/show.py
-Next step: Add live_auth_registered, live_auth_custom, live_auth_custom_user, live_auth_custom_password to serializer fields
-Notes: live_enabled property works but can't be set via API because source fields not exposed
+Notes: |
+  FIXED: Added live_auth fields to ShowSerializer.
+  
+  Changes:
+  - show.py serializer: Added live_auth_registered, live_auth_custom, live_auth_custom_user, live_auth_custom_password to fields tuple
+  - test_show_create.py: Removed xfail markers from 2 tests (test_create_show_with_live_auth_registered, test_create_show_with_live_auth_custom)
+  
+  Result: live_auth fields can now be set via API.
 
 ## [CRITICAL] fix T320 — ShowHost duplicate entries not prevented
 Status: NOT_STARTED
