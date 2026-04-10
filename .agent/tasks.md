@@ -1760,19 +1760,33 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add filterset_fields = ["kind"] to SmartBlockViewSet
 Notes: Query param ?kind=static is silently ignored, returns all blocks.
 
-## [CRITICAL] fix T328 — SmartBlockContent filter by block not implemented
-Status: NOT_STARTED
+## [DONE] fix T328 — SmartBlockContent filter by block not implemented
+Status: DONE
 Created: 2026-04-09T18:00:00Z
+Last worked: 2026-04-10T02:45:00Z
 Scope: api/schedule/views/smart_block.py
-Next step: Add filterset_fields = ["block"] to SmartBlockContentViewSet
-Notes: Query param ?block={id} is silently ignored.
+Notes: |
+  FIXED: Added filtering by block to SmartBlockContentViewSet.
+  
+  Changes:
+  - smart_block.py view: Added filter_backends with OrderingFilter
+  - smart_block.py view: Added ordering_fields and ordering
+  - smart_block.py view: Added get_queryset() with block_id filter
+  - test_smartblockcontent_list.py: Removed xfail marker from test_list_filter_by_block
 
-## [CRITICAL] fix T329 — SmartBlockContent ordering by position not implemented
-Status: NOT_STARTED
+## [DONE] fix T329 — SmartBlockContent ordering by position not implemented
+Status: DONE
 Created: 2026-04-09T18:00:00Z
+Last worked: 2026-04-10T02:45:00Z
 Scope: api/schedule/views/smart_block.py
-Next step: Add ordering_fields = ["position"] and ordering = ["position"]
-Notes: Results returned in arbitrary order.
+Notes: |
+  FIXED: Added ordering by position to SmartBlockContentViewSet.
+  
+  Changes:
+  - smart_block.py view: Added ordering_fields = ["position"]
+  - smart_block.py view: Added ordering = ["position"] for default ordering
+  - smart_block.py view: Added OrderingFilter to filter_backends
+  - test_smartblockcontent_list.py: Removed xfail marker from test_list_contents_ordered_by_position
 
 ## [DONE] fix T330 — SmartBlockContent missing block not validated
 Status: DONE

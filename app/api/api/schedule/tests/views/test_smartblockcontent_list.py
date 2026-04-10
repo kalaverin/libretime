@@ -98,7 +98,6 @@ class TestSmartBlockContentViewSetList:
         assert response.status_code == 200
         assert len(response.json()) == 2
 
-    @pytest.mark.xfail(reason="T328: filter by block not implemented")
     def test_list_filter_by_block(self, api_client):
         """LIST should filter by block parameter."""
         user = baker.make(User, username="testsbc_user")
@@ -150,7 +149,6 @@ class TestSmartBlockContentViewSetList:
         assert len(data) == 1
         assert data[0]["block"] == block1.id
 
-    @pytest.mark.xfail(reason="T329: ordering by position not implemented")
     def test_list_contents_ordered_by_position(self, api_client):
         """LIST should be ordered by position."""
         user = baker.make(User, username="testsbc_user")
