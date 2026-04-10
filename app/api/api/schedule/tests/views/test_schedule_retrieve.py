@@ -6,7 +6,6 @@ import pytest
 
 from model_bakery import baker
 from sdk.datetime import (
-    TimezoneExpectedError,
     format_datetime,
     reformat_datetime,
 )

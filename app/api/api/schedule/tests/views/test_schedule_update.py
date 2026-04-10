@@ -120,7 +120,10 @@ class TestScheduleViewSetUpdate:
         assert data["file"] == self.file.id
         assert data["stream"] is None
 
-    @pytest.mark.xfail(raises=AssertionError, reason="T352: ends_at not saved via API due to get_ends_at() method conflict")
+    @pytest.mark.xfail(
+        raises=AssertionError,
+        reason="T352: ends_at not saved via API due to get_ends_at() method conflict",
+    )
     def test_update_change_times_success(self):
         """Test updating schedule times.
 
@@ -232,7 +235,9 @@ class TestScheduleViewSetUpdate:
         data = response.json()
         assert data["broadcasted"] == 0
 
-    @pytest.mark.xfail(raises=AssertionError, reason="T337: cue_out not updated via API")
+    @pytest.mark.xfail(
+        raises=AssertionError, reason="T337: cue_out not updated via API",
+    )
     def test_update_change_cue_times(self):
         data = {
             "instance": self.show_instance.id,

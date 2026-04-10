@@ -396,7 +396,9 @@ class TestLoginAttemptViewSetUpdate(APITestCase):
         self.host_user = baker.make("core.User", role="H")
         self.client.force_authenticate(user=self.admin_user)
 
-    @pytest.mark.xfail(raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue")
+    @pytest.mark.xfail(
+        raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue",
+    )
     def test_patch_login_attempts_reset_counter(self):
         """PATCH resets attempts counter (unblock IP)."""
         ip = faker.ipv4()
@@ -414,7 +416,9 @@ class TestLoginAttemptViewSetUpdate(APITestCase):
         self.assertEqual(result["attempts"], 0)
         self.assertEqual(result["ip"], ip)
 
-    @pytest.mark.xfail(raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue")
+    @pytest.mark.xfail(
+        raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue",
+    )
     def test_patch_login_attempts_increment(self):
         """PATCH increments attempts counter."""
         ip = faker.ipv4()
@@ -431,7 +435,9 @@ class TestLoginAttemptViewSetUpdate(APITestCase):
         result = response.json()
         self.assertEqual(result["attempts"], data["attempts"])
 
-    @pytest.mark.xfail(raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue")
+    @pytest.mark.xfail(
+        raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue",
+    )
     def test_patch_login_attempts_clear_null(self):
         """PATCH attempts to null (clear)."""
         ip = faker.ipv4()
@@ -448,7 +454,9 @@ class TestLoginAttemptViewSetUpdate(APITestCase):
         result = response.json()
         self.assertIsNone(result["attempts"])
 
-    @pytest.mark.xfail(raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue")
+    @pytest.mark.xfail(
+        raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue",
+    )
     def test_put_login_attempts_full_update(self):
         """PUT updates attempts."""
         ip = faker.ipv4()
@@ -475,7 +483,9 @@ class TestLoginAttemptViewSetUpdate(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @pytest.mark.xfail(raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue")
+    @pytest.mark.xfail(
+        raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue",
+    )
     def test_patch_login_attempts_as_host_forbidden(self):
         """HOST cannot update login attempts."""
         ip = faker.ipv4()
@@ -490,7 +500,9 @@ class TestLoginAttemptViewSetUpdate(APITestCase):
         response = self.client.patch(f"{self.path}/{ip}", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @pytest.mark.xfail(raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue")
+    @pytest.mark.xfail(
+        raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue",
+    )
     def test_patch_login_attempts_with_api_key(self):
         """API Key can update login attempts."""
         ip = faker.ipv4()
@@ -523,7 +535,9 @@ class TestLoginAttemptViewSetDelete(APITestCase):
         self.host_user = baker.make("core.User", role="H")
         self.client.force_authenticate(user=self.admin_user)
 
-    @pytest.mark.xfail(raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue")
+    @pytest.mark.xfail(
+        raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue",
+    )
     def test_delete_login_attempt_success(self):
         """Delete login attempt (unblock IP)."""
         ip = faker.ipv4()
@@ -536,7 +550,9 @@ class TestLoginAttemptViewSetDelete(APITestCase):
         response = self.client.delete(f"{self.path}/{ip}")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-    @pytest.mark.xfail(raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue")
+    @pytest.mark.xfail(
+        raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue",
+    )
     def test_delete_login_attempt_verify_gone(self):
         """After DELETE, IP not in list."""
         ip = faker.ipv4()
@@ -558,7 +574,9 @@ class TestLoginAttemptViewSetDelete(APITestCase):
         response = self.client.delete(f"{self.path}/999.999.999.999")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @pytest.mark.xfail(raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue")
+    @pytest.mark.xfail(
+        raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue",
+    )
     def test_delete_login_attempt_as_host_forbidden(self):
         """HOST cannot delete login attempts."""
         ip = faker.ipv4()
@@ -572,7 +590,9 @@ class TestLoginAttemptViewSetDelete(APITestCase):
         response = self.client.delete(f"{self.path}/{ip}")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @pytest.mark.xfail(raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue")
+    @pytest.mark.xfail(
+        raises=AssertionError, reason="T314: LoginAttemptViewSet lookup issue",
+    )
     def test_delete_login_attempt_with_api_key(self):
         """API Key can delete login attempts."""
         ip = faker.ipv4()

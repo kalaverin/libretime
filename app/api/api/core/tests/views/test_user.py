@@ -670,7 +670,10 @@ class TestUserKnownBugs(APITestCase):
     def setUpTestData(cls):
         cls.admin_user = baker.make("core.User", role=Role.ADMIN)
 
-    @pytest.mark.xfail(reason="T308: IsAdminOrOwnUser crashes on unauthenticated", strict=False)
+    @pytest.mark.xfail(
+        reason="T308: IsAdminOrOwnUser crashes on unauthenticated",
+        strict=False,
+    )
     def test_bug_b001_unauthenticated_crashes_with_typeerror(self):
         """
         BUG B001: Unauthenticated request crashes with TypeError instead of 403.
@@ -694,7 +697,9 @@ class TestUserKnownBugs(APITestCase):
             "When fixed, this should return 403",
         )
 
-    @pytest.mark.xfail(reason="T308: API Key crashes with TypeError", strict=False)
+    @pytest.mark.xfail(
+        reason="T308: API Key crashes with TypeError", strict=False,
+    )
     def test_bug_b001_api_key_crashes_with_typeerror(self):
         """BUG B001: API Key request also crashes with TypeError."""
         api_key = settings.CONFIG.general.api_key
@@ -737,7 +742,10 @@ class TestUserKnownBugs(APITestCase):
             "When fixed, GUEST should not be in filtered results",
         )
 
-    @pytest.mark.xfail(reason="T310: API Key access decision pending", raises=(TypeError, AssertionError))
+    @pytest.mark.xfail(
+        reason="T310: API Key access decision pending",
+        raises=(TypeError, AssertionError),
+    )
     def test_bug_b003_api_key_access_decision_pending(self):
         """
         BUG B003: Undecided - should API Key allow user management access?

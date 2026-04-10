@@ -10,7 +10,9 @@ from model_bakery import baker
 class TestPodcastViewSetCreate:
     """Test Podcast CREATE endpoint - POST /api/v2/podcasts."""
 
-    @pytest.mark.xfail(reason="T340: owner field DB schema mismatch", strict=False)
+    @pytest.mark.xfail(
+        reason="T340: owner field DB schema mismatch", strict=False,
+    )
     def test_create_podcast_success(self, api_client):
         """Successfully create podcast with all fields."""
         data = {
@@ -36,7 +38,9 @@ class TestPodcastViewSetCreate:
         assert data["url"] == "https://example.com/new.rss"
         assert data["title"] == "New Podcast"
 
-    @pytest.mark.xfail(reason="T340: owner field DB schema mismatch", strict=False)
+    @pytest.mark.xfail(
+        reason="T340: owner field DB schema mismatch", strict=False,
+    )
     def test_create_minimal_podcast_success(self, api_client):
         """Successfully create podcast with minimal fields."""
         data = {
@@ -69,7 +73,9 @@ class TestPodcastViewSetCreate:
         response = api_client.post("/api/v2/podcasts", data, format="json")
         assert response.status_code == 400
 
-    @pytest.mark.xfail(reason="T340: owner field DB schema mismatch", strict=False)
+    @pytest.mark.xfail(
+        reason="T340: owner field DB schema mismatch", strict=False,
+    )
     def test_create_duplicate_url_allowed(self, api_client):
         """Create with duplicate URL may be allowed."""
         baker.make(
@@ -98,7 +104,9 @@ class TestPodcastViewSetCreate:
         response = api_client.post("/api/v2/podcasts", data, format="json")
         assert response.status_code == 403
 
-    @pytest.mark.xfail(reason="T340: owner field DB schema mismatch", strict=False)
+    @pytest.mark.xfail(
+        reason="T340: owner field DB schema mismatch", strict=False,
+    )
     def test_create_unicode_fields(self, api_client):
         """Create with unicode fields."""
         data = {
@@ -114,7 +122,9 @@ class TestPodcastViewSetCreate:
         data = response.json()
         assert data["title"] == "Подкаст 🎧"
 
-    @pytest.mark.xfail(reason="T340: owner field DB schema mismatch", strict=False)
+    @pytest.mark.xfail(
+        reason="T340: owner field DB schema mismatch", strict=False,
+    )
     def test_create_long_url(self, api_client):
         """Create with very long URL."""
         long_url = "https://example.com/" + "a" * 4000

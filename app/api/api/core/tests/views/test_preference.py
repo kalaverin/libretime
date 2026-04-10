@@ -465,7 +465,9 @@ class TestPreferenceViewSetCreate(APITestCase):
     # EDGE CASES: VALUE FORMAT
     # ==========================================================================
 
-    @pytest.mark.xfail(raises=AssertionError, reason="T312: Some value types fail to create")
+    @pytest.mark.xfail(
+        raises=AssertionError, reason="T312: Some value types fail to create",
+    )
     def test_create_preference_value_types(self):
         """Various value formats."""
         test_cases = [

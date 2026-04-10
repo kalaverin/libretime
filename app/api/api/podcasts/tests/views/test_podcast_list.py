@@ -10,14 +10,18 @@ from model_bakery import baker
 class TestPodcastViewSetList:
     """Test Podcast LIST endpoint - GET /api/v2/podcasts."""
 
-    @pytest.mark.xfail(reason="T340: owner field DB schema mismatch", strict=False)
+    @pytest.mark.xfail(
+        reason="T340: owner field DB schema mismatch", strict=False,
+    )
     def test_list_empty_returns_200(self, api_client):
         """LIST empty should return 200 with empty list."""
         response = api_client.get("/api/v2/podcasts")
         assert response.status_code == 200
         assert response.json() == []
 
-    @pytest.mark.xfail(reason="T340: owner field DB schema mismatch", strict=False)
+    @pytest.mark.xfail(
+        reason="T340: owner field DB schema mismatch", strict=False,
+    )
     def test_list_single_podcast(self, api_client):
         """LIST should return single podcast with all iTunes metadata."""
         podcast = baker.make(
@@ -55,7 +59,9 @@ class TestPodcastViewSetList:
         assert data[0]["itunes_category"] == "Technology"
         assert data[0]["itunes_explicit"] == "clean"
 
-    @pytest.mark.xfail(reason="T340: owner field DB schema mismatch", strict=False)
+    @pytest.mark.xfail(
+        reason="T340: owner field DB schema mismatch", strict=False,
+    )
     def test_list_multiple_podcasts(self, api_client):
         """LIST should return multiple podcasts."""
         baker.make(Podcast, url="https://example.com/1.rss", title="Podcast 1")
@@ -67,7 +73,9 @@ class TestPodcastViewSetList:
         data = response.json()
         assert len(data) == 3
 
-    @pytest.mark.xfail(reason="T340: owner field DB schema mismatch", strict=False)
+    @pytest.mark.xfail(
+        reason="T340: owner field DB schema mismatch", strict=False,
+    )
     def test_list_podcast_nullable_fields(self, api_client):
         """LIST should handle podcasts with nullable fields."""
         podcast = baker.make(
@@ -88,7 +96,9 @@ class TestPodcastViewSetList:
         assert data[0]["creator"] is None
         assert data[0]["description"] is None
 
-    @pytest.mark.xfail(reason="T340: owner field DB schema mismatch", strict=False)
+    @pytest.mark.xfail(
+        reason="T340: owner field DB schema mismatch", strict=False,
+    )
     def test_list_returns_all_fields(self, api_client):
         """LIST should return all podcast fields."""
         baker.make(Podcast, url="https://example.com/test.rss", title="Test")
@@ -119,7 +129,9 @@ class TestPodcastViewSetList:
         response = api_client.get("/api/v2/podcasts")
         assert response.status_code == 403
 
-    @pytest.mark.xfail(reason="T340: owner field DB schema mismatch", strict=False)
+    @pytest.mark.xfail(
+        reason="T340: owner field DB schema mismatch", strict=False,
+    )
     def test_list_pagination_respected(self, api_client):
         """LIST should respect pagination if configured."""
         for i in range(5):
@@ -134,7 +146,9 @@ class TestPodcastViewSetList:
         data = response.json()
         assert len(data) == 5
 
-    @pytest.mark.xfail(reason="T340: owner field DB schema mismatch", strict=False)
+    @pytest.mark.xfail(
+        reason="T340: owner field DB schema mismatch", strict=False,
+    )
     def test_list_unicode_fields(self, api_client):
         """LIST should handle unicode in all fields."""
         podcast = baker.make(
@@ -152,7 +166,9 @@ class TestPodcastViewSetList:
         assert data[0]["description"] == "Описание с эмодзи 🎧"
         assert data[0]["itunes_author"] == "Автор Имя"
 
-    @pytest.mark.xfail(reason="T340: owner field DB schema mismatch", strict=False)
+    @pytest.mark.xfail(
+        reason="T340: owner field DB schema mismatch", strict=False,
+    )
     def test_list_long_url_field(self, api_client):
         """LIST should handle very long URLs (max 4096 chars)."""
         long_url = "https://example.com/" + "a" * 4000
