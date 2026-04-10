@@ -1,0 +1,347 @@
+"""
+RED TEAM: T205 - Show UPDATE endpoint security tests.
+
+Attack vectors:
+- Mass assignment during PATCH/PUT
+- ID manipulation
+- Update other users' shows
+- Partial update bypasses
+- Null injection
+- Immutable field modification
+"""
+
+import pytest
+from model_bakery import baker
+from rest_framework.test import APIClient
+
+
+@pytest.mark.django_db
+class TestShowUpdateMassAssignment:
+    """Mass assignment attacks on UPDATE."""
+
+    def test_patch_id_field(self, api_client, admin_user):
+        """Try to change id via PATCH."""
+        show = baker.make("schedule.Show", name="Test Show")
+        original_id = show.id
+
+        api_client.force_authenticate(user=admin_user)
+        response = api_client.patch(
+            f"/api/v2/shows/{show.id}",
+            {"id": 99999},
+            format="json",
+        )
+
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("id") != original_id:
+                pytest.fail("BAG: Can change id via PATCH")
+
+    def test_patch_created_at(self, api_client, admin_user):
+        """Try to change created_at via PATCH."""
+        show = baker.make("schedule.Show", name="Test Show")
+
+        api_client.force_authenticate(user=admin_user)
+        response = api_client.patch(
+            f"/api/v2/shows/{show.id}",
+            {"created_at": "2019-01-01T00:00:00Z"},
+            format="json",
+        )
+
+        if response.status_code == 200:
+            data = response.json()
+            if "2019" in str(data.get("created_at", "")):
+                pytest.fail("BAG: Can modify created_at via PATCH")
+
+    def test_put_with_extra_fields(self, api_client, admin_user):
+        """Try PUT with extra fields."""
+        show = baker.make("schedule.Show", name="Test Show")
+
+        api_client.force_authenticate(user=admin_user)
+        response = api_client.put(
+            f"/api/v2/shows/{show.id}",
+            {
+                "name": "Updated Show",
+                "description": "Updated",
+                "linked": False,
+                "linkable": True,
+                "auto_playlist_enabled": False,
+                "auto_playlist_repeat": False,
+                "override_intro_playlist": False,
+                "override_outro_playlist": False,
+                "id": 99999,  # Extra field
+                "created_at": "2019-01-01T00:00:00Z",  # Extra field
+            },
+            format="json",
+        )
+
+        # Should either reject or ignore extra fields
+        assert response.status_code in [200, 400]
+
+
+@pytest.mark.django_db
+class TestShowUpdateBOLA:
+    """Broken Object Level Authorization on UPDATE."""
+
+    def test_patch_other_user_show(self, api_client, admin_user, regular_user):
+        """Try to PATCH another user's show."""
+        show = baker.make("schedule.Show", name="Admin Show")
+
+        api_client.force_authenticate(user=regular_user)
+        response = api_client.patch(
+            f"/api/v2/shows/{show.id}",
+            {"name": "Hacked Show"},
+            format="json",
+        )
+
+        if response.status_code == 200:
+            pytest.fail("CRITICAL BAG: Can PATCH other user's show")
+
+    def test_put_other_user_show(self, api_client, admin_user, regular_user):
+        """Try to PUT another user's show."""
+        show = baker.make("schedule.Show", name="Admin Show")
+
+        api_client.force_authenticate(user=regular_user)
+        response = api_client.put(
+            f"/api/v2/shows/{show.id}",
+            {
+                "name": "Hacked Show",
+                "linked": False,
+                "linkable": True,
+                "auto_playlist_enabled": False,
+                "auto_playlist_repeat": False,
+                "override_intro_playlist": False,
+                "override_outro_playlist": False,
+            },
+            format="json",
+        )
+
+        if response.status_code == 200:
+            pytest.fail("CRITICAL BAG: Can PUT other user's show")
+
+    def test_delete_other_user_show(self, api_client, admin_user, regular_user):
+        """Try to DELETE another user's show."""
+        show = baker.make("schedule.Show", name="Admin Show")
+
+        api_client.force_authenticate(user=regular_user)
+        response = api_client.delete(f"/api/v2/shows/{show.id}")
+
+        if response.status_code == 204:
+            pytest.fail("CRITICAL BAG: Can DELETE other user's show")
+
+
+@pytest.mark.django_db
+class TestShowUpdateValidationBypass:
+    """Validation bypass attacks."""
+
+    def test_patch_to_empty_name(self, api_client, admin_user):
+        """Try to PATCH name to empty string."""
+        show = baker.make("schedule.Show", name="Test Show")
+
+        api_client.force_authenticate(user=admin_user)
+        response = api_client.patch(
+            f"/api/v2/shows/{show.id}",
+            {"name": ""},
+            format="json",
+        )
+
+        # Should reject empty name
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("name") == "":
+                pytest.fail("BAG: Can set empty name via PATCH")
+
+    def test_patch_to_whitespace_name(self, api_client, admin_user):
+        """Try to PATCH name to whitespace only."""
+        show = baker.make("schedule.Show", name="Test Show")
+
+        api_client.force_authenticate(user=admin_user)
+        response = api_client.patch(
+            f"/api/v2/shows/{show.id}",
+            {"name": "   "},
+            format="json",
+        )
+
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("name") == "   ":
+                pytest.fail("BAG: Can set whitespace-only name via PATCH")
+
+    def test_patch_to_null_name(self, api_client, admin_user):
+        """Try to PATCH name to null."""
+        show = baker.make("schedule.Show", name="Test Show")
+
+        api_client.force_authenticate(user=admin_user)
+        response = api_client.patch(
+            f"/api/v2/shows/{show.id}",
+            {"name": None},
+            format="json",
+        )
+
+        # Should reject null name
+        if response.status_code == 200:
+            pytest.fail("BAG: Can set null name via PATCH")
+
+    def test_patch_to_very_long_name(self, api_client, admin_user):
+        """Try to PATCH name to very long string."""
+        show = baker.make("schedule.Show", name="Test Show")
+
+        api_client.force_authenticate(user=admin_user)
+        response = api_client.patch(
+            f"/api/v2/shows/{show.id}",
+            {"name": "A" * 1000},
+            format="json",
+        )
+
+        # May accept or reject - documenting
+        assert response.status_code in [200, 400]
+
+
+@pytest.mark.django_db
+class TestShowUpdateURLAttacks:
+    """URL field attacks via PATCH."""
+
+    def test_patch_url_to_javascript(self, api_client, admin_user):
+        """Try to PATCH URL to javascript protocol."""
+        show = baker.make("schedule.Show", name="Test Show", url="https://example.com")
+
+        api_client.force_authenticate(user=admin_user)
+        response = api_client.patch(
+            f"/api/v2/shows/{show.id}",
+            {"url": "javascript:alert('xss')"},
+            format="json",
+        )
+
+        if response.status_code == 200:
+            data = response.json()
+            if "javascript:" in str(data.get("url", "")):
+                pytest.fail("BAG: Can set javascript: URL via PATCH")
+
+    def test_patch_url_to_data_protocol(self, api_client, admin_user):
+        """Try to PATCH URL to data protocol."""
+        show = baker.make("schedule.Show", name="Test Show", url="https://example.com")
+
+        api_client.force_authenticate(user=admin_user)
+        response = api_client.patch(
+            f"/api/v2/shows/{show.id}",
+            {"url": "data:text/html,<script>alert('xss')</script>"},
+            format="json",
+        )
+
+        if response.status_code == 200:
+            pytest.fail("BAG: Can set data: URL via PATCH")
+
+
+@pytest.mark.django_db
+class TestShowUpdateDescriptionXSS:
+    """Description XSS via PATCH."""
+
+    def test_patch_description_with_script(self, api_client, admin_user):
+        """Try to PATCH description with script tag."""
+        show = baker.make("schedule.Show", name="Test Show")
+
+        api_client.force_authenticate(user=admin_user)
+        response = api_client.patch(
+            f"/api/v2/shows/{show.id}",
+            {"description": "<script>alert('xss')</script>"},
+            format="json",
+        )
+
+        if response.status_code == 200:
+            data = response.json()
+            if "<script>" in str(data.get("description", "")):
+                pytest.fail("BAG: Can inject script via description PATCH")
+
+    def test_patch_description_with_event_handler(self, api_client, admin_user):
+        """Try to PATCH description with event handler."""
+        show = baker.make("schedule.Show", name="Test Show")
+
+        api_client.force_authenticate(user=admin_user)
+        response = api_client.patch(
+            f"/api/v2/shows/{show.id}",
+            {"description": "<img src=x onerror=alert('xss')>"},
+            format="json",
+        )
+
+        if response.status_code == 200:
+            data = response.json()
+            if "onerror=" in str(data.get("description", "")):
+                pytest.fail("BAG: Can inject event handler via PATCH")
+
+
+@pytest.mark.django_db
+class TestShowUpdateBusinessLogic:
+    """Business logic bypass attacks."""
+
+    def test_patch_without_auth(self, api_client):
+        """Try to PATCH without authentication."""
+        show = baker.make("schedule.Show", name="Test Show")
+
+        response = api_client.patch(
+            f"/api/v2/shows/{show.id}",
+            {"name": "Hacked"},
+            format="json",
+        )
+
+        if response.status_code == 200:
+            pytest.fail("CRITICAL BAG: Anonymous can PATCH shows")
+
+    def test_put_without_auth(self, api_client):
+        """Try to PUT without authentication."""
+        show = baker.make("schedule.Show", name="Test Show")
+
+        response = api_client.put(
+            f"/api/v2/shows/{show.id}",
+            {
+                "name": "Hacked Show",
+                "linked": False,
+                "linkable": True,
+                "auto_playlist_enabled": False,
+                "auto_playlist_repeat": False,
+                "override_intro_playlist": False,
+                "override_outro_playlist": False,
+            },
+            format="json",
+        )
+
+        if response.status_code == 200:
+            pytest.fail("CRITICAL BAG: Anonymous can PUT shows")
+
+    def test_patch_nonexistent_show(self, api_client, admin_user):
+        """Try to PATCH non-existent show."""
+        api_client.force_authenticate(user=admin_user)
+        response = api_client.patch(
+            "/api/v2/shows/99999",
+            {"name": "Hacked"},
+            format="json",
+        )
+
+        assert response.status_code == 404
+
+    def test_empty_body_patch(self, api_client, admin_user):
+        """Try PATCH with empty body."""
+        show = baker.make("schedule.Show", name="Test Show")
+
+        api_client.force_authenticate(user=admin_user)
+        response = api_client.patch(
+            f"/api/v2/shows/{show.id}",
+            {},
+            format="json",
+        )
+
+        # Should return 200 with unchanged data
+        assert response.status_code == 200
+
+    def test_patch_duplicate_name(self, api_client, admin_user):
+        """Try to PATCH name to duplicate of existing show."""
+        show1 = baker.make("schedule.Show", name="Existing Show")
+        show2 = baker.make("schedule.Show", name="Another Show")
+
+        api_client.force_authenticate(user=admin_user)
+        response = api_client.patch(
+            f"/api/v2/shows/{show2.id}",
+            {"name": "Existing Show"},
+            format="json",
+        )
+
+        # May accept or reject - documenting
+        assert response.status_code in [200, 400]

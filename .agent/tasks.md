@@ -2549,6 +2549,71 @@ Notes: |
   Red team tests:
   - test_access_other_user_show: FAIL
   - test_access_show_via_idor: FAIL
+
+## [CRITICAL] fix T384 — Show UPDATE allows anonymous access
+Status: NOT_STARTED
+Created: 2026-04-10T02:20:00Z
+Scope: api/schedule/views/show.py
+Next step: Add authentication requirement for PUT/PATCH
+Notes: |
+  CRITICAL: Anonymous can modify shows via PATCH/PUT.
+  
+  Attack scenarios:
+  - PATCH /api/v2/shows/{id} without auth returns 200
+  - PUT /api/v2/shows/{id} without auth returns 200
+  
+  Red team tests:
+  - test_patch_without_auth: FAIL
+  - test_put_without_auth: FAIL
+
+## [HIGH] fix T385 — Show URL validation missing on PATCH
+Status: NOT_STARTED
+Created: 2026-04-10T02:20:00Z
+Scope: api/schedule/serializers/show.py
+Next step: Add URL protocol validation to update method
+Notes: |
+  SECURITY ISSUE: URL validation bypassed via PATCH.
+  
+  Can set dangerous URLs via PATCH:
+  - javascript:alert('xss')
+  - data:text/html,<script>alert('xss')</script>
+  
+  Red team tests:
+  - test_patch_url_to_javascript: FAIL
+  - test_patch_url_to_data_protocol: FAIL
+
+## [HIGH] fix T386 — Show description XSS via PATCH
+Status: NOT_STARTED
+Created: 2026-04-10T02:20:00Z
+Scope: api/schedule/serializers/show.py
+Next step: Add HTML sanitization to PATCH
+Notes: |
+  SECURITY ISSUE: XSS injection works via PATCH.
+  
+  Can inject scripts via description PATCH:
+  - <script>alert('xss')</script>
+  - <img src=x onerror=alert('xss')>
+  
+  Red team tests:
+  - test_patch_description_with_script: FAIL
+  - test_patch_description_with_event_handler: FAIL
+Status: NOT_STARTED
+Created: 2026-04-10T02:10:00Z
+Scope: api/schedule/views/show.py
+Next step: Add owner-based filtering to get_queryset
+Notes: |
+  CRITICAL BOLA/IDOR: Any user can access any show by ID.
+  
+  Attack scenario:
+  - User A has private show
+  - User B calls GET /api/v2/shows/{show_id}
+  - User B can see User A's private show
+  
+  No ownership verification in place.
+  
+  Red team tests:
+  - test_access_other_user_show: FAIL
+  - test_access_show_via_idor: FAIL
 Status: NOT_STARTED
 Created: 2026-04-10T02:00:00Z
 Scope: api/schedule/serializers/show.py
