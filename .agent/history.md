@@ -2086,3 +2086,33 @@ name = faker.name()     # Generate fake name
 - e2034fae0 (T284) ✅
 
 **Total bugs in this batch:** T749-T793 (45 new bugs)
+
+
+---
+
+## Session: 2026-04-10T17:25:00Z
+
+**Context:** T283 Public endpoints - MISSING TASK COMPLETED
+
+**Task:** T283 — Public endpoints positive and security tests
+
+**Completed:**
+1. Created `test_public_endpoints_redteam_t283.py` with 18 tests:
+   - TestPublicEndpointsT283Positive: 5 tests (info/version no auth, with session/API key)
+   - TestPublicEndpointsT283InfoDisclosure: 2 tests (no sensitive data, no internal versions)
+   - TestPublicEndpointsT283DoS: 2 tests (rate limiting, response size)
+   - TestPublicEndpointsT283CORS: 2 tests (arbitrary origin blocked, credentials)
+   - TestPublicEndpointsT283Injection: 2 tests (SQLi, XSS reflection)
+   - TestPublicEndpointsT283Methods: 3 tests (POST, DELETE, TRACE blocked)
+   - TestPublicEndpointsT283Errors: 2 tests (error messages, malformed JSON)
+
+2. Bugs found (1 confirmed, already tracked):
+   - T805: No rate limiting on public endpoints (duplicate of T769)
+
+**Test Results:** 17 passed, 1 xfailed
+
+**Files:**
+- `app/api/api/tests/test_public_endpoints_redteam_t283.py` (new)
+- `.agent/tasks.md` — added T283, T803-T813
+
+**DEADBEEF:** T283 complete! Authentication test coverage (T279-T284) now 100%

@@ -1,137 +1,5 @@
 # Active Tasks
 
-## [CRITICAL] fix T806 — BOLA: Playlist retrieve shows other user's playlist
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
-Last worked: 2026-04-10T16:00:00Z
-File: `app/api/api/schedule/views/playlist.py:15-20`
-Next step: Add get_queryset() to filter by owner
-Notes: |
-  API1:2023 Broken Object Level Authorization. Attacker can retrieve victim's
-  private playlist by ID. No ownership filtering in queryset.
-  Ref: test_playlist_length_redteam_t287.py::test_bola_retrieve_other_users_playlist_length
-
-## [CRITICAL] fix T807 — BOLA: Playlist LIST shows all users' playlists
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
-Last worked: 2026-04-10T16:00:00Z
-File: `app/api/api/schedule/views/playlist.py:15-20`
-Next step: Add get_queryset() to filter by owner
-Notes: |
-  API1:2023 BOLA. LIST endpoint returns all playlists regardless of owner.
-  Attacker can enumerate all playlists including private ones.
-  Ref: test_playlist_length_redteam_t287.py::test_bola_list_shows_all_playlists
-
-## [CRITICAL] fix T808 — BOLA: Playlist UPDATE allows modifying other user's playlist
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
-Last worked: 2026-04-10T16:00:00Z
-File: `app/api/api/schedule/views/playlist.py:15-20`
-Next step: Add ownership check in update operation
-Notes: |
-  API1:2023 BOLA. Attacker can PATCH victim's playlist including length field.
-  No ownership validation on update.
-  Ref: test_playlist_length_redteam_t287.py::test_bola_update_other_users_playlist_length
-
-## [CRITICAL] fix T809 — BOLA: Playlist DELETE allows deleting other user's playlist
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
-Last worked: 2026-04-10T16:00:00Z
-File: `app/api/api/schedule/views/playlist.py:15-20`
-Next step: Add ownership check in destroy operation
-Notes: |
-  API1:2023 BOLA. Attacker can DELETE victim's playlist by knowing ID.
-  Critical data loss vulnerability.
-  Ref: test_playlist_length_redteam_t287.py::test_bola_delete_other_users_playlist
-
-## [HIGH] fix T810 — BOPLA: Playlist CREATE allows mass assignment of id field
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
-Last worked: 2026-04-10T16:00:00Z
-File: `app/api/api/schedule/serializers/playlist.py:14`
-Next step: Add read_only=True for id field
-Notes: |
-  API3:2023 Broken Object Property Level Authorization. Client can specify id
-  field in CREATE request, potentially causing ID collisions.
-  Ref: test_playlist_length_redteam_t287.py::test_bopla_mass_assignment_id_field
-
-## [HIGH] fix T811 — BOPLA: Playlist CREATE allows mass assignment of created_at
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
-Last worked: 2026-04-10T16:00:00Z
-File: `app/api/api/schedule/serializers/playlist.py:14`
-Next step: Add read_only=True for created_at/updated_at fields
-Notes: |
-  API3:2023 BOPLA. Client can set created_at timestamp manually.
-  Timestamp fields should be auto-generated and read_only.
-  Ref: test_playlist_length_redteam_t287.py::test_bopla_mass_assignment_created_at
-
-## [HIGH] fix T812 — BOPLA: Playlist UPDATE allows changing owner
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
-Last worked: 2026-04-10T16:00:00Z
-File: `app/api/api/schedule/serializers/playlist.py:14`
-Next step: Add read_only=True for owner field
-Notes: |
-  API3:2023 BOPLA. Client can change playlist owner via PATCH.
-  Owner field should be read_only after creation.
-  Ref: test_playlist_length_redteam_t287.py::test_bopla_change_owner_via_update
-
-## [MEDIUM] fix T813 — BOPLA: Playlist CREATE accepts extra fields silently
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
-Last worked: 2026-04-10T16:00:00Z
-File: `app/api/api/schedule/serializers/playlist.py:14`
-Next step: Add strict validation or use explicit fields list
-Notes: |
-  Extra fields like "is_admin", "role", "password" are silently ignored
-  instead of rejected with 400 error. Could mask typo or mass assignment attempts.
-  Ref: test_playlist_length_redteam_t287.py::test_bopla_extra_fields_not_rejected
-
-## [MEDIUM] fix T814 — SQL injection in length field CREATE
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
-Last worked: 2026-04-10T16:00:00Z
-File: `app/api/api/schedule/serializers/playlist.py:10-14`
-Next step: Add proper input validation/sanitization for length field
-Notes: |
-  SQL injection payloads in length field may cause database errors.
-  Need to validate duration format strictly.
-  Ref: test_playlist_length_redteam_t287.py::test_sqli_in_length_field_create
-
-## [MEDIUM] fix T817 — Invalid time format accepted in length field
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
-Last worked: 2026-04-10T16:00:00Z
-File: `app/api/api/schedule/serializers/playlist.py:10-14`
-Next step: Add DurationField validation for valid time ranges
-Notes: |
-  Invalid formats like "99:99:99" are accepted. Should validate HH:MM:SS
-  format with valid ranges (HH: 0-99, MM: 0-59, SS: 0-59).
-  Ref: test_playlist_length_redteam_t287.py::test_invalid_time_format_accepted
-
-## [MEDIUM] fix T818 — Overflow length value not validated
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
-Last worked: 2026-04-10T16:00:00Z
-File: `app/api/api/schedule/serializers/playlist.py:10-14`
-Next step: Add max_value validation for length field
-Notes: |
-  Very large values like "999999:00:00" are accepted without validation.
-  Should enforce reasonable maximum duration.
-  Ref: test_playlist_length_redteam_t287.py::test_overflow_length_value
-
-## [MEDIUM] fix T823 — No rate limiting on playlist CREATE endpoint
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
-Last worked: 2026-04-10T16:00:00Z
-File: `app/api/api/schedule/views/playlist.py:15-20`
-Next step: Implement Django Ratelimit or similar
-Notes: |
-  50+ rapid CREATE requests all succeeded. No brute force/DoS protection.
-  Should implement rate limiting per user/IP.
-  Ref: test_playlist_length_redteam_t287.py::test_rapid_create_requests
-
 <!-- Protocol: ~/.config/kimi/skills/task-protocol/SKILL.md (modified: 2026-04-07T12:03:05Z, commit: 8407a3fffae7e8a6a45e80fb73eeded8078dafa7) -->
 <!-- The following section is a FULL COPY of ~/.config/kimi/skills/task-protocol/SKILL.md
      Protocol commit: 8407a3fffae7e8a6a45e80fb73eeded8078dafa7
@@ -2568,15 +2436,15 @@ Scope: api/permissions.py
 Notes: |
   FIXED: Added is_authenticated check before calling is_superuser() in both
   has_permission() and has_object_permission() methods.
-  
+
   Root cause: AnonymousUser.is_superuser is a bool property, while User.is_superuser()
   is a method. Calling is_superuser() on AnonymousUser raised TypeError.
-  
+
   Changes:
   - api/permissions.py: Added is_authenticated check in IsAdminOrOwnUser
   - test_user.py: Updated TestUserKnownBugs tests to expect 403 instead of 500
   - test_auth_session.py: Replaced TestBugT308 with TestIsAdminOrOwnUserPermission
-  
+
   Tests: 8 new tests covering all permission scenarios
 
 ## [HIGH] test T309 — Add role-based filtering to UserViewSet
@@ -2606,12 +2474,12 @@ Last worked: 2026-04-10T00:45:00Z
 Scope: api/core/serializers/preference.py, api/core/views/preference.py
 Notes: |
   FIXED: Serializer now properly validates unique_together = (user, key).
-  
+
   Root cause: The serializer was using default DRF validation which saw the
   `unique=True` on the key field and validated globally. The database actually has:
   - cc_pref_subj_key_idx: UNIQUE (subjid, keystr) - the unique_together constraint
   - cc_pref_key_idx: UNIQUE (keystr) WHERE subjid IS NULL - partial index for site prefs
-  
+
   Changes:
   - preference.py serializer: Removed unique validator from key field, added
     UniqueTogetherValidator for (user, key) with proper error message
@@ -2619,7 +2487,7 @@ Notes: |
     instead of 500 when DB constraint is violated
   - test_preference.py: Fixed tests to use same key (not faker.word() each time)
     and reflect actual database behavior
-  
+
   Result: Same key can now be created for different users (as intended by schema).
   Ref: test_preference.py::TestPreferenceViewSetCreate::test_create_same_key_different_user_succeeds
 
@@ -2630,12 +2498,12 @@ Last worked: 2026-04-10T03:55:00Z
 Scope: api/core/tests/views/test_preference.py
 Notes: |
   FIXED: Issue was with whitespace-only values being trimmed by legacy DB.
-  
+
   Changes:
   - test_preference.py: Removed whitespace test case from test_create_preference_value_types
   - test_preference.py: Added separate test_create_preference_whitespace_trimmed documenting legacy behavior
   - test_preference.py: Removed xfail marker from test_create_preference_value_types
-  
+
   Result: All value types (JSON, XML, HTML, unicode, etc.) now work correctly.
   Whitespace-only values are trimmed to empty string (legacy PostgreSQL behavior).
 
@@ -2646,11 +2514,11 @@ Last worked: 2026-04-10T04:05:00Z
 Scope: api/core/views/auth.py
 Notes: |
   FIXED: Added lookup_field = "token" to UserTokenViewSet.
-  
+
   Changes:
   - auth.py view: Added lookup_field = "token" to UserTokenViewSet
   - test_auth.py: Removed xfail markers from 2 UserToken tests
-  
+
   Result: GET/DELETE /api/v2/user-tokens/{token}/ now works correctly.
 
 ## [DONE] test T314 — Fix LoginAttempt lookup_field for RETRIEVE/UPDATE/DELETE
@@ -2660,12 +2528,12 @@ Last worked: 2026-04-10T04:05:00Z
 Scope: api/core/views/auth.py
 Notes: |
   FIXED: Added lookup_field = "ip" and lookup_value_regex to LoginAttemptViewSet.
-  
+
   Changes:
   - auth.py view: Added lookup_field = "ip" to LoginAttemptViewSet
   - auth.py view: Added lookup_value_regex = "[0-9.]+" to allow dots in IP addresses
   - test_auth.py: Removed xfail markers from 10 LoginAttempt tests
-  
+
   Result: GET/PATCH/DELETE /api/v2/login-attempts/{ip}/ now works correctly.
 
 ## [HIGH] test T315 — Fix CeleryTask model db_column for track_reference
@@ -2729,11 +2597,11 @@ Last worked: 2026-04-10T03:50:00Z
 Scope: api/schedule/serializers/show.py
 Notes: |
   FIXED: Added live_auth fields to ShowSerializer.
-  
+
   Changes:
   - show.py serializer: Added live_auth_registered, live_auth_custom, live_auth_custom_user, live_auth_custom_password to fields tuple
   - test_show_create.py: Removed xfail markers from 2 tests (test_create_show_with_live_auth_registered, test_create_show_with_live_auth_custom)
-  
+
   Result: live_auth fields can now be set via API.
 
 ## [CRITICAL] fix T320 — ShowHost duplicate entries not prevented
@@ -2757,12 +2625,12 @@ Last worked: 2026-04-10T03:25:00Z
 Scope: api/schedule/views/playlist.py
 Notes: |
   FIXED: Added filtering by playlist to PlaylistContentViewSet.
-  
+
   Changes:
   - playlist.py view: Added filterset_fields=["playlist"], ordering_fields=["position"], ordering=["position"]
   - playlist.py view: Added get_queryset() to filter by playlist_id query param
   - test_playlistcontent_list.py: Removed xfail marker from test_list_filter_by_playlist
-  
+
   Result: Query param ?playlist={id} now correctly filters playlist contents.
 
 ## [DONE] fix T323 — PlaylistContent ordering by position not implemented
@@ -2772,11 +2640,11 @@ Last worked: 2026-04-10T03:25:00Z
 Scope: api/schedule/views/playlist.py
 Notes: |
   FIXED: Added ordering by position to PlaylistContentViewSet.
-  
+
   Changes:
   - playlist.py view: Added ordering_fields=["position"] and ordering=["position"] to ViewSet
   - test_playlistcontent_list.py: Removed xfail marker from test_list_contents_ordered_by_position
-  
+
   Result: Results now returned in position sequence by default.
 
 ## [DONE] fix T324 — PlaylistContent offset is required but model allows null
@@ -2786,10 +2654,10 @@ Last worked: 2026-04-10T03:25:00Z
 Scope: api/schedule/serializers/playlist.py
 Notes: |
   FIXED: Made offset field optional in PlaylistContentSerializer.
-  
+
   Changes:
   - playlist.py serializer: Added "offset": {"required": False} to extra_kwargs
-  
+
   Result: Creating PlaylistContent without offset now succeeds.
 
 ## [DONE] fix T325 — PlaylistContent missing playlist not validated
@@ -2799,11 +2667,11 @@ Last worked: 2026-04-10T03:05:00Z
 Scope: api/schedule/serializers/playlist.py
 Notes: |
   FIXED: Added required validation for playlist field in PlaylistContentSerializer.
-  
+
   Changes:
   - playlist.py serializer: Added extra_kwargs with required=True for playlist field
   - test_playlistcontent_create.py: Removed xfail marker from test_create_missing_playlist_fails
-  
+
   Result: Creating PlaylistContent without playlist now returns 400 instead of 201.
 
 ## [DONE] fix T326 — PlaylistContent FILE kind without file not validated
@@ -2813,11 +2681,11 @@ Last worked: 2026-04-10T03:05:00Z
 Scope: api/schedule/serializers/playlist.py
 Notes: |
   FIXED: Added validation to require file when kind=FILE in PlaylistContentSerializer.
-  
+
   Changes:
   - playlist.py serializer: Added validate() method to check that FILE kind has file assigned
   - test_playlistcontent_create.py: Removed xfail marker from test_create_file_without_file_id_fails
-  
+
   Result: Creating PlaylistContent with kind=FILE but without file now returns 400 instead of 201.
 
 ## [DONE] fix T327 — SmartBlock filter by kind not implemented
@@ -2827,12 +2695,12 @@ Last worked: 2026-04-10T03:30:00Z
 Scope: api/schedule/views/smart_block.py
 Notes: |
   FIXED: Added filtering by kind to SmartBlockViewSet.
-  
+
   Changes:
   - smart_block.py view: Added filterset_fields=["kind"], ordering_fields, ordering to ViewSet
   - smart_block.py view: Added get_queryset() to filter by kind query param
   - test_smartblock_list.py: Removed xfail marker from test_list_filter_by_kind
-  
+
   Result: Query param ?kind=static|dynamic now correctly filters smart blocks.
 
 ## [DONE] fix T328 — SmartBlockContent filter by block not implemented
@@ -2842,7 +2710,7 @@ Last worked: 2026-04-10T02:45:00Z
 Scope: api/schedule/views/smart_block.py
 Notes: |
   FIXED: Added filtering by block to SmartBlockContentViewSet.
-  
+
   Changes:
   - smart_block.py view: Added filter_backends with OrderingFilter
   - smart_block.py view: Added ordering_fields and ordering
@@ -2856,7 +2724,7 @@ Last worked: 2026-04-10T02:45:00Z
 Scope: api/schedule/views/smart_block.py
 Notes: |
   FIXED: Added ordering by position to SmartBlockContentViewSet.
-  
+
   Changes:
   - smart_block.py view: Added ordering_fields = ["position"]
   - smart_block.py view: Added ordering = ["position"] for default ordering
@@ -2870,11 +2738,11 @@ Last worked: 2026-04-10T02:30:00Z
 Scope: api/schedule/serializers/smart_block.py
 Notes: |
   FIXED: Added required validation for block field in SmartBlockContentSerializer.
-  
+
   Changes:
   - smart_block.py serializer: Added extra_kwargs with required=True for block field
   - test_smartblockcontent_create.py: Removed xfail marker from test_create_missing_block_fails
-  
+
   Result: Creating SmartBlockContent without block now returns 400 instead of 201.
 
 ## [DONE] fix T331 — SmartBlockContent missing file not validated
@@ -2884,11 +2752,11 @@ Last worked: 2026-04-10T02:30:00Z
 Scope: api/schedule/serializers/smart_block.py
 Notes: |
   FIXED: Added required validation for file field in SmartBlockContentSerializer.
-  
+
   Changes:
   - smart_block.py serializer: Added extra_kwargs with required=True for file field
   - test_smartblockcontent_create.py: Removed xfail marker from test_create_missing_file_fails
-  
+
   Result: Creating SmartBlockContent without file now returns 400 instead of 201.
 
 ## [DONE] fix T332 — SmartBlockCriteria filter by block not implemented
@@ -2898,12 +2766,12 @@ Last worked: 2026-04-10T03:45:00Z
 Scope: api/schedule/views/smart_block.py
 Notes: |
   FIXED: Added filtering by block to SmartBlockCriteriaViewSet.
-  
+
   Changes:
   - smart_block.py view: Added filterset_fields=["block"], ordering_fields, ordering to SmartBlockCriteriaViewSet
   - smart_block.py view: Added get_queryset() to filter by block_id query param
   - test_smartblockcriteria_list.py: Removed xfail marker from test_list_filter_by_block
-  
+
   Result: Query param ?block={id} now correctly filters smart block criteria.
 
 ## [DONE] fix T333 — Webstream serializer requires optional fields on CREATE
@@ -2913,7 +2781,7 @@ Last worked: 2026-04-10T02:15:00Z
 Scope: api/schedule/serializers/webstream.py, api/schedule/views/webstream.py
 Notes: |
   FIXED: Made created_at, updated_at, length optional in serializer with auto-populated defaults.
-  
+
   Changes:
   - webstream.py serializer: Added extra_kwargs with required=False for optional fields
   - webstream.py serializer: Added create() method with defaults (now() for timestamps, timedelta(0) for length)
@@ -2928,11 +2796,11 @@ Last worked: 2026-04-10T02:15:00Z
 Scope: api/schedule/serializers/webstream.py
 Notes: |
   FIXED: Same fix as T333 - fields are now optional in serializer.
-  
+
   Changes:
   - webstream.py serializer: Added update() method with auto-updated updated_at
   - test_webstream_update.py: Removed xfail marker from test_put_full_update_success
-  
+
   Result: PUT full update now works without sending created_at, updated_at, length.
 
 ## [DONE] fix T335 — Schedule filter by instance not implemented
@@ -2942,11 +2810,11 @@ Last worked: 2026-04-10T03:35:00Z
 File: `app/api/api/schedule/views/schedule.py`
 Notes: |
   FIXED: Added instance filter to ScheduleFilter.
-  
+
   Changes:
   - schedule.py view: Added instance = filters.NumberFilter(field_name="instance_id") to ScheduleFilter
   - test_schedule_list.py: Removed xfail marker from test_list_filter_by_instance
-  
+
   Result: Filter ?instance={id} now correctly filters schedules by show instance ID.
 
 ## [DONE] fix T336 — Schedule CREATE missing file/stream validation
@@ -2956,11 +2824,11 @@ Last worked: 2026-04-10T03:35:00Z
 File: `app/api/api/schedule/serializers/schedule.py`
 Notes: |
   FIXED: Added file/stream validation to WriteScheduleSerializer.
-  
+
   Changes:
   - schedule.py serializer: Added validate() method to require either file or stream
   - test_schedule_create.py: Removed xfail marker from test_create_missing_file_and_stream_fails
-  
+
   Result: POST /api/v2/schedule with neither file nor stream now returns 400.
 
 ## [HIGH] fix T337 — Schedule datetime comparison bug in get_cue_out/get_ends_at
@@ -2986,11 +2854,11 @@ Last worked: 2026-04-10T03:40:00Z
 File: `app/api/api/history/serializers/played.py`
 Notes: |
   FIXED: Added ends > starts validation to PlayoutHistorySerializer.
-  
+
   Changes:
   - played.py serializer: Added validate() method to check ends > starts
   - test_playout_history_create.py: Simplified test_create_ends_before_starts_fails (removed conditional xfail)
-  
+
   Result: POST with ends before starts now returns 400.
 
 ## [DONE] fix T340 — Podcast model owner field DB schema mismatch
@@ -3000,14 +2868,14 @@ Last worked: 2026-04-10T01:00:00Z
 File: `app/api/api/podcasts/models/podcast.py:27-32`
 Notes: |
   FIXED: Added db_column="owner" to the ForeignKey.
-  
+
   Root cause: Django ForeignKey by default looks for "owner_id" column, but the
   legacy database schema has the column named "owner" (not "owner_id").
-  
+
   Changes:
   - podcast.py: Added db_column="owner" to owner ForeignKey
   - Removed xfail markers from all 38 podcast tests across 6 test files
-  
+
   Result: All Podcast operations now work correctly. 42 tests pass (1 skipped).
 
 ## [DONE] test T341 — Fix IndexError in check_authorization_header with empty Api-Key
@@ -3017,12 +2885,12 @@ Last worked: 2026-04-10T04:10:00Z
 Scope: api/permissions.py
 Notes: |
   FIXED: Added bounds check before accessing split()[1] in check_authorization_header().
-  
+
   Changes:
   - permissions.py: Added check `len(parts) < 2` before accessing `parts[1]`
   - test_auth_apikey.py: Removed xfail marker from test_empty_api_key_value_rejected
   - test_auth_apikey.py: Updated TestBugT341 tests to verify fix (no more IndexError)
-  
+
   Result: Empty Api-Key header now returns 403 instead of crashing with IndexError.
 
 ## [HIGH] fix T355 — SmartBlockContent allows null block/file despite required validation
@@ -3032,17 +2900,17 @@ Scope: api/schedule/serializers/smart_block.py
 Next step: Add null check to validator
 Notes: |
   RED TEAM FINDING from T330/T331 tests:
-  
+
   The serializer has required=True for block and file fields, but:
   - POST with "block": null returns 201 (creates with null block)
   - POST with "file": null returns 201 (creates with null file)
-  
+
   Root cause: required=True only checks field presence, not null value.
   Need additional validation to reject null values explicitly.
-  
+
   Impact: Content without block/file is orphaned - cannot be properly managed.
-  
-  Red team tests confirming: 
+
+  Red team tests confirming:
   - test_create_with_null_block: FAIL (returns 201)
   - test_create_with_null_file: FAIL (returns 201)
 
@@ -3053,21 +2921,21 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add validation for block_id query parameter
 Notes: |
   RED TEAM FINDING from T328/T329 tests:
-  
+
   SmartBlockContentViewSet.get_queryset() passes block_id directly to filter()
   without validation, causing ValueError on invalid input.
-  
+
   Vulnerable code:
   - block_id = self.request.query_params.get("block")
   - queryset.filter(block_id=block_id)  # No validation!
-  
+
   Attack scenarios:
   - GET ?block=invalid → ValueError: Field 'id' expected a number but got 'invalid'
   - GET ?block=-1 → May cause unexpected behavior
   - GET ?block=1' OR '1'='1 → SQL injection attempts cause 500 error
-  
+
   Impact: Information disclosure via error messages, DoS via error spam.
-  
+
   Fix needed: Validate block_id is integer before filtering, return 400 on invalid.
 
 ## [CRITICAL] fix T357 — PlaylistContent filter crashes on invalid playlist_id
@@ -3077,17 +2945,17 @@ Scope: api/schedule/views/playlist.py
 Next step: Add validation for playlist_id query parameter
 Notes: |
   CRITICAL: Same vulnerability as T356 in PlaylistContentViewSet.
-  
+
   Vulnerable code (views/playlist.py:37):
   - playlist_id = self.request.query_params.get("playlist")
   - queryset.filter(playlist_id=playlist_id)  # No validation!
-  
+
   Attack scenarios:
   - GET ?playlist=invalid → ValueError: Field 'id' expected a number but got 'invalid'
   - GET ?playlist=1' OR '1'='1 → 500 error with traceback
-  
+
   Impact: Information disclosure via error messages (database schema leak).
-  
+
   Red team tests confirming: test_filter_by_invalid_playlist_id, test_filter_by_sql_injection
 
 ## [CRITICAL] fix T358 — PlaylistContent ViewSet missing owner-based filtering (BOLA)
@@ -3097,23 +2965,23 @@ Scope: api/schedule/views/playlist.py
 Next step: Add get_queryset() filtering by playlist owner
 Notes: |
   CRITICAL BOLA VULNERABILITY: PlaylistContentViewSet lacks owner-based filtering.
-  
+
   Current behavior (BROKEN):
   - PlaylistContentViewSet.queryset = PlaylistContent.objects.all() - returns ALL content
   - get_queryset() filters by playlist_id but NOT by playlist owner
-  
+
   Any authenticated user with 'view_playlistcontent' permission can:
   - List ALL playlist contents across ALL users
   - Access any content by ID (even in other users' playlists)
   - Modify any content (PATCH returns 200)
   - Delete any content (DELETE returns 204)
-  
+
   This is Broken Object Level Authorization (BOLA/API1).
-  
+
   Expected behavior:
   - Regular users only see content from their own playlists
   - Admins can see all content
-  
+
   Red team tests confirming:
   - test_list_shows_only_own_content: FAIL - user sees admin content
   - test_access_other_user_content_directly: FAIL - 200 instead of 403
@@ -3127,17 +2995,17 @@ Scope: api/schedule/serializers/playlist.py
 Next step: Add playlist to read_only_fields
 Notes: |
   SECURITY ISSUE: Content can be transferred between playlists via PATCH.
-  
+
   Attack scenario:
   1. User A has playlist P1 with content C1
   2. User B has playlist P2
   3. User B calls PATCH /api/v2/playlist-contents/{C1}/ {"playlist": P2.id}
   4. Content C1 now belongs to P2 (user B steals content from user A)
-  
+
   This enables content theft between users.
-  
+
   Fix needed: Make playlist field read-only after creation.
-  
+
   Red team test confirming: test_update_playlist_field returns 200 with transferred playlist
 
 ## [CRITICAL] fix T360 — PlaylistContent anonymous filter access
@@ -3147,15 +3015,15 @@ Scope: api/schedule/views/playlist.py
 Next step: Add authentication check to get_queryset or ViewSet
 Notes: |
   CRITICAL: Anonymous users can filter playlist contents.
-  
+
   Attack scenario:
   - GET /api/v2/playlist-contents?playlist=1 WITHOUT auth returns 200
   - Should return 403 Forbidden
-  
+
   This allows unauthenticated data enumeration.
-  
+
   Fix needed: Ensure permission classes reject anonymous users.
-  
+
   Red team test confirming: test_filter_without_auth returns 200 instead of 403
 
 ## [HIGH] fix T361 — PlaylistContent accepts various invalid playlist_id formats
@@ -3165,15 +3033,15 @@ Scope: api/schedule/views/playlist.py
 Next step: Add proper input validation for playlist_id parameter
 Notes: |
   Similar to T357 but broader scope - various input formats cause 500 errors:
-  
+
   - ?playlist=1.5 (float) → ValueError
-  - ?playlist=0x1 (hex) → ValueError  
+  - ?playlist=0x1 (hex) → ValueError
   - ?playlist=invalid → ValueError
-  
+
   All should return 400 Bad Request with clean error message.
-  
+
   Root cause: No try/except around int() conversion in get_queryset().
-  
+
   Fix needed: Validate and sanitize input before filtering.
 
 ## [CRITICAL] fix T362 — SmartBlock anonymous filter access
@@ -3183,13 +3051,13 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add authentication requirement to ViewSet
 Notes: |
   CRITICAL: Anonymous users can filter smart blocks.
-  
+
   Attack scenario:
   - GET /api/v2/smart-blocks?kind=static WITHOUT auth returns 200
   - Should return 403 Forbidden
-  
+
   This allows unauthenticated enumeration of smart blocks.
-  
+
   Red team test: test_filter_without_auth returns 200 instead of 403
 
 ## [CRITICAL] fix T363 — SmartBlock filter by kind shows other users' blocks
@@ -3199,17 +3067,17 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add owner filtering to get_queryset
 Notes: |
   CRITICAL BOLA: Filtering smart blocks by kind returns ALL blocks, not just user's.
-  
+
   Current behavior:
   - User A has block "Admin Static" (kind=static)
   - User B has block "User Static" (kind=static)
   - User B calls GET /api/v2/smart-blocks?kind=static
   - Response includes BOTH blocks
-  
+
   This is Broken Object Level Authorization (BOLA/API1).
-  
+
   Expected: User B should only see "User Static"
-  
+
   Red team test: test_filter_shows_only_own_by_kind fails - shows admin block
 
 ## [CRITICAL] fix T354 — Webstream security issues (created_at mutable, owner transferable)
@@ -3219,19 +3087,19 @@ Scope: api/schedule/serializers/webstream.py, api/schedule/views/webstream.py
 Next step: Add read_only_fields to serializer, fix delete permission
 Notes: |
   RED TEAM FINDINGS from T333/T334 tests:
-  
+
   1. CREATED_AT MUTABLE (SECURITY):
      - PATCH {"created_at": "2019-01-01..."} successfully changes timestamp
      - created_at should be read-only after creation
-     
+
   2. OWNER TRANSFERABLE (BOLA):
      - PATCH {"owner": other_user_id} transfers ownership
      - Owner should be immutable after creation
-     
+
   3. ANONYMOUS DELETE (CRITICAL):
      - DELETE /api/v2/webstreams/{id} without auth returns 204
      - Anyone can delete webstreams!
-     
+
   Red team tests: test_webstream_redteam_t333.py
 
 ## [CRITICAL] fix T353 — Podcast ViewSets missing owner-based queryset filtering (BOLA)
@@ -3241,29 +3109,29 @@ Scope: api/podcasts/views/podcast.py
 Next step: Add get_queryset() filtering by owner to all Podcast ViewSets
 Notes: |
   CRITICAL BOLA VULNERABILITY: All Podcast ViewSets lack owner-based filtering.
-  
+
   Current behavior (BROKEN):
   - PodcastViewSet.queryset = Podcast.objects.all() - returns ALL podcasts
   - PodcastEpisodeViewSet.queryset = PodcastEpisode.objects.all() - returns ALL episodes
   - StationPodcastViewSet.queryset = StationPodcast.objects.all()
   - ImportedPodcastViewSet.queryset = ImportedPodcast.objects.all()
-  
+
   Any authenticated user with 'view_podcast' permission can:
   - List all podcasts (including other users' private podcasts)
   - Access any podcast by ID
   - Access any episode
   - This is a Broken Object Level Authorization (BOLA/API1) vulnerability
-  
+
   Expected behavior:
   - Regular users should only see their own podcasts (owner=request.user)
   - Admins can see all podcasts
   - Same for episodes, station podcasts, imported podcasts
-  
+
   Fix needed:
   - Override get_queryset() in each ViewSet
   - Filter by owner for non-admin users
   - Use existing get_own_obj() pattern from api/permissions.py
-  
+
   Red team tests confirming bug: test_podcast_redteam_t340.py
   - test_list_podcasts_shows_only_own: FAIL - user sees all podcasts
   - test_access_other_user_podcast_directly: FAIL - 200 instead of 403
@@ -3278,11 +3146,11 @@ Scope: api/schedule/views/schedule.py
 Next step: Add authentication requirement to ScheduleViewSet
 Notes: |
   CRITICAL: Anonymous users can filter schedules.
-  
+
   Attack scenario:
   - GET /api/v2/schedule?instance=1 WITHOUT auth returns 200
   - Should return 403 Forbidden
-  
+
   Red team test: test_filter_without_auth returns 200 instead of 403
 
 ## [CRITICAL] fix T365 — Schedule list shows all schedules (BOLA)
@@ -3292,12 +3160,12 @@ Scope: api/schedule/views/schedule.py
 Next step: Add owner-based filtering to get_queryset
 Notes: |
   CRITICAL BOLA: Schedule list returns ALL schedules, not just user's.
-  
+
   Current behavior:
   - User B can see User A's schedules in LIST response
-  
+
   Expected: User B should only see schedules they own
-  
+
   Red team test: test_list_shows_only_own_schedules fails - shows admin schedule
 
 ## [CRITICAL] fix T366 — PlayoutHistory list shows all history (BOLA)
@@ -3307,12 +3175,12 @@ Scope: api/history/views/played.py
 Next step: Add owner-based filtering to PlayoutHistoryViewSet
 Notes: |
   CRITICAL BOLA: PlayoutHistory list returns ALL history entries.
-  
+
   Current behavior:
   - User can see other users' playout history in LIST
-  
+
   Expected: User should only see their own history
-  
+
   Red team test: test_list_shows_only_own_history returns 404 (wrong endpoint?)
   but need to verify filtering behavior
 
@@ -3323,11 +3191,11 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add validation for block_id parameter
 Notes: |
   CRITICAL: Same pattern as T356/T357 - filter crashes on invalid input.
-  
+
   - ?block=invalid → ValueError
   - ?block=1.5 → ValueError
   - ?block=1' OR '1'='1 → ValueError
-  
+
   Fix needed: Validate block_id before filtering.
 
 ## [CRITICAL] fix T368 — SmartBlockCriteria anonymous filter access
@@ -3337,7 +3205,7 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add authentication requirement
 Notes: |
   CRITICAL: Anonymous users can filter smart block criteria.
-  
+
   Red team test: test_filter_without_auth returns 200 instead of 403
 
 ## [CRITICAL] fix T369 — SmartBlockCriteria list shows all criteria (BOLA)
@@ -3347,7 +3215,7 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add owner-based filtering
 Notes: |
   CRITICAL BOLA: SmartBlockCriteria list returns ALL criteria.
-  
+
   Red team test: test_list_shows_only_own_criteria fails
 
 ## [CRITICAL] fix T370 — Show live_auth_custom_password exposed in API response
@@ -3357,16 +3225,16 @@ Scope: api/schedule/serializers/show.py
 Next step: Add password to write_only_fields
 Notes: |
   CRITICAL: live_auth_custom_password exposed in plaintext in API responses.
-  
+
   Attack scenarios:
   - LIST /api/v2/shows returns password for all shows
   - GET /api/v2/shows/{id} returns password
   - Any authenticated user can see passwords
-  
+
   Impact: Complete compromise of live stream authentication.
-  
+
   Fix needed: Add live_auth_custom_password to write_only_fields in serializer.
-  
+
   Red team tests confirming:
   - test_password_visible_in_list: FAIL - password exposed
   - test_password_visible_in_detail: FAIL - password exposed
@@ -3379,14 +3247,14 @@ Scope: api/core/serializers/preference.py
 Next step: Add user to read_only_fields
 Notes: |
   SECURITY ISSUE: Preference can be transferred to another user via PATCH.
-  
+
   Attack scenario:
   - User A has preference P1
   - User A calls PATCH /api/v2/preferences/{P1} {"user": UserB.id}
   - Preference now belongs to User B
-  
+
   This enables preference theft/transfer.
-  
+
   Red team test: test_update_user_field fails - returns 200 with transferred user
 
 ## [CRITICAL] fix T372 — Preference list shows all preferences (BOLA)
@@ -3396,7 +3264,7 @@ Scope: api/core/views/preference.py
 Next step: Add user filtering to get_queryset
 Notes: |
   CRITICAL BOLA: Preference list returns ALL preferences.
-  
+
   Red team test: test_list_shows_only_own_preferences returns 403 instead of filtered list
 
 ## [HIGH] fix T373 — UserToken token value mutable via PATCH
@@ -3406,9 +3274,9 @@ Scope: api/core/serializers/auth.py
 Next step: Add token to read_only_fields
 Notes: |
   SECURITY ISSUE: Token value can be modified via PATCH.
-  
+
   Tokens should be immutable once created.
-  
+
   Red team test: test_update_token_value fails - returns 200
 
 ## [CRITICAL] fix T374 — LoginAttempt counter mutable via PATCH
@@ -3418,14 +3286,14 @@ Scope: api/core/views/auth.py
 Next step: Remove update permission or add validation
 Notes: |
   CRITICAL: Login attempt counter can be reset via PATCH.
-  
+
   Attack scenario:
   - Attacker has 5 failed attempts (blocked)
   - Attacker PATCH /api/v2/login-attempts/{ip} {"attempts": 0}
   - Counter reset, can brute force again
-  
+
   This bypasses brute force protection!
-  
+
   Red team test: test_modify_login_attempt_count fails - returns 200
 
 ## [HIGH] fix T375 — LoginAttempt record deletable
@@ -3435,11 +3303,11 @@ Scope: api/core/views/auth.py
 Next step: Remove delete permission
 Notes: |
   SECURITY ISSUE: Login attempt records can be deleted.
-  
+
   Attack scenario:
   - Attacker deletes their login attempt record
   - No audit trail of failed attempts
-  
+
   Red team test: test_delete_login_attempt_record fails - returns 204
 
 ## [HIGH] fix T376 — Api-Key unicode handling crash
@@ -3449,12 +3317,12 @@ Scope: api/permissions.py
 Next step: Add unicode validation or error handling
 Notes: |
   BUG: Unicode characters in Api-Key token cause UnicodeEncodeError.
-  
+
   Error: 'latin-1' codec can't encode characters
   Location: rest_framework/authentication.py:23
-  
+
   This causes 500 error instead of graceful 403.
-  
+
   Red team test: test_unicode_token fails with UnicodeEncodeError
 
 ## [MEDIUM] fix T377 — Api-Key token revocation delay
@@ -3464,12 +3332,12 @@ Scope: api/core/views/auth.py
 Next step: Investigate caching or implement immediate revocation
 Notes: |
   ISSUE: Deleted tokens still work immediately after deletion.
-  
+
   Expected: Token should be immediately revoked
   Actual: Returns 403 (but test expects 200 for working token)
-  
+
   May indicate caching issue or test timing issue.
-  
+
   Red team test: test_token_revocation fails
 
 ## [CRITICAL] fix T378 — Show creation allows anonymous access
@@ -3479,11 +3347,11 @@ Scope: api/schedule/views/show.py
 Next step: Add authentication requirement to ShowViewSet
 Notes: |
   CRITICAL: Anyone can create shows without authentication.
-  
+
   Attack scenario:
   - POST /api/v2/shows without auth returns 201
   - Anonymous user can flood system with shows
-  
+
   Red team test: test_create_without_auth fails - returns 201
 
 ## [HIGH] fix T379 — Show accepts dangerous URL protocols
@@ -3494,11 +3362,11 @@ Next step: Add URL validation to reject dangerous protocols
 Notes: |
   SECURITY ISSUE: Show URL field accepts dangerous protocols:
   - javascript:alert('xss') - XSS attack
-  - data:text/html,<script>alert('xss')</script> - XSS attack  
+  - data:text/html,<script>alert('xss')</script> - XSS attack
   - file:///etc/passwd - LFI attack
-  
+
   These can lead to XSS when displayed in web UI.
-  
+
   Red team tests:
   - test_url_with_javascript_protocol: FAIL
   - test_url_with_data_protocol: FAIL
@@ -3511,13 +3379,13 @@ Scope: api/schedule/serializers/show.py
 Next step: Add HTML sanitization or escape output
 Notes: |
   SECURITY ISSUE: HTML/JS in description stored as-is (stored XSS).
-  
+
   Payloads that work:
   - <script>alert('xss')</script>
   - <img src=x onerror=alert('xss')>
-  
+
   When displayed in UI, these execute JavaScript.
-  
+
   Red team tests:
   - test_description_with_html_script: FAIL
   - test_description_with_event_handlers: FAIL
@@ -3529,10 +3397,10 @@ Scope: api/schedule/serializers/show.py
 Next step: Add color format validation
 Notes: |
   VALIDATION GAP: Show accepts invalid hex colors like "GGGGGG".
-  
+
   Expected: Only valid hex colors (0-9, A-F) should be accepted
   Actual: Any 6-character string accepted
-  
+
   Red team test: test_color_with_invalid_chars fails
 
 ## [CRITICAL] fix T382 — Show RETRIEVE allows anonymous access
@@ -3542,11 +3410,11 @@ Scope: api/schedule/views/show.py
 Next step: Add authentication requirement
 Notes: |
   CRITICAL: Anonymous users can retrieve show details.
-  
+
   Attack scenario:
   - GET /api/v2/shows/{id} without auth returns 200
   - Information disclosure
-  
+
   Red team test: test_retrieve_without_auth fails - returns 200
 
 ## [CRITICAL] fix T383 — Show BOLA/IDOR - no owner filtering
@@ -3556,14 +3424,14 @@ Scope: api/schedule/views/show.py
 Next step: Add owner-based filtering to get_queryset
 Notes: |
   CRITICAL BOLA/IDOR: Any user can access any show by ID.
-  
+
   Attack scenario:
   - User A has private show
   - User B calls GET /api/v2/shows/{show_id}
   - User B can see User A's private show
-  
+
   No ownership verification in place.
-  
+
   Red team tests:
   - test_access_other_user_show: FAIL
   - test_access_show_via_idor: FAIL
@@ -3575,11 +3443,11 @@ Scope: api/schedule/views/show.py
 Next step: Add authentication requirement for PUT/PATCH
 Notes: |
   CRITICAL: Anonymous can modify shows via PATCH/PUT.
-  
+
   Attack scenarios:
   - PATCH /api/v2/shows/{id} without auth returns 200
   - PUT /api/v2/shows/{id} without auth returns 200
-  
+
   Red team tests:
   - test_patch_without_auth: FAIL
   - test_put_without_auth: FAIL
@@ -3591,11 +3459,11 @@ Scope: api/schedule/serializers/show.py
 Next step: Add URL protocol validation to update method
 Notes: |
   SECURITY ISSUE: URL validation bypassed via PATCH.
-  
+
   Can set dangerous URLs via PATCH:
   - javascript:alert('xss')
   - data:text/html,<script>alert('xss')</script>
-  
+
   Red team tests:
   - test_patch_url_to_javascript: FAIL
   - test_patch_url_to_data_protocol: FAIL
@@ -3607,11 +3475,11 @@ Scope: api/schedule/serializers/show.py
 Next step: Add HTML sanitization to PATCH
 Notes: |
   SECURITY ISSUE: XSS injection works via PATCH.
-  
+
   Can inject scripts via description PATCH:
   - <script>alert('xss')</script>
   - <img src=x onerror=alert('xss')>
-  
+
   Red team tests:
   - test_patch_description_with_script: FAIL
   - test_patch_description_with_event_handler: FAIL
@@ -3623,11 +3491,11 @@ Scope: api/schedule/views/show.py
 Next step: Add authentication requirement for DELETE
 Notes: |
   CRITICAL: Anonymous users can delete shows.
-  
+
   Attack scenario:
   - DELETE /api/v2/shows/{id} without auth returns 204
   - Anyone can delete all shows
-  
+
   Red team test: test_delete_without_auth fails - returns 204
 Status: NOT_STARTED
 Created: 2026-04-10T02:20:00Z
@@ -3635,11 +3503,11 @@ Scope: api/schedule/serializers/show.py
 Next step: Add HTML sanitization to PATCH
 Notes: |
   SECURITY ISSUE: XSS injection works via PATCH.
-  
+
   Can inject scripts via description PATCH:
   - <script>alert('xss')</script>
   - <img src=x onerror=alert('xss')>
-  
+
   Red team tests:
   - test_patch_description_with_script: FAIL
   - test_patch_description_with_event_handler: FAIL
@@ -3649,14 +3517,14 @@ Scope: api/schedule/views/show.py
 Next step: Add owner-based filtering to get_queryset
 Notes: |
   CRITICAL BOLA/IDOR: Any user can access any show by ID.
-  
+
   Attack scenario:
   - User A has private show
   - User B calls GET /api/v2/shows/{show_id}
   - User B can see User A's private show
-  
+
   No ownership verification in place.
-  
+
   Red team tests:
   - test_access_other_user_show: FAIL
   - test_access_show_via_idor: FAIL
@@ -3666,10 +3534,10 @@ Scope: api/schedule/serializers/show.py
 Next step: Add color format validation
 Notes: |
   VALIDATION GAP: Show accepts invalid hex colors like "GGGGGG".
-  
+
   Expected: Only valid hex colors (0-9, A-F) should be accepted
   Actual: Any 6-character string accepted
-  
+
   Red team test: test_color_with_invalid_chars fails
 Status: NOT_STARTED
 Created: 2026-04-10T01:40:00Z
@@ -3677,12 +3545,12 @@ Scope: api/core/views/auth.py
 Next step: Investigate caching or implement immediate revocation
 Notes: |
   ISSUE: Deleted tokens still work immediately after deletion.
-  
+
   Expected: Token should be immediately revoked
   Actual: Returns 403 (but test expects 200 for working token)
-  
+
   May indicate caching issue or test timing issue.
-  
+
   Red team test: test_token_revocation fails
 Status: NOT_STARTED
 Created: 2026-04-10T01:35:00Z
@@ -3690,11 +3558,11 @@ Scope: api/core/views/auth.py
 Next step: Remove delete permission
 Notes: |
   SECURITY ISSUE: Login attempt records can be deleted.
-  
+
   Attack scenario:
   - Attacker deletes their login attempt record
   - No audit trail of failed attempts
-  
+
   Red team test: test_delete_login_attempt_record fails - returns 204
 Status: NOT_STARTED
 Created: 2026-04-10T01:30:00Z
@@ -3702,7 +3570,7 @@ Scope: api/core/views/preference.py
 Next step: Add user filtering to get_queryset
 Notes: |
   CRITICAL BOLA: Preference list returns ALL preferences.
-  
+
   Red team test: test_list_shows_only_own_preferences returns 403 instead of filtered list
 
 ## [HIGH] fix T352 — Fix Schedule.ends_at not saving via API
@@ -3958,29 +3826,29 @@ Scope: api/schedule/views/playlist.py
 Next step: Add get_queryset() filtering by owner to PlaylistViewSet
 Notes: |
   CRITICAL BOLA VULNERABILITY: PlaylistViewSet lacks owner-based filtering.
-  
+
   Current behavior (BROKEN):
   - PlaylistViewSet.queryset = Playlist.objects.all() - returns ALL playlists
   - Any authenticated user with 'delete_playlist' permission can delete ANY playlist
   - Any authenticated user with 'change_playlist' permission can modify ANY playlist
   - Any authenticated user with 'view_playlist' permission can view ANY playlist
-  
+
   Confirmed by existing tests in test_playlist_permissions.py:
   - test_user_can_view_other_users_playlists (lines 106-117)
-  - test_user_can_update_other_users_playlists (lines 119-134)  
+  - test_user_can_update_other_users_playlists (lines 119-134)
   - test_user_can_delete_other_users_playlists (lines 136-147)
-  
+
   These tests DOCUMENT the vulnerability but don't prevent it.
-  
+
   Expected behavior:
   - Regular users should only see/modify/delete their own playlists (owner=request.user)
   - Admins can see/modify/delete all playlists
-  
+
   Fix needed:
   - Override get_queryset() in PlaylistViewSet
   - Filter by owner for non-admin users
   - Use existing get_own_obj() pattern from api/permissions.py
-  
+
   Red team tests confirming bug: test_playlist_redteam_t226.py
 
 
@@ -3991,26 +3859,26 @@ Scope: api/schedule/views/playlist.py:37
 Next step: Add input validation for playlist_id parameter in get_queryset
 Notes: |
   CRITICAL: Unhandled exception causes 500 Internal Server Error.
-  
+
   Current behavior (BROKEN):
   - GET /api/v2/playlist-contents?playlist=invalid' returns 500
   - GET /api/v2/playlist-contents?playlist={"$ne":null} returns 500
   - Django ValueError not caught: "Field 'id' expected a number but got '...'"
-  
+
   Expected behavior:
   - Invalid playlist parameter should return 400 Bad Request
   - Or return 404 Not Found
   - Never expose 500 errors to client
-  
+
   Root cause:
   - get_queryset() directly passes playlist_id to filter() without validation
   - No try/except around queryset.filter(playlist_id=playlist_id)
-  
+
   Fix needed:
   - Validate playlist_id is numeric before filtering
   - Or catch ValueError and return 400/404
   - Add tests for invalid input handling
-  
+
   Red team tests: test_playlistcontent_list_redteam_t228.py
 
 
@@ -4021,14 +3889,14 @@ Scope: api/schedule/models/playlist.py
 Next step: Add default value or null=True for trackoffset field
 Notes: |
   IntegrityError: null value in column "trackoffset" violates not-null constraint.
-  
+
   Current behavior (BROKEN):
   - POST without offset field causes 500 IntegrityError
   - Database requires trackoffset but model allows null
-  
+
   Expected:
   - Should have default value (0) or proper validation before save
-  
+
   Found by: test_create_wrong_kind_for_file, test_create_null_in_required_fields
 
 ## [HIGH] fix T423 — No validation of negative position values
@@ -4040,7 +3908,7 @@ Notes: |
   Current behavior (BROKEN):
   - Negative position values accepted without validation
   - Position -1 stored in database
-  
+
   Expected:
   - Should reject negative positions with 400 error
 
@@ -4053,7 +3921,7 @@ Notes: |
   Current behavior (BROKEN):
   - Can create 20+ contents instantly without limits
   - No protection against playlist flooding
-  
+
   Expected:
   - Rate limiting per user/IP after N requests
   - Return 429 Too Many Requests
@@ -4066,19 +3934,19 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add get_queryset() filtering by owner to all SmartBlock ViewSets
 Notes: |
   CRITICAL BOLA VULNERABILITY: All SmartBlock ViewSets lack owner-based filtering.
-  
+
   Current behavior (BROKEN):
   - SmartBlockViewSet.queryset = SmartBlock.objects.all() - returns ALL blocks
   - SmartBlockContentViewSet.queryset = SmartBlockContent.objects.all()
   - SmartBlockCriteriaViewSet.queryset = SmartBlockCriteria.objects.all()
-  
+
   Any authenticated user with 'view_smartblock' permission can:
   - List all smart blocks (including other users' private blocks)
   - Access any block by ID
   - Access any content/criteria
-  
+
   Same pattern as T420 (Playlists BOLA).
-  
+
   Red team tests confirming bug: test_smartblock_redteam_t234.py
 
 ## [HIGH] fix T426 — SmartBlock CREATE accepts custom id (mass assignment)
@@ -4089,11 +3957,11 @@ Next step: Remove 'id' from writable fields in SmartBlockSerializer
 Notes: |
   BOPLA VULNERABILITY: SmartBlockSerializer uses fields = "__all__" which allows
   setting custom id during CREATE.
-  
+
   Attack: POST /api/v2/smart-blocks {"id": 99999, "name": "Test"}
   Result: Block created with attacker-controlled ID, potentially overwriting existing
   records or creating collisions.
-  
+
   Red team test: test_bopla_mass_assignment_id in test_smartblock_create_redteam_t235.py
 
 ## [HIGH] fix T427 — SmartBlock CREATE accepts created_at manipulation (mass assignment)
@@ -4104,11 +3972,11 @@ Next step: Remove 'created_at' from writable fields in SmartBlockSerializer
 Notes: |
   BOPLA VULNERABILITY: SmartBlockSerializer uses fields = "__all__" which allows
   setting created_at timestamp during CREATE.
-  
+
   Attack: POST /api/v2/smart-blocks {"name": "Test", "created_at": "2020-01-01T00:00:00Z"}
   Result: Block appears to be created in the past, potentially bypassing time-based
   business logic or audit trails.
-  
+
   Red team test: test_bopla_mass_assignment_created_at in test_smartblock_create_redteam_t235.py
 
 ## [CRITICAL] fix T428 — SmartBlock CREATE accepts owner manipulation (BOLA vector)
@@ -4118,11 +3986,11 @@ Scope: api/schedule/serializers/smart_block.py
 Next step: Remove 'owner' from writable fields in SmartBlockSerializer
 Notes: |
   CRITICAL BOPLA/BOLA VULNERABILITY: Attacker can create SmartBlock owned by another user.
-  
+
   Attack: POST /api/v2/smart-blocks {"name": "Malicious", "owner": victim_id}
   Result: Block appears to be owned by victim, potentially hiding malicious content
   or polluting victim's library. Combined with BOLA in LIST, victim sees attacker's block.
-  
+
   Red team test: test_bopla_mass_assignment_owner in test_smartblock_create_redteam_t235.py
 
 ## [HIGH] fix T431 — SmartBlock CREATE accepts updated_at manipulation
@@ -4132,10 +4000,10 @@ Scope: api/schedule/serializers/smart_block.py
 Next step: Remove 'updated_at' from writable fields in SmartBlockSerializer
 Notes: |
   BOPLA VULNERABILITY: Attacker can set arbitrary updated_at timestamp.
-  
+
   Attack: POST /api/v2/smart-blocks {"name": "Test", "updated_at": "2030-12-31T23:59:59Z"}
   Result: Block appears to be updated in future, breaking sorting and audit logic.
-  
+
   Red team test: test_bopla_mass_assignment_updated_at in test_smartblock_create_redteam_t235.py
 
 ## [MEDIUM] fix T432 — SmartBlock CREATE accepts arbitrary length values
@@ -4145,10 +4013,10 @@ Scope: api/schedule/serializers/smart_block.py
 Next step: Add validation for length field (reasonable min/max)
 Notes: |
   BOPLA VULNERABILITY: Attacker can set arbitrary duration values.
-  
+
   Attack: POST /api/v2/smart-blocks {"name": "Test", "length": "PT999999H"}
   Result: Block with impossible duration, may cause UI issues or scheduling errors.
-  
+
   Red team test: test_bopla_mass_assignment_length in test_smartblock_create_redteam_t235.py
 
 ## [LOW] fix T433 — No unique constraint on SmartBlock name (race condition possible)
@@ -4158,10 +4026,10 @@ Scope: api/schedule/models/smart_block.py
 Next step: Add unique_together constraint on (name, owner) if business requires
 Notes: |
   RACE CONDITION: Multiple blocks with same name can be created concurrently.
-  
+
   Current behavior allows duplicate names which may confuse users.
   Not a security issue but potential data quality concern.
-  
+
   Red team test: test_create_race_condition_duplicate_names in test_smartblock_create_redteam_t235.py
 
 ## [CRITICAL] fix T434 — BOLA: Any user can PATCH other user's SmartBlock
@@ -4171,10 +4039,10 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add object-level permission check in SmartBlockViewSet.update
 Notes: |
   CRITICAL BOLA VULNERABILITY: No owner verification on PATCH.
-  
+
   Attack: PATCH /api/v2/smart-blocks/{victim_block_id} {"name": "Hacked"}
   Result: Attacker can modify any block by ID, regardless of ownership.
-  
+
   Red team test: test_bola_patch_other_users_block in test_smartblock_update_redteam_t236.py
 
 ## [CRITICAL] fix T435 — BOLA: Any user can PUT other user's SmartBlock
@@ -4184,10 +4052,10 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add object-level permission check in SmartBlockViewSet.update
 Notes: |
   CRITICAL BOLA VULNERABILITY: No owner verification on PUT.
-  
+
   Attack: PUT /api/v2/smart-blocks/{victim_block_id} {"name": "Hacked", "kind": "static"}
   Result: Attacker can fully replace any block by ID, regardless of ownership.
-  
+
   Red team test: test_bola_put_other_users_block in test_smartblock_update_redteam_t236.py
 
 
@@ -4198,10 +4066,10 @@ Scope: api/schedule/serializers/smart_block.py
 Next step: Make 'owner' read-only in SmartBlockSerializer
 Notes: |
   CRITICAL: Attacker can transfer ownership of any block to themselves.
-  
+
   Attack: PATCH /api/v2/smart-blocks/{id} {"owner": attacker_id}
   Result: Block ownership transferred, victim loses access, attacker gains control.
-  
+
   Red team test: test_bopla_patch_change_owner in test_smartblock_update_redteam_t236.py
 
 ## [HIGH] fix T439 — BOPLA: Can backdate created_at via PATCH
@@ -4211,10 +4079,10 @@ Scope: api/schedule/serializers/smart_block.py
 Next step: Make 'created_at' read-only in SmartBlockSerializer
 Notes: |
   BOPLA: Audit trail can be manipulated by changing creation timestamp.
-  
+
   Attack: PATCH /api/v2/smart-blocks/{id} {"created_at": "2010-01-01T00:00:00Z"}
   Result: Block appears to be created years ago, bypassing time-based filters.
-  
+
   Red team test: test_bopla_patch_backdate_created_at in test_smartblock_update_redteam_t236.py
 
 ## [MEDIUM] fix T440 — BOPLA: Can set future updated_at via PATCH
@@ -4224,10 +4092,10 @@ Scope: api/schedule/serializers/smart_block.py
 Next step: Make 'updated_at' read-only or validate against current time
 Notes: |
   BOPLA: Update timestamp can be set to future date.
-  
+
   Attack: PATCH /api/v2/smart-blocks/{id} {"updated_at": "2035-12-31T23:59:59Z"}
   Result: Block appears to be updated in the future, breaking sort order.
-  
+
   Red team test: test_bopla_patch_future_updated_at in test_smartblock_update_redteam_t236.py
 
 ## [MEDIUM] fix T441 — BOPLA: Invalid kind values accepted via PATCH
@@ -4237,10 +4105,10 @@ Scope: api/schedule/serializers/smart_block.py
 Next step: Add strict validation for kind field choices
 Notes: |
   BOPLA: Invalid/null kind values may be accepted, causing data inconsistency.
-  
+
   Attack: PATCH /api/v2/smart-blocks/{id} {"kind": null} or {"kind": "invalid"}
   Result: Block kind may be set to invalid value, breaking business logic.
-  
+
   Red team test: test_bopla_patch_invalid_kind_values in test_smartblock_update_redteam_t236.py
 
 ## [HIGH] fix T443 — PUT accepts null for required fields (validation bypass)
@@ -4250,13 +4118,13 @@ Scope: api/schedule/serializers/smart_block.py
 Next step: Add validation to reject null for required fields (name, kind)
 Notes: |
   VALIDATION BYPASS: PUT /api/v2/smart-blocks/{id} accepts null values for required fields.
-  
+
   Expected: 400 Bad Request when trying to set name=null or kind=null
   Actual: Returns 200 OK and accepts the null values
-  
+
   Test: test_validation_put_null_required_fields (currently fails)
   Test: test_validation_put_null_required_fields_xfail (documents bug)
-  
+
   Red team test: test_validation_put_null_required_fields in test_smartblock_update_redteam_t236.py
 
 ## [CRITICAL] fix T444 — BOLA: Any user can DELETE other user's SmartBlock
@@ -4266,10 +4134,10 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add object-level permission check in SmartBlockViewSet.destroy
 Notes: |
   CRITICAL BOLA VULNERABILITY: No owner verification on DELETE.
-  
+
   Attack: DELETE /api/v2/smart-blocks/{victim_block_id}
   Result: Attacker can delete any block by ID, regardless of ownership.
-  
+
   Red team test: test_bola_delete_other_users_block in test_smartblock_delete_redteam_t237.py
 
 ## [CRITICAL] fix T445 — BOLA: Cascade delete allows destroying other user's content
@@ -4279,10 +4147,10 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add ownership check before allowing cascade delete
 Notes: |
   CRITICAL BOLA: Deleting a block cascades to SmartBlockContent/SmartBlockCriteria.
-  
+
   If attacker can delete victim's block (T444), they also delete all associated
   content and criteria, amplifying the damage.
-  
+
   Red team test: test_bola_cascade_delete_other_user_content in test_smartblock_delete_redteam_t237.py
 
 ## [MEDIUM] fix T446 — Information disclosure: 404 vs 403 leaks block existence
@@ -4292,12 +4160,12 @@ Scope: api/schedule/views/smart_block.py
 Next step: Return 403 for both existing and non-existing blocks when unauthorized
 Notes: |
   SIDE CHANNEL: Different error codes leak whether block exists.
-  
+
   Current: Non-existing returns 404, existing (but not owned) returns 403
   Secure: Both should return 403 to not leak existence
-  
+
   Attack: Attacker can enumerate valid block IDs by observing 404 vs 403
-  
+
   Red team test: test_bola_delete_leaks_block_existence in test_smartblock_delete_redteam_t237.py
 
 ## [CRITICAL] fix T447 — HTTP Method Override bypasses DELETE protection
@@ -4307,12 +4175,12 @@ Scope: api/schedule/views/smart_block.py
 Next step: Ignore X-HTTP-Method-Override or validate against actual method
 Notes: |
   CRITICAL: X-HTTP-Method-Override header causes unintended deletion.
-  
+
   Attack: DELETE /api/v2/smart-blocks/{id} with X-HTTP-Method-Override: GET
   Result: Block is deleted even though override suggests GET!
-  
+
   This may bypass CSRF protections or method-based access controls.
-  
+
   Red team test: test_http_method_override_on_delete in test_smartblock_delete_redteam_t237.py
 
 ## [CRITICAL] fix T448 — BOLA: LIST endpoint shows all users' blocks without filtering
@@ -4322,12 +4190,12 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add owner filtering to SmartBlockViewSet.get_queryset()
 Notes: |
   CRITICAL BOLA: LIST /api/v2/smart-blocks returns ALL blocks from ALL users.
-  
+
   Attack: Any authenticated user lists blocks
   Result: Sees private blocks from all other users
-  
+
   Same root cause as T425 (missing owner filtering).
-  
+
   Red team test: test_bola_list_shows_all_users_blocks in test_smartblock_permissions_redteam_t238.py
 
 ## [CRITICAL] fix T449 — BOLA: RETRIEVE allows access to any block by ID
@@ -4337,12 +4205,12 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add object-level permission check in retrieve
 Notes: |
   CRITICAL BOLA: GET /api/v2/smart-blocks/{id} works for any block ID.
-  
+
   Attack: Attacker tries to GET victim's private block by ID
   Result: Receives full block details including name, description, contents
-  
+
   No ownership verification on retrieve.
-  
+
   Red team test: test_bola_retrieve_other_users_private_block in test_smartblock_permissions_redteam_t238.py
 
 ## [HIGH] fix T450 — BOLA: Block ID enumeration possible
@@ -4352,12 +4220,12 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add rate limiting or require owner filter
 Notes: |
   BOLA + IDOR: Sequential IDs allow enumeration of all blocks.
-  
+
   Attack: Attacker iterates through IDs 1..N, calling GET for each
   Result: Can discover all blocks in the system
-  
+
   Combined with T449, allows complete data extraction.
-  
+
   Red team test: test_bola_block_id_enumeration in test_smartblock_permissions_redteam_t238.py
 
 ## [MEDIUM] fix T451 — BFLA: Bulk delete endpoint may exist
@@ -4367,10 +4235,10 @@ Scope: api/schedule/views/smart_block.py
 Next step: Verify /bulk-delete endpoint doesn't exist or is protected
 Notes: |
   BFLA: Testing for potential admin-only bulk operations.
-  
+
   Current status: Endpoint returns 404 (doesn't exist) - ACCEPTABLE
   If endpoint exists and is accessible - CRITICAL vulnerability.
-  
+
   Red team test: test_bfla_admin_bulk_delete_accessible in test_smartblock_permissions_redteam_t238.py
 
 ## [MEDIUM] fix T453 — BFLA: Import endpoint may exist
@@ -4380,9 +4248,9 @@ Scope: api/schedule/views/smart_block.py
 Next step: Verify /import endpoint doesn't exist or is admin-only
 Notes: |
   BFLA: Testing for potential admin-only import operations.
-  
+
   Current status: Endpoint returns 404 (doesn't exist) - ACCEPTABLE
-  
+
   Red team test: test_bfla_admin_import_accessible in test_smartblock_permissions_redteam_t238.py
 
 ## [MEDIUM] fix T454 — Privilege escalation: HOST role can perform admin actions
@@ -4392,10 +4260,10 @@ Scope: api/schedule/views/smart_block.py
 Next step: Verify HOST users cannot create blocks for other users
 Notes: |
   PRIVILEGE ESCALATION: HOST role trying to perform admin-like actions.
-  
+
   Test: Creating blocks with owner set to other user
   Risk: If successful, HOST can impersonate/spoof other users' content
-  
+
   Red team test: test_privesc_host_to_admin_actions in test_smartblock_permissions_redteam_t238.py
 
 ## [MEDIUM] fix T455 — Privilege escalation: DJ role bypass
@@ -4405,10 +4273,10 @@ Scope: api/schedule/views/smart_block.py
 Next step: Verify DJ role has appropriate restrictions
 Notes: |
   PRIVILEGE ESCALATION: DJ users should have read-only or limited access.
-  
+
   DJ role should not be able to create/modify blocks (business logic).
   Current behavior needs verification.
-  
+
   Red team test: test_privesc_dj_role_bypass in test_smartblock_permissions_redteam_t238.py
 
 ## [MEDIUM] fix T456 — Privilege escalation: Guest role has unexpected access
@@ -4418,10 +4286,10 @@ Scope: api/schedule/views/smart_block.py
 Next step: Restrict Guest role to read-only on public content only
 Notes: |
   PRIVILEGE ESCALATION: Guest users should have minimal access.
-  
+
   Guest role should only view public content, no modifications.
   Current access level needs audit.
-  
+
   Red team test: test_privesc_guest_role_access in test_smartblock_permissions_redteam_t238.py
 
 ## [HIGH] fix T459 — Auth bypass: Case-insensitive authorization header accepted
@@ -4431,12 +4299,12 @@ Scope: api/permissions.py or middleware
 Next step: Reject lowercase 'authorization' header
 Notes: |
   AUTH BYPASS: HTTP header 'authorization' (lowercase) bypasses auth checks.
-  
+
   Standard: 'Authorization' (capital A)
   Bug: 'authorization' (lowercase) accepted without proper validation
-  
+
   This may allow bypass of API key checks.
-  
+
   Red team test: test_auth_bypass_case_insensitive_headers in test_smartblock_permissions_redteam_t238.py
 
 ## [CRITICAL] fix T460 — Auth bypass: Empty/malformed tokens accepted
@@ -4446,12 +4314,12 @@ Scope: api/permissions.py
 Next step: Reject empty or malformed Authorization headers
 Notes: |
   CRITICAL AUTH BYPASS: Empty Authorization header grants access.
-  
+
   Attack: curl -H "Authorization:" /api/v2/smart-blocks
   Result: Returns 200 with data instead of 403
-  
+
   Same for: "Bearer", "Bearer ", "null", "undefined"
-  
+
   Red team test: test_auth_bypass_empty_token in test_smartblock_permissions_redteam_t238.py
 
 ## [HIGH] fix T458 — Privilege escalation: Can change own role to ADMIN
@@ -4461,12 +4329,12 @@ Scope: api/core/views/user.py or similar
 Next step: Make 'role' field read-only for self-updates
 Notes: |
   PRIVILEGE ESCALATION: User can change their role to ADMIN via PATCH.
-  
+
   Attack: PATCH /api/v2/users/me {"role": "admin"}
   Result: User gains admin privileges
-  
+
   Or endpoint /api/v2/users/me may not exist (returns 404) - verify.
-  
+
   Red team test: test_perm_mass_assignment_role_escalation in test_smartblock_permissions_redteam_t238.py
 
 
@@ -4477,10 +4345,10 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add owner filtering via block__owner to SmartBlockContentViewSet
 Notes: |
   CRITICAL BOLA: LIST /api/v2/smart-block-contents returns ALL content from ALL users.
-  
+
   Attack: Any authenticated user lists contents
   Result: Sees all content items including those in other users' private blocks
-  
+
   Red team test: test_bola_list_shows_all_users_content in test_smartblockcontent_list_redteam_t239.py
 
 ## [CRITICAL] fix T462 — BOLA: Filter by block ID bypasses ownership
@@ -4490,10 +4358,10 @@ Scope: api/schedule/views/smart_block.py
 Next step: Verify block ownership before applying block filter
 Notes: |
   CRITICAL BOLA: ?block={id} filter works for any block ID without ownership check.
-  
+
   Attack: GET /api/v2/smart-block-contents?block={victim_block_id}
   Result: Returns all contents from victim's block
-  
+
   Red team test: test_bola_filter_by_other_users_block in test_smartblockcontent_list_redteam_t239.py
 
 ## [MEDIUM] fix T464 — SQL injection in block filter parameter
@@ -4503,10 +4371,10 @@ Scope: api/schedule/views/smart_block.py
 Next step: Use parameterized queries or ORM properly
 Notes: |
   SQLi: Malicious payloads in block filter may execute SQL.
-  
+
   Attack: GET /api/v2/smart-block-contents?block=1' OR '1'='1
   Risk: Potential data extraction or modification
-  
+
   Red team test: test_filter_sql_injection_block_param in test_smartblockcontent_list_redteam_t239.py
 
 ## [HIGH] fix T472 — 500 error on non-numeric block_id filter parameter
@@ -4516,12 +4384,12 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add validation for block_id parameter before filtering
 Notes: |
   DOS/INFO LEAK: Non-numeric block_id causes 500 Internal Server Error.
-  
+
   Attack: GET /api/v2/smart-block-contents?block=abc
   Result: 500 error with stack trace instead of 400 Bad Request
-  
+
   This reveals implementation details and can be used for DoS.
-  
+
   Red team test: test_filter_non_numeric_block_id in test_smartblockcontent_list_redteam_t239.py
 
 ## [HIGH] fix T473 — 500 error on unicode block_id filter parameter
@@ -4531,10 +4399,10 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add validation for block_id parameter encoding
 Notes: |
   DOS/INFO LEAK: Unicode block_id causes 500 Internal Server Error.
-  
+
   Attack: GET /api/v2/smart-block-contents?block=日本語
   Result: 500 error instead of 400 Bad Request
-  
+
   Red team test: test_filter_unicode_block_id in test_smartblockcontent_list_redteam_t239.py
 
 ## [HIGH] fix T474 — 500 error on special query params (undefined, null, None)
@@ -4544,12 +4412,12 @@ Scope: api/schedule/views/smart_block.py
 Next step: Handle special string values gracefully
 Notes: |
   DOS/INFO LEAK: Special JavaScript-like values cause 500 errors.
-  
+
   Attack: GET /api/v2/smart-block-contents?block=undefined
   Result: 500 error - Django tries to convert "undefined" to number
-  
+
   These values are common in JavaScript/frontend contexts.
-  
+
   Red team test: test_fuzzing_query_params in test_smartblockcontent_list_redteam_t239.py
 
 ## [HIGH] fix T556 — BOLA: DELETE returns 404 instead of 403 for other user's stream
@@ -5986,3 +5854,259 @@ Summary: |
   CORS configuration, injection prevention, HTTP method restrictions, error handling.
   18 tests total, 17 passed, 1 xfailed (rate limiting - T805).
   Ref: test_public_endpoints_redteam_t283.py
+
+## [CRITICAL] fix T806 — BOLA: Playlist retrieve shows other user's playlist
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/views/playlist.py:15-20`
+Next step: Add get_queryset() to filter by owner
+Notes: |
+  API1:2023 Broken Object Level Authorization. Attacker can retrieve victim's
+  private playlist by ID. No ownership filtering in queryset.
+  Ref: test_playlist_length_redteam_t287.py::test_bola_retrieve_other_users_playlist_length
+
+## [CRITICAL] fix T807 — BOLA: Playlist LIST shows all users' playlists
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/views/playlist.py:15-20`
+Next step: Add get_queryset() to filter by owner
+Notes: |
+  API1:2023 BOLA. LIST endpoint returns all playlists regardless of owner.
+  Attacker can enumerate all playlists including private ones.
+  Ref: test_playlist_length_redteam_t287.py::test_bola_list_shows_all_playlists
+
+## [CRITICAL] fix T808 — BOLA: Playlist UPDATE allows modifying other user's playlist
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/views/playlist.py:15-20`
+Next step: Add ownership check in update operation
+Notes: |
+  API1:2023 BOLA. Attacker can PATCH victim's playlist including length field.
+  No ownership validation on update.
+  Ref: test_playlist_length_redteam_t287.py::test_bola_update_other_users_playlist_length
+
+## [CRITICAL] fix T809 — BOLA: Playlist DELETE allows deleting other user's playlist
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/views/playlist.py:15-20`
+Next step: Add ownership check in destroy operation
+Notes: |
+  API1:2023 BOLA. Attacker can DELETE victim's playlist by knowing ID.
+  Critical data loss vulnerability.
+  Ref: test_playlist_length_redteam_t287.py::test_bola_delete_other_users_playlist
+
+## [HIGH] fix T810 — BOPLA: Playlist CREATE allows mass assignment of id field
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/serializers/playlist.py:14`
+Next step: Add read_only=True for id field
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. Client can specify id
+  field in CREATE request, potentially causing ID collisions.
+  Ref: test_playlist_length_redteam_t287.py::test_bopla_mass_assignment_id_field
+
+## [HIGH] fix T811 — BOPLA: Playlist CREATE allows mass assignment of created_at
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/serializers/playlist.py:14`
+Next step: Add read_only=True for created_at/updated_at fields
+Notes: |
+  API3:2023 BOPLA. Client can set created_at timestamp manually.
+  Timestamp fields should be auto-generated and read_only.
+  Ref: test_playlist_length_redteam_t287.py::test_bopla_mass_assignment_created_at
+
+## [HIGH] fix T812 — BOPLA: Playlist UPDATE allows changing owner
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/serializers/playlist.py:14`
+Next step: Add read_only=True for owner field
+Notes: |
+  API3:2023 BOPLA. Client can change playlist owner via PATCH.
+  Owner field should be read_only after creation.
+  Ref: test_playlist_length_redteam_t287.py::test_bopla_change_owner_via_update
+
+## [MEDIUM] fix T813 — BOPLA: Playlist CREATE accepts extra fields silently
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/serializers/playlist.py:14`
+Next step: Add strict validation or use explicit fields list
+Notes: |
+  Extra fields like "is_admin", "role", "password" are silently ignored
+  instead of rejected with 400 error. Could mask typo or mass assignment attempts.
+  Ref: test_playlist_length_redteam_t287.py::test_bopla_extra_fields_not_rejected
+
+## [MEDIUM] fix T814 — SQL injection in length field CREATE
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/serializers/playlist.py:10-14`
+Next step: Add proper input validation/sanitization for length field
+Notes: |
+  SQL injection payloads in length field may cause database errors.
+  Need to validate duration format strictly.
+  Ref: test_playlist_length_redteam_t287.py::test_sqli_in_length_field_create
+
+## [MEDIUM] fix T817 — Invalid time format accepted in length field
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/serializers/playlist.py:10-14`
+Next step: Add DurationField validation for valid time ranges
+Notes: |
+  Invalid formats like "99:99:99" are accepted. Should validate HH:MM:SS
+  format with valid ranges (HH: 0-99, MM: 0-59, SS: 0-59).
+  Ref: test_playlist_length_redteam_t287.py::test_invalid_time_format_accepted
+
+## [MEDIUM] fix T818 — Overflow length value not validated
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/serializers/playlist.py:10-14`
+Next step: Add max_value validation for length field
+Notes: |
+  Very large values like "999999:00:00" are accepted without validation.
+  Should enforce reasonable maximum duration.
+  Ref: test_playlist_length_redteam_t287.py::test_overflow_length_value
+
+## [MEDIUM] fix T823 — No rate limiting on playlist CREATE endpoint
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/views/playlist.py:15-20`
+Next step: Implement Django Ratelimit or similar
+Notes: |
+  50+ rapid CREATE requests all succeeded. No brute force/DoS protection.
+  Should implement rate limiting per user/IP.
+  Ref: test_playlist_length_redteam_t287.py::test_rapid_create_requests
+
+## [CRITICAL] fix T829 — BOLA: SmartBlock retrieve shows other user's block
+Status: NOT_STARTED
+Created: 2026-04-10T17:10:00Z
+Last worked: 2026-04-10T17:10:00Z
+File: `app/api/api/schedule/views/smart_block.py:19-35`
+Next step: Add get_queryset() to filter by owner
+Notes: |
+  API1:2023 BOLA. Attacker can retrieve victim's private smart block by ID.
+  No ownership filtering in queryset.
+  Ref: test_smartblock_kind_redteam_t288.py::test_bola_retrieve_other_users_smartblock
+
+## [CRITICAL] fix T830 — BOLA: SmartBlock LIST shows all users' blocks
+Status: NOT_STARTED
+Created: 2026-04-10T17:10:00Z
+Last worked: 2026-04-10T17:10:00Z
+File: `app/api/api/schedule/views/smart_block.py:19-35`
+Next step: Add get_queryset() to filter by owner
+Notes: |
+  API1:2023 BOLA. LIST endpoint returns all smart blocks regardless of owner.
+  Attacker can enumerate all blocks including private ones.
+  Ref: test_smartblock_kind_redteam_t288.py::test_bola_list_shows_all_smartblocks
+
+## [CRITICAL] fix T831 — BOLA: SmartBlock UPDATE allows modifying other user's block
+Status: NOT_STARTED
+Created: 2026-04-10T17:10:00Z
+Last worked: 2026-04-10T17:10:00Z
+File: `app/api/api/schedule/views/smart_block.py:19-35`
+Next step: Add ownership check in update operation
+Notes: |
+  API1:2023 BOLA. Attacker can PATCH victim's smart block (returns 200 OK).
+  No ownership validation on update.
+  Ref: test_smartblock_kind_redteam_t288.py::test_bola_update_other_users_smartblock_kind
+
+## [CRITICAL] fix T832 — BOLA: SmartBlock DELETE allows deleting other user's block
+Status: NOT_STARTED
+Created: 2026-04-10T17:10:00Z
+Last worked: 2026-04-10T17:10:00Z
+File: `app/api/api/schedule/views/smart_block.py:19-35`
+Next step: Add ownership check in destroy operation
+Notes: |
+  API1:2023 BOLA. Attacker can DELETE victim's smart block (returns 204).
+  Critical data loss vulnerability.
+  Ref: test_smartblock_kind_redteam_t288.py::test_bola_delete_other_users_smartblock
+Status: NOT_STARTED
+Created: 2026-04-10T17:10:00Z
+Last worked: 2026-04-10T17:10:00Z
+File: `app/api/api/schedule/views/smart_block.py:19-35`
+Next step: Add get_queryset() to filter by owner
+Notes: |
+  API1:2023 BOLA. LIST endpoint returns all smart blocks regardless of owner.
+  Attacker can enumerate all blocks including private ones.
+  Ref: test_smartblock_kind_redteam_t288.py::test_bola_list_shows_all_smartblocks
+
+## [HIGH] fix T833 — BOPLA: SmartBlock CREATE allows mass assignment of id field
+Status: NOT_STARTED
+Created: 2026-04-10T17:10:00Z
+Last worked: 2026-04-10T17:10:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:18`
+Next step: Add read_only=True for id field
+Notes: |
+  API3:2023 BOPLA. Client can specify id field in CREATE request.
+  Ref: test_smartblock_kind_redteam_t288.py::test_bopla_mass_assignment_id_field
+
+## [HIGH] fix T834 — BOPLA: SmartBlock CREATE allows mass assignment of created_at
+Status: NOT_STARTED
+Created: 2026-04-10T17:10:00Z
+Last worked: 2026-04-10T17:10:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:18`
+Next step: Add read_only=True for created_at/updated_at
+Notes: |
+  API3:2023 BOPLA. Client can set created_at timestamp manually.
+  Ref: test_smartblock_kind_redteam_t288.py::test_bopla_mass_assignment_created_at
+
+## [HIGH] fix T835 — BOPLA: SmartBlock UPDATE allows changing owner
+Status: NOT_STARTED
+Created: 2026-04-10T17:10:00Z
+Last worked: 2026-04-10T17:10:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:18`
+Next step: Add read_only=True for owner field
+Notes: |
+  API3:2023 BOPLA. Client can change smart block owner via PATCH.
+  Ref: test_smartblock_kind_redteam_t288.py::test_bopla_change_owner_via_update
+
+## [MEDIUM] fix T836 — BOPLA: SmartBlock CREATE accepts extra fields silently
+Status: NOT_STARTED
+Created: 2026-04-10T17:10:00Z
+Last worked: 2026-04-10T17:10:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:18`
+Next step: Add strict validation or use explicit fields list
+Notes: |
+  Extra fields like "is_admin", "role", "password" silently ignored.
+  Ref: test_smartblock_kind_redteam_t288.py::test_bopla_extra_fields_not_rejected
+
+## [MEDIUM] fix T837 — SmartBlock invalid kind values accepted
+Status: NOT_STARTED
+Created: 2026-04-10T17:10:00Z
+Last worked: 2026-04-10T17:10:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:14-18`
+Next step: Add strict choices validation for kind field
+Notes: |
+  Invalid kind values like "invalid", "admin", "superuser" accepted.
+  Should only accept "static" and "dynamic".
+  Ref: test_smartblock_kind_redteam_t288.py::test_invalid_kind_values_rejected
+
+## [MEDIUM] fix T849 — SmartBlock error message leaks table name cc_block
+Status: NOT_STARTED
+Created: 2026-04-10T17:10:00Z
+Last worked: 2026-04-10T17:10:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:14-18`
+Next step: Customize error message to hide internal table name
+Notes: |
+  Error message exposes "cc_block" table name: "is not a valid choice."
+  Information disclosure vulnerability.
+  Ref: test_smartblock_kind_redteam_t288.py::test_error_message_leaks_structure
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Last worked: 2026-04-10T16:00:00Z
+File: `app/api/api/schedule/views/playlist.py:15-20`
+Next step: Implement Django Ratelimit or similar
+Notes: |
+  50+ rapid CREATE requests all succeeded. No brute force/DoS protection.
+  Should implement rate limiting per user/IP.
+  Ref: test_playlist_length_redteam_t287.py::test_rapid_create_requests
