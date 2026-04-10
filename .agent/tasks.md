@@ -3297,3 +3297,157 @@ Notes: |
   
   Red team test: test_http_method_override_on_delete in test_smartblock_delete_redteam_t237.py
 
+## [CRITICAL] fix T448 — BOLA: LIST endpoint shows all users' blocks without filtering
+Status: NOT_STARTED
+Created: 2026-04-10T16:20:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add owner filtering to SmartBlockViewSet.get_queryset()
+Notes: |
+  CRITICAL BOLA: LIST /api/v2/smart-blocks returns ALL blocks from ALL users.
+  
+  Attack: Any authenticated user lists blocks
+  Result: Sees private blocks from all other users
+  
+  Same root cause as T425 (missing owner filtering).
+  
+  Red team test: test_bola_list_shows_all_users_blocks in test_smartblock_permissions_redteam_t238.py
+
+## [CRITICAL] fix T449 — BOLA: RETRIEVE allows access to any block by ID
+Status: NOT_STARTED
+Created: 2026-04-10T16:20:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add object-level permission check in retrieve
+Notes: |
+  CRITICAL BOLA: GET /api/v2/smart-blocks/{id} works for any block ID.
+  
+  Attack: Attacker tries to GET victim's private block by ID
+  Result: Receives full block details including name, description, contents
+  
+  No ownership verification on retrieve.
+  
+  Red team test: test_bola_retrieve_other_users_private_block in test_smartblock_permissions_redteam_t238.py
+
+## [HIGH] fix T450 — BOLA: Block ID enumeration possible
+Status: NOT_STARTED
+Created: 2026-04-10T16:20:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add rate limiting or require owner filter
+Notes: |
+  BOLA + IDOR: Sequential IDs allow enumeration of all blocks.
+  
+  Attack: Attacker iterates through IDs 1..N, calling GET for each
+  Result: Can discover all blocks in the system
+  
+  Combined with T449, allows complete data extraction.
+  
+  Red team test: test_bola_block_id_enumeration in test_smartblock_permissions_redteam_t238.py
+
+## [MEDIUM] fix T451 — BFLA: Bulk delete endpoint may exist
+Status: NOT_STARTED
+Created: 2026-04-10T16:20:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Verify /bulk-delete endpoint doesn't exist or is protected
+Notes: |
+  BFLA: Testing for potential admin-only bulk operations.
+  
+  Current status: Endpoint returns 404 (doesn't exist) - ACCEPTABLE
+  If endpoint exists and is accessible - CRITICAL vulnerability.
+  
+  Red team test: test_bfla_admin_bulk_delete_accessible in test_smartblock_permissions_redteam_t238.py
+
+## [MEDIUM] fix T453 — BFLA: Import endpoint may exist
+Status: NOT_STARTED
+Created: 2026-04-10T16:20:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Verify /import endpoint doesn't exist or is admin-only
+Notes: |
+  BFLA: Testing for potential admin-only import operations.
+  
+  Current status: Endpoint returns 404 (doesn't exist) - ACCEPTABLE
+  
+  Red team test: test_bfla_admin_import_accessible in test_smartblock_permissions_redteam_t238.py
+
+## [MEDIUM] fix T454 — Privilege escalation: HOST role can perform admin actions
+Status: NOT_STARTED
+Created: 2026-04-10T16:20:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Verify HOST users cannot create blocks for other users
+Notes: |
+  PRIVILEGE ESCALATION: HOST role trying to perform admin-like actions.
+  
+  Test: Creating blocks with owner set to other user
+  Risk: If successful, HOST can impersonate/spoof other users' content
+  
+  Red team test: test_privesc_host_to_admin_actions in test_smartblock_permissions_redteam_t238.py
+
+## [MEDIUM] fix T455 — Privilege escalation: DJ role bypass
+Status: NOT_STARTED
+Created: 2026-04-10T16:20:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Verify DJ role has appropriate restrictions
+Notes: |
+  PRIVILEGE ESCALATION: DJ users should have read-only or limited access.
+  
+  DJ role should not be able to create/modify blocks (business logic).
+  Current behavior needs verification.
+  
+  Red team test: test_privesc_dj_role_bypass in test_smartblock_permissions_redteam_t238.py
+
+## [MEDIUM] fix T456 — Privilege escalation: Guest role has unexpected access
+Status: NOT_STARTED
+Created: 2026-04-10T16:20:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Restrict Guest role to read-only on public content only
+Notes: |
+  PRIVILEGE ESCALATION: Guest users should have minimal access.
+  
+  Guest role should only view public content, no modifications.
+  Current access level needs audit.
+  
+  Red team test: test_privesc_guest_role_access in test_smartblock_permissions_redteam_t238.py
+
+## [HIGH] fix T459 — Auth bypass: Case-insensitive authorization header accepted
+Status: NOT_STARTED
+Created: 2026-04-10T16:20:00Z
+Scope: api/permissions.py or middleware
+Next step: Reject lowercase 'authorization' header
+Notes: |
+  AUTH BYPASS: HTTP header 'authorization' (lowercase) bypasses auth checks.
+  
+  Standard: 'Authorization' (capital A)
+  Bug: 'authorization' (lowercase) accepted without proper validation
+  
+  This may allow bypass of API key checks.
+  
+  Red team test: test_auth_bypass_case_insensitive_headers in test_smartblock_permissions_redteam_t238.py
+
+## [CRITICAL] fix T460 — Auth bypass: Empty/malformed tokens accepted
+Status: NOT_STARTED
+Created: 2026-04-10T16:20:00Z
+Scope: api/permissions.py
+Next step: Reject empty or malformed Authorization headers
+Notes: |
+  CRITICAL AUTH BYPASS: Empty Authorization header grants access.
+  
+  Attack: curl -H "Authorization:" /api/v2/smart-blocks
+  Result: Returns 200 with data instead of 403
+  
+  Same for: "Bearer", "Bearer ", "null", "undefined"
+  
+  Red team test: test_auth_bypass_empty_token in test_smartblock_permissions_redteam_t238.py
+
+## [HIGH] fix T458 — Privilege escalation: Can change own role to ADMIN
+Status: NOT_STARTED
+Created: 2026-04-10T16:20:00Z
+Scope: api/core/views/user.py or similar
+Next step: Make 'role' field read-only for self-updates
+Notes: |
+  PRIVILEGE ESCALATION: User can change their role to ADMIN via PATCH.
+  
+  Attack: PATCH /api/v2/users/me {"role": "admin"}
+  Result: User gains admin privileges
+  
+  Or endpoint /api/v2/users/me may not exist (returns 404) - verify.
+  
+  Red team test: test_perm_mass_assignment_role_escalation in test_smartblock_permissions_redteam_t238.py
+
