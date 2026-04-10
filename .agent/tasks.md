@@ -2770,6 +2770,21 @@ Notes: |
 
   Red team test: test_create_without_auth fails - returns 201 instead of 403
 
+## [MEDIUM] bug T395 — ShowDays accepts negative duration via UPDATE
+Status: OPEN
+Created: 2026-04-10T11:25:00Z
+Scope: api/schedule/serializers/show.py
+Next step: Add duration validation in ShowDaysSerializer
+Notes: |
+  SECURITY ISSUE: PATCH with negative duration is accepted.
+
+  Attack scenario:
+  - User sets negative duration via API
+  - May cause scheduling logic errors
+  - Database stores invalid time value
+
+  Red team test: test_update_to_negative_duration fails - negative duration stored
+
 ## [MEDIUM] bug T392 — ShowDays repeat_next_on mutable by user
 Status: OPEN
 Created: 2026-04-10T11:20:00Z
