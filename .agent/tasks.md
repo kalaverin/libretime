@@ -4530,3 +4530,59 @@ Notes: |
   Mass assignment vulnerability enabling privilege escalation and account hijacking.
   Ref: test_webstream_permissions_redteam_t249.py::test_bopla_mass_assignment_owner_update
 
+
+## [HIGH] fix T568 — BOLA: Schedule LIST shows all users' entries
+Status: NOT_STARTED
+Created: 2026-04-10T14:35:00Z
+Last worked: 2026-04-10T14:35:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Filter queryset to only current user's schedule entries
+Notes: |
+  API1:2023 Broken Object Level Authorization. LIST endpoint returns schedule
+  entries from all users without ownership filtering.
+  Ref: test_schedule_list_redteam_t250.py::test_bola_list_shows_all_users_schedule
+
+## [CRITICAL] fix T569 — BOLA: Can access other user's schedule by ID
+Status: NOT_STARTED
+Created: 2026-04-10T14:35:00Z
+Last worked: 2026-04-10T14:35:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Add ownership check in retrieve operation
+Notes: |
+  Attacker can retrieve victim's schedule entry by knowing the ID.
+  No object-level permission validation on individual resource access.
+  Ref: test_schedule_list_redteam_t250.py::test_bola_access_other_users_schedule_by_id
+
+## [MEDIUM] fix T573 — Info Leak: Error message reveals schedule existence
+Status: NOT_STARTED
+Created: 2026-04-10T14:35:00Z
+Last worked: 2026-04-10T14:35:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Unify error responses for existing/non-existing resources
+Notes: |
+  Different error codes for existing (permission denied) vs non-existing
+  schedule entries allow ID enumeration attacks.
+  Ref: test_schedule_list_redteam_t250.py::test_error_message_leaks_existence
+
+## [CRITICAL] fix T574 — BOLA: Filter combination bypasses ownership
+Status: NOT_STARTED
+Created: 2026-04-10T14:35:00Z
+Last worked: 2026-04-10T14:35:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Apply ownership filter before any other filters
+Notes: |
+  Combining multiple filter parameters (instance, position, broadcasted)
+  may bypass ownership checks and reveal other users' schedule data.
+  Ref: test_schedule_list_redteam_t250.py::test_filter_combination_bypass
+
+## [CRITICAL] fix T575 — Auth: Invalid token returns 200 instead of 403
+Status: NOT_STARTED
+Created: 2026-04-10T14:35:00Z
+Last worked: 2026-04-10T14:35:00Z
+File: `app/api/api/permissions.py:85-95`
+Next step: Reject requests with invalid/malformed authentication tokens
+Notes: |
+  API requests with invalid Bearer token return 200 OK instead of 403.
+  Authentication bypass allowing unauthorized access to protected resources.
+  Ref: test_schedule_list_redteam_t250.py::test_list_with_invalid_token
+

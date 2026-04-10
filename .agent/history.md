@@ -1629,3 +1629,23 @@ name = faker.name()     # Generate fake name
 - T561: HTTP method override bypasses delete protection (XPASS = potential issue)
 
 **Test Results**: 7 passed, 4 xfailed, 2 xpassed
+
+## 2026-04-10T14:05:00Z - T249 Red Team Tests COMPLETE
+
+**Commit**: `6138eeb92`
+
+**Work**:
+- Created `test_webstream_permissions_redteam_t249.py` (25 tests)
+- Full OWASP API Top 10 coverage for Webstreams permissions
+
+**Bugs Found (4 confirmed)**:
+| ID | Severity | Description |
+|----|----------|-------------|
+| T562 | CRITICAL | BOLA: Any user can modify other user's webstream |
+| T563 | CRITICAL | BOLA: Any user can delete other user's webstream |
+| T564 | HIGH | BOLA: LIST returns all users' streams |
+| T567 | HIGH | BOPLA: Can change owner via mass assignment |
+
+**Test Results**: 20 passed, 1 skipped, 4 xfailed
+
+**Next**: T250 (Schedule LIST endpoint)
