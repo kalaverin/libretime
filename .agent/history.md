@@ -2387,3 +2387,34 @@ def test_host_cannot_update_other_playlist(self, host_client, faker):
 - BOLA: HOST can modify other HOST's playlists, files, smart blocks, webstreams
 - Missing ownership filtering in 28 ViewSets
 - `get_own_obj()` bug: checks entire table, not specific object
+
+
+---
+
+### [2026-04-11T01:50:00Z]
+
+**Fixed:** `is_superuser` method/property consistency for User vs AnonymousUser
+
+**Problem:**
+- `User.is_superuser` → method (needs `()`)
+- `AnonymousUser.is_superuser` → bool (property)
+- Мой первый фикс сломал всё — `user.is_superuser` для User возвращал bound method (truthy!)
+
+**Solution:**
+1. `_is_superuser()` helper in `permissions.py` — handles both callable and bool
+2. `has_perm()` in `user.py` — same pattern with callable check
+3. В `show.py` и `webstream.py` — `user.is_superuser()` (там точно User, не Anonymous)
+
+**Files changed:**
+- `app/api/api/permissions.py` — added `_is_superuser()` helper
+- `app/api/api/core/models/user.py:181` — callable check in `has_perm()`
+- `app/api/api/schedule/views/show.py:67` — restored `()`
+- `app/api/api/schedule/views/webstream.py:31` — restored `()`
+
+**Test Results:**
+- Before fix: 69 passed, 52 failed
+- After fix: 95 passed, 26 failed
+- GUEST tests: 24/25 passed ✅
+- ADMIN read tests: all passed ✅
+
+Remaining 26 failures are real ViewSet bugs (ownership filtering, auto-assign, etc.)

@@ -178,7 +178,11 @@ class User(AbstractBaseUser):
         return self.get_user_permissions(obj) + self.get_group_permissions(obj)
 
     def has_perm(self, perm: str, obj: object | None = None) -> bool:
-        if self.is_superuser:
+        # Handle both method (User) and bool (AnonymousUser)
+        is_super = self.is_superuser
+        if callable(is_super):
+            is_super = is_super()
+        if is_super:
             return True
         if not perm:
             return False

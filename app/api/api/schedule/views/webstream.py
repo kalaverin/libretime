@@ -28,7 +28,7 @@ class WebstreamViewSet(viewsets.ModelViewSet[Any]):
         user = request.user
         if not user.is_authenticated:
             return Webstream.objects.none()
-        if user.is_superuser:
+        if user.is_superuser():
             return Webstream.objects.all()
         # Regular user sees only their own webstreams
         return Webstream.objects.filter(owner=user)

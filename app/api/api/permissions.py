@@ -76,6 +76,14 @@ def check_authorization_header(request: Request) -> bool:
     return False
 
 
+def _is_superuser(user) -> bool:
+    """Check if user is superuser, handling both method (User) and bool (AnonymousUser)."""
+    is_super = user.is_superuser
+    if callable(is_super):
+        return is_super()
+    return bool(is_super)
+
+
 class IsAdminOrOwnUser(BasePermission):
     """
     Implements Django Rest Framework permissions. This is separate from
@@ -87,7 +95,7 @@ class IsAdminOrOwnUser(BasePermission):
     def has_permission(self, request: Request, view: Any) -> bool:
         if not request.user.is_authenticated:
             return False
-        return bool(request.user.is_superuser)
+        return _is_superuser(request.user)
 
     @override
     def has_object_permission(
@@ -98,7 +106,7 @@ class IsAdminOrOwnUser(BasePermission):
     ) -> bool:
         if not request.user.is_authenticated:
             return False
-        if request.user.is_superuser:
+        if _is_superuser(request.user):
             return True
         return obj.username == request.user
 
