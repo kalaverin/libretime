@@ -3760,6 +3760,91 @@ Notes: |
   
   Red team test: test_file_silence_redteam_t296.py::test_pending_to_success_bypass_blocked
 
+## [CRITICAL] fix T892 — BOLA: Stereo/mono endpoint lacks user isolation
+Status: NOT_STARTED
+Created: 2026-04-10T17:55:00Z
+Last worked: 2026-04-10T17:55:00Z
+File: `app/api/api/storage/views/file.py`
+Next step: Add get_queryset() filtering by owner
+Notes: |
+  API1:2023 Broken Object Level Authorization. FileViewSet has no get_queryset()
+  filtering, allowing users to see other users' stereo/mono channel info via
+  LIST and RETRIEVE endpoints. Anonymous access also returns 200 instead of 401/403.
+  
+  Red team test: test_file_stereo_redteam_t297.py::TestStereoMonoBOLA
+
+## [CRITICAL] fix T893 — Mass assignment allows modifying channels
+Status: NOT_STARTED
+Created: 2026-04-10T17:55:00Z
+Last worked: 2026-04-10T17:55:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add channels to read_only_fields
+Notes: |
+  API6:2023 - Mass assignment. Channels field should be read-only from audio analysis,
+  but PATCH/PUT allows modifying it. Users can fake mono/stereo/surround detection.
+  
+  Red team test: test_file_stereo_redteam_t297.py::test_mass_assignment_channels_blocked
+
+## [HIGH] fix T894 — No validation for extreme channel values
+Status: NOT_STARTED
+Created: 2026-04-10T17:55:00Z
+Last worked: 2026-04-10T17:55:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add validators for channels range (1-16)
+Notes: |
+  Values like 1000, 999999, negative numbers accepted for channels field.
+  Should validate realistic audio channel counts (1-16 for surround sound).
+  
+  Red team test: test_file_stereo_redteam_t297.py::test_extreme_channel_values_blocked
+
+## [HIGH] fix T895 — Mass assignment allows modifying sample_rate
+Status: NOT_STARTED
+Created: 2026-04-10T17:55:00Z
+Last worked: 2026-04-10T17:55:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add sample_rate to read_only_fields
+Notes: |
+  API6:2023 - Mass assignment. Sample rate affects audio processing but can be
+  modified via PATCH/PUT. Should be read-only from actual audio file analysis.
+  
+  Red team test: test_file_stereo_redteam_t297.py::test_mass_assignment_sample_rate_blocked
+
+## [CRITICAL] fix T897 — Filter by channels shows all users' files
+Status: NOT_STARTED
+Created: 2026-04-10T17:55:00Z
+Last worked: 2026-04-10T17:55:00Z
+File: `app/api/api/storage/views/file.py`
+Next step: Add user filtering to queryset for filtered views
+Notes: |
+  API1:2023 BOLA. Filtering by channels (mono/stereo) returns files from all users,
+  not just the authenticated user. Missing authorization in filtered queries.
+  
+  Red team test: test_file_stereo_redteam_t297.py::test_filter_by_channels_cross_user
+
+## [MEDIUM] fix T899 — Anonymous enumeration of channel data
+Status: NOT_STARTED
+Created: 2026-04-10T17:55:00Z
+Last worked: 2026-04-10T17:55:00Z
+File: `app/api/api/storage/views/file.py`
+Next step: Add authentication requirement
+Notes: |
+  Anonymous users can access /api/v2/files endpoints and enumerate channel data
+  without authentication. Should return 401/403 for anonymous requests.
+  
+  Red team test: test_file_stereo_redteam_t297.py::TestStereoMonoEnumeration
+
+## [MEDIUM] fix T900 — No validation for negative channel values
+Status: NOT_STARTED
+Created: 2026-04-10T17:55:00Z
+Last worked: 2026-04-10T17:55:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add MinValueValidator for channels
+Notes: |
+  Negative channel values accepted via PATCH/PUT. Should validate channels >= 1
+  (or >= 0 with special handling for unknown).
+  
+  Red team test: test_file_stereo_redteam_t297.py::test_negative_channels_rejected
+
 # Archive
 
 <!--
@@ -6045,6 +6130,18 @@ Summary: |
   resource exhaustion, workflow bypass (PENDING/FAILED to SUCCESS), and information
   disclosure. 39 tests passed, 8 xfailed with security bugs (T887-T891).
   Ref: test_file_silence_redteam_t296.py
+
+## [DONE] test T297 — Stereo/Mono detection redteam security tests
+Status: DONE
+Created: 2026-04-10T17:50:00Z
+Completed: 2026-04-10T17:55:00Z
+Summary: |
+  Created comprehensive red team test suite for stereo/mono detection endpoints.
+  Tests cover: BOLA (retrieve/list other users' channel info), mass assignment
+  (channels, sample_rate), SQL injection, filter bypass, business logic bypass,
+  enumeration attacks, data integrity (negative/zero channels), and rate limiting.
+  10 tests passed, 9 xfailed with security bugs (T892-T900), 3 xpassed (already fixed).
+  Ref: test_file_stereo_redteam_t297.py
 
 ## [CRITICAL] fix T806 — BOLA: Playlist retrieve shows other user's playlist
 Status: NOT_STARTED
