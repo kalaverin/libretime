@@ -1718,26 +1718,47 @@ Scope: api/schedule/serializers/playlist.py
 Next step: Add owner required validation in serializer
 Notes: Creating playlist without owner returns 201 instead of 400
 
-## [CRITICAL] fix T322 — PlaylistContent filter by playlist not implemented
-Status: NOT_STARTED
+## [DONE] fix T322 — PlaylistContent filter by playlist not implemented
+Status: DONE
 Created: 2026-04-09T15:30:00Z
+Last worked: 2026-04-10T03:25:00Z
 Scope: api/schedule/views/playlist.py
-Next step: Add filterset_fields or filter_backends to PlaylistContentViewSet
-Notes: Query param ?playlist={id} is silently ignored, returns all contents instead of filtering.
+Notes: |
+  FIXED: Added filtering by playlist to PlaylistContentViewSet.
+  
+  Changes:
+  - playlist.py view: Added filterset_fields=["playlist"], ordering_fields=["position"], ordering=["position"]
+  - playlist.py view: Added get_queryset() to filter by playlist_id query param
+  - test_playlistcontent_list.py: Removed xfail marker from test_list_filter_by_playlist
+  
+  Result: Query param ?playlist={id} now correctly filters playlist contents.
 
-## [CRITICAL] fix T323 — PlaylistContent ordering by position not implemented
-Status: NOT_STARTED
+## [DONE] fix T323 — PlaylistContent ordering by position not implemented
+Status: DONE
 Created: 2026-04-09T15:30:00Z
+Last worked: 2026-04-10T03:25:00Z
 Scope: api/schedule/views/playlist.py
-Next step: Add ordering_fields = ["position"] and ordering = ["position"] to ViewSet
-Notes: Results returned in arbitrary order instead of playlist position sequence.
+Notes: |
+  FIXED: Added ordering by position to PlaylistContentViewSet.
+  
+  Changes:
+  - playlist.py view: Added ordering_fields=["position"] and ordering=["position"] to ViewSet
+  - test_playlistcontent_list.py: Removed xfail marker from test_list_contents_ordered_by_position
+  
+  Result: Results now returned in position sequence by default.
 
-## [CRITICAL] fix T324 — PlaylistContent offset is required but model allows null
-Status: NOT_STARTED
+## [DONE] fix T324 — PlaylistContent offset is required but model allows null
+Status: DONE
 Created: 2026-04-09T16:05:00Z
+Last worked: 2026-04-10T03:25:00Z
 Scope: api/schedule/serializers/playlist.py
-Next step: Make offset optional in serializer or add default value
-Notes: Serializer rejects requests without offset even though model field allows null.
+Notes: |
+  FIXED: Made offset field optional in PlaylistContentSerializer.
+  
+  Changes:
+  - playlist.py serializer: Added "offset": {"required": False} to extra_kwargs
+  
+  Result: Creating PlaylistContent without offset now succeeds.
 
 ## [DONE] fix T325 — PlaylistContent missing playlist not validated
 Status: DONE

@@ -144,7 +144,6 @@ class TestPlaylistContentViewSetList:
         assert response.status_code == 200
         assert len(response.json()) == 2
 
-    @pytest.mark.xfail(reason="T322: filter by playlist not implemented")
     def test_list_filter_by_playlist(self, api_client):
         """LIST should filter by playlist parameter."""
         user = baker.make(User, username="testpc_user")
@@ -186,7 +185,6 @@ class TestPlaylistContentViewSetList:
         assert len(data) == 1
         assert data[0]["playlist"] == playlist1.id
 
-    @pytest.mark.xfail(reason="T323: ordering by position not implemented")
     def test_list_contents_ordered_by_position(self, api_client):
         """LIST should be ordered by position."""
         user = baker.make(User, username="testpc_user")

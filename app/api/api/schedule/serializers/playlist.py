@@ -22,6 +22,7 @@ class PlaylistContentSerializer(ModelSerializer[Any]):
         fields: str = "__all__"
         extra_kwargs = {
             "playlist": {"required": True},
+            "offset": {"required": False},
         }
 
     def validate(self, data: dict[str, Any]) -> dict[str, Any]:

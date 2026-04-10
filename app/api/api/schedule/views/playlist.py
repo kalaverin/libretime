@@ -1,6 +1,7 @@
 from typing import Any, final
 
 from rest_framework import viewsets
+from rest_framework.filters import OrderingFilter
 from rest_framework.serializers import Serializer
 
 from api.schedule.models import Playlist, PlaylistContent
@@ -24,3 +25,14 @@ class PlaylistContentViewSet(viewsets.ModelViewSet[Any]):
     queryset = PlaylistContent.objects.all()
     serializer_class: type[Serializer[Any]] = PlaylistContentSerializer
     model_permission_name: str = "playlistcontent"
+    filter_backends = [OrderingFilter]
+    filterset_fields = ["playlist"]
+    ordering_fields = ["position"]
+    ordering = ["position"]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        playlist_id = self.request.query_params.get("playlist")
+        if playlist_id:
+            queryset = queryset.filter(playlist_id=playlist_id)
+        return queryset
