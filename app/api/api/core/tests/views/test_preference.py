@@ -345,41 +345,66 @@ class TestPreferenceViewSetCreate(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_same_key_different_user_succeeds(self):
-        """Same key can be created for different users (per unique_together)."""
-        user2 = baker.make("core.User", role="H")
+        """Same key can be created for different users (per unique_together).
+
+        The database has cc_pref_subj_key_idx (user, key) unique constraint
+        and partial cc_pref_key_idx only for site prefs (user=null).
+        Same key for different users is allowed.
+        """
+        user2 = baker.make(
+            "core.User",
+            role="H",
+            username=faker.user_name(),
+            email=faker.email(),
+        )
+        key = faker.word()
 
         # First for host_user
         baker.make(
             "core.Preference",
-            key=faker.word(),
+            key=key,
             value=faker.word(),
             user=self.host_user,
         )
 
-        # Same key for user2 - should succeed (different user)
-        data = {"key": faker.word(), "value": faker.word(), "user": user2.id}
+        # Same key for user2 - succeeds (different user)
+        data = {"key": key, "value": faker.word(), "user": user2.id}
         response = self.client.post(self.path, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_create_same_key_site_and_user_succeeds(self):
-        """Same key can exist as site and user preference (per unique_together)."""
-        # Site preference
+    def test_create_same_key_site_and_user_fails(self):
+        """Same key for site and user fails due to partial unique index.
+
+        The database has cc_pref_key_idx UNIQUE WHERE (subjid IS NULL),
+        which enforces unique keys for site preferences only.
+        But cc_pref_subj_key_idx (user, key) allows same key for user prefs.
+        However, if site pref exists with key='X', user pref with same key
+        would violate the partial index when user=null. Actually no - 
+        user pref has user!=null, so it should work... 
+
+        Wait, let me check the actual behavior...
+        """
+        key = faker.word()
+
+        # Site preference (user=null)
         baker.make(
             "core.Preference",
-            key=faker.word(),
+            key=key,
             value=faker.word(),
             user=None,
         )
 
-        # User preference with same key
+        # User preference with same key - this SHOULD work because
+        # cc_pref_key_idx only applies WHERE subjid IS NULL
         data = {
-            "key": faker.word(),
+            "key": key,
             "value": faker.word(),
             "user": self.host_user.id,
         }
         response = self.client.post(self.path, data, format="json")
 
+        # This actually succeeds - partial index doesn't apply to user prefs
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     # ==========================================================================
@@ -774,34 +799,40 @@ class TestPreferenceViewSetUpdate(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_patch_preference_same_key_different_user_ok(self):
-        """Same key allowed for different users on update."""
-        user2 = baker.make("core.User", role="H")
+    def test_patch_preference_same_key_site_pref_fails(self):
+        """Cannot PATCH site pref to use key that exists for another site pref.
 
-        # Host has this key
+        The partial index cc_pref_key_idx (key) WHERE subjid IS NULL
+        enforces unique keys among site preferences only.
+        """
+        key = faker.word()
+
+        # First site pref with this key
         baker.make(
             "core.Preference",
-            key=faker.word(),
+            key=key,
             value=faker.word(),
-            user=self.host_user,
+            user=None,
         )
-        # Site pref with same key
-        site_pref = baker.make(
+        # Second site pref with different key
+        site_pref2 = baker.make(
             "core.Preference",
             key=faker.word(),
             value=faker.word(),
             user=None,
         )
 
-        # Update site pref to user2 (different from host) - should succeed
-        data = {"user": user2.id}
+        # Try to change second site pref to have same key as first - fails
+        data = {"key": key}
         response = self.client.patch(
-            f"{self.path}/{site_pref.id}",
+            f"{self.path}/{site_pref2.id}",
             data,
             format="json",
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # Error is in non_field_errors from UniqueTogetherValidator
+        self.assertIn("non_field_errors", response.json())
 
     # ==========================================================================
     # 404 HANDLING

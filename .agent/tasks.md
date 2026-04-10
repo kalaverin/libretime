@@ -1581,17 +1581,28 @@ Notes: |
   Currently API Key returns 403 (after T308 fix), but maybe should work for service accounts?
   Ref: test_user.py::TestUserKnownBugs::test_bug_b003_*
 
-## [CRITICAL] test T311 — Fix Preference unique_together validation in CREATE
-Status: NOT_STARTED
+## [DONE] fix T311 — Fix Preference unique_together validation in CREATE
+Status: DONE
 Created: 2026-04-09T12:25:00Z
-Last worked: 2026-04-09T12:35:00Z
-Scope: api/core/serializers/preference.py
-Next step: Fix serializer to properly validate unique_together (user, key) in CREATE
+Last worked: 2026-04-10T00:45:00Z
+Scope: api/core/serializers/preference.py, api/core/views/preference.py
 Notes: |
-  BUG: Serializer validates uniqueness by key only, ignoring user in CREATE.
-  Model has unique_together = (("user", "key"),) - same key can exist for different users.
-  But serializer rejects: {"key":["preference with this key already exists."]}
-  INTERESTING: UPDATE works correctly (test passes), issue only in CREATE serializer.
+  FIXED: Serializer now properly validates unique_together = (user, key).
+  
+  Root cause: The serializer was using default DRF validation which saw the
+  `unique=True` on the key field and validated globally. The database actually has:
+  - cc_pref_subj_key_idx: UNIQUE (subjid, keystr) - the unique_together constraint
+  - cc_pref_key_idx: UNIQUE (keystr) WHERE subjid IS NULL - partial index for site prefs
+  
+  Changes:
+  - preference.py serializer: Removed unique validator from key field, added
+    UniqueTogetherValidator for (user, key) with proper error message
+  - preference.py view: Added IntegrityError handling in create() to return 400
+    instead of 500 when DB constraint is violated
+  - test_preference.py: Fixed tests to use same key (not faker.word() each time)
+    and reflect actual database behavior
+  
+  Result: Same key can now be created for different users (as intended by schema).
   Ref: test_preference.py::TestPreferenceViewSetCreate::test_create_same_key_different_user_succeeds
 
 ## [HIGH] test T312 — Fix Preference value handling for special characters
