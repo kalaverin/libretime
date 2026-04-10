@@ -2932,3 +2932,36 @@ Notes: |
 
   Red team test: test_repeat_next_on_manipulation fails - field accepted
 
+
+## [CRITICAL] fix T420 — Playlist ViewSet missing owner-based queryset filtering (BOLA)
+Status: NOT_STARTED
+Created: 2026-04-10T12:00:00Z
+Scope: api/schedule/views/playlist.py
+Next step: Add get_queryset() filtering by owner to PlaylistViewSet
+Notes: |
+  CRITICAL BOLA VULNERABILITY: PlaylistViewSet lacks owner-based filtering.
+  
+  Current behavior (BROKEN):
+  - PlaylistViewSet.queryset = Playlist.objects.all() - returns ALL playlists
+  - Any authenticated user with 'delete_playlist' permission can delete ANY playlist
+  - Any authenticated user with 'change_playlist' permission can modify ANY playlist
+  - Any authenticated user with 'view_playlist' permission can view ANY playlist
+  
+  Confirmed by existing tests in test_playlist_permissions.py:
+  - test_user_can_view_other_users_playlists (lines 106-117)
+  - test_user_can_update_other_users_playlists (lines 119-134)  
+  - test_user_can_delete_other_users_playlists (lines 136-147)
+  
+  These tests DOCUMENT the vulnerability but don't prevent it.
+  
+  Expected behavior:
+  - Regular users should only see/modify/delete their own playlists (owner=request.user)
+  - Admins can see/modify/delete all playlists
+  
+  Fix needed:
+  - Override get_queryset() in PlaylistViewSet
+  - Filter by owner for non-admin users
+  - Use existing get_own_obj() pattern from api/permissions.py
+  
+  Red team tests confirming bug: test_playlist_redteam_t226.py
+
