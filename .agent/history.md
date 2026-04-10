@@ -1649,3 +1649,48 @@ name = faker.name()     # Generate fake name
 **Test Results**: 20 passed, 1 skipped, 4 xfailed
 
 **Next**: T250 (Schedule LIST endpoint)
+
+## 2026-04-10T14:40:00Z - T250 Red Team Tests COMPLETE
+
+**Commit**: `2edba65c3`
+
+**Work**:
+- Created `test_schedule_list_redteam_t250.py` (22 tests)
+- Full OWASP API Top 10 coverage for Schedule LIST
+
+**Bugs Found (5 confirmed)**:
+| ID | Severity | Description |
+|----|----------|-------------|
+| T568 | HIGH | BOLA: LIST shows all users' schedule entries |
+| T569 | CRITICAL | BOLA: Can access other user's schedule by ID |
+| T573 | MEDIUM | Info Leak: Error message reveals existence |
+| T574 | CRITICAL | BOLA: Filter combination bypasses ownership |
+| T575 | CRITICAL | Auth: Invalid token returns 200 |
+
+**Test Results**: 15 passed, 2 skipped, 5 xfailed
+
+**Next**: T251-T252 (Schedule CREATE endpoint)
+
+## 2026-04-10T14:50:00Z - T251-T252 Red Team Tests COMPLETE
+
+**Commit**: `4210d3443`
+
+**Work**:
+- Created `test_schedule_create_redteam_t251.py` (17 tests)
+- Full OWASP API Top 10 coverage for Schedule CREATE
+
+**Bugs Found (8 confirmed)**:
+| ID | Severity | Description |
+|----|----------|-------------|
+| T576 | CRITICAL | BOLA: Create schedule in other user's show |
+| T577 | CRITICAL | BOLA: Use other user's file |
+| T578 | CRITICAL | BOLA: Use other user's stream |
+| T581 | HIGH | Logic: No schedule overlap validation |
+| T582 | HIGH | Logic: No show time boundary validation |
+| T583 | HIGH | SSRF: Internal stream URLs accepted |
+| T584 | CRITICAL | Auth: Invalid token returns 200 |
+| T586 | MEDIUM | Race condition concurrent CREATE |
+
+**Test Results**: 9 passed, 8 xfailed
+
+**Next**: T253-T254 (Schedule RETRIEVE/UPDATE endpoints)

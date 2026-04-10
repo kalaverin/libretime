@@ -199,8 +199,12 @@ def fake_small_int(faker):
 @pytest.fixture
 def fake_positive_int(faker):
     """Generate a fake positive integer."""
-    return faker.random_int(min=1, max=999999)
+    return faker.random_int(min=1, max=99999999)
 
+@pytest.fixture
+def fake_negative_int(faker):
+    """Generate a fake negative integer."""
+    return -faker.random_int(min=1, max=99999999)
 
 @pytest.fixture
 def fake_float(faker):

@@ -4586,3 +4586,92 @@ Notes: |
   Authentication bypass allowing unauthorized access to protected resources.
   Ref: test_schedule_list_redteam_t250.py::test_list_with_invalid_token
 
+
+## [CRITICAL] fix T576 — BOLA: Can create schedule for other user's show
+Status: NOT_STARTED
+Created: 2026-04-10T14:45:00Z
+Last worked: 2026-04-10T14:45:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Validate instance ownership before creating schedule
+Notes: |
+  API1:2023 Broken Object Level Authorization. Attacker can create schedule entries
+  in victim's show instance by knowing the instance ID. No ownership validation.
+  Ref: test_schedule_create_redteam_t251.py::test_bola_create_schedule_for_other_user_show
+
+## [CRITICAL] fix T577 — BOLA: Can create schedule using other user's file
+Status: NOT_STARTED
+Created: 2026-04-10T14:45:00Z
+Last worked: 2026-04-10T14:45:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Validate file ownership during schedule creation
+Notes: |
+  Attacker can create schedule using victim's file without permission.
+  File ownership not verified during CREATE operation.
+  Ref: test_schedule_create_redteam_t251.py::test_bola_create_schedule_with_other_user_file
+
+## [CRITICAL] fix T578 — BOLA: Can create schedule using other user's stream
+Status: NOT_STARTED
+Created: 2026-04-10T14:45:00Z
+Last worked: 2026-04-10T14:45:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Validate webstream ownership during schedule creation
+Notes: |
+  Attacker can create schedule using victim's webstream without permission.
+  Stream ownership not verified during CREATE operation.
+  Ref: test_schedule_create_redteam_t251.py::test_bola_create_schedule_with_other_user_stream
+
+## [HIGH] fix T581 — Business Logic: No schedule overlap validation
+Status: NOT_STARTED
+Created: 2026-04-10T14:45:00Z
+Last worked: 2026-04-10T14:45:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Add overlap validation in create/save operations
+Notes: |
+  API allows creating overlapping schedule entries in same show instance.
+  No validation prevents scheduling conflicts.
+  Ref: test_schedule_create_redteam_t251.py::test_business_logic_schedule_overlap
+
+## [HIGH] fix T582 — Business Logic: No show time boundary validation
+Status: NOT_STARTED
+Created: 2026-04-10T14:45:00Z
+Last worked: 2026-04-10T14:45:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Validate schedule time within show instance boundaries
+Notes: |
+  API allows creating schedule entries outside show instance time boundaries.
+  Schedule entries can be created for times when show is not active.
+  Ref: test_schedule_create_redteam_t251.py::test_business_logic_outside_show_time
+
+## [HIGH] fix T583 — SSRF: Schedule created with internal stream URL
+Status: NOT_STARTED
+Created: 2026-04-10T14:45:00Z
+Last worked: 2026-04-10T14:45:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Block stream URLs pointing to internal/metadata endpoints
+Notes: |
+  Can create schedule using webstream with internal/metadata URLs.
+  May lead to SSRF when schedule is played and stream URL is fetched.
+  Ref: test_schedule_create_redteam_t251.py::test_ssrf_create_schedule_with_internal_stream
+
+## [CRITICAL] fix T584 — Auth: CREATE with invalid token returns 200
+Status: NOT_STARTED
+Created: 2026-04-10T14:45:00Z
+Last worked: 2026-04-10T14:45:00Z
+File: `app/api/api/permissions.py:85-95`
+Next step: Reject requests with invalid/malformed authentication tokens
+Notes: |
+  Same as T575. POST with invalid Bearer token returns 200 OK instead of 403.
+  Authentication bypass allowing unauthorized schedule creation.
+  Ref: test_schedule_create_redteam_t251.py::test_create_with_invalid_token
+
+## [MEDIUM] fix T586 — Race condition: Concurrent CREATE same slot
+Status: NOT_STARTED
+Created: 2026-04-10T14:45:00Z
+Last worked: 2026-04-10T14:45:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Add unique constraints or row-level locking
+Notes: |
+  Multiple concurrent CREATE requests can create multiple schedules for same slot.
+  Race condition in create operation leads to data inconsistency.
+  Ref: test_schedule_create_redteam_t251.py::test_race_condition_concurrent_create
+
