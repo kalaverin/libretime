@@ -2048,3 +2048,41 @@ name = faker.name()     # Generate fake name
 - `.agent/tasks.md` — added T780-T793
 
 **DEADBEEF:** T282 complete, ready for T284 (last in this batch)
+
+
+---
+
+## Session: 2026-04-10T17:15:00Z
+
+**Context:** T284 SerializerMixin redteam tests - LAST COMMIT IN BATCH
+
+**Task:** T284 — ReadWriteSerializerMixin redteam security tests
+
+**Completed:**
+1. Created `test_schedule_serializer_mixin_redteam_t284.py` with 8 tests:
+   - TestSerializerMixinRedTeamBOPLA: 3 tests (mass assignment ID, PATCH readonly, type confusion)
+   - TestSerializerMixinRedTeamBypass: 2 tests (Content-Type bypass, method override)
+   - TestSerializerMixinRedTeamDoS: 2 tests (deeply nested JSON, long strings)
+   - TestSerializerMixinRedTeamInjection: 1 test (SQLi via datetime field)
+
+2. No new bugs found (all tests passed):
+   - Serializer properly rejects ID mass assignment
+   - PATCH doesn't allow ID modification
+   - Type confusion handled gracefully (400, not 500)
+   - Method override doesn't bypass serializer selection
+   - Deep nesting handled without crash
+
+3. Used sdk.now and format_datetime instead of hardcoded dates
+
+**Test Results:** 8 passed, 0 xfailed
+
+**Files:**
+- `app/api/api/schedule/tests/views/test_schedule_serializer_mixin_redteam_t284.py` (new)
+
+**DEADBEEF:** ALL 4 COMMITS COMPLETED!
+- 178e482cd (T280) ✅
+- a4a56b315 (T281) ✅
+- fa106a9d5 (T282) ✅
+- e2034fae0 (T284) ✅
+
+**Total bugs in this batch:** T749-T793 (45 new bugs)
