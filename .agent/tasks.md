@@ -1621,31 +1621,34 @@ Notes: |
   Result: All value types (JSON, XML, HTML, unicode, etc.) now work correctly.
   Whitespace-only values are trimmed to empty string (legacy PostgreSQL behavior).
 
-## [CRITICAL] test T313 — Fix UserToken lookup_field for RETRIEVE/UPDATE/DELETE
-Status: NOT_STARTED
+## [DONE] test T313 — Fix UserToken lookup_field for RETRIEVE/UPDATE/DELETE
+Status: DONE
 Created: 2026-04-09T12:40:00Z
-Last worked: 2026-04-09T12:40:00Z
+Last worked: 2026-04-10T04:05:00Z
 Scope: api/core/views/auth.py
-Next step: Add lookup_field = "token" to UserTokenViewSet
 Notes: |
-  BUG: UserToken model has no 'id' field, token is unique CharField (40 chars).
-  DRF default lookup uses 'pk' which doesn't exist.
-  GET/DELETE /api/v2/user-tokens/{token}/ returns 404.
-  Fix: lookup_field = "token" or define get_object()
-  Ref: test_auth.py::TestUserTokenViewSetDelete
+  FIXED: Added lookup_field = "token" to UserTokenViewSet.
+  
+  Changes:
+  - auth.py view: Added lookup_field = "token" to UserTokenViewSet
+  - test_auth.py: Removed xfail markers from 2 UserToken tests
+  
+  Result: GET/DELETE /api/v2/user-tokens/{token}/ now works correctly.
 
-## [CRITICAL] test T314 — Fix LoginAttempt lookup_field for RETRIEVE/UPDATE/DELETE
-Status: NOT_STARTED
+## [DONE] test T314 — Fix LoginAttempt lookup_field for RETRIEVE/UPDATE/DELETE
+Status: DONE
 Created: 2026-04-09T13:20:00Z
-Last worked: 2026-04-09T13:20:00Z
+Last worked: 2026-04-10T04:05:00Z
 Scope: api/core/views/auth.py
-Next step: Add lookup_field = "ip" to LoginAttemptViewSet
 Notes: |
-  BUG: LoginAttempt model has no 'id' field, ip is CharField(primary_key=True).
-  DRF default lookup uses 'pk'.
-  GET/PATCH/DELETE /api/v2/login-attempts/{ip}/ returns 404.
-  Fix: lookup_field = "ip"
-  Ref: test_auth.py::TestLoginAttemptViewSetUpdate, TestLoginAttemptViewSetDelete
+  FIXED: Added lookup_field = "ip" and lookup_value_regex to LoginAttemptViewSet.
+  
+  Changes:
+  - auth.py view: Added lookup_field = "ip" to LoginAttemptViewSet
+  - auth.py view: Added lookup_value_regex = "[0-9.]+" to allow dots in IP addresses
+  - test_auth.py: Removed xfail markers from 10 LoginAttempt tests
+  
+  Result: GET/PATCH/DELETE /api/v2/login-attempts/{ip}/ now works correctly.
 
 ## [HIGH] test T315 — Fix CeleryTask model db_column for track_reference
 Status: NOT_STARTED
