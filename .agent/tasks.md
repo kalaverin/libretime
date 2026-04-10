@@ -2028,6 +2028,30 @@ Notes: |
   - test_create_with_null_block: FAIL (returns 201)
   - test_create_with_null_file: FAIL (returns 201)
 
+## [HIGH] fix T356 — SmartBlockContent filter crashes on invalid block_id
+Status: NOT_STARTED
+Created: 2026-04-10T00:20:08Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add validation for block_id query parameter
+Notes: |
+  RED TEAM FINDING from T328/T329 tests:
+  
+  SmartBlockContentViewSet.get_queryset() passes block_id directly to filter()
+  without validation, causing ValueError on invalid input.
+  
+  Vulnerable code:
+  - block_id = self.request.query_params.get("block")
+  - queryset.filter(block_id=block_id)  # No validation!
+  
+  Attack scenarios:
+  - GET ?block=invalid → ValueError: Field 'id' expected a number but got 'invalid'
+  - GET ?block=-1 → May cause unexpected behavior
+  - GET ?block=1' OR '1'='1 → SQL injection attempts cause 500 error
+  
+  Impact: Information disclosure via error messages, DoS via error spam.
+  
+  Fix needed: Validate block_id is integer before filtering, return 400 on invalid.
+
 ## [CRITICAL] fix T354 — Webstream security issues (created_at mutable, owner transferable)
 Status: NOT_STARTED
 Created: 2026-04-10T09:40:00Z

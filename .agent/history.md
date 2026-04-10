@@ -1588,3 +1588,25 @@ name = faker.name()     # Generate fake name
 - `app/api/api/schedule/tests/views/test_show_instance_update.py`
 - `app/api/api/schedule/tests/views/test_webstream_permissions.py`
 - `app/api/api/schedule/tests/views/test_webstream_update.py`
+
+---
+
+## Session 2026-04-10T00:20:08Z — Red Team Testing T328/T329
+
+**Commit:** `92bfe69b9` — T328/T329 SmartBlockContent filter/ordering
+
+**Actions:**
+- Created RED TEAM tests: `test_smartblockcontent_redteam_t328.py` (17 tests)
+- Tested: filter injection, ordering manipulation, IDOR with filter, info disclosure
+
+**BAGS FOUND:**
+- **T356 (HIGH)**: SmartBlockContent filter crashes on invalid block_id
+  - GET ?block=invalid → ValueError: Field 'id' expected a number
+  - No validation in get_queryset() before filtering
+  - Information disclosure via error messages
+
+**Tests:**
+- 14 passed, 3 xfailed (BOLA-related), T356 confirmed
+
+**Red Team Progress:** 6/16 commits complete
+**Active BAGS:** T353, T354, T355, T356
