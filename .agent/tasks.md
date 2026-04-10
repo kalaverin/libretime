@@ -672,6 +672,149 @@ Last worked: 2026-04-06T16:53:26Z
 File: `app/playout/playout/history/stats.py:39`
 Notes: TCP connection leak on shutdown.
 
+## [CRITICAL] fix T475 — BOLA: SmartBlockContent CREATE allows content in other user's block
+Status: NOT_STARTED
+Created: 2026-04-10T13:35:00Z
+Last worked: 2026-04-10T13:35:00Z
+File: `app/api/api/schedule/views/smart_block.py:51-57`
+Next step: Add ownership check in SmartBlockContentViewSet.create() or serializer
+Notes: |
+  API1:2023 Broken Object Level Authorization. Attacker can create content in victim's SmartBlock
+  by specifying victim's block ID. No ownership validation on block field.
+  Ref: test_smartblockcontent_create_redteam_t240.py::test_bola_create_in_other_users_block
+
+## [CRITICAL] fix T476 — BOLA: SmartBlockContent CREATE allows using other user's file
+Status: NOT_STARTED
+Created: 2026-04-10T13:35:00Z
+Last worked: 2026-04-10T13:35:00Z
+File: `app/api/api/schedule/views/smart_block.py:51-57`
+Next step: Add file ownership validation in serializer
+Notes: |
+  Attacker can reference victim's private file when creating SmartBlockContent.
+  File existence is checked but ownership is not validated.
+  Ref: test_smartblockcontent_create_redteam_t240.py::test_bola_create_with_other_users_file
+
+## [HIGH] fix T477 — BOPLA: SmartBlockContent CREATE allows mass assignment of id field
+Status: NOT_STARTED
+Created: 2026-04-10T13:35:00Z
+Last worked: 2026-04-10T13:35:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:22-30`
+Next step: Add read_only=True for id field in SmartBlockContentSerializer
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. Client can specify id field
+  in CREATE request which could lead to ID collision or overwrite existing records.
+  Ref: test_smartblockcontent_create_redteam_t240.py::test_bopla_mass_assignment_id_field
+
+## [MEDIUM] fix T478 — BOPLA: SmartBlockContent CREATE accepts extra/unknown fields silently
+Status: NOT_STARTED
+Created: 2026-04-10T13:35:00Z
+Last worked: 2026-04-10T13:35:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:22-30`
+Next step: Add strict validation to reject unknown fields
+Notes: |
+  Extra fields like "is_admin", "role", "password" are silently ignored instead of rejected.
+  Could mask typos or attempts at mass assignment.
+  Ref: test_smartblockcontent_create_redteam_t240.py::test_bopla_extra_fields_rejected
+
+## [LOW] fix T479 — Path traversal in cue_in/cue_out fields not validated
+Status: NOT_STARTED
+Created: 2026-04-10T13:35:00Z
+Last worked: 2026-04-10T13:35:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:22-30`
+Next step: Add path traversal pattern validation for cue fields
+Notes: |
+  Fields cue_in and cue_out accept path traversal patterns like "../../../etc/passwd".
+  While likely not exploitable directly, should be rejected as invalid input.
+  Ref: test_smartblockcontent_create_redteam_t240.py::test_path_traversal_in_cue_fields
+
+## [MEDIUM] fix T480 — Duplicate position values allowed in same SmartBlock
+Status: NOT_STARTED
+Created: 2026-04-10T13:35:00Z
+Last worked: 2026-04-10T13:35:00Z
+File: `app/api/api/schedule/models/smart_block.py` (SmartBlockContent Meta)
+Next step: Add unique_together = ('block', 'position') or allow nulls only
+Notes: |
+  Multiple SmartBlockContent entries can have same position value within one block.
+  Causes ambiguity in ordering. Should either enforce uniqueness or auto-reassign.
+  Ref: test_smartblockcontent_create_redteam_t240.py::test_duplicate_position_same_block
+
+## [MEDIUM] fix T481 — Negative offset value not validated
+Status: NOT_STARTED
+Created: 2026-04-10T13:35:00Z
+Last worked: 2026-04-10T13:35:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:22-30`
+Next step: Add MinValueValidator(0) for offset field
+Notes: |
+  Negative offset values are accepted but don't make sense for audio playback.
+  Should reject negative values with validation error.
+  Ref: test_smartblockcontent_create_redteam_t240.py::test_negative_offset_validation
+
+## [LOW] fix T482 — cue_out before cue_in not validated
+Status: NOT_STARTED
+Created: 2026-04-10T13:35:00Z
+Last worked: 2026-04-10T13:35:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:22-30`
+Next step: Add validate() method to check cue_out > cue_in
+Notes: |
+  cue_out time can be set before cue_in time, creating invalid playback range.
+  Should validate that cue_out > cue_in when both provided.
+  Ref: test_smartblockcontent_create_redteam_t240.py::test_cue_out_before_cue_in
+
+## [LOW] fix T483 — Invalid cue time format accepted
+Status: NOT_STARTED
+Created: 2026-04-10T13:35:00Z
+Last worked: 2026-04-10T13:35:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:22-30`
+Next step: Add format validator for HH:MM:SS pattern
+Notes: |
+  cue_in/cue_out accept invalid formats like "not-a-time", "99:99:99", "25:00:00".
+  Should validate HH:MM:SS format and reasonable time ranges.
+  Ref: test_smartblockcontent_create_redteam_t240.py::test_invalid_cue_format
+
+## [MEDIUM] fix T484 — Invalid auth tokens may be partially accepted
+Status: NOT_STARTED
+Created: 2026-04-10T13:35:00Z
+Last worked: 2026-04-10T13:35:00Z
+File: `app/api/api/permissions.py`
+Next step: Ensure all invalid token formats return 403
+Notes: |
+  Malformed Authorization header might bypass some checks.
+  Need to verify consistent 403 response for all invalid tokens.
+  Ref: test_smartblockcontent_create_redteam_t240.py::test_create_with_invalid_token
+
+## [LOW] fix T485 — Wrong Content-Type not rejected
+Status: NOT_STARTED
+Created: 2026-04-10T13:35:00Z
+Last worked: 2026-04-10T13:35:00Z
+File: `app/api/api/schedule/views/smart_block.py`
+Next step: Add Content-Type validation
+Notes: |
+  POST with form-urlencoded instead of JSON is accepted.
+  Should return 415 Unsupported Media Type for wrong content types.
+  Ref: test_smartblockcontent_create_redteam_t240.py::test_create_wrong_content_type
+
+## [LOW] fix T486 — Race condition in concurrent SmartBlockContent CREATE
+Status: NOT_STARTED
+Created: 2026-04-10T13:35:00Z
+Last worked: 2026-04-10T13:35:00Z
+File: `app/api/api/schedule/views/smart_block.py:39-57`
+Next step: Add database-level constraints or atomic operations
+Notes: |
+  Concurrent CREATE requests with same data may create duplicates.
+  Need unique constraints or proper locking.
+  Ref: test_smartblockcontent_create_redteam_t240.py::test_race_condition_concurrent_create
+
+## [LOW] fix T487 — JSON Merge Patch accepted without validation
+Status: NOT_STARTED
+Created: 2026-04-10T13:35:00Z
+Last worked: 2026-04-10T13:35:00Z
+File: `app/api/api/schedule/views/smart_block.py`
+Next step: Disable or properly validate application/merge-patch+json
+Notes: |
+  Content-Type application/merge-patch+json is accepted but may bypass validation.
+  Should either disable or implement proper RFC 7386 validation.
+  Ref: test_smartblockcontent_create_redteam_t240.py::test_json_merge_patch_mass_assignment
+
 ## [LOW] chore T52 — Remove unused import in file view
 Status: NOT_STARTED
 Created: 2026-04-06T16:53:26Z
