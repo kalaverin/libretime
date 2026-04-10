@@ -7,16 +7,17 @@ Tests for timing attacks, user enumeration, and authentication bypasses.
 import time
 
 import pytest
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
 from api.core.models import Role
 
-
 # =============================================================================
 # API2:2023 Broken Authentication - Timing Attacks
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestInvalidAuthRedTeamTiming:
@@ -52,7 +53,9 @@ class TestInvalidAuthRedTeamTiming:
         for _ in range(5):
             client = APIClient()
             start = time.time()
-            client.login(username="nonexistent_user_12345", password="any_password")
+            client.login(
+                username="nonexistent_user_12345", password="any_password",
+            )
             times_nonexistent.append(time.time() - start)
 
         avg_existing = sum(times_existing) / len(times_existing)
@@ -62,7 +65,7 @@ class TestInvalidAuthRedTeamTiming:
         if abs(avg_existing - avg_nonexistent) > 0.05:  # 50ms threshold
             pytest.xfail(
                 f"T780: Timing attack - user enumeration possible "
-                f"(existing: {avg_existing:.4f}s, nonexistent: {avg_nonexistent:.4f}s)"
+                f"(existing: {avg_existing:.4f}s, nonexistent: {avg_nonexistent:.4f}s)",
             )
 
     def test_timing_password_check_vs_user_lookup(self):
@@ -99,14 +102,19 @@ class TestInvalidAuthRedTeamTiming:
             results[name] = sum(times) / len(times)
 
         # Check if timings reveal information
-        diff = abs(results["valid_user_wrong_password"] - results["nonexistent_user"])
+        diff = abs(
+            results["valid_user_wrong_password"] - results["nonexistent_user"],
+        )
         if diff > 0.05:
-            pytest.xfail(f"T781: Timing difference reveals user existence: {diff:.4f}s")
+            pytest.xfail(
+                f"T781: Timing difference reveals user existence: {diff:.4f}s",
+            )
 
 
 # =============================================================================
 # API2:2023 Broken Authentication - User Enumeration
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestInvalidAuthRedTeamEnumeration:
@@ -134,7 +142,9 @@ class TestInvalidAuthRedTeamEnumeration:
 
         # Try login with non-existent user
         client2 = APIClient()
-        result2 = client2.login(username="nonexistent_enum_test", password="wrong")
+        result2 = client2.login(
+            username="nonexistent_enum_test", password="wrong",
+        )
 
         # Both should fail the same way
         assert result1 is False
@@ -172,7 +182,9 @@ class TestInvalidAuthRedTeamEnumeration:
 
         # Both should be 403
         if response1.status_code != response2.status_code:
-            pytest.xfail("T782: Different response codes reveal user existence")
+            pytest.xfail(
+                "T782: Different response codes reveal user existence",
+            )
 
     def test_account_lockout_enumeration(self):
         """
@@ -208,6 +220,7 @@ class TestInvalidAuthRedTeamEnumeration:
 # API2:2023 Broken Authentication - Brute Force
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestInvalidAuthRedTeamBruteForce:
     """Brute force attack tests."""
@@ -233,7 +246,9 @@ class TestInvalidAuthRedTeamBruteForce:
         elapsed = time.time() - start
 
         if elapsed < 5:  # 30 attempts in under 5 seconds
-            pytest.xfail(f"T783: No rate limiting on password attempts (30 in {elapsed:.2f}s)")
+            pytest.xfail(
+                f"T783: No rate limiting on password attempts (30 in {elapsed:.2f}s)",
+            )
 
     def test_api_key_brute_force_no_captcha(self):
         """
@@ -248,12 +263,15 @@ class TestInvalidAuthRedTeamBruteForce:
         elapsed = time.time() - start
 
         if elapsed < 5:
-            pytest.xfail(f"T784: No CAPTCHA/block on API key brute force (50 in {elapsed:.2f}s)")
+            pytest.xfail(
+                f"T784: No CAPTCHA/block on API key brute force (50 in {elapsed:.2f}s)",
+            )
 
 
 # =============================================================================
 # Authentication Bypass Tests
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestInvalidAuthRedTeamBypass:
@@ -291,9 +309,13 @@ class TestInvalidAuthRedTeamBypass:
                 response = client.get("/api/v2/files")
                 # All should be 403 (invalid key)
                 if response.status_code == 200:
-                    pytest.xfail(f"T786: Unicode normalization bypass: {auth[:20]}")
+                    pytest.xfail(
+                        f"T786: Unicode normalization bypass: {auth[:20]}",
+                    )
             except (UnicodeEncodeError, TypeError):
-                pytest.xfail(f"T793: Unicode in auth header causes exception: {auth[:20]}")
+                pytest.xfail(
+                    f"T793: Unicode in auth header causes exception: {auth[:20]}",
+                )
 
     def test_header_injection_bypass(self):
         """
@@ -304,7 +326,7 @@ class TestInvalidAuthRedTeamBypass:
         client = APIClient()
         # Try to inject second header
         client.credentials(
-            HTTP_AUTHORIZATION=f"Api-Key invalid\r\nAuthorization: Api-Key {settings.CONFIG.general.api_key}"
+            HTTP_AUTHORIZATION=f"Api-Key invalid\r\nAuthorization: Api-Key {settings.CONFIG.general.api_key}",
         )
 
         response = client.get("/api/v2/files")
@@ -336,6 +358,7 @@ class TestInvalidAuthRedTeamBypass:
 # Session Fixation Tests
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestInvalidAuthRedTeamSessionFixation:
     """Session fixation tests."""
@@ -349,13 +372,17 @@ class TestInvalidAuthRedTeamSessionFixation:
         client = APIClient()
 
         # Get session before login
-        session_before = client.session.session_key if hasattr(client, 'session') else None
+        session_before = (
+            client.session.session_key if hasattr(client, "session") else None
+        )
 
         # Failed login
         client.login(username="nonexistent_user_12345", password="wrong")
 
         # Get session after failed login
-        session_after = client.session.session_key if hasattr(client, 'session') else None
+        session_after = (
+            client.session.session_key if hasattr(client, "session") else None
+        )
 
         # Session should not be created on failed login
         # (This is hard to test with APIClient)
@@ -364,6 +391,7 @@ class TestInvalidAuthRedTeamSessionFixation:
 # =============================================================================
 # JWT/Token Confusion Tests
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestInvalidAuthRedTeamTokenConfusion:
@@ -379,8 +407,12 @@ class TestInvalidAuthRedTeamTokenConfusion:
         import base64
         import json
 
-        header = base64.urlsafe_b64encode(json.dumps({"alg": "none", "typ": "JWT"}).encode()).rstrip(b'=')
-        payload = base64.urlsafe_b64encode(json.dumps({"user": "admin"}).encode()).rstrip(b'=')
+        header = base64.urlsafe_b64encode(
+            json.dumps({"alg": "none", "typ": "JWT"}).encode(),
+        ).rstrip(b"=")
+        payload = base64.urlsafe_b64encode(
+            json.dumps({"user": "admin"}).encode(),
+        ).rstrip(b"=")
         token = f"{header.decode()}.{payload.decode()}."
 
         client = APIClient()
@@ -412,7 +444,7 @@ class TestInvalidAuthRedTeamTokenConfusion:
 
         # Try with comma-separated auth schemes
         client.credentials(
-            HTTP_AUTHORIZATION=f"Bearer fake-token, Api-Key {settings.CONFIG.general.api_key}"
+            HTTP_AUTHORIZATION=f"Bearer fake-token, Api-Key {settings.CONFIG.general.api_key}",
         )
 
         response = client.get("/api/v2/files")
@@ -427,6 +459,7 @@ class TestInvalidAuthRedTeamTokenConfusion:
 # =============================================================================
 # Error Handling Tests
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestInvalidAuthRedTeamErrorHandling:
@@ -445,7 +478,13 @@ class TestInvalidAuthRedTeamErrorHandling:
 
         # Error message should be generic
         error_text = str(response.content).lower()
-        sensitive_keywords = ["sql", "query", "database", "exception", "traceback"]
+        sensitive_keywords = [
+            "sql",
+            "query",
+            "database",
+            "exception",
+            "traceback",
+        ]
         if any(kw in error_text for kw in sensitive_keywords):
             pytest.xfail("T790: Error message reveals implementation details")
 
@@ -468,8 +507,10 @@ class TestInvalidAuthRedTeamErrorHandling:
                 response = client.get("/api/v2/files")
                 if response.status_code == 500:
                     content = str(response.content)
-                    if "Traceback" in content or "File \"" in content:
+                    if "Traceback" in content or 'File "' in content:
                         pytest.xfail(f"T791: Stack trace exposed: {auth[:20]}")
             except (UnicodeEncodeError, TypeError) as e:
                 # This is the bug we're testing for
-                pytest.xfail(f"T793: Exception not handled in auth: {type(e).__name__} for {auth[:20]}")
+                pytest.xfail(
+                    f"T793: Exception not handled in auth: {type(e).__name__} for {auth[:20]}",
+                )

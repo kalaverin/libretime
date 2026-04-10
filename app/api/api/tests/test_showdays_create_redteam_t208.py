@@ -12,9 +12,10 @@ Attack vectors:
 """
 
 import json
+
 import pytest
+
 from model_bakery import baker
-from rest_framework.test import APIClient
 
 from api.schedule.models import Show, ShowDays
 from api.schedule.models.show import Record
@@ -49,10 +50,12 @@ class TestShowDaysCreateAuthentication:
 class TestShowDaysCreateBOLA:
     """Broken Object Level Authorization attacks."""
 
-    def test_create_for_other_user_show(self, api_client, regular_user, admin_user):
+    def test_create_for_other_user_show(
+        self, api_client, regular_user, admin_user,
+    ):
         """Create show day for another user's show."""
         show = baker.make(Show, name="Admin Show")
-        
+
         api_client.force_authenticate(user=regular_user)
         data = {
             "show": show.id,
@@ -68,7 +71,9 @@ class TestShowDaysCreateBOLA:
             content_type="application/json",
         )
         if response.status_code == 201:
-            pytest.fail("CRITICAL BUG: Can CREATE show day for other user's show (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: Can CREATE show day for other user's show (BOLA)",
+            )
 
 
 @pytest.mark.django_db(transaction=True)
@@ -79,7 +84,7 @@ class TestShowDaysCreateMassAssignment:
         """Try to set id field during CREATE."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "id": 99999,
             "show": show.id,
@@ -94,7 +99,7 @@ class TestShowDaysCreateMassAssignment:
             json.dumps(data),
             content_type="application/json",
         )
-        
+
         if response.status_code == 201 and response.json().get("id") == 99999:
             pytest.fail("CRITICAL BUG: Mass assignment - id field accepted")
 
@@ -102,7 +107,7 @@ class TestShowDaysCreateMassAssignment:
         """Try to manipulate created_at timestamp."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "first_show_on": "2026-04-01",
@@ -117,11 +122,13 @@ class TestShowDaysCreateMassAssignment:
             json.dumps(data),
             content_type="application/json",
         )
-        
+
         if response.status_code == 201:
             result = response.json()
             if result.get("created_at", "").startswith("2020"):
-                pytest.fail("CRITICAL BUG: Mass assignment - created_at manipulated")
+                pytest.fail(
+                    "CRITICAL BUG: Mass assignment - created_at manipulated",
+                )
 
 
 @pytest.mark.django_db(transaction=True)
@@ -140,7 +147,7 @@ class TestShowDaysCreateSQLInjection:
         """SQL injection in first_show_on field."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=admin_user)
-        
+
         for payload in self.sqli_payloads:
             data = {
                 "show": show.id,
@@ -162,7 +169,7 @@ class TestShowDaysCreateSQLInjection:
         """SQL injection in start_time field."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=admin_user)
-        
+
         for payload in self.sqli_payloads:
             data = {
                 "show": show.id,
@@ -184,7 +191,7 @@ class TestShowDaysCreateSQLInjection:
         """SQL injection in timezone field."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=admin_user)
-        
+
         for payload in self.sqli_payloads:
             data = {
                 "show": show.id,
@@ -206,7 +213,7 @@ class TestShowDaysCreateSQLInjection:
         """SQL injection in repeat_kind field."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=admin_user)
-        
+
         for payload in self.sqli_payloads:
             data = {
                 "show": show.id,
@@ -233,7 +240,7 @@ class TestShowDaysCreateTimeManipulation:
         """Try to create with negative duration."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "first_show_on": "2026-04-01",
@@ -254,7 +261,7 @@ class TestShowDaysCreateTimeManipulation:
         """Try to create with zero duration."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "first_show_on": "2026-04-01",
@@ -275,7 +282,7 @@ class TestShowDaysCreateTimeManipulation:
         """Try to create with invalid timezone."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "first_show_on": "2026-04-01",
@@ -296,7 +303,7 @@ class TestShowDaysCreateTimeManipulation:
         """Try to create with out-of-range week_day."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         invalid_days = [-1, 7, 8, 99, 999]
         for day in invalid_days:
             data = {
@@ -320,7 +327,7 @@ class TestShowDaysCreateTimeManipulation:
         """Try to create where last_show_on < first_show_on."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "first_show_on": "2026-06-01",
@@ -347,7 +354,7 @@ class TestShowDaysCreateRepeatAbuse:
         """Try to create with invalid repeat_kind."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "first_show_on": "2026-04-01",
@@ -368,7 +375,7 @@ class TestShowDaysCreateRepeatAbuse:
         """Try to manipulate repeat_next_on date."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "first_show_on": "2026-04-01",
@@ -398,7 +405,7 @@ class TestShowDaysCreateRecordEscalation:
         """Try to enable recording without proper permissions."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=regular_user)
-        
+
         data = {
             "show": show.id,
             "first_show_on": "2026-04-01",
@@ -416,13 +423,15 @@ class TestShowDaysCreateRecordEscalation:
         if response.status_code == 201:
             result = response.json()
             if result.get("record_enabled") == Record.YES:
-                pytest.fail("BUG: record_enabled can be set without permissions")
+                pytest.fail(
+                    "BUG: record_enabled can be set without permissions",
+                )
 
     def test_record_enabled_invalid_value(self, api_client):
         """Try to set invalid record_enabled value."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "first_show_on": "2026-04-01",
@@ -448,7 +457,7 @@ class TestShowDaysCreateEdgeCases:
     def test_null_show(self, api_client):
         """Try to create with null show."""
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": None,
             "first_show_on": "2026-04-01",
@@ -468,7 +477,7 @@ class TestShowDaysCreateEdgeCases:
     def test_nonexistent_show(self, api_client):
         """Try to create with non-existent show ID."""
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": 99999,
             "first_show_on": "2026-04-01",
@@ -489,7 +498,7 @@ class TestShowDaysCreateEdgeCases:
         """Try to send malformed JSON."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         response = api_client.post(
             "/api/v2/show-days",
             '{"invalid json',  # Malformed
@@ -502,7 +511,7 @@ class TestShowDaysCreateEdgeCases:
         """Check if extra fields are ignored or cause error."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "first_show_on": "2026-04-01",

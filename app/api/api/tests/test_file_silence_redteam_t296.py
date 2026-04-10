@@ -6,15 +6,17 @@ OWASP API Top 10 2023: API1:2023 BOLA, API3:2023 BOPLA, API4:2023 Resource Consu
 """
 
 import json
-import pytest
+
 from datetime import timedelta
+
+import pytest
+
+from django.conf import settings
 from model_bakery import baker
 from rest_framework.test import APIClient
-from django.conf import settings
 
-from api.core.models import User, Role
+from api.core.models import Role, User
 from api.storage.models import File, Library
-
 
 # SQLi payloads for filter parameters
 SQLI_PAYLOADS = [
@@ -77,12 +79,22 @@ EXTREME_DURATIONS = [
 class TestSilenceProcessingBOLA:
     """API1:2023 - Broken Object Level Authorization in silence processing."""
 
-    @pytest.mark.xfail(reason="BOLA: Filter shows all users' files - T889", strict=True)
-    def test_filter_by_import_status_shows_only_own_files(self, api_client, faker):
+    @pytest.mark.xfail(
+        reason="BOLA: Filter shows all users' files - T889", strict=True,
+    )
+    def test_filter_by_import_status_shows_only_own_files(
+        self, api_client, faker,
+    ):
         """User should only see their own files when filtering by import_status. (T889)"""
-        user_a = baker.make(User, username=f"sil_a_{faker.user_name()}", role=Role.HOST)
-        user_b = baker.make(User, username=f"sil_b_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="BOLA", name="BOLA", description="Test")
+        user_a = baker.make(
+            User, username=f"sil_a_{faker.user_name()}", role=Role.HOST,
+        )
+        user_b = baker.make(
+            User, username=f"sil_b_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="BOLA", name="BOLA", description="Test",
+        )
 
         # User A creates SUCCESS files
         files_a = []
@@ -129,12 +141,20 @@ class TestSilenceProcessingBOLA:
             if fid in returned_ids:
                 pytest.fail(f"BOLA: User A can see User B's file {fid}")
 
-    @pytest.mark.xfail(reason="BOLA: Cross-user access allowed - T889", strict=True)
+    @pytest.mark.xfail(
+        reason="BOLA: Cross-user access allowed - T889", strict=True,
+    )
     def test_cross_user_silence_processing_blocked(self, api_client, faker):
-        """User cannot trigger silence processing on another user's file. (T889)"""""
-        user_a = baker.make(User, username=f"proc_a_{faker.user_name()}", role=Role.HOST)
-        user_b = baker.make(User, username=f"proc_b_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="PROC", name="Proc", description="Test")
+        """User cannot trigger silence processing on another user's file. (T889)""" ""
+        user_a = baker.make(
+            User, username=f"proc_a_{faker.user_name()}", role=Role.HOST,
+        )
+        user_b = baker.make(
+            User, username=f"proc_b_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="PROC", name="Proc", description="Test",
+        )
 
         file_obj = baker.make(
             File,
@@ -151,19 +171,28 @@ class TestSilenceProcessingBOLA:
         response = client_b.get(f"/api/v2/files/{file_obj.id}")
 
         # Should be blocked
-        assert response.status_code in [403, 404], f"Expected 403/404, got {response.status_code}"
+        assert response.status_code in [
+            403,
+            404,
+        ], f"Expected 403/404, got {response.status_code}"
 
 
 @pytest.mark.django_db
 class TestSilenceProcessingMassAssignment:
     """API3:2023 - Broken Object Property Level Authorization."""
 
-    @pytest.mark.xfail(reason="BOPLA: import_status can be modified - T887", strict=True)
+    @pytest.mark.xfail(
+        reason="BOPLA: import_status can be modified - T887", strict=True,
+    )
     def test_mass_assignment_import_status_blocked(self, api_client, faker):
         """import_status should not be modifiable via PATCH. (T887)"""
-        user = baker.make(User, username=f"mass_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="MASS", name="Mass", description="Test")
-        
+        user = baker.make(
+            User, username=f"mass_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="MASS", name="Mass", description="Test",
+        )
+
         file_obj = baker.make(
             File,
             name="mass_test.mp3",
@@ -188,15 +217,22 @@ class TestSilenceProcessingMassAssignment:
         file_obj.refresh_from_db()
 
         # import_status should not change
-        assert file_obj.import_status == original_status, \
-            f"import_status changed from {original_status} to {file_obj.import_status}"
+        assert (
+            file_obj.import_status == original_status
+        ), f"import_status changed from {original_status} to {file_obj.import_status}"
 
-    @pytest.mark.xfail(reason="BOPLA: channels can be spoofed - T888", strict=True)
+    @pytest.mark.xfail(
+        reason="BOPLA: channels can be spoofed - T888", strict=True,
+    )
     def test_mass_assignment_extreme_channels_blocked(self, api_client, faker):
         """Extreme channel values should be rejected. (T888)"""
-        user = baker.make(User, username=f"chan_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="CHAN", name="Chan", description="Test")
-        
+        user = baker.make(
+            User, username=f"chan_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="CHAN", name="Chan", description="Test",
+        )
+
         file_obj = baker.make(
             File,
             name="channel_test.mp3",
@@ -217,7 +253,9 @@ class TestSilenceProcessingMassAssignment:
         )
 
         file_obj.refresh_from_db()
-        assert file_obj.channels == 2, f"Channels changed to {file_obj.channels}"
+        assert (
+            file_obj.channels == 2
+        ), f"Channels changed to {file_obj.channels}"
 
 
 @pytest.mark.django_db
@@ -225,10 +263,16 @@ class TestSilenceProcessingSQLInjection:
     """SQL injection via silence-related filters."""
 
     @pytest.mark.parametrize("payload", SQLI_PAYLOADS)
-    def test_sqli_in_import_status_filter_no_crash(self, payload, api_client, faker):
+    def test_sqli_in_import_status_filter_no_crash(
+        self, payload, api_client, faker,
+    ):
         """SQLi in import_status filter should not crash."""
-        user = baker.make(User, username=f"sqli_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="SQLI", name="SQLI", description="Test")
+        user = baker.make(
+            User, username=f"sqli_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="SQLI", name="SQLI", description="Test",
+        )
         baker.make(
             File,
             name="sqli_test.mp3",
@@ -239,15 +283,19 @@ class TestSilenceProcessingSQLInjection:
         )
 
         response = api_client.get(f"/api/v2/files?{payload}")
-        
+
         # Should not crash with 500
         assert response.status_code != 500, f"SQLi caused 500: {payload[:50]}"
         assert response.status_code in [200, 400]
 
     def test_sqli_in_channels_filter_no_crash(self, api_client, faker):
         """SQLi in channels filter."""
-        user = baker.make(User, username=f"sqli_c_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="SQLIC", name="SQLI", description="Test")
+        user = baker.make(
+            User, username=f"sqli_c_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="SQLIC", name="SQLI", description="Test",
+        )
         baker.make(
             File,
             name="channels_test.mp3",
@@ -272,17 +320,36 @@ class TestSilenceProcessingSQLInjection:
 class TestSilenceProcessingPathTraversal:
     """Path traversal in filepath for silence processing."""
 
-    @pytest.mark.parametrize("payload", [
-        pytest.param("../../../etc/passwd", marks=pytest.mark.xfail(reason="T890: Path traversal", strict=True)),
-        "../../../../root/.bashrc",
-        "..\\..\\..\\windows\\system32\\config\\sam",
-        pytest.param("/etc/shadow", marks=pytest.mark.xfail(reason="T890: Path traversal", strict=True)),
-        "/proc/self/environ",
-    ])
-    def test_path_traversal_in_filepath_blocked(self, payload, api_client, faker):
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            pytest.param(
+                "../../../etc/passwd",
+                marks=pytest.mark.xfail(
+                    reason="T890: Path traversal", strict=True,
+                ),
+            ),
+            "../../../../root/.bashrc",
+            "..\\..\\..\\windows\\system32\\config\\sam",
+            pytest.param(
+                "/etc/shadow",
+                marks=pytest.mark.xfail(
+                    reason="T890: Path traversal", strict=True,
+                ),
+            ),
+            "/proc/self/environ",
+        ],
+    )
+    def test_path_traversal_in_filepath_blocked(
+        self, payload, api_client, faker,
+    ):
         """Path traversal in filepath should be blocked."""
-        user = baker.make(User, username=f"path_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="PATH", name="Path", description="Test")
+        user = baker.make(
+            User, username=f"path_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="PATH", name="Path", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="path_test.mp3",
@@ -307,8 +374,10 @@ class TestSilenceProcessingPathTraversal:
 
         # Should not accept traversal paths
         if ".." in payload or "/etc/" in payload or "/root/" in payload:
-            assert file_obj.filepath == original_path or "/etc/" not in file_obj.filepath, \
-                f"Path traversal accepted: {payload}"
+            assert (
+                file_obj.filepath == original_path
+                or "/etc/" not in file_obj.filepath
+            ), f"Path traversal accepted: {payload}"
 
 
 @pytest.mark.django_db
@@ -318,8 +387,12 @@ class TestSilenceProcessingMIMEConfusion:
     @pytest.mark.parametrize("mime_type", INVALID_MIME_TYPES)
     def test_invalid_mime_type_handled(self, mime_type, api_client, faker):
         """Invalid/dangerous MIME types should be rejected."""
-        user = baker.make(User, username=f"mime_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="MIME", name="MIME", description="Test")
+        user = baker.make(
+            User, username=f"mime_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="MIME", name="MIME", description="Test",
+        )
 
         client = APIClient()
         client.credentials(
@@ -329,28 +402,39 @@ class TestSilenceProcessingMIMEConfusion:
         try:
             response = client.post(
                 "/api/v2/files",
-                json.dumps({
-                    "name": "test.file",
-                    "mime": mime_type,
-                    "library": library.id,
-                    "owner": user.id,
-                }),
+                json.dumps(
+                    {
+                        "name": "test.file",
+                        "mime": mime_type,
+                        "library": library.id,
+                        "owner": user.id,
+                    },
+                ),
                 content_type="application/json",
             )
 
             # Should reject dangerous MIME types
-            if any(x in str(mime_type).lower() for x in ["script", "php", "sh", "html"]):
-                assert response.status_code in [400, 415], \
-                    f"Dangerous MIME accepted: {mime_type[:50]}"
+            if any(
+                x in str(mime_type).lower()
+                for x in ["script", "php", "sh", "html"]
+            ):
+                assert response.status_code in [
+                    400,
+                    415,
+                ], f"Dangerous MIME accepted: {mime_type[:50]}"
         except Exception:
             # Should handle gracefully
             pass
 
     def test_mime_spoofing_for_silence_processing(self, api_client, faker):
         """Spoof MIME type to bypass silence processing checks."""
-        user = baker.make(User, username=f"spoof_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="SPOOF", name="Spoof", description="Test")
-        
+        user = baker.make(
+            User, username=f"spoof_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="SPOOF", name="Spoof", description="Test",
+        )
+
         # Create file with spoofed MIME
         file_obj = baker.make(
             File,
@@ -374,10 +458,16 @@ class TestSilenceProcessingNumericOverflow:
     """Numeric overflow attacks in audio properties."""
 
     @pytest.mark.parametrize("field,value", EXTREME_AUDIO_PROPS)
-    def test_extreme_audio_properties_handled(self, field, value, api_client, faker):
+    def test_extreme_audio_properties_handled(
+        self, field, value, api_client, faker,
+    ):
         """Extreme audio properties should be validated."""
-        user = baker.make(User, username=f"num_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="NUM", name="Num", description="Test")
+        user = baker.make(
+            User, username=f"num_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="NUM", name="Num", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="numeric_test.mp3",
@@ -400,8 +490,10 @@ class TestSilenceProcessingNumericOverflow:
         )
 
         # Should not crash
-        assert response.status_code in [200, 400], \
-            f"Extreme {field}={value} caused error"
+        assert response.status_code in [
+            200,
+            400,
+        ], f"Extreme {field}={value} caused error"
 
 
 @pytest.mark.django_db
@@ -411,8 +503,12 @@ class TestSilenceProcessingResourceExhaustion:
     @pytest.mark.parametrize("duration", EXTREME_DURATIONS)
     def test_extreme_duration_handled(self, duration, api_client, faker):
         """Extreme durations should be validated."""
-        user = baker.make(User, username=f"dur_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="DUR", name="Dur", description="Test")
+        user = baker.make(
+            User, username=f"dur_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="DUR", name="Dur", description="Test",
+        )
 
         try:
             file_obj = baker.make(
@@ -432,8 +528,12 @@ class TestSilenceProcessingResourceExhaustion:
 
     def test_batch_processing_limits(self, api_client, faker):
         """Batch silence processing should have limits."""
-        user = baker.make(User, username=f"batch_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="BATCH", name="Batch", description="Test")
+        user = baker.make(
+            User, username=f"batch_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="BATCH", name="Batch", description="Test",
+        )
 
         # Create many files
         for i in range(100):
@@ -462,9 +562,13 @@ class TestSilenceProcessingWorkflowBypass:
     @pytest.mark.xfail(reason="Workflow bypass possible - T891", strict=True)
     def test_pending_to_success_bypass_blocked(self, api_client, faker):
         """Cannot bypass processing by directly setting SUCCESS. (T891)"""
-        user = baker.make(User, username=f"bypass_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="BYPASS", name="Bypass", description="Test")
-        
+        user = baker.make(
+            User, username=f"bypass_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="BYPASS", name="Bypass", description="Test",
+        )
+
         file_obj = baker.make(
             File,
             name="bypass_test.mp3",
@@ -488,15 +592,24 @@ class TestSilenceProcessingWorkflowBypass:
         file_obj.refresh_from_db()
 
         # Status should remain PENDING
-        if response.status_code == 200 and file_obj.import_status == File.ImportStatus.SUCCESS:
-            pytest.fail("Workflow bypass possible: PENDING -> SUCCESS via PATCH")
+        if (
+            response.status_code == 200
+            and file_obj.import_status == File.ImportStatus.SUCCESS
+        ):
+            pytest.fail(
+                "Workflow bypass possible: PENDING -> SUCCESS via PATCH",
+            )
 
     @pytest.mark.xfail(reason="Workflow bypass possible - T891", strict=True)
     def test_failed_to_success_bypass_blocked(self, api_client, faker):
         """Cannot bypass by setting FAILED to SUCCESS. (T891)"""
-        user = baker.make(User, username=f"fail_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="FAIL", name="Fail", description="Test")
-        
+        user = baker.make(
+            User, username=f"fail_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="FAIL", name="Fail", description="Test",
+        )
+
         file_obj = baker.make(
             File,
             name="fail_test.mp3",
@@ -526,26 +639,36 @@ class TestSilenceProcessingInformationDisclosure:
 
     def test_no_internal_paths_in_errors(self, api_client, faker):
         """Error messages should not expose internal paths."""
-        user = baker.make(User, username=f"info_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="INFO", name="Info", description="Test")
+        user = baker.make(
+            User, username=f"info_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="INFO", name="Info", description="Test",
+        )
 
         # Request non-existent file
         response = api_client.get("/api/v2/files/999999999")
 
         if response.status_code == 500:
-            error_text = response.content.decode('utf-8', errors='ignore').lower()
+            error_text = response.content.decode(
+                "utf-8", errors="ignore",
+            ).lower()
             assert "/home/" not in error_text, "Internal path exposed"
             assert "/var/" not in error_text, "Internal path exposed"
             assert "sql" not in error_text, "SQL info exposed"
 
     def test_no_stack_traces_in_response(self, api_client, faker):
         """Stack traces should not be exposed."""
-        user = baker.make(User, username=f"stack_{faker.user_name()}", role=Role.HOST)
-        
+        user = baker.make(
+            User, username=f"stack_{faker.user_name()}", role=Role.HOST,
+        )
+
         # Trigger potential error with bad filter
         response = api_client.get("/api/v2/files?import_status=invalid")
 
-        response_text = response.content.decode('utf-8', errors='ignore').lower()
+        response_text = response.content.decode(
+            "utf-8", errors="ignore",
+        ).lower()
         assert "traceback" not in response_text, "Stack trace exposed"
         assert "exception" not in response_text, "Exception exposed"
         assert "error at" not in response_text, "Error location exposed"

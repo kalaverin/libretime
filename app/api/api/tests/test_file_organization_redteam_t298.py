@@ -6,6 +6,7 @@ Targets: BOLA, mass assignment, path traversal, SQL injection, business logic by
 """
 
 import pytest
+
 from model_bakery import baker
 from rest_framework.test import APIClient
 
@@ -25,7 +26,7 @@ class TestFileOrganizationBOLA:
     """T901: BOLA - Object-level authorization in file organization."""
 
     @pytest.mark.xfail(
-        reason="BOLA: Can retrieve other user's file organization - T901"
+        reason="BOLA: Can retrieve other user's file organization - T901",
     )
     def test_retrieve_other_users_file_path(self, api_client: APIClient):
         """
@@ -48,12 +49,12 @@ class TestFileOrganizationBOLA:
         api_client.force_authenticate(user=attacker)
         response = api_client.get(f"/api/v2/files/{victim_file.id}")
 
-        assert response.status_code == 404, (
-            "Attacker should not see victim's file path"
-        )
+        assert (
+            response.status_code == 404
+        ), "Attacker should not see victim's file path"
 
     @pytest.mark.xfail(
-        reason="BOLA: LIST shows all users' file organization - T901"
+        reason="BOLA: LIST shows all users' file organization - T901",
     )
     def test_list_shows_all_users_filepaths(self, api_client: APIClient):
         """
@@ -90,13 +91,15 @@ class TestFileOrganizationBOLA:
         assert response.status_code == 200
         data = response.json()
 
-        others_files = [f for f in data if f.get("name", "").startswith("user2_")]
-        assert len(others_files) == 0, (
-            "User1 should not see user2's file paths"
-        )
+        others_files = [
+            f for f in data if f.get("name", "").startswith("user2_")
+        ]
+        assert (
+            len(others_files) == 0
+        ), "User1 should not see user2's file paths"
 
     @pytest.mark.xfail(
-        reason="BOLA: Can enumerate file IDs to get all paths - T901"
+        reason="BOLA: Can enumerate file IDs to get all paths - T901",
     )
     def test_enumerate_file_ids_for_paths(self, api_client: APIClient):
         """Enumerate file IDs to collect filepaths from all users."""
@@ -130,9 +133,9 @@ class TestFileOrganizationBOLA:
                 found_paths.append(response.json().get("filepath"))
 
         # Should only find own files (none in this case)
-        assert len(found_paths) == 0, (
-            "Should not be able to enumerate other users' file paths"
-        )
+        assert (
+            len(found_paths) == 0
+        ), "Should not be able to enumerate other users' file paths"
 
 
 @pytest.mark.django_db
@@ -140,7 +143,7 @@ class TestFileOrganizationMassAssignment:
     """T902: Mass assignment via organization fields."""
 
     @pytest.mark.xfail(
-        reason="BOPLA: Mass assignment allows changing filepath - T902"
+        reason="BOPLA: Mass assignment allows changing filepath - T902",
     )
     def test_mass_assignment_filepath_blocked(self, api_client: APIClient):
         """
@@ -169,12 +172,12 @@ class TestFileOrganizationMassAssignment:
         )
 
         file_obj.refresh_from_db()
-        assert file_obj.filepath == "/original/path/file.mp3", (
-            "Filepath should not be modifiable via API"
-        )
+        assert (
+            file_obj.filepath == "/original/path/file.mp3"
+        ), "Filepath should not be modifiable via API"
 
     @pytest.mark.xfail(
-        reason="BOPLA: Mass assignment allows changing file_size - T903"
+        reason="BOPLA: Mass assignment allows changing file_size - T903",
     )
     def test_mass_assignment_file_size_blocked(self, api_client: APIClient):
         """
@@ -202,23 +205,27 @@ class TestFileOrganizationMassAssignment:
         )
 
         file_obj.refresh_from_db()
-        assert file_obj.file_size == 1024000, (
-            "File size should be immutable via API"
-        )
+        assert (
+            file_obj.file_size == 1024000
+        ), "File size should be immutable via API"
 
     @pytest.mark.xfail(
-        reason="BOPLA: Can move file to another user's library - T904"
+        reason="BOPLA: Can move file to another user's library - T904",
     )
-    def test_mass_assignment_library_change_blocked(self, api_client: APIClient):
+    def test_mass_assignment_library_change_blocked(
+        self, api_client: APIClient,
+    ):
         """
         Attempt to change file's library assignment.
         Could allow data exfiltration to attacker's library.
         """
         attacker = baker.make(User, username="lib_hacker")
         victim = baker.make(User, username="lib_victim")
-        
+
         victim_library = make_library(code="VICTIM", name="Victim Library")
-        attacker_library = make_library(code="ATTACKER", name="Attacker Library")
+        attacker_library = make_library(
+            code="ATTACKER", name="Attacker Library",
+        )
 
         file_obj = baker.make(
             File,
@@ -237,14 +244,16 @@ class TestFileOrganizationMassAssignment:
         )
 
         file_obj.refresh_from_db()
-        assert file_obj.library == victim_library, (
-            "Library should not be changeable to attacker's"
-        )
+        assert (
+            file_obj.library == victim_library
+        ), "Library should not be changeable to attacker's"
 
     @pytest.mark.xfail(
-        reason="BOPLA: Mass assignment allows changing import_status - T905"
+        reason="BOPLA: Mass assignment allows changing import_status - T905",
     )
-    def test_mass_assignment_import_status_blocked(self, api_client: APIClient):
+    def test_mass_assignment_import_status_blocked(
+        self, api_client: APIClient,
+    ):
         """
         Attempt to modify import_status via PATCH.
         Could bypass processing workflow.
@@ -270,18 +279,16 @@ class TestFileOrganizationMassAssignment:
         )
 
         file_obj.refresh_from_db()
-        assert file_obj.import_status == 0, (
-            "Import status should not be modifiable via API"
-        )
+        assert (
+            file_obj.import_status == 0
+        ), "Import status should not be modifiable via API"
 
 
 @pytest.mark.django_db
 class TestFileOrganizationPathTraversal:
     """T906: Path traversal via filepath manipulation."""
 
-    @pytest.mark.xfail(
-        reason="Path traversal: Relative path accepted - T906"
-    )
+    @pytest.mark.xfail(reason="Path traversal: Relative path accepted - T906")
     def test_path_traversal_relative_blocked(self, api_client: APIClient):
         """
         Attempt to create file with path traversal in filepath.
@@ -313,14 +320,16 @@ class TestFileOrganizationPathTraversal:
             # Should reject or sanitize
             if response.status_code == 201:
                 data = response.json()
-                assert ".." not in data.get("filepath", ""), (
-                    f"Path traversal not sanitized: {path}"
-                )
+                assert ".." not in data.get(
+                    "filepath", "",
+                ), f"Path traversal not sanitized: {path}"
 
     @pytest.mark.xfail(
-        reason="Path traversal: Absolute path outside storage allowed - T906"
+        reason="Path traversal: Absolute path outside storage allowed - T906",
     )
-    def test_absolute_path_outside_storage_blocked(self, api_client: APIClient):
+    def test_absolute_path_outside_storage_blocked(
+        self, api_client: APIClient,
+    ):
         """
         Attempt to use absolute path outside storage directory.
         """
@@ -351,11 +360,13 @@ class TestFileOrganizationPathTraversal:
             if response.status_code == 201:
                 data = response.json()
                 # Should not store system paths
-                assert not data.get("filepath", "").startswith("/etc/"), (
-                    f"System path accepted: {path}"
-                )
+                assert not data.get("filepath", "").startswith(
+                    "/etc/",
+                ), f"System path accepted: {path}"
 
-    @pytest.mark.xfail(reason="Flaky: Encoding attacks handling varies", strict=False)
+    @pytest.mark.xfail(
+        reason="Flaky: Encoding attacks handling varies", strict=False,
+    )
     def test_filepath_encoding_attacks(self, api_client: APIClient):
         """Test various filepath encoding attacks."""
         user = baker.make(User, username="encoding_attacker")
@@ -383,9 +394,10 @@ class TestFileOrganizationPathTraversal:
             )
 
             # Should not crash with 500
-            assert response.status_code in [201, 400], (
-                f"Encoding attack '{path}' caused server error"
-            )
+            assert response.status_code in [
+                201,
+                400,
+            ], f"Encoding attack '{path}' caused server error"
 
 
 @pytest.mark.django_db
@@ -403,7 +415,7 @@ class TestFileOrganizationSQLInjection:
         ],
     )
     def test_sqli_in_organization_filter_no_crash(
-        self, api_client: APIClient, filter_payload: str
+        self, api_client: APIClient, filter_payload: str,
     ):
         """
         SQLi payloads in organization filters should not cause crashes.
@@ -426,9 +438,10 @@ class TestFileOrganizationSQLInjection:
 
         response = api_client.get(f"/api/v2/files?{filter_payload}")
 
-        assert response.status_code in [200, 400], (
-            f"SQLi payload '{filter_payload}' caused error"
-        )
+        assert response.status_code in [
+            200,
+            400,
+        ], f"SQLi payload '{filter_payload}' caused error"
 
     def test_sqli_in_filepath_param_no_crash(self, api_client: APIClient):
         """Test SQLi in filepath query parameter."""
@@ -455,9 +468,10 @@ class TestFileOrganizationSQLInjection:
 
         for payload in payloads:
             response = api_client.get(f"/api/v2/files?filepath={payload}")
-            assert response.status_code in [200, 400], (
-                f"Payload '{payload}' caused server error"
-            )
+            assert response.status_code in [
+                200,
+                400,
+            ], f"Payload '{payload}' caused server error"
 
 
 @pytest.mark.django_db
@@ -465,7 +479,7 @@ class TestFileOrganizationBusinessLogic:
     """T908: Business logic bypass for file organization."""
 
     @pytest.mark.xfail(
-        reason="Business logic: Can create file with fake size - T908"
+        reason="Business logic: Can create file with fake size - T908",
     )
     def test_fake_file_size_on_create_blocked(self, api_client: APIClient):
         """
@@ -485,18 +499,18 @@ class TestFileOrganizationBusinessLogic:
                 "library": library.id,
                 "file_size": 999999999999,  # Clearly fake
             },
-                format="json",
+            format="json",
         )
 
         if response.status_code == 201:
             data = response.json()
             # Should either reject or not accept fake values
-            assert data.get("file_size") != 999999999999, (
-                "Should not accept fabricated file size"
-            )
+            assert (
+                data.get("file_size") != 999999999999
+            ), "Should not accept fabricated file size"
 
     @pytest.mark.xfail(
-        reason="Business logic: Zero file size not validated - T908"
+        reason="Business logic: Zero file size not validated - T908",
     )
     def test_zero_file_size_handled(self, api_client: APIClient):
         """Zero file size should be rejected or flagged."""
@@ -517,11 +531,13 @@ class TestFileOrganizationBusinessLogic:
         )
 
         # Should reject zero-size files
-        assert response.status_code in [400], (
-            "Zero file size should be rejected"
-        )
+        assert response.status_code in [
+            400,
+        ], "Zero file size should be rejected"
 
-    @pytest.mark.xfail(reason="Flaky: Negative size validation varies", strict=False)
+    @pytest.mark.xfail(
+        reason="Flaky: Negative size validation varies", strict=False,
+    )
     def test_negative_file_size_rejected(self, api_client: APIClient):
         """Negative file size should be rejected."""
         user = baker.make(User, username="negative_size")
@@ -541,9 +557,9 @@ class TestFileOrganizationBusinessLogic:
         )
 
         # Should reject negative sizes
-        assert response.status_code in [400], (
-            "Negative file size should be rejected"
-        )
+        assert response.status_code in [
+            400,
+        ], "Negative file size should be rejected"
 
 
 @pytest.mark.django_db
@@ -551,7 +567,7 @@ class TestFileOrganizationFilterBypass:
     """T909: Filter bypass to access file organization data."""
 
     @pytest.mark.xfail(
-        reason="BOLA: Filter by library shows all users' files - T909"
+        reason="BOLA: Filter by library shows all users' files - T909",
     )
     def test_filter_by_library_cross_user(self, api_client: APIClient):
         """
@@ -589,13 +605,15 @@ class TestFileOrganizationFilterBypass:
         assert response.status_code == 200
         data = response.json()
 
-        victim_visible = [f for f in data if f.get("name", "").startswith("victim_")]
-        assert len(victim_visible) == 0, (
-            "Filter should not expose victim's files"
-        )
+        victim_visible = [
+            f for f in data if f.get("name", "").startswith("victim_")
+        ]
+        assert (
+            len(victim_visible) == 0
+        ), "Filter should not expose victim's files"
 
     @pytest.mark.xfail(
-        reason="BOLA: Filter by import_status shows all users' files - T909"
+        reason="BOLA: Filter by import_status shows all users' files - T909",
     )
     def test_filter_by_import_status_cross_user(self, api_client: APIClient):
         """Filter by import_status returns files from all users."""
@@ -632,10 +650,12 @@ class TestFileOrganizationFilterBypass:
         assert response.status_code == 200
         data = response.json()
 
-        victim_visible = [f for f in data if f.get("name", "").startswith("victim_")]
-        assert len(victim_visible) == 0, (
-            "Filter should not expose victim's pending files"
-        )
+        victim_visible = [
+            f for f in data if f.get("name", "").startswith("victim_")
+        ]
+        assert (
+            len(victim_visible) == 0
+        ), "Filter should not expose victim's pending files"
 
     def test_filter_by_invalid_values_handled(self, api_client: APIClient):
         """Invalid filter values should be handled gracefully."""
@@ -661,9 +681,10 @@ class TestFileOrganizationFilterBypass:
 
         for filter_str in invalid_filters:
             response = api_client.get(f"/api/v2/files?{filter_str}")
-            assert response.status_code in [200, 400], (
-                f"Invalid filter '{filter_str}' caused error"
-            )
+            assert response.status_code in [
+                200,
+                400,
+            ], f"Invalid filter '{filter_str}' caused error"
 
 
 @pytest.mark.django_db
@@ -683,12 +704,10 @@ class TestFileOrganizationInformationDisclosure:
         if response.status_code == 404:
             data = response.json()
             error_str = str(data)
-            assert "/srv/libretime" not in error_str, (
-                "Error exposes internal path"
-            )
-            assert "/home/" not in error_str, (
-                "Error exposes home directory"
-            )
+            assert (
+                "/srv/libretime" not in error_str
+            ), "Error exposes internal path"
+            assert "/home/" not in error_str, "Error exposes home directory"
 
     def test_no_stack_traces_in_response(self, api_client: APIClient):
         """Stack traces should not be exposed in API responses."""
@@ -702,15 +721,13 @@ class TestFileOrganizationInformationDisclosure:
         if response.status_code == 400:
             data = response.json()
             error_str = str(data)
-            assert "Traceback" not in error_str, (
-                "Stack trace exposed in response"
-            )
-            assert "File \"" not in error_str, (
-                "File paths exposed in traceback"
-            )
+            assert (
+                "Traceback" not in error_str
+            ), "Stack trace exposed in response"
+            assert 'File "' not in error_str, "File paths exposed in traceback"
 
     @pytest.mark.xfail(
-        reason="Info leak: File size reveals file existence - T910"
+        reason="Info leak: File size reveals file existence - T910",
     )
     def test_file_size_timing_attack(self, api_client: APIClient):
         """
@@ -746,14 +763,14 @@ class TestFileOrganizationInformationDisclosure:
         time_nonexistent = time.time() - start
 
         # Both should be 404, timing should be similar
-        assert response1.status_code == response2.status_code == 404, (
-            "Both should return 404"
-        )
+        assert (
+            response1.status_code == response2.status_code == 404
+        ), "Both should return 404"
 
         # Timing difference should be minimal (< 100ms)
-        assert abs(time_existing - time_nonexistent) < 0.1, (
-            "Timing difference suggests file existence"
-        )
+        assert (
+            abs(time_existing - time_nonexistent) < 0.1
+        ), "Timing difference suggests file existence"
 
 
 @pytest.mark.django_db
@@ -761,7 +778,7 @@ class TestFileOrganizationWorkflowBypass:
     """T911: Workflow bypass via organization manipulation."""
 
     @pytest.mark.xfail(
-        reason="Workflow bypass: Can move PENDING file to SUCCESS library - T911"
+        reason="Workflow bypass: Can move PENDING file to SUCCESS library - T911",
     )
     def test_pending_file_library_move_blocked(self, api_client: APIClient):
         """
@@ -770,7 +787,9 @@ class TestFileOrganizationWorkflowBypass:
         """
         user = baker.make(User, username="workflow_hacker")
         pending_lib = make_library(code="PENDING", name="Pending Library")
-        processed_lib = make_library(code="PROCESSED", name="Processed Library")
+        processed_lib = make_library(
+            code="PROCESSED", name="Processed Library",
+        )
 
         file_obj = baker.make(
             File,
@@ -790,12 +809,12 @@ class TestFileOrganizationWorkflowBypass:
         )
 
         file_obj.refresh_from_db()
-        assert file_obj.library == pending_lib, (
-            "Should not allow moving pending file to processed library"
-        )
+        assert (
+            file_obj.library == pending_lib
+        ), "Should not allow moving pending file to processed library"
 
     @pytest.mark.xfail(
-        reason="Workflow bypass: Can fake import completion - T911"
+        reason="Workflow bypass: Can fake import completion - T911",
     )
     def test_fake_import_completion_blocked(self, api_client: APIClient):
         """
@@ -825,6 +844,6 @@ class TestFileOrganizationWorkflowBypass:
         )
 
         file_obj.refresh_from_db()
-        assert file_obj.import_status == 2, (
-            "Should not allow faking import completion"
-        )
+        assert (
+            file_obj.import_status == 2
+        ), "Should not allow faking import completion"

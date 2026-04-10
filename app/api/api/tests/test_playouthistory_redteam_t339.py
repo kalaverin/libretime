@@ -10,8 +10,8 @@ Attack vectors:
 """
 
 import pytest
+
 from model_bakery import baker
-from rest_framework.test import APIClient
 
 
 @pytest.mark.django_db
@@ -34,7 +34,7 @@ class TestPlayoutHistoryValidationBypass:
         )
 
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts null starts")
+            pytest.fail("BUG: Accepts null starts")
 
     def test_create_with_null_ends(self, api_client, admin_user):
         """Try to create with null ends."""
@@ -52,7 +52,7 @@ class TestPlayoutHistoryValidationBypass:
         )
 
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts null ends")
+            pytest.fail("BUG: Accepts null ends")
 
     def test_create_with_same_starts_and_ends(self, api_client, admin_user):
         """Try to create with starts == ends (zero duration)."""
@@ -88,7 +88,7 @@ class TestPlayoutHistoryValidationBypass:
         )
 
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts extreme negative duration")
+            pytest.fail("BUG: Accepts extreme negative duration")
 
     def test_create_with_future_dates(self, api_client, admin_user):
         """Try to create with future dates."""
@@ -132,7 +132,7 @@ class TestPlayoutHistoryMassAssignment:
         if response.status_code == 201:
             data = response.json()
             if data.get("id") == 99999:
-                pytest.fail("BAG: Can set id field")
+                pytest.fail("BUG: Can set id field")
 
     def test_update_file_field(self, api_client, admin_user):
         """Try to change file via PATCH."""
@@ -155,7 +155,7 @@ class TestPlayoutHistoryMassAssignment:
         if response.status_code == 200:
             data = response.json()
             if data.get("file") == file2.id:
-                pytest.fail("BAG: Can change file field via PATCH")
+                pytest.fail("BUG: Can change file field via PATCH")
 
     def test_update_timestamps(self, api_client, admin_user):
         """Try to modify timestamps via PATCH."""
@@ -177,14 +177,16 @@ class TestPlayoutHistoryMassAssignment:
         if response.status_code == 200:
             data = response.json()
             if "2023" in str(data.get("starts", "")):
-                pytest.fail("BAG: Can modify historical timestamps")
+                pytest.fail("BUG: Can modify historical timestamps")
 
 
 @pytest.mark.django_db
 class TestPlayoutHistoryBOLA:
     """Broken Object Level Authorization attacks."""
 
-    def test_list_shows_only_own_history(self, api_client, admin_user, regular_user):
+    def test_list_shows_only_own_history(
+        self, api_client, admin_user, regular_user,
+    ):
         """Verify list returns only user's own history."""
         file1 = baker.make("storage.File", owner=admin_user)
         file2 = baker.make("storage.File", owner=regular_user)
@@ -212,9 +214,11 @@ class TestPlayoutHistoryBOLA:
         assert user_history.id in history_ids
 
         if admin_history.id in history_ids:
-            pytest.fail("CRITICAL BAG: List shows other users' history (BOLA)")
+            pytest.fail("CRITICAL BUG: List shows other users' history (BOLA)")
 
-    def test_access_other_user_history(self, api_client, admin_user, regular_user):
+    def test_access_other_user_history(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to access another user's history by ID."""
         file_obj = baker.make("storage.File", owner=admin_user)
         history = baker.make(
@@ -228,9 +232,11 @@ class TestPlayoutHistoryBOLA:
         response = api_client.get(f"/api/v2/playout-history/{history.id}/")
 
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Can access other user's history (BOLA)")
+            pytest.fail("CRITICAL BUG: Can access other user's history (BOLA)")
 
-    def test_delete_other_user_history(self, api_client, admin_user, regular_user):
+    def test_delete_other_user_history(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to delete another user's history."""
         file_obj = baker.make("storage.File", owner=admin_user)
         history = baker.make(
@@ -244,7 +250,7 @@ class TestPlayoutHistoryBOLA:
         response = api_client.delete(f"/api/v2/playout-history/{history.id}/")
 
         if response.status_code == 204:
-            pytest.fail("CRITICAL BAG: Can delete other user's history (BOLA)")
+            pytest.fail("CRITICAL BUG: Can delete other user's history (BOLA)")
 
 
 @pytest.mark.django_db
@@ -263,7 +269,7 @@ class TestPlayoutHistoryBusinessLogic:
         )
 
         if response.status_code == 201:
-            pytest.fail("CRITICAL BAG: Anonymous can create playout history")
+            pytest.fail("CRITICAL BUG: Anonymous can create playout history")
 
     def test_create_with_nonexistent_file(self, api_client, admin_user):
         """Try to create with non-existent file."""
@@ -279,7 +285,7 @@ class TestPlayoutHistoryBusinessLogic:
         )
 
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts non-existent file_id")
+            pytest.fail("BUG: Accepts non-existent file_id")
 
     def test_create_with_invalid_datetime_format(self, api_client, admin_user):
         """Try to create with invalid datetime format."""

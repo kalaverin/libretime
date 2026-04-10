@@ -8,11 +8,11 @@ Tests focus on:
 - Injection attacks in update payloads
 """
 
-import json
-import threading
 import concurrent.futures
+import json
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -32,7 +32,9 @@ class TestSmartBlockUpdateRedTeam:
     # API1:2023 - BOLA (Broken Object Level Authorization)
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T434: BOLA - can update other user's block via PATCH")
+    @pytest.mark.xfail(
+        reason="T434: BOLA - can update other user's block via PATCH",
+    )
     def test_bola_patch_other_users_block(self, api_client):
         """BOLA: Attacker should NOT be able to PATCH victim's block."""
         victim = baker.make(User, username="testred_victim")
@@ -52,10 +54,13 @@ class TestSmartBlockUpdateRedTeam:
             content_type="application/json",
         )
 
-        assert response.status_code == 403, \
-            f"BOLA: Attacker can PATCH victim's block (got {response.status_code})"
+        assert (
+            response.status_code == 403
+        ), f"BOLA: Attacker can PATCH victim's block (got {response.status_code})"
 
-    @pytest.mark.xfail(reason="T435: BOLA - can update other user's block via PUT")
+    @pytest.mark.xfail(
+        reason="T435: BOLA - can update other user's block via PUT",
+    )
     def test_bola_put_other_users_block(self, api_client):
         """BOLA: Attacker should NOT be able to PUT victim's block."""
         victim = baker.make(User, username="testred_victim")
@@ -70,19 +75,22 @@ class TestSmartBlockUpdateRedTeam:
 
         response = api_client.put(
             f"/api/v2/smart-blocks/{victim_block.id}",
-            json.dumps({
-                "name": "Hacked Block",
-                "kind": SmartBlock.Kind.DYNAMIC,
-            }),
+            json.dumps(
+                {
+                    "name": "Hacked Block",
+                    "kind": SmartBlock.Kind.DYNAMIC,
+                },
+            ),
             content_type="application/json",
         )
 
-        assert response.status_code == 403, \
-            f"BOLA: Attacker can PUT victim's block (got {response.status_code})"
+        assert (
+            response.status_code == 403
+        ), f"BOLA: Attacker can PUT victim's block (got {response.status_code})"
 
     def test_validation_put_null_required_fields(self, api_client):
         """Validation: PUT with null for required fields should fail.
-        
+
         BUG T443: Currently returns 200 instead of 400.
         """
         user = baker.make(User, username="testred_user")
@@ -100,10 +108,13 @@ class TestSmartBlockUpdateRedTeam:
         )
 
         # BUG: Currently returns 200, should return 400
-        assert response.status_code == 400, \
-            f"BUG T443: PUT with null fields accepted (got {response.status_code})"
+        assert (
+            response.status_code == 400
+        ), f"BUG T443: PUT with null fields accepted (got {response.status_code})"
 
-    @pytest.mark.xfail(reason="T443: PUT with null required fields returns 200 instead of 400")
+    @pytest.mark.xfail(
+        reason="T443: PUT with null required fields returns 200 instead of 400",
+    )
     def test_validation_put_null_required_fields_xfail(self, api_client):
         """Documenting actual buggy behavior for T443."""
         user = baker.make(User, username="testred_user")
@@ -147,11 +158,14 @@ class TestSmartBlockUpdateRedTeam:
         # Django/DRF properly ignores or rejects id changes
         if response.status_code == 200:
             data = response.json()
-            assert data.get("id") == original_id, \
-                "CRITICAL: Block id was changed via PATCH!"
+            assert (
+                data.get("id") == original_id
+            ), "CRITICAL: Block id was changed via PATCH!"
         # If 400, that's also acceptable (rejected)
 
-    @pytest.mark.xfail(reason="T438: BOPLA - can change owner via PATCH (account hijacking)")
+    @pytest.mark.xfail(
+        reason="T438: BOPLA - can change owner via PATCH (account hijacking)",
+    )
     def test_bopla_patch_change_owner(self, api_client):
         """BOPLA: Should NOT be able to change owner (block hijacking)."""
         user = baker.make(User, username="testred_user")
@@ -171,10 +185,13 @@ class TestSmartBlockUpdateRedTeam:
 
         if response.status_code == 200:
             data = response.json()
-            assert data.get("owner") == user.id, \
-                "BOPLA: Block owner was changed (block hijacked)"
+            assert (
+                data.get("owner") == user.id
+            ), "BOPLA: Block owner was changed (block hijacked)"
 
-    @pytest.mark.xfail(reason="T439: BOPLA - can backdate created_at via PATCH")
+    @pytest.mark.xfail(
+        reason="T439: BOPLA - can backdate created_at via PATCH",
+    )
     def test_bopla_patch_backdate_created_at(self, api_client):
         """BOPLA: Should NOT be able to manipulate created_at."""
         user = baker.make(User, username="testred_user")
@@ -193,11 +210,16 @@ class TestSmartBlockUpdateRedTeam:
 
         if response.status_code == 200:
             data = response.json()
-            original_created = block.created_at.isoformat() if block.created_at else None
-            assert "2010" not in str(data.get("created_at", "")), \
-                "BOPLA: created_at was backdated"
+            original_created = (
+                block.created_at.isoformat() if block.created_at else None
+            )
+            assert "2010" not in str(
+                data.get("created_at", ""),
+            ), "BOPLA: created_at was backdated"
 
-    @pytest.mark.xfail(reason="T440: BOPLA - can set future updated_at via PATCH")
+    @pytest.mark.xfail(
+        reason="T440: BOPLA - can set future updated_at via PATCH",
+    )
     def test_bopla_patch_future_updated_at(self, api_client):
         """BOPLA: Should NOT be able to set future updated_at."""
         user = baker.make(User, username="testred_user")
@@ -216,10 +238,13 @@ class TestSmartBlockUpdateRedTeam:
 
         if response.status_code == 200:
             data = response.json()
-            assert "2035" not in str(data.get("updated_at", "")), \
-                "BOPLA: updated_at set to future date"
+            assert "2035" not in str(
+                data.get("updated_at", ""),
+            ), "BOPLA: updated_at set to future date"
 
-    @pytest.mark.xfail(reason="T441: BOPLA - can change kind in unexpected ways")
+    @pytest.mark.xfail(
+        reason="T441: BOPLA - can change kind in unexpected ways",
+    )
     def test_bopla_patch_invalid_kind_values(self, api_client):
         """BOPLA: Should validate kind field properly."""
         user = baker.make(User, username="testred_user")
@@ -248,8 +273,10 @@ class TestSmartBlockUpdateRedTeam:
             # Should either reject or keep original value
             if response.status_code == 200:
                 data = response.json()
-                assert data.get("kind") in [SmartBlock.Kind.STATIC, SmartBlock.Kind.DYNAMIC], \
-                    f"BOPLA: Invalid kind '{kind}' was accepted"
+                assert data.get("kind") in [
+                    SmartBlock.Kind.STATIC,
+                    SmartBlock.Kind.DYNAMIC,
+                ], f"BOPLA: Invalid kind '{kind}' was accepted"
 
     # ========================================================================
     # IDOR - ID Manipulation
@@ -262,8 +289,10 @@ class TestSmartBlockUpdateRedTeam:
             json.dumps({"name": "Test"}),
             content_type="application/json",
         )
-        assert response.status_code in [404, 400], \
-            f"Negative ID returned {response.status_code}"
+        assert response.status_code in [
+            404,
+            400,
+        ], f"Negative ID returned {response.status_code}"
 
     def test_idor_zero_id(self, api_client):
         """IDOR: Zero ID should return 404."""
@@ -272,8 +301,9 @@ class TestSmartBlockUpdateRedTeam:
             json.dumps({"name": "Test"}),
             content_type="application/json",
         )
-        assert response.status_code == 404, \
-            f"Zero ID returned {response.status_code}"
+        assert (
+            response.status_code == 404
+        ), f"Zero ID returned {response.status_code}"
 
     def test_idor_sql_injection_in_path(self, api_client):
         """IDOR: SQL injection in path parameter."""
@@ -291,8 +321,10 @@ class TestSmartBlockUpdateRedTeam:
                 content_type="application/json",
             )
             # Should not crash with 500
-            assert response.status_code in [404, 400], \
-                f"SQLi in path '{bad_id}' caused {response.status_code}"
+            assert response.status_code in [
+                404,
+                400,
+            ], f"SQLi in path '{bad_id}' caused {response.status_code}"
 
     def test_idor_path_traversal(self, api_client):
         """IDOR: Path traversal attempts."""
@@ -309,8 +341,10 @@ class TestSmartBlockUpdateRedTeam:
                 json.dumps({"name": "Test"}),
                 content_type="application/json",
             )
-            assert response.status_code in [404, 400], \
-                f"Path traversal caused {response.status_code}"
+            assert response.status_code in [
+                404,
+                400,
+            ], f"Path traversal caused {response.status_code}"
 
     # ========================================================================
     # Injection Attacks in Update Payload
@@ -341,8 +375,10 @@ class TestSmartBlockUpdateRedTeam:
                 content_type="application/json",
             )
             # Should handle gracefully
-            assert response.status_code in [200, 400], \
-                f"XSS payload caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"XSS payload caused {response.status_code}"
 
     def test_injection_sql_in_description_update(self, api_client):
         """Injection: SQLi in description field."""
@@ -368,8 +404,10 @@ class TestSmartBlockUpdateRedTeam:
                 content_type="application/json",
             )
             # Should not crash with 500
-            assert response.status_code in [200, 400], \
-                f"SQLi payload caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"SQLi payload caused {response.status_code}"
 
     def test_injection_command_in_name(self, api_client):
         """Injection: Command injection attempts."""
@@ -395,8 +433,10 @@ class TestSmartBlockUpdateRedTeam:
                 json.dumps({"name": payload}),
                 content_type="application/json",
             )
-            assert response.status_code in [200, 400], \
-                f"Command injection caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"Command injection caused {response.status_code}"
 
     # ========================================================================
     # Race Conditions
@@ -404,7 +444,7 @@ class TestSmartBlockUpdateRedTeam:
 
     def test_concurrent_patch_same_block(self, api_client):
         """Stress: Concurrent PATCH on same block - Django handles concurrency well.
-        
+
         NOTE: This test verifies that the system handles concurrent updates without
         data corruption. Last-write-wins is acceptable behavior.
         """
@@ -425,21 +465,30 @@ class TestSmartBlockUpdateRedTeam:
                 json.dumps({"name": name}),
                 content_type="application/json",
             )
-            return response.json().get("name") if response.status_code == 200 else None
+            return (
+                response.json().get("name")
+                if response.status_code == 200
+                else None
+            )
 
         # Fire concurrent updates
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             futures = [executor.submit(patch_block, name) for name in names]
-            results = [f.result() for f in concurrent.futures.as_completed(futures)]
+            results = [
+                f.result() for f in concurrent.futures.as_completed(futures)
+            ]
 
         # All updates should succeed
         valid_results = [r for r in results if r is not None]
-        assert len(valid_results) == 5, f"Expected 5 successful updates, got {len(valid_results)}"
+        assert (
+            len(valid_results) == 5
+        ), f"Expected 5 successful updates, got {len(valid_results)}"
 
         # Final state should be one of our updates (no corruption)
         final_block = SmartBlock.objects.get(id=block.id)
-        assert final_block.name in names, \
-            f"Data corruption: final name '{final_block.name}' not in valid updates"
+        assert (
+            final_block.name in names
+        ), f"Data corruption: final name '{final_block.name}' not in valid updates"
 
     # ========================================================================
     # HTTP Attacks
@@ -462,8 +511,11 @@ class TestSmartBlockUpdateRedTeam:
             HTTP_X_HTTP_METHOD_OVERRIDE="DELETE",
         )
         # Should not delete the block
-        assert response.status_code in [200, 400, 405], \
-            f"Method override caused {response.status_code}"
+        assert response.status_code in [
+            200,
+            400,
+            405,
+        ], f"Method override caused {response.status_code}"
 
     def test_http_patch_with_query_params(self, api_client):
         """HTTP: PATCH with unexpected query parameters."""
@@ -484,8 +536,9 @@ class TestSmartBlockUpdateRedTeam:
         if response.status_code == 200:
             data = response.json()
             # Query params should NOT override body
-            assert data.get("name") == "Valid Update", \
-                "Query params leaked into update"
+            assert (
+                data.get("name") == "Valid Update"
+            ), "Query params leaked into update"
 
     # ========================================================================
     # Validation Bypass
@@ -508,7 +561,7 @@ class TestSmartBlockUpdateRedTeam:
             "\t",
             "\n",
             "\t\n\r ",
-            "\u00A0",  # Non-breaking space
+            "\u00a0",  # Non-breaking space
             "\u2000",  # En quad
             "\u2003",  # Em space
             "\u3000",  # Ideographic space
@@ -520,8 +573,9 @@ class TestSmartBlockUpdateRedTeam:
                 json.dumps({"name": name}),
                 content_type="application/json",
             )
-            assert response.status_code == 400, \
-                f"Empty name '{repr(name)}' accepted via PATCH"
+            assert (
+                response.status_code == 400
+            ), f"Empty name '{repr(name)}' accepted via PATCH"
 
     def test_validation_patch_name_too_long(self, api_client):
         """Validation: Extremely long name via PATCH."""
@@ -538,8 +592,10 @@ class TestSmartBlockUpdateRedTeam:
             json.dumps({"name": "X" * 10000}),
             content_type="application/json",
         )
-        assert response.status_code in [400, 413], \
-            f"Long name accepted via PATCH: {response.status_code}"
+        assert response.status_code in [
+            400,
+            413,
+        ], f"Long name accepted via PATCH: {response.status_code}"
 
     def test_validation_patch_null_name(self, api_client):
         """Validation: Null name via PATCH should fail."""
@@ -556,8 +612,9 @@ class TestSmartBlockUpdateRedTeam:
             json.dumps({"name": None}),
             content_type="application/json",
         )
-        assert response.status_code == 400, \
-            f"Null name accepted via PATCH: {response.status_code}"
+        assert (
+            response.status_code == 400
+        ), f"Null name accepted via PATCH: {response.status_code}"
 
     def test_validation_patch_with_only_id(self, api_client):
         """Validation: PATCH with only id should not change anything."""
@@ -578,8 +635,9 @@ class TestSmartBlockUpdateRedTeam:
         # Should either reject or ignore
         if response.status_code == 200:
             data = response.json()
-            assert data.get("name") == "Original", \
-                "PATCH with only id changed other fields"
+            assert (
+                data.get("name") == "Original"
+            ), "PATCH with only id changed other fields"
 
     # ========================================================================
     # Fuzzing
@@ -596,12 +654,27 @@ class TestSmartBlockUpdateRedTeam:
         )
 
         naughty_strings = [
-            "undefined", "null", "None", "NULL", "nil",
-            "[]", "{}", "[object Object]",
-            "NaN", "Infinity", "-Infinity",
-            "true", "false", "True", "False",
-            "{{7*7}}", "<%= 7*7 %>", "${7*7}",
-            "__proto__", "constructor", "prototype",
+            "undefined",
+            "null",
+            "None",
+            "NULL",
+            "nil",
+            "[]",
+            "{}",
+            "[object Object]",
+            "NaN",
+            "Infinity",
+            "-Infinity",
+            "true",
+            "false",
+            "True",
+            "False",
+            "{{7*7}}",
+            "<%= 7*7 %>",
+            "${7*7}",
+            "__proto__",
+            "constructor",
+            "prototype",
         ]
 
         for string in naughty_strings:
@@ -610,8 +683,10 @@ class TestSmartBlockUpdateRedTeam:
                 json.dumps({"name": string}),
                 content_type="application/json",
             )
-            assert response.status_code in [200, 400], \
-                f"Naughty string '{string}' caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"Naughty string '{string}' caused {response.status_code}"
 
     def test_fuzzing_unicode_normalization(self, api_client):
         """Fuzzing: Unicode normalization attacks."""
@@ -638,8 +713,10 @@ class TestSmartBlockUpdateRedTeam:
                 json.dumps({"name": variant}),
                 content_type="application/json",
             )
-            assert response.status_code in [200, 400], \
-                f"Unicode variant caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"Unicode variant caused {response.status_code}"
 
     # ========================================================================
     # JSON Attacks
@@ -665,8 +742,11 @@ class TestSmartBlockUpdateRedTeam:
             json.dumps(nested),
             content_type="application/json",
         )
-        assert response.status_code in [200, 400, 413], \
-            f"Deep nesting caused {response.status_code}"
+        assert response.status_code in [
+            200,
+            400,
+            413,
+        ], f"Deep nesting caused {response.status_code}"
 
     def test_json_array_instead_of_object(self, api_client):
         """JSON: Array instead of object in PATCH."""
@@ -683,8 +763,10 @@ class TestSmartBlockUpdateRedTeam:
             json.dumps([{"name": "Test"}]),
             content_type="application/json",
         )
-        assert response.status_code in [400, 415], \
-            f"Array body accepted: {response.status_code}"
+        assert response.status_code in [
+            400,
+            415,
+        ], f"Array body accepted: {response.status_code}"
 
     def test_json_duplicate_keys_in_patch(self, api_client):
         """JSON: Duplicate keys behavior in PATCH."""
@@ -703,5 +785,7 @@ class TestSmartBlockUpdateRedTeam:
             content_type="application/json",
         )
         # Should handle gracefully
-        assert response.status_code in [200, 400], \
-            f"Duplicate keys caused {response.status_code}"
+        assert response.status_code in [
+            200,
+            400,
+        ], f"Duplicate keys caused {response.status_code}"

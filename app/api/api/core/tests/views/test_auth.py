@@ -2,7 +2,6 @@
 T178-T179: UserToken and LoginAttempt API endpoint tests.
 """
 
-import pytest
 
 from django.conf import settings
 from model_bakery import baker

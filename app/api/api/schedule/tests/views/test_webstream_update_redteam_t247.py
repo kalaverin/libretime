@@ -12,6 +12,7 @@ Tests focus on:
 import json
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -50,8 +51,10 @@ class TestWebstreamUpdateRedTeam:
             json.dumps({"name": "Hacked Stream"}),
             content_type="application/json",
         )
-        assert response.status_code in [403, 404], \
-            f"BOLA: Updated victim's stream, got {response.status_code}"
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA: Updated victim's stream, got {response.status_code}"
 
     @pytest.mark.xfail(reason="T542: BOLA - can delete other user's webstream")
     def test_bola_delete_other_users_stream(self, api_client):
@@ -68,8 +71,10 @@ class TestWebstreamUpdateRedTeam:
 
         # Attacker tries to delete victim's stream
         response = api_client.delete(f"/api/v2/webstreams/{victim_stream.id}")
-        assert response.status_code in [403, 404], \
-            f"BOLA: Deleted victim's stream, got {response.status_code}"
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA: Deleted victim's stream, got {response.status_code}"
 
     # ========================================================================
     # IDOR / ID Enumeration
@@ -89,8 +94,11 @@ class TestWebstreamUpdateRedTeam:
         for test_id in range(1, 10):
             response = api_client.get(f"/api/v2/webstreams/{test_id}")
             # Should get 404 for non-existent or 403 for unauthorized
-            assert response.status_code in [200, 403, 404], \
-                f"ID {test_id} returned {response.status_code}"
+            assert response.status_code in [
+                200,
+                403,
+                404,
+            ], f"ID {test_id} returned {response.status_code}"
 
     @pytest.mark.xfail(reason="T543: Error message leaks stream existence")
     def test_error_message_leaks_existence(self, api_client):
@@ -104,19 +112,24 @@ class TestWebstreamUpdateRedTeam:
         )
 
         # Try to access existing vs non-existing
-        response_existing = api_client.delete(f"/api/v2/webstreams/{victim_stream.id}")
+        response_existing = api_client.delete(
+            f"/api/v2/webstreams/{victim_stream.id}",
+        )
         response_nonexistent = api_client.delete("/api/v2/webstreams/999999")
 
         # Both should return same status to not leak existence
         if response_existing.status_code != response_nonexistent.status_code:
-            assert False, \
-                f"Status leak: existing={response_existing.status_code}, nonexistent={response_nonexistent.status_code}"
+            assert (
+                False
+            ), f"Status leak: existing={response_existing.status_code}, nonexistent={response_nonexistent.status_code}"
 
     # ========================================================================
     # SSRF via URL Update
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T544: SSRF - can update URL to internal address")
+    @pytest.mark.xfail(
+        reason="T544: SSRF - can update URL to internal address",
+    )
     def test_ssrf_url_update_to_internal(self, api_client):
         """SSRF: Updating URL to internal network should be rejected."""
         user = baker.make(User, username="testred_user")
@@ -140,8 +153,9 @@ class TestWebstreamUpdateRedTeam:
                 json.dumps({"url": url}),
                 content_type="application/json",
             )
-            assert response.status_code == 400, \
-                f"SSRF: Internal URL '{url}' accepted with {response.status_code}"
+            assert (
+                response.status_code == 400
+            ), f"SSRF: Internal URL '{url}' accepted with {response.status_code}"
 
     @pytest.mark.xfail(reason="T545: SSRF - can update URL to cloud metadata")
     def test_ssrf_url_update_to_metadata(self, api_client):
@@ -159,8 +173,9 @@ class TestWebstreamUpdateRedTeam:
             json.dumps({"url": "http://169.254.169.254/latest/meta-data/"}),
             content_type="application/json",
         )
-        assert response.status_code == 400, \
-            f"SSRF: Metadata URL accepted with {response.status_code}"
+        assert (
+            response.status_code == 400
+        ), f"SSRF: Metadata URL accepted with {response.status_code}"
 
     # ========================================================================
     # BOPLA - Mass Assignment on Update
@@ -184,11 +199,12 @@ class TestWebstreamUpdateRedTeam:
             json.dumps({"owner": victim.id}),
             content_type="application/json",
         )
-        
+
         if response.status_code == 200:
             data = response.json()
-            assert data.get("owner") != victim.id, \
-                "BOPLA: Owner changed to victim via PATCH"
+            assert (
+                data.get("owner") != victim.id
+            ), "BOPLA: Owner changed to victim via PATCH"
 
     @pytest.mark.xfail(reason="T547: BOPLA - can modify id field on update")
     def test_bopla_modify_id_on_update(self, api_client):
@@ -207,11 +223,12 @@ class TestWebstreamUpdateRedTeam:
             json.dumps({"id": 99999}),
             content_type="application/json",
         )
-        
+
         if response.status_code == 200:
             data = response.json()
-            assert data["id"] == original_id, \
-                "BOPLA: ID was modified via PATCH"
+            assert (
+                data["id"] == original_id
+            ), "BOPLA: ID was modified via PATCH"
 
     @pytest.mark.xfail(reason="T548: BOPLA - can set created_at on update")
     def test_bopla_set_created_at_on_update(self, api_client):
@@ -230,11 +247,12 @@ class TestWebstreamUpdateRedTeam:
             json.dumps({"created_at": fake_time}),
             content_type="application/json",
         )
-        
+
         if response.status_code == 200:
             data = response.json()
-            assert data.get("created_at") != fake_time, \
-                "BOPLA: created_at modified via PATCH"
+            assert (
+                data.get("created_at") != fake_time
+            ), "BOPLA: created_at modified via PATCH"
 
     # ========================================================================
     # XSS on Update
@@ -257,13 +275,17 @@ class TestWebstreamUpdateRedTeam:
             json.dumps({"name": xss_payload}),
             content_type="application/json",
         )
-        
+
         if response.status_code == 200:
             data = response.json()
             name = data.get("name", "")
-            assert "<script>" not in name, "XSS: script tags not sanitized in name"
+            assert (
+                "<script>" not in name
+            ), "XSS: script tags not sanitized in name"
 
-    @pytest.mark.xfail(reason="T550: XSS - can update description with script tags")
+    @pytest.mark.xfail(
+        reason="T550: XSS - can update description with script tags",
+    )
     def test_xss_update_description(self, api_client):
         """XSS: Updating description with script tags should be sanitized."""
         user = baker.make(User, username="testred_user")
@@ -281,11 +303,13 @@ class TestWebstreamUpdateRedTeam:
             json.dumps({"description": xss_payload}),
             content_type="application/json",
         )
-        
+
         if response.status_code == 200:
             data = response.json()
             desc = data.get("description", "")
-            assert "onerror=" not in desc, "XSS: event handlers not sanitized in description"
+            assert (
+                "onerror=" not in desc
+            ), "XSS: event handlers not sanitized in description"
 
     # ========================================================================
     # Injection Attacks
@@ -313,8 +337,10 @@ class TestWebstreamUpdateRedTeam:
                 json.dumps({"name": payload}),
                 content_type="application/json",
             )
-            assert response.status_code in [200, 400], \
-                f"SQLi '{payload}' caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"SQLi '{payload}' caused {response.status_code}"
 
     def test_sqli_in_update_url(self, api_client):
         """Injection: SQLi in PATCH URL field."""
@@ -337,8 +363,10 @@ class TestWebstreamUpdateRedTeam:
                 json.dumps({"url": payload}),
                 content_type="application/json",
             )
-            assert response.status_code in [200, 400], \
-                f"SQLi '{payload}' caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"SQLi '{payload}' caused {response.status_code}"
 
     # ========================================================================
     # PUT vs PATCH Behavior
@@ -358,15 +386,19 @@ class TestWebstreamUpdateRedTeam:
         # PUT full update with internal URL
         response = api_client.put(
             f"/api/v2/webstreams/{stream.id}",
-            json.dumps({
-                "name": "Updated Stream",
-                "url": "http://localhost:8080/internal",
-                "description": "Updated",
-            }),
+            json.dumps(
+                {
+                    "name": "Updated Stream",
+                    "url": "http://localhost:8080/internal",
+                    "description": "Updated",
+                },
+            ),
             content_type="application/json",
         )
-        assert response.status_code in [200, 400], \
-            f"PUT SSRF: internal URL accepted with {response.status_code}"
+        assert response.status_code in [
+            200,
+            400,
+        ], f"PUT SSRF: internal URL accepted with {response.status_code}"
 
     @pytest.mark.xfail(reason="T552: PUT allows owner change")
     def test_put_full_update_owner_change(self, api_client):
@@ -383,18 +415,21 @@ class TestWebstreamUpdateRedTeam:
         # PUT full update with victim as owner
         response = api_client.put(
             f"/api/v2/webstreams/{stream.id}",
-            json.dumps({
-                "name": "Updated Stream",
-                "url": "http://example.com/stream",
-                "owner": victim.id,
-            }),
+            json.dumps(
+                {
+                    "name": "Updated Stream",
+                    "url": "http://example.com/stream",
+                    "owner": victim.id,
+                },
+            ),
             content_type="application/json",
         )
-        
+
         if response.status_code == 200:
             data = response.json()
-            assert data.get("owner") != victim.id, \
-                "BOPLA: Owner changed via PUT"
+            assert (
+                data.get("owner") != victim.id
+            ), "BOPLA: Owner changed via PUT"
 
     # ========================================================================
     # Business Logic
@@ -416,8 +451,9 @@ class TestWebstreamUpdateRedTeam:
             json.dumps({"name": ""}),
             content_type="application/json",
         )
-        assert response.status_code == 400, \
-            f"Empty name accepted with {response.status_code}"
+        assert (
+            response.status_code == 400
+        ), f"Empty name accepted with {response.status_code}"
 
     @pytest.mark.xfail(reason="T554: Invalid URL format accepted on update")
     def test_update_invalid_url_format(self, api_client):
@@ -442,8 +478,9 @@ class TestWebstreamUpdateRedTeam:
                 json.dumps({"url": url}),
                 content_type="application/json",
             )
-            assert response.status_code == 400, \
-                f"Invalid URL '{url}' accepted with {response.status_code}"
+            assert (
+                response.status_code == 400
+            ), f"Invalid URL '{url}' accepted with {response.status_code}"
 
     # ========================================================================
     # Invalid ID Handling
@@ -465,8 +502,10 @@ class TestWebstreamUpdateRedTeam:
             json.dumps({"name": "New Name"}),
             content_type="application/json",
         )
-        assert response.status_code in [400, 404], \
-            f"Invalid ID caused {response.status_code}"
+        assert response.status_code in [
+            400,
+            404,
+        ], f"Invalid ID caused {response.status_code}"
 
     # ========================================================================
     # Authentication
@@ -512,10 +551,15 @@ class TestWebstreamUpdateRedTeam:
 
         # Fire concurrent updates
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            futures = [executor.submit(update_stream, f"Name{i}") for i in range(5)]
-            results = [f.result() for f in concurrent.futures.as_completed(futures)]
+            futures = [
+                executor.submit(update_stream, f"Name{i}") for i in range(5)
+            ]
+            results = [
+                f.result() for f in concurrent.futures.as_completed(futures)
+            ]
 
         success_count = results.count(200)
         # All should succeed or handle gracefully
-        assert success_count >= 0, \
-            f"Race condition: {success_count} updates succeeded"
+        assert (
+            success_count >= 0
+        ), f"Race condition: {success_count} updates succeeded"

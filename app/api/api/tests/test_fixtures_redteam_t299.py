@@ -6,6 +6,7 @@ and privilege escalation vectors. Uses OWASP API Top 10 methodology.
 """
 
 import pytest
+
 from django.conf import settings
 from rest_framework.test import APIClient
 
@@ -45,7 +46,9 @@ class TestFixturesAuthenticationBypass:
         header injection attacks. Returns 200 instead of 403.
         """
         client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION="Api-Key testing\nX-Injection: test")
+        client.credentials(
+            HTTP_AUTHORIZATION="Api-Key testing\nX-Injection: test",
+        )
 
         response = client.get("/api/v2/files")
         # Should reject newlines
@@ -61,7 +64,9 @@ class TestFixturesAuthenticationBypass:
         allowing header injection attacks. Returns 200 instead of 403.
         """
         client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION="Api-Key testing\rX-Injection: test")
+        client.credentials(
+            HTTP_AUTHORIZATION="Api-Key testing\rX-Injection: test",
+        )
 
         response = client.get("/api/v2/files")
         assert response.status_code in [403, 401, 400]
@@ -215,7 +220,6 @@ class TestFixturesDataIsolation:
 
     def test_user_data_isolation(self, regular_user, admin_user):
         """Users should only access their own data."""
-        from api.schedule.models import Playlist
 
         # Create playlist as regular user
         client1 = APIClient()
@@ -239,7 +243,6 @@ class TestFixturesDataIsolation:
 
     def test_api_key_sees_all_data(self, api_client, regular_user):
         """API key (service) should have system-level access."""
-        from api.schedule.models import Playlist
 
         # Create playlist as regular user
         client1 = APIClient()
@@ -292,7 +295,7 @@ class TestFixturesFuzzing:
                     password="test123!",
                     email=faker.fake_email(),
                 )
-            except Exception as e:
+            except Exception:
                 # Should handle gracefully, not crash
                 pass
 
@@ -411,9 +414,9 @@ class TestFixturesMassAssignment:
         if response.status_code == 201:
             data = response.json()
             # Verify fields were not set
-            assert data.get("is_superuser") is not True, (
-                "Mass assignment vulnerability: is_superuser was set."
-            )
+            assert (
+                data.get("is_superuser") is not True
+            ), "Mass assignment vulnerability: is_superuser was set."
             assert data.get("is_staff") is not True
 
     def test_cannot_mass_assign_id(self, api_client):
@@ -432,9 +435,9 @@ class TestFixturesMassAssignment:
 
         if response.status_code == 201:
             data = response.json()
-            assert data.get("id") != 999999, (
-                "Mass assignment vulnerability: id was set to user-provided value."
-            )
+            assert (
+                data.get("id") != 999999
+            ), "Mass assignment vulnerability: id was set to user-provided value."
 
 
 @pytest.mark.django_db

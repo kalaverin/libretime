@@ -9,8 +9,8 @@ Attack vectors:
 - Mass assignment via GET
 """
 
-import json
 import pytest
+
 from model_bakery import baker
 
 from api.schedule.models import Show, ShowInstance
@@ -24,7 +24,10 @@ class TestShowInstanceListAuthentication:
     def test_list_without_auth(self, api_client):
         """Anonymous LIST should fail."""
         response = api_client.get("/api/v2/show-instances")
-        assert response.status_code in [401, 403], "Anonymous can list show instances"
+        assert response.status_code in [
+            401,
+            403,
+        ], "Anonymous can list show instances"
 
 
 @pytest.mark.django_db(transaction=True)
@@ -32,11 +35,13 @@ class TestShowInstanceListBOLA:
     """LIST BOLA tests."""
 
     @pytest.mark.xfail(reason="T398: No owner filtering on ShowInstance")
-    def test_list_shows_only_own_instances(self, api_client, admin_user, regular_user):
+    def test_list_shows_only_own_instances(
+        self, api_client, admin_user, regular_user,
+    ):
         """Verify list returns only user's own show instances."""
         show1 = baker.make(Show, name="Admin Show")
         show2 = baker.make(Show, name="User Show")
-        
+
         instance1 = baker.make(ShowInstance, show=show1)
         instance2 = baker.make(ShowInstance, show=show2)
 
@@ -46,11 +51,15 @@ class TestShowInstanceListBOLA:
         assert response.status_code == 200
         data = response.json()
         instance_ids = [d["id"] for d in data]
-        
-        assert instance1.id not in instance_ids, "List shows other users' instances (BOLA)"
+
+        assert (
+            instance1.id not in instance_ids
+        ), "List shows other users' instances (BOLA)"
 
     @pytest.mark.xfail(reason="T399: BOLA via show filter")
-    def test_filter_by_other_user_show(self, api_client, admin_user, regular_user):
+    def test_filter_by_other_user_show(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to filter by another user's show."""
         show = baker.make(Show, name="Admin Show")
         instance = baker.make(ShowInstance, show=show)
@@ -71,7 +80,7 @@ class TestShowInstanceFilterInjection:
         """Try to filter by invalid show_id."""
         api_client.force_authenticate(user=admin_user)
         response = api_client.get("/api/v2/show-instances?show=invalid")
-        
+
         if response.status_code == 500:
             pytest.fail("BUG: Filter crashes on invalid show_id")
         assert response.status_code in [200, 400]
@@ -79,13 +88,13 @@ class TestShowInstanceFilterInjection:
     def test_filter_by_sql_injection(self, api_client, admin_user):
         """Try SQL injection in show filter."""
         api_client.force_authenticate(user=admin_user)
-        
+
         sqli_payloads = [
             "1' OR '1'='1",
             "1; DROP TABLE cc_show_instances;--",
             "1 UNION SELECT * FROM cc_subjs",
         ]
-        
+
         for payload in sqli_payloads:
             response = api_client.get(f"/api/v2/show-instances?show={payload}")
             if response.status_code == 500:
@@ -95,7 +104,7 @@ class TestShowInstanceFilterInjection:
         """Try to filter by negative show_id."""
         api_client.force_authenticate(user=admin_user)
         response = api_client.get("/api/v2/show-instances?show=-1")
-        
+
         assert response.status_code in [200, 400]
 
 
@@ -107,7 +116,7 @@ class TestShowInstanceListInformationDisclosure:
         """Check if error messages leak information."""
         api_client.force_authenticate(user=admin_user)
         response = api_client.get("/api/v2/show-instances?show=invalid")
-        
+
         if response.status_code == 400:
             content = response.content.decode()
             leaked_terms = ["cc_show_instances", "column", "sql", "table"]
@@ -123,14 +132,14 @@ class TestShowInstanceListMassAssignment:
     def test_get_with_extra_parameters(self, api_client, admin_user):
         """Try GET with extra/malicious parameters."""
         api_client.force_authenticate(user=admin_user)
-        
+
         # Try various malicious query params
         malicious_params = [
             "?id=99999&admin=true",
             "?__proto__=test",
             "?constructor=test",
         ]
-        
+
         for params in malicious_params:
             response = api_client.get(f"/api/v2/show-instances{params}")
             # Should not crash or expose unexpected data

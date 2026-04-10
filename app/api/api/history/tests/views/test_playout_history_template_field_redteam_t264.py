@@ -7,22 +7,31 @@ Tests for BOPLA, BOLA, injection, and validation vulnerabilities.
 import pytest
 
 from model_bakery import baker
-from sdk import now
 
-from api.history.models import PlayoutHistoryTemplate, PlayoutHistoryTemplateField
-from api.core.models.role import Role
-from api.core.models.user import User
+from api.history.models import (
+    PlayoutHistoryTemplate,
+    PlayoutHistoryTemplateField,
+)
 
 
 @pytest.mark.django_db
 class TestPlayoutHistoryTemplateFieldRedTeamBOPLA:
     """API3:2023 Broken Object Property Level Authorization - mass assignment."""
 
-    def test_bopla_create_mass_assignment_id(self, api_client, admin_user, fake_small_int, fake_word, fake_catch_phrase):
+    def test_bopla_create_mass_assignment_id(
+        self,
+        api_client,
+        admin_user,
+        fake_small_int,
+        fake_word,
+        fake_catch_phrase,
+    ):
         """
         BOPLA: CREATE field with forced ID.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
         forced_id = fake_small_int + 800000
 
         data = {
@@ -44,13 +53,19 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOPLA:
         if response.status_code == 201:
             result = response.json()
             if result.get("id") == forced_id:
-                pytest.xfail("T639: BOPLA - TemplateField id mass assignment works")
+                pytest.xfail(
+                    "T639: BOPLA - TemplateField id mass assignment works",
+                )
 
-    def test_bopla_create_extra_fields_ignored(self, api_client, admin_user, fake_word, fake_catch_phrase):
+    def test_bopla_create_extra_fields_ignored(
+        self, api_client, admin_user, fake_word, fake_catch_phrase,
+    ):
         """
         BOPLA: CREATE with extra fields silently ignored.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         data = {
             "template": template.id,
@@ -71,13 +86,24 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOPLA:
         )
 
         if response.status_code == 201:
-            pytest.xfail("T640: BOPLA - TemplateField extra fields silently ignored")
+            pytest.xfail(
+                "T640: BOPLA - TemplateField extra fields silently ignored",
+            )
 
-    def test_bopla_update_change_id(self, api_client, admin_user, fake_word, fake_catch_phrase, fake_small_int):
+    def test_bopla_update_change_id(
+        self,
+        api_client,
+        admin_user,
+        fake_word,
+        fake_catch_phrase,
+        fake_small_int,
+    ):
         """
         BOPLA: UPDATE attempt to change ID.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
         field = baker.make(
             PlayoutHistoryTemplateField,
             template=template,
@@ -110,11 +136,15 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOPLA:
             if result.get("id") == new_id:
                 pytest.xfail("T641: BOPLA - TemplateField id can be modified")
 
-    def test_bopla_patch_extra_fields_ignored(self, api_client, admin_user, fake_word, fake_catch_phrase):
+    def test_bopla_patch_extra_fields_ignored(
+        self, api_client, admin_user, fake_word, fake_catch_phrase,
+    ):
         """
         BOPLA: PATCH with extra fields silently ignored.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
         field = baker.make(
             PlayoutHistoryTemplateField,
             template=template,
@@ -138,7 +168,9 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOPLA:
         )
 
         if response.status_code == 200:
-            pytest.xfail("T642: BOPLA - TemplateField PATCH extra fields ignored")
+            pytest.xfail(
+                "T642: BOPLA - TemplateField PATCH extra fields ignored",
+            )
 
 
 @pytest.mark.django_db
@@ -146,7 +178,12 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOLA:
     """API1:2023 Broken Object Level Authorization."""
 
     def test_bola_create_field_for_other_users_template(
-        self, api_client, admin_user, regular_user, fake_word, fake_catch_phrase
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        fake_word,
+        fake_catch_phrase,
     ):
         """
         BOLA: CREATE field in another user's template.
@@ -155,7 +192,9 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOLA:
         """
         # Create template as regular user (victim)
         victim_template = baker.make(
-            PlayoutHistoryTemplate, name=f"victim_{fake_catch_phrase}", type="file"
+            PlayoutHistoryTemplate,
+            name=f"victim_{fake_catch_phrase}",
+            type="file",
         )
 
         # Admin tries to add field to victim's template
@@ -176,16 +215,25 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOLA:
 
         if response.status_code == 201:
             # Successfully added field to victim's template
-            pytest.xfail("T643: BOLA - Can create field in other user's template")
+            pytest.xfail(
+                "T643: BOLA - Can create field in other user's template",
+            )
 
     def test_bola_modify_field_in_other_users_template(
-        self, api_client, admin_user, regular_user, fake_word, fake_catch_phrase
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        fake_word,
+        fake_catch_phrase,
     ):
         """
         BOLA: MODIFY field in another user's template.
         """
         victim_template = baker.make(
-            PlayoutHistoryTemplate, name=f"victim_{fake_catch_phrase}", type="file"
+            PlayoutHistoryTemplate,
+            name=f"victim_{fake_catch_phrase}",
+            type="file",
         )
         victim_field = baker.make(
             PlayoutHistoryTemplateField,
@@ -217,13 +265,20 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOLA:
             pass  # May be intended for admin
 
     def test_bola_delete_field_in_other_users_template(
-        self, api_client, admin_user, regular_user, fake_word, fake_catch_phrase
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        fake_word,
+        fake_catch_phrase,
     ):
         """
         BOLA: DELETE field from another user's template.
         """
         victim_template = baker.make(
-            PlayoutHistoryTemplate, name=f"victim_{fake_catch_phrase}", type="file"
+            PlayoutHistoryTemplate,
+            name=f"victim_{fake_catch_phrase}",
+            type="file",
         )
         victim_field = baker.make(
             PlayoutHistoryTemplateField,
@@ -236,7 +291,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOLA:
         )
 
         response = api_client.delete(
-            f"/api/v2/playout-history-template-fields/{victim_field.id}"
+            f"/api/v2/playout-history-template-fields/{victim_field.id}",
         )
 
         if response.status_code == 204:
@@ -244,12 +299,14 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOLA:
             pass  # May be intended for admin
 
     def test_bola_regular_user_can_modify_global_field(
-        self, api_client, regular_user, fake_word, fake_catch_phrase
+        self, api_client, regular_user, fake_word, fake_catch_phrase,
     ):
         """
         BFLA: Regular user can modify any template field.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
         field = baker.make(
             PlayoutHistoryTemplateField,
             template=template,
@@ -278,18 +335,24 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOLA:
         )
 
         if response.status_code == 200:
-            pytest.xfail("T644: BFLA - Regular user can modify template fields")
+            pytest.xfail(
+                "T644: BFLA - Regular user can modify template fields",
+            )
 
 
 @pytest.mark.django_db
 class TestPlayoutHistoryTemplateFieldRedTeamInjection:
     """Injection attacks."""
 
-    def test_sqli_in_name_field(self, api_client, admin_user, fake_catch_phrase):
+    def test_sqli_in_name_field(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         SQL Injection via name field.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         sqli_names = [
             "field' OR '1'='1",
@@ -313,13 +376,17 @@ class TestPlayoutHistoryTemplateFieldRedTeamInjection:
             )
 
             if response.status_code == 500:
-                pytest.xfail(f"T645: SQLi in name causes 500")
+                pytest.xfail("T645: SQLi in name causes 500")
 
-    def test_sqli_in_label_field(self, api_client, admin_user, fake_word, fake_catch_phrase):
+    def test_sqli_in_label_field(
+        self, api_client, admin_user, fake_word, fake_catch_phrase,
+    ):
         """
         SQL Injection via label field.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         sqli_label = "Label' OR '1'='1"
 
@@ -341,11 +408,15 @@ class TestPlayoutHistoryTemplateFieldRedTeamInjection:
         if response.status_code == 500:
             pytest.xfail("T645: SQLi in label causes 500")
 
-    def test_xss_in_name_field(self, api_client, admin_user, fake_catch_phrase):
+    def test_xss_in_name_field(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         XSS via name field.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         xss_name = "<script>alert(1)</script>"
 
@@ -369,11 +440,15 @@ class TestPlayoutHistoryTemplateFieldRedTeamInjection:
             if result.get("name") == xss_name:
                 pytest.xfail("T646: XSS in name field stored unsanitized")
 
-    def test_xss_in_label_field(self, api_client, admin_user, fake_word, fake_catch_phrase):
+    def test_xss_in_label_field(
+        self, api_client, admin_user, fake_word, fake_catch_phrase,
+    ):
         """
         XSS via label field.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         xss_label = "<img src=x onerror=alert(1)>"
 
@@ -402,11 +477,20 @@ class TestPlayoutHistoryTemplateFieldRedTeamInjection:
 class TestPlayoutHistoryTemplateFieldRedTeamValidation:
     """Validation bypass tests."""
 
-    def test_create_negative_position(self, api_client, admin_user, fake_word, fake_catch_phrase, fake_negative_int):
+    def test_create_negative_position(
+        self,
+        api_client,
+        admin_user,
+        fake_word,
+        fake_catch_phrase,
+        fake_negative_int,
+    ):
         """
         Validation: Negative position should be rejected.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         data = {
             "template": template.id,
@@ -426,11 +510,20 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
         if response.status_code == 201:
             pytest.xfail("T647: Negative position accepted")
 
-    def test_create_very_large_position(self, api_client, admin_user, fake_word, fake_catch_phrase, fake_positive_int):
+    def test_create_very_large_position(
+        self,
+        api_client,
+        admin_user,
+        fake_word,
+        fake_catch_phrase,
+        fake_positive_int,
+    ):
         """
         Validation: Very large position value.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         data = {
             "template": template.id,
@@ -450,11 +543,15 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
         # Document behavior
         assert response.status_code in [201, 400]
 
-    def test_create_empty_name(self, api_client, admin_user, fake_catch_phrase):
+    def test_create_empty_name(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         Validation: Empty name should be rejected.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         data = {
             "template": template.id,
@@ -474,11 +571,15 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
         if response.status_code == 201:
             pytest.xfail("T648: Empty name accepted")
 
-    def test_create_empty_label(self, api_client, admin_user, fake_word, fake_catch_phrase):
+    def test_create_empty_label(
+        self, api_client, admin_user, fake_word, fake_catch_phrase,
+    ):
         """
         Validation: Empty label should be rejected.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         data = {
             "template": template.id,
@@ -498,11 +599,15 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
         if response.status_code == 201:
             pytest.xfail("T649: Empty label accepted")
 
-    def test_create_duplicate_field_name_same_template(self, api_client, admin_user, fake_word, fake_catch_phrase):
+    def test_create_duplicate_field_name_same_template(
+        self, api_client, admin_user, fake_word, fake_catch_phrase,
+    ):
         """
         Validation: Duplicate field name in same template.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         # First field
         data = {
@@ -534,7 +639,9 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
         elif response2.status_code == 400:
             pass  # Duplicates rejected
 
-    def test_create_nonexistent_template(self, api_client, admin_user, fake_word, fake_catch_phrase):
+    def test_create_nonexistent_template(
+        self, api_client, admin_user, fake_word, fake_catch_phrase,
+    ):
         """
         Validation: CREATE with non-existent template ID.
         """
@@ -555,13 +662,17 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
 
         assert response.status_code == 400
 
-    def test_create_invalid_type_value(self, api_client, admin_user, fake_word, fake_catch_phrase):
+    def test_create_invalid_type_value(
+        self, api_client, admin_user, fake_word, fake_catch_phrase,
+    ):
         """
         Validation: Invalid type values.
 
         Type should be restricted to known field types.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         invalid_types = [
             "invalid_type",
@@ -589,11 +700,15 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
             if response.status_code == 201:
                 pass  # No validation on type
 
-    def test_create_invalid_is_file_md_type(self, api_client, admin_user, fake_word, fake_catch_phrase):
+    def test_create_invalid_is_file_md_type(
+        self, api_client, admin_user, fake_word, fake_catch_phrase,
+    ):
         """
         Validation: Invalid type for is_file_md (should be boolean).
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         data = {
             "template": template.id,
@@ -618,11 +733,15 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
 class TestPlayoutHistoryTemplateFieldRedTeamResourceConsumption:
     """API4:2023 Unrestricted Resource Consumption."""
 
-    def test_rapid_field_creation(self, api_client, admin_user, fake_word, fake_catch_phrase):
+    def test_rapid_field_creation(
+        self, api_client, admin_user, fake_word, fake_catch_phrase,
+    ):
         """
         Rate limiting: Rapid CREATE requests.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         success_count = 0
         for i in range(20):
@@ -645,13 +764,17 @@ class TestPlayoutHistoryTemplateFieldRedTeamResourceConsumption:
         if success_count == 20:
             pytest.xfail("T650: No rate limiting on field CREATE")
 
-    def test_many_fields_in_single_template(self, api_client, admin_user, fake_word, fake_catch_phrase):
+    def test_many_fields_in_single_template(
+        self, api_client, admin_user, fake_word, fake_catch_phrase,
+    ):
         """
         DoS: Creating many fields in one template.
 
         Can cause UI issues and performance degradation.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         for i in range(50):
             baker.make(
@@ -683,7 +806,9 @@ class TestPlayoutHistoryTemplateFieldRedTeamAuthentication:
         response = api_client.get("/api/v2/playout-history-template-fields")
         assert response.status_code == 403
 
-    def test_unauthenticated_create(self, api_client, fake_word, fake_catch_phrase):
+    def test_unauthenticated_create(
+        self, api_client, fake_word, fake_catch_phrase,
+    ):
         """Unauthenticated CREATE should fail."""
         api_client.logout()
         data = {
@@ -701,9 +826,13 @@ class TestPlayoutHistoryTemplateFieldRedTeamAuthentication:
         )
         assert response.status_code == 403
 
-    def test_guest_user_create(self, api_client, guest_user, fake_word, fake_catch_phrase):
+    def test_guest_user_create(
+        self, api_client, guest_user, fake_word, fake_catch_phrase,
+    ):
         """Guest user CREATE should fail."""
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         api_client.force_authenticate(user=guest_user)
 
@@ -730,9 +859,13 @@ class TestPlayoutHistoryTemplateFieldRedTeamAuthentication:
 class TestPlayoutHistoryTemplateFieldRedTeamHTTPMethodTampering:
     """HTTP method tampering tests."""
 
-    def test_trace_method_disabled(self, api_client, admin_user, fake_word, fake_catch_phrase):
+    def test_trace_method_disabled(
+        self, api_client, admin_user, fake_word, fake_catch_phrase,
+    ):
         """TRACE method should be disabled."""
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
         field = baker.make(
             PlayoutHistoryTemplateField,
             template=template,
@@ -743,5 +876,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamHTTPMethodTampering:
             position=1,
         )
 
-        response = api_client.trace(f"/api/v2/playout-history-template-fields/{field.id}")
+        response = api_client.trace(
+            f"/api/v2/playout-history-template-fields/{field.id}",
+        )
         assert response.status_code in [405, 403]

@@ -4,25 +4,26 @@ Red Team security tests for PlayoutHistory CREATE endpoint.
 Tests for BOPLA, BOLA, injection, and validation bypass vulnerabilities.
 """
 
-import pytest
 from datetime import timedelta
 
-from django.urls import reverse
-from model_bakery import baker
-from sdk import now, format_datetime
+import pytest
 
-from api.history.models import PlayoutHistory
-from api.schedule.models import Show, ShowInstance
-from api.storage.models import File
+from model_bakery import baker
+
 from api.core.models.role import Role
 from api.core.models.user import User
+from api.schedule.models import Show, ShowInstance
+from api.storage.models import File
+from sdk import format_datetime, now
 
 
 @pytest.mark.django_db
 class TestPlayoutHistoryCreateRedTeamBOPLA:
     """API3:2023 Broken Object Property Level Authorization - CREATE mass assignment."""
 
-    def test_bopla_mass_assignment_id_field(self, api_client, admin_user, faker):
+    def test_bopla_mass_assignment_id_field(
+        self, api_client, admin_user, faker,
+    ):
         """
         BOPLA: Client can specify 'id' field during CREATE.
 
@@ -39,14 +40,18 @@ class TestPlayoutHistoryCreateRedTeamBOPLA:
             "ends": format_datetime(now() + timedelta(minutes=5)),
         }
 
-        response = api_client.post("/api/v2/playout-history", data, format="json")
+        response = api_client.post(
+            "/api/v2/playout-history", data, format="json",
+        )
 
         if response.status_code == 201:
             result = response.json()
             if result.get("id") == forced_id:
                 pytest.xfail("T621: BOPLA - id field mass assignment works")
 
-    def test_bopla_extra_fields_not_rejected(self, api_client, admin_user, faker):
+    def test_bopla_extra_fields_not_rejected(
+        self, api_client, admin_user, faker,
+    ):
         """
         BOPLA: Extra/unknown fields are silently ignored.
 
@@ -65,13 +70,19 @@ class TestPlayoutHistoryCreateRedTeamBOPLA:
             "secret_key": "stolen",
         }
 
-        response = api_client.post("/api/v2/playout-history", data, format="json")
+        response = api_client.post(
+            "/api/v2/playout-history", data, format="json",
+        )
 
         if response.status_code == 201:
             # Extra fields were ignored - should have been rejected
-            pytest.xfail("T622: BOPLA - Extra fields silently ignored instead of rejected")
+            pytest.xfail(
+                "T622: BOPLA - Extra fields silently ignored instead of rejected",
+            )
 
-    def test_bopla_mass_assignment_via_content_type(self, api_client, admin_user, faker):
+    def test_bopla_mass_assignment_via_content_type(
+        self, api_client, admin_user, faker,
+    ):
         """
         BOPLA: Different content types may bypass validation.
 
@@ -89,7 +100,7 @@ class TestPlayoutHistoryCreateRedTeamBOPLA:
         response = api_client.post(
             "/api/v2/playout-history",
             data,
-            content_type="application/x-www-form-urlencoded"
+            content_type="application/x-www-form-urlencoded",
         )
 
         # Document behavior - form data may be handled differently
@@ -103,7 +114,9 @@ class TestPlayoutHistoryCreateRedTeamBOPLA:
 class TestPlayoutHistoryCreateRedTeamBOLA:
     """API1:2023 Broken Object Level Authorization - CREATE with other user's resources."""
 
-    def test_bola_create_with_other_users_file(self, api_client, admin_user, faker):
+    def test_bola_create_with_other_users_file(
+        self, api_client, admin_user, faker,
+    ):
         """
         BOLA: CREATE playout with another user's file.
 
@@ -111,7 +124,9 @@ class TestPlayoutHistoryCreateRedTeamBOLA:
         """
         # Create victim user with private file
         victim = baker.make(User, role=Role.HOST, username=faker.user_name())
-        victim_file = baker.make(File, mime="audio/mp3", owner=victim, name="victim_private.mp3")
+        victim_file = baker.make(
+            File, mime="audio/mp3", owner=victim, name="victim_private.mp3",
+        )
 
         # Admin creates playout referencing victim's file
         data = {
@@ -120,14 +135,18 @@ class TestPlayoutHistoryCreateRedTeamBOLA:
             "ends": format_datetime(now() + timedelta(minutes=5)),
         }
 
-        response = api_client.post("/api/v2/playout-history", data, format="json")
+        response = api_client.post(
+            "/api/v2/playout-history", data, format="json",
+        )
 
         if response.status_code == 201:
             # Successfully created playout with victim's file
             # This may be intended for admin, but documents lack of ownership check
             pass
 
-    def test_bola_create_with_other_users_instance(self, api_client, admin_user, faker):
+    def test_bola_create_with_other_users_instance(
+        self, api_client, admin_user, faker,
+    ):
         """
         BOLA: CREATE playout linked to another user's show instance.
 
@@ -152,11 +171,15 @@ class TestPlayoutHistoryCreateRedTeamBOLA:
             "ends": format_datetime(now() + timedelta(minutes=5)),
         }
 
-        response = api_client.post("/api/v2/playout-history", data, format="json")
+        response = api_client.post(
+            "/api/v2/playout-history", data, format="json",
+        )
 
         if response.status_code == 201:
             # Successfully linked to victim's instance
-            pytest.xfail("T623: BOLA - Can create playout linked to other user's show instance")
+            pytest.xfail(
+                "T623: BOLA - Can create playout linked to other user's show instance",
+            )
 
     def test_bola_create_with_nonexistent_file(self, api_client, admin_user):
         """
@@ -170,14 +193,21 @@ class TestPlayoutHistoryCreateRedTeamBOLA:
             "ends": format_datetime(now() + timedelta(minutes=5)),
         }
 
-        response = api_client.post("/api/v2/playout-history", data, format="json")
+        response = api_client.post(
+            "/api/v2/playout-history", data, format="json",
+        )
 
         assert response.status_code == 400
         # Check error message doesn't leak internal info
         error_text = str(response.content)
-        assert "does not exist" in error_text.lower() or "invalid" in error_text.lower()
+        assert (
+            "does not exist" in error_text.lower()
+            or "invalid" in error_text.lower()
+        )
 
-    def test_bola_create_with_nonexistent_instance(self, api_client, admin_user, faker):
+    def test_bola_create_with_nonexistent_instance(
+        self, api_client, admin_user, faker,
+    ):
         """
         BOLA/Validation: CREATE with non-existent instance ID.
 
@@ -192,7 +222,9 @@ class TestPlayoutHistoryCreateRedTeamBOLA:
             "ends": format_datetime(now() + timedelta(minutes=5)),
         }
 
-        response = api_client.post("/api/v2/playout-history", data, format="json")
+        response = api_client.post(
+            "/api/v2/playout-history", data, format="json",
+        )
 
         assert response.status_code == 400
 
@@ -219,11 +251,15 @@ class TestPlayoutHistoryCreateRedTeamInjection:
                 "starts": format_datetime(now()),
             }
 
-            response = api_client.post("/api/v2/playout-history", data, format="json")
+            response = api_client.post(
+                "/api/v2/playout-history", data, format="json",
+            )
 
             # Check for SQL errors
             if response.status_code == 500:
-                pytest.xfail(f"T624: SQLi in file field causes 500: {payload[:30]}")
+                pytest.xfail(
+                    f"T624: SQLi in file field causes 500: {payload[:30]}",
+                )
 
             error_text = str(response.content).lower()
             sql_keywords = ["sql", "syntax", "error", "pg_query"]
@@ -247,10 +283,12 @@ class TestPlayoutHistoryCreateRedTeamInjection:
                 "starts": payload,
             }
 
-            response = api_client.post("/api/v2/playout-history", data, format="json")
+            response = api_client.post(
+                "/api/v2/playout-history", data, format="json",
+            )
 
             if response.status_code == 500:
-                pytest.xfail(f"T624: SQLi in starts field causes 500")
+                pytest.xfail("T624: SQLi in starts field causes 500")
 
     def test_xss_in_metadata_via_create(self, api_client, admin_user, faker):
         """
@@ -274,7 +312,9 @@ class TestPlayoutHistoryCreateRedTeamInjection:
                 "starts": format_datetime(now()),
             }
 
-            response = api_client.post("/api/v2/playout-history", data, format="json")
+            response = api_client.post(
+                "/api/v2/playout-history", data, format="json",
+            )
             # Just document - no XSS vector in this model
             assert response.status_code in [201, 400]
 
@@ -297,10 +337,14 @@ class TestPlayoutHistoryCreateRedTeamValidationBypass:
             "ends": format_datetime(now()),  # ends before starts
         }
 
-        response = api_client.post("/api/v2/playout-history", data, format="json")
+        response = api_client.post(
+            "/api/v2/playout-history", data, format="json",
+        )
 
         if response.status_code == 201:
-            pytest.xfail("T625: Validation bypass - ends before starts accepted")
+            pytest.xfail(
+                "T625: Validation bypass - ends before starts accepted",
+            )
         else:
             assert response.status_code == 400
 
@@ -319,10 +363,14 @@ class TestPlayoutHistoryCreateRedTeamValidationBypass:
             "ends": same_time,
         }
 
-        response = api_client.post("/api/v2/playout-history", data, format="json")
+        response = api_client.post(
+            "/api/v2/playout-history", data, format="json",
+        )
 
         if response.status_code == 201:
-            pytest.xfail("T625: Validation bypass - ends equals starts accepted")
+            pytest.xfail(
+                "T625: Validation bypass - ends equals starts accepted",
+            )
 
     def test_create_negative_duration(self, api_client, admin_user, faker):
         """
@@ -336,12 +384,18 @@ class TestPlayoutHistoryCreateRedTeamValidationBypass:
             "ends": "2026-04-09T10:00:00Z",  # 2 hours earlier
         }
 
-        response = api_client.post("/api/v2/playout-history", data, format="json")
+        response = api_client.post(
+            "/api/v2/playout-history", data, format="json",
+        )
 
         if response.status_code == 201:
-            pytest.xfail("T625: Validation bypass - negative duration accepted")
+            pytest.xfail(
+                "T625: Validation bypass - negative duration accepted",
+            )
 
-    def test_create_invalid_datetime_format(self, api_client, admin_user, faker):
+    def test_create_invalid_datetime_format(
+        self, api_client, admin_user, faker,
+    ):
         """
         Validation: Invalid datetime formats should be rejected.
         """
@@ -361,10 +415,14 @@ class TestPlayoutHistoryCreateRedTeamValidationBypass:
                 "starts": invalid,
             }
 
-            response = api_client.post("/api/v2/playout-history", data, format="json")
+            response = api_client.post(
+                "/api/v2/playout-history", data, format="json",
+            )
 
             if response.status_code == 201:
-                pytest.xfail(f"T626: Invalid datetime format accepted: {invalid}")
+                pytest.xfail(
+                    f"T626: Invalid datetime format accepted: {invalid}",
+                )
 
     def test_create_far_future_dates(self, api_client, admin_user, faker):
         """
@@ -378,7 +436,9 @@ class TestPlayoutHistoryCreateRedTeamValidationBypass:
             "ends": "2100-01-01T00:00:00Z",
         }
 
-        response = api_client.post("/api/v2/playout-history", data, format="json")
+        response = api_client.post(
+            "/api/v2/playout-history", data, format="json",
+        )
 
         # Document behavior - far future dates may be valid for scheduling
         assert response.status_code in [201, 400]
@@ -395,7 +455,9 @@ class TestPlayoutHistoryCreateRedTeamValidationBypass:
             "ends": "1970-01-01T00:05:00Z",
         }
 
-        response = api_client.post("/api/v2/playout-history", data, format="json")
+        response = api_client.post(
+            "/api/v2/playout-history", data, format="json",
+        )
 
         # Document behavior - far past dates may be rejected
         assert response.status_code in [201, 400]
@@ -419,7 +481,9 @@ class TestPlayoutHistoryCreateRedTeamResourceConsumption:
                 "file": f.id,
                 "starts": format_datetime(now() + timedelta(seconds=i)),
             }
-            response = api_client.post("/api/v2/playout-history", data, format="json")
+            response = api_client.post(
+                "/api/v2/playout-history", data, format="json",
+            )
             if response.status_code == 201:
                 success_count += 1
 
@@ -437,7 +501,9 @@ class TestPlayoutHistoryCreateRedTeamResourceConsumption:
             "ends": format_datetime(now() + timedelta(minutes=5)),
         }
 
-        response = api_client.post("/api/v2/playout-history", data, format="json")
+        response = api_client.post(
+            "/api/v2/playout-history", data, format="json",
+        )
 
         # May be valid (e.g., system event) or may require validation
         # Document behavior
@@ -459,7 +525,9 @@ class TestPlayoutHistoryCreateRedTeamAuthentication:
             "ends": format_datetime(now() + timedelta(minutes=5)),
         }
 
-        response = api_client.post("/api/v2/playout-history", data, format="json")
+        response = api_client.post(
+            "/api/v2/playout-history", data, format="json",
+        )
         assert response.status_code == 403
 
     def test_create_as_regular_user(self, api_client, regular_user, faker):
@@ -478,7 +546,9 @@ class TestPlayoutHistoryCreateRedTeamAuthentication:
             "ends": format_datetime(now() + timedelta(minutes=5)),
         }
 
-        response = api_client.post("/api/v2/playout-history", data, format="json")
+        response = api_client.post(
+            "/api/v2/playout-history", data, format="json",
+        )
 
         if response.status_code == 201:
             # Regular user can create - document this permission
@@ -502,7 +572,9 @@ class TestPlayoutHistoryCreateRedTeamAuthentication:
             "ends": format_datetime(now() + timedelta(minutes=5)),
         }
 
-        response = api_client.post("/api/v2/playout-history", data, format="json")
+        response = api_client.post(
+            "/api/v2/playout-history", data, format="json",
+        )
 
         if response.status_code == 201:
             pytest.xfail("T628: BFLA - Guest user can create playout history")
@@ -521,7 +593,11 @@ class TestPlayoutHistoryCreateRedTeamFuzzing:
         fuzz_cases = [
             {"file": "not-an-int", "starts": format_datetime(now())},
             {"file": f.id, "starts": 12345},
-            {"file": f.id, "starts": format_datetime(now()), "instance": "not-an-int"},
+            {
+                "file": f.id,
+                "starts": format_datetime(now()),
+                "instance": "not-an-int",
+            },
             {"file": "", "starts": format_datetime(now())},
             {"file": -1, "starts": format_datetime(now())},
             {"file": f.id, "starts": None},
@@ -529,7 +605,9 @@ class TestPlayoutHistoryCreateRedTeamFuzzing:
 
         errors_500 = 0
         for data in fuzz_cases:
-            response = api_client.post("/api/v2/playout-history", data, format="json")
+            response = api_client.post(
+                "/api/v2/playout-history", data, format="json",
+            )
             if response.status_code == 500:
                 errors_500 += 1
 
@@ -557,7 +635,11 @@ class TestPlayoutHistoryCreateRedTeamFuzzing:
                 "starts": format_datetime(now()),
             }
 
-            response = api_client.post("/api/v2/playout-history", data, format="json")
+            response = api_client.post(
+                "/api/v2/playout-history", data, format="json",
+            )
 
             if response.status_code == 500:
-                pytest.xfail(f"T629: Unicode payload caused 500: {repr(payload[:30])}")
+                pytest.xfail(
+                    f"T629: Unicode payload caused 500: {repr(payload[:30])}",
+                )

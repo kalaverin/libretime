@@ -9,10 +9,11 @@ Attack vectors:
 - BOLA on preferences
 """
 
-import pytest
 import json
+
+import pytest
+
 from model_bakery import baker
-from rest_framework.test import APIClient
 
 
 @pytest.mark.django_db
@@ -103,7 +104,7 @@ class TestPreferenceUnicodeAttacks:
     def test_unicode_homograph_key(self, api_client, admin_user):
         """Try to create preference with unicode homograph in key."""
         api_client.force_authenticate(user=admin_user)
-        
+
         # Create first preference with ASCII key
         response1 = api_client.post(
             "/api/v2/preferences/",
@@ -234,7 +235,9 @@ class TestPreferenceWhitespaceExploitation:
 class TestPreferenceBOLA:
     """Broken Object Level Authorization on preferences."""
 
-    def test_list_shows_only_own_preferences(self, api_client, admin_user, regular_user):
+    def test_list_shows_only_own_preferences(
+        self, api_client, admin_user, regular_user,
+    ):
         """Verify list returns only user's own preferences."""
         # Create preferences for both users
         admin_pref = baker.make(
@@ -260,9 +263,13 @@ class TestPreferenceBOLA:
         assert "user_pref" in pref_keys
 
         if "admin_pref" in pref_keys:
-            pytest.fail("CRITICAL BAG: List shows other users' preferences (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: List shows other users' preferences (BOLA)",
+            )
 
-    def test_access_other_user_preference(self, api_client, admin_user, regular_user):
+    def test_access_other_user_preference(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to access another user's preference by ID."""
         pref = baker.make(
             "core.Preference",
@@ -275,9 +282,13 @@ class TestPreferenceBOLA:
         response = api_client.get(f"/api/v2/preferences/{pref.id}")
 
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Can access other user's preference (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: Can access other user's preference (BOLA)",
+            )
 
-    def test_update_other_user_preference(self, api_client, admin_user, regular_user):
+    def test_update_other_user_preference(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to update another user's preference."""
         pref = baker.make(
             "core.Preference",
@@ -294,9 +305,13 @@ class TestPreferenceBOLA:
         )
 
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Can update other user's preference (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: Can update other user's preference (BOLA)",
+            )
 
-    def test_delete_other_user_preference(self, api_client, admin_user, regular_user):
+    def test_delete_other_user_preference(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to delete another user's preference."""
         pref = baker.make(
             "core.Preference",
@@ -309,7 +324,9 @@ class TestPreferenceBOLA:
         response = api_client.delete(f"/api/v2/preferences/{pref.id}")
 
         if response.status_code == 204:
-            pytest.fail("CRITICAL BAG: Can delete other user's preference (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: Can delete other user's preference (BOLA)",
+            )
 
 
 @pytest.mark.django_db
@@ -333,7 +350,7 @@ class TestPreferenceMassAssignment:
         if response.status_code == 201:
             data = response.json()
             if data.get("id") == 99999:
-                pytest.fail("BAG: Can set id field")
+                pytest.fail("BUG: Can set id field")
 
     def test_update_user_field(self, api_client, admin_user, regular_user):
         """Try to change user via PATCH."""
@@ -354,7 +371,7 @@ class TestPreferenceMassAssignment:
         if response.status_code == 200:
             data = response.json()
             if data.get("user") == regular_user.id:
-                pytest.fail("BAG: Can transfer preference to another user")
+                pytest.fail("BUG: Can transfer preference to another user")
 
 
 @pytest.mark.django_db
@@ -387,7 +404,7 @@ class TestPreferenceKeyCollision:
     def test_case_sensitive_keys(self, api_client, admin_user):
         """Test case sensitivity of preference keys."""
         api_client.force_authenticate(user=admin_user)
-        
+
         response1 = api_client.post(
             "/api/v2/preferences/",
             {

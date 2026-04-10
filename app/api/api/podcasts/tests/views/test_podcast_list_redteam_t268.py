@@ -5,18 +5,21 @@ Tests for BOLA, injection, SSRF in RSS URLs, and other vulnerabilities.
 Uses SecLists for comprehensive fuzzing.
 """
 
-import json
 import time
 
 import pytest
 
-from model_bakery import baker
-from sdk import now
-
-from api.podcasts.models import Podcast, PodcastEpisode, StationPodcast, ImportedPodcast
 from api.core.models.role import Role
 from api.core.models.user import User
+from api.podcasts.models import (
+    ImportedPodcast,
+    Podcast,
+    PodcastEpisode,
+    StationPodcast,
+)
+from model_bakery import baker
 
+from sdk import now
 
 # =============================================================================
 # SecLists Payloads (sampled for performance)
@@ -57,7 +60,7 @@ XSS_PAYLOADS = [
     "<details open ontoggle=alert(1)>",
     # Polyglots
     "'\"><svg/onload=alert(1)>",
-    "\"><img src=x onerror=alert(1)>",
+    '"><img src=x onerror=alert(1)>',
 ]
 
 NAUGHTY_STRINGS = [
@@ -82,9 +85,23 @@ NAUGHTY_STRINGS = [
     "\\x00",  # Null byte
     "\\x80",  # High bit
     "🎧🎤🎵",  # Emoji
-    "<",">","&","\"","'",
-    "|",";","&","$",">","<","`","\\",
-    "../","..\\","/etc/passwd","C:\\Windows\\System32",
+    "<",
+    ">",
+    "&",
+    '"',
+    "'",
+    "|",
+    ";",
+    "&",
+    "$",
+    ">",
+    "<",
+    "`",
+    "\\",
+    "../",
+    "..\\",
+    "/etc/passwd",
+    "C:\\Windows\\System32",
 ]
 
 PATH_TRAVERSAL = [
@@ -120,11 +137,14 @@ COMMAND_INJECTION = [
 # API1:2023 BOLA - Broken Object Level Authorization
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestPodcastListRedTeamBOLA:
     """API1:2023 Broken Object Level Authorization - T353 confirmation."""
 
-    def test_bola_t353_list_shows_all_users_podcasts(self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase):
+    def test_bola_t353_list_shows_all_users_podcasts(
+        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
+    ):
         """
         BOLA T353: LIST returns ALL podcasts regardless of owner.
 
@@ -132,7 +152,9 @@ class TestPodcastListRedTeamBOLA:
         No owner-based filtering implemented.
         """
         # Create victim user's private podcast
-        victim = baker.make(User, role=Role.HOST, username=f"victim_{fake_catch_phrase}")
+        victim = baker.make(
+            User, role=Role.HOST, username=f"victim_{fake_catch_phrase}",
+        )
         victim_podcast = baker.make(
             Podcast,
             url=fake_url,
@@ -149,14 +171,20 @@ class TestPodcastListRedTeamBOLA:
         # Check if victim's podcast is visible
         podcast_ids = [p.get("id") for p in data]
         if victim_podcast.id in podcast_ids:
-            pytest.xfail("T663: BOLA - LIST shows other users' private podcasts")
+            pytest.xfail(
+                "T663: BOLA - LIST shows other users' private podcasts",
+            )
 
-    def test_bola_t353_regular_user_sees_all_podcasts(self, api_client, regular_user, fake_url, fake_catch_phrase):
+    def test_bola_t353_regular_user_sees_all_podcasts(
+        self, api_client, regular_user, fake_url, fake_catch_phrase,
+    ):
         """
         BOLA T353: Regular user can see all podcasts including admin's.
         """
         # Create admin's private podcast
-        admin = baker.make(User, role=Role.ADMIN, username=f"admin_{fake_catch_phrase}")
+        admin = baker.make(
+            User, role=Role.ADMIN, username=f"admin_{fake_catch_phrase}",
+        )
         admin_podcast = baker.make(
             Podcast,
             url=fake_url,
@@ -173,9 +201,13 @@ class TestPodcastListRedTeamBOLA:
 
         podcast_ids = [p.get("id") for p in data]
         if admin_podcast.id in podcast_ids:
-            pytest.xfail("T663: BOLA - Regular user sees admin's private podcasts")
+            pytest.xfail(
+                "T663: BOLA - Regular user sees admin's private podcasts",
+            )
 
-    def test_bola_t353_guest_user_can_list_podcasts(self, api_client, guest_user, fake_url, fake_catch_phrase):
+    def test_bola_t353_guest_user_can_list_podcasts(
+        self, api_client, guest_user, fake_url, fake_catch_phrase,
+    ):
         """
         BFLA T353: Guest user can access podcast LIST.
         """
@@ -187,7 +219,9 @@ class TestPodcastListRedTeamBOLA:
         if response.status_code == 200:
             pytest.xfail("T664: BFLA - Guest user can list podcasts")
 
-    def test_bola_id_format_manipulation_numeric(self, api_client, admin_user, fake_url, fake_catch_phrase):
+    def test_bola_id_format_manipulation_numeric(
+        self, api_client, admin_user, fake_url, fake_catch_phrase,
+    ):
         """
         BOLA: Test ID format confusion - numeric vs string IDs.
         """
@@ -229,11 +263,14 @@ class TestPodcastListRedTeamBOLA:
 # API8:2023 Injection Attacks (SQLi, NoSQLi, Command Injection)
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestPodcastListRedTeamInjection:
     """Injection attacks on LIST endpoint using SecLists payloads."""
 
-    def test_sqli_in_search_param(self, api_client, admin_user, fake_catch_phrase):
+    def test_sqli_in_search_param(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         SQL Injection via search parameter - SecLists comprehensive.
         """
@@ -241,10 +278,19 @@ class TestPodcastListRedTeamInjection:
             response = api_client.get(f"/api/v2/podcasts?search={payload}")
 
             if response.status_code == 500:
-                pytest.xfail(f"T668: SQLi in search causes 500: {payload[:30]}")
+                pytest.xfail(
+                    f"T668: SQLi in search causes 500: {payload[:30]}",
+                )
 
             error_text = str(response.content).lower()
-            sql_errors = ["sql", "syntax", "pg_query", "column", "table", "error"]
+            sql_errors = [
+                "sql",
+                "syntax",
+                "pg_query",
+                "column",
+                "table",
+                "error",
+            ]
             if any(err in error_text for err in sql_errors):
                 pytest.xfail(f"T668: SQLi error disclosure: {payload[:30]}")
 
@@ -258,7 +304,10 @@ class TestPodcastListRedTeamInjection:
             if response.status_code == 500:
                 pytest.xfail(f"T669: SQLi in title causes 500: {payload[:30]}")
 
-            if "podcast" in str(response.content).lower() and response.status_code != 200:
+            if (
+                "podcast" in str(response.content).lower()
+                and response.status_code != 200
+            ):
                 pytest.xfail("T669: Potential SQLi info leak in title filter")
 
     def test_sqli_in_ordering_param(self, api_client, admin_user):
@@ -275,7 +324,9 @@ class TestPodcastListRedTeamInjection:
             duration = time.time() - start
 
             if duration > 1.5:  # Time-based SQLi detected
-                pytest.xfail(f"T670: Time-based SQLi in ordering: {duration:.2f}s")
+                pytest.xfail(
+                    f"T670: Time-based SQLi in ordering: {duration:.2f}s",
+                )
 
             if response.status_code == 500:
                 pytest.xfail("T670: SQLi in ordering causes 500")
@@ -292,7 +343,9 @@ class TestPodcastListRedTeamInjection:
 
         for payload in union_payloads:
             response = api_client.get(f"/api/v2/podcasts?search={payload}")
-            if "username" in str(response.content) or "password" in str(response.content):
+            if "username" in str(response.content) or "password" in str(
+                response.content,
+            ):
                 pytest.xfail("T671: UNION-based SQLi successful")
 
     def test_nosql_injection_mongodb_operators(self, api_client, admin_user):
@@ -321,7 +374,9 @@ class TestPodcastListRedTeamInjection:
             response = api_client.get(f"/api/v2/podcasts?url={payload}")
             if response.status_code == 500:
                 error_text = str(response.content).lower()
-                if any(cmd in error_text for cmd in ["uid=", "root:", "command"]):
+                if any(
+                    cmd in error_text for cmd in ["uid=", "root:", "command"]
+                ):
                     pytest.xfail("T672: Command injection in URL parameter")
 
 
@@ -329,18 +384,25 @@ class TestPodcastListRedTeamInjection:
 # API8:2023 Information Disclosure
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestPodcastListRedTeamInformationDisclosure:
     """Information disclosure tests."""
 
-    def test_list_includes_owner_id(self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase):
+    def test_list_includes_owner_id(
+        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
+    ):
         """
         Information disclosure: LIST includes owner_id field.
 
         Can be used to enumerate user IDs.
         """
-        victim = baker.make(User, role=Role.HOST, username=f"victim_{fake_catch_phrase}")
-        baker.make(Podcast, url=fake_url, title=fake_catch_phrase, owner=victim)
+        victim = baker.make(
+            User, role=Role.HOST, username=f"victim_{fake_catch_phrase}",
+        )
+        baker.make(
+            Podcast, url=fake_url, title=fake_catch_phrase, owner=victim,
+        )
 
         response = api_client.get("/api/v2/podcasts")
 
@@ -351,7 +413,9 @@ class TestPodcastListRedTeamInformationDisclosure:
             if "owner" in data[0]:
                 owner_id = data[0].get("owner")
                 if owner_id:
-                    pytest.xfail("T673: Owner ID exposed in LIST (user enumeration)")
+                    pytest.xfail(
+                        "T673: Owner ID exposed in LIST (user enumeration)",
+                    )
 
     def test_error_message_leaks_db_structure(self, api_client, admin_user):
         """
@@ -361,15 +425,26 @@ class TestPodcastListRedTeamInformationDisclosure:
 
         if response.status_code == 500:
             error_text = str(response.content).lower()
-            leak_keywords = ["podcast", "pg_query", "column", "table", "cc_podcast", "syntax"]
+            leak_keywords = [
+                "podcast",
+                "pg_query",
+                "column",
+                "table",
+                "cc_podcast",
+                "syntax",
+            ]
             if any(kw in error_text for kw in leak_keywords):
                 pytest.xfail("T674: Error message leaks database structure")
 
-    def test_id_enumeration_via_404_403(self, api_client, regular_user, fake_url, fake_catch_phrase):
+    def test_id_enumeration_via_404_403(
+        self, api_client, regular_user, fake_url, fake_catch_phrase,
+    ):
         """
         Different errors for existent vs non-existent IDs leak existence.
         """
-        admin = baker.make(User, role=Role.ADMIN, username=f"admin_{fake_catch_phrase}")
+        admin = baker.make(
+            User, role=Role.ADMIN, username=f"admin_{fake_catch_phrase}",
+        )
         admin_podcast = baker.make(
             Podcast,
             url=fake_url,
@@ -379,7 +454,9 @@ class TestPodcastListRedTeamInformationDisclosure:
 
         api_client.force_authenticate(user=regular_user)
 
-        response_existing = api_client.get(f"/api/v2/podcasts/{admin_podcast.id}")
+        response_existing = api_client.get(
+            f"/api/v2/podcasts/{admin_podcast.id}",
+        )
         response_nonexistent = api_client.get("/api/v2/podcasts/999999")
 
         # If different status codes, ID enumeration is possible
@@ -394,7 +471,7 @@ class TestPodcastListRedTeamInformationDisclosure:
         response = api_client.post(
             "/api/v2/podcasts",
             data="invalid json {",
-            content_type="application/json"
+            content_type="application/json",
         )
         if response.status_code == 500:
             error_text = str(response.content).lower()
@@ -407,13 +484,17 @@ class TestPodcastListRedTeamInformationDisclosure:
         """
         response = api_client.get("/api/v2/podcasts?search=\\x00")
         if response.status_code == 500:
-            if b"Traceback" in response.content or b"File \"" in response.content:
+            if (
+                b"Traceback" in response.content
+                or b'File "' in response.content
+            ):
                 pytest.xfail("T677: Stack trace exposed in error response")
 
 
 # =============================================================================
 # API4:2023 Unrestricted Resource Consumption
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestPodcastListRedTeamResourceConsumption:
@@ -430,9 +511,13 @@ class TestPodcastListRedTeamResourceConsumption:
                 success_count += 1
 
         if success_count == 50:
-            pytest.xfail("T678: No rate limiting on Podcast LIST (50 req/s allowed)")
+            pytest.xfail(
+                "T678: No rate limiting on Podcast LIST (50 req/s allowed)",
+            )
 
-    def test_bulk_podcast_list(self, api_client, admin_user, fake_url, fake_catch_phrase):
+    def test_bulk_podcast_list(
+        self, api_client, admin_user, fake_url, fake_catch_phrase,
+    ):
         """
         Resource consumption: List without pagination (1000 records).
         """
@@ -449,7 +534,9 @@ class TestPodcastListRedTeamResourceConsumption:
         if response.status_code == 200:
             data = response.json()
             if isinstance(data, list) and len(data) >= 100:
-                pytest.xfail("T679: Large result set without pagination (100+ records)")
+                pytest.xfail(
+                    "T679: Large result set without pagination (100+ records)",
+                )
 
     def test_large_page_size_abuse(self, api_client, admin_user):
         """
@@ -479,7 +566,12 @@ class TestPodcastListRedTeamResourceConsumption:
         Deeply nested filter parameters may cause CPU exhaustion.
         """
         # Create deeply nested query string
-        nested = "&".join([f"filter[{i}][field]=title&filter[{i}][op]=eq&filter[{i}][val]=test" for i in range(50)])
+        nested = "&".join(
+            [
+                f"filter[{i}][field]=title&filter[{i}][op]=eq&filter[{i}][val]=test"
+                for i in range(50)
+            ],
+        )
         response = api_client.get(f"/api/v2/podcasts?{nested}")
 
         if response.status_code == 500:
@@ -489,6 +581,7 @@ class TestPodcastListRedTeamResourceConsumption:
 # =============================================================================
 # API2:2023 Broken Authentication
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestPodcastListRedTeamAuthentication:
@@ -500,7 +593,9 @@ class TestPodcastListRedTeamAuthentication:
         response = api_client.get("/api/v2/podcasts")
         assert response.status_code == 403
 
-    def test_unauthenticated_retrieve(self, api_client, fake_url, fake_catch_phrase):
+    def test_unauthenticated_retrieve(
+        self, api_client, fake_url, fake_catch_phrase,
+    ):
         """Unauthenticated RETRIEVE should fail."""
         podcast = baker.make(Podcast, url=fake_url, title=fake_catch_phrase)
 
@@ -534,17 +629,20 @@ class TestPodcastListRedTeamAuthentication:
 # PodcastEpisode BOLA Tests
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestPodcastEpisodeListRedTeamBOLA:
     """BOLA tests for PodcastEpisode LIST."""
 
     def test_bola_episode_list_shows_all_episodes(
-        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase
+        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
     ):
         """
         BOLA: PodcastEpisode LIST returns all episodes regardless of podcast owner.
         """
-        victim = baker.make(User, role=Role.HOST, username=f"victim_{fake_catch_phrase}")
+        victim = baker.make(
+            User, role=Role.HOST, username=f"victim_{fake_catch_phrase}",
+        )
         victim_podcast = baker.make(
             Podcast,
             url=fake_url,
@@ -567,25 +665,32 @@ class TestPodcastEpisodeListRedTeamBOLA:
 
         episode_ids = [e.get("id") for e in data]
         if victim_episode.id in episode_ids:
-            pytest.xfail("T682: BOLA - Episode LIST shows other users' private episodes")
+            pytest.xfail(
+                "T682: BOLA - Episode LIST shows other users' private episodes",
+            )
 
 
 # =============================================================================
 # StationPodcast BOLA Tests
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestPodcastStationListRedTeamBOLA:
     """BOLA tests for StationPodcast LIST."""
 
     def test_bola_station_podcast_list_shows_all(
-        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase
+        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
     ):
         """
         BOLA: StationPodcast LIST returns all regardless of owner.
         """
-        victim = baker.make(User, role=Role.HOST, username=f"victim_{fake_catch_phrase}")
-        victim_podcast = baker.make(Podcast, url=fake_url, title=fake_catch_phrase, owner=victim)
+        victim = baker.make(
+            User, role=Role.HOST, username=f"victim_{fake_catch_phrase}",
+        )
+        victim_podcast = baker.make(
+            Podcast, url=fake_url, title=fake_catch_phrase, owner=victim,
+        )
         station_podcast = baker.make(StationPodcast, podcast=victim_podcast)
 
         api_client.force_authenticate(user=regular_user)
@@ -599,26 +704,35 @@ class TestPodcastStationListRedTeamBOLA:
 
         station_ids = [s.get("id") for s in data]
         if station_podcast.id in station_ids:
-            pytest.xfail("T683: BOLA - StationPodcast LIST shows other users' entries")
+            pytest.xfail(
+                "T683: BOLA - StationPodcast LIST shows other users' entries",
+            )
 
 
 # =============================================================================
 # ImportedPodcast BOLA Tests
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestImportedPodcastListRedTeamBOLA:
     """BOLA tests for ImportedPodcast LIST."""
 
     def test_bola_imported_podcast_list_shows_all(
-        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase
+        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
     ):
         """
         BOLA: ImportedPodcast LIST returns all regardless of owner.
         """
-        victim = baker.make(User, role=Role.HOST, username=f"victim_{fake_catch_phrase}")
-        victim_podcast = baker.make(Podcast, url=fake_url, title=fake_catch_phrase, owner=victim)
-        imported = baker.make(ImportedPodcast, podcast=victim_podcast, override_album=False)
+        victim = baker.make(
+            User, role=Role.HOST, username=f"victim_{fake_catch_phrase}",
+        )
+        victim_podcast = baker.make(
+            Podcast, url=fake_url, title=fake_catch_phrase, owner=victim,
+        )
+        imported = baker.make(
+            ImportedPodcast, podcast=victim_podcast, override_album=False,
+        )
 
         api_client.force_authenticate(user=regular_user)
         response = api_client.get("/api/v2/imported-podcasts")
@@ -631,25 +745,32 @@ class TestImportedPodcastListRedTeamBOLA:
 
         imported_ids = [i.get("id") for i in data]
         if imported.id in imported_ids:
-            pytest.xfail("T684: BOLA - ImportedPodcast LIST shows other users' entries")
+            pytest.xfail(
+                "T684: BOLA - ImportedPodcast LIST shows other users' entries",
+            )
 
 
 # =============================================================================
 # API5:2023 BFLA - HTTP Method Tampering
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestPodcastListRedTeamHTTPMethodTampering:
     """HTTP method tampering tests."""
 
-    def test_trace_method_disabled(self, api_client, admin_user, fake_url, fake_catch_phrase):
+    def test_trace_method_disabled(
+        self, api_client, admin_user, fake_url, fake_catch_phrase,
+    ):
         """TRACE method should be disabled."""
         podcast = baker.make(Podcast, url=fake_url, title=fake_catch_phrase)
 
         response = api_client.trace(f"/api/v2/podcasts/{podcast.id}")
         assert response.status_code in [405, 403]
 
-    def test_method_override_via_header(self, api_client, admin_user, fake_url, fake_catch_phrase):
+    def test_method_override_via_header(
+        self, api_client, admin_user, fake_url, fake_catch_phrase,
+    ):
         """
         Method override via X-HTTP-Method-Override header.
         """
@@ -659,21 +780,22 @@ class TestPodcastListRedTeamHTTPMethodTampering:
         response = api_client.post(
             f"/api/v2/podcasts/{podcast.id}",
             {},
-            HTTP_X_HTTP_METHOD_OVERRIDE="GET"
+            HTTP_X_HTTP_METHOD_OVERRIDE="GET",
         )
         # Should not work
         if response.status_code == 200 and "title" in str(response.content):
             pytest.xfail("T685: Method override header bypass works")
 
-    def test_method_override_via_query_param(self, api_client, admin_user, fake_url, fake_catch_phrase):
+    def test_method_override_via_query_param(
+        self, api_client, admin_user, fake_url, fake_catch_phrase,
+    ):
         """
         Method override via _method query parameter.
         """
         podcast = baker.make(Podcast, url=fake_url, title=fake_catch_phrase)
 
         response = api_client.post(
-            f"/api/v2/podcasts/{podcast.id}?_method=DELETE",
-            {}
+            f"/api/v2/podcasts/{podcast.id}?_method=DELETE", {},
         )
         if response.status_code == 204:
             pytest.xfail("T686: Method override via query param works")
@@ -683,11 +805,14 @@ class TestPodcastListRedTeamHTTPMethodTampering:
 # API3:2023 BOPLA - Mass Assignment & Property Manipulation
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestPodcastListRedTeamBOPLA:
     """Broken Object Property Level Authorization tests."""
 
-    def test_mass_assignment_via_list_endpoint(self, api_client, admin_user, fake_url, fake_catch_phrase):
+    def test_mass_assignment_via_list_endpoint(
+        self, api_client, admin_user, fake_url, fake_catch_phrase,
+    ):
         """
         Try to modify read-only fields via LIST (if PATCH on list is supported).
         """
@@ -695,18 +820,22 @@ class TestPodcastListRedTeamBOPLA:
         response = api_client.patch(
             "/api/v2/podcasts",
             [{"id": 1, "owner_id": 999}],  # Try to change owner
-            format="json"
+            format="json",
         )
         # Should not be allowed
         if response.status_code == 200:
             pytest.xfail("T687: Mass assignment via list endpoint works")
 
-    def test_field_selection_via_query_param(self, api_client, admin_user, fake_url, fake_catch_phrase):
+    def test_field_selection_via_query_param(
+        self, api_client, admin_user, fake_url, fake_catch_phrase,
+    ):
         """
         Try to select specific fields via query param (may bypass field-level auth).
         """
         # Some APIs support ?fields= to limit returned fields
-        response = api_client.get("/api/v2/podcasts?fields=owner,password,secret")
+        response = api_client.get(
+            "/api/v2/podcasts?fields=owner,password,secret",
+        )
         if response.status_code == 200:
             data = response.json()
             if data and "password" in str(data):
@@ -716,6 +845,7 @@ class TestPodcastListRedTeamBOPLA:
 # =============================================================================
 # API8:2023 Security Misconfiguration - Fuzzing Tests
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestPodcastListRedTeamFuzzing:
@@ -729,7 +859,9 @@ class TestPodcastListRedTeamFuzzing:
             response = api_client.get(f"/api/v2/podcasts?search={payload}")
             # Should handle gracefully (200 or 400), not 500
             if response.status_code == 500:
-                pytest.xfail(f"T689: Naughty string causes 500: {payload[:30]}")
+                pytest.xfail(
+                    f"T689: Naughty string causes 500: {payload[:30]}",
+                )
 
     def test_naughty_strings_in_title_filter(self, api_client, admin_user):
         """
@@ -738,7 +870,7 @@ class TestPodcastListRedTeamFuzzing:
         for payload in NAUGHTY_STRINGS[:8]:
             response = api_client.get(f"/api/v2/podcasts?title={payload}")
             if response.status_code == 500:
-                pytest.xfail(f"T690: Naughty string in title causes 500")
+                pytest.xfail("T690: Naughty string in title causes 500")
 
     def test_xss_payloads_in_filters(self, api_client, admin_user):
         """
@@ -756,7 +888,9 @@ class TestPodcastListRedTeamFuzzing:
         """
         for payload in PATH_TRAVERSAL[:5]:
             response = api_client.get(f"/api/v2/podcasts?file={payload}")
-            if "root:" in str(response.content) or "passwd" in str(response.content):
+            if "root:" in str(response.content) or "passwd" in str(
+                response.content,
+            ):
                 pytest.xfail(f"T692: Path traversal works: {payload}")
 
     def test_unicode_normalization_attacks(self, api_client, admin_user):
@@ -765,7 +899,7 @@ class TestPodcastListRedTeamFuzzing:
         """
         unicode_attacks = [
             "ｓｅｌｅｃｔ",  # Full-width characters
-            "ѕеlect",      # Cyrillic homographs
+            "ѕеlect",  # Cyrillic homographs
             "test\u0000",  # Null byte
             "test\uffff",  # High Unicode
         ]
@@ -778,6 +912,7 @@ class TestPodcastListRedTeamFuzzing:
 # =============================================================================
 # API7:2023 SSRF - Server Side Request Forgery
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestPodcastListRedTeamSSRF:
@@ -800,7 +935,10 @@ class TestPodcastListRedTeamSSRF:
             response = api_client.get(f"/api/v2/podcasts?url={url}")
             # If internal content appears, SSRF exists
             content = str(response.content).lower()
-            if any(indicator in content for indicator in ["root:", "localhost", "meta-data"]):
+            if any(
+                indicator in content
+                for indicator in ["root:", "localhost", "meta-data"]
+            ):
                 pytest.xfail(f"T694: SSRF to {url} successful")
 
     def test_ssrf_dns_rebinding(self, api_client, admin_user):
@@ -821,6 +959,7 @@ class TestPodcastListRedTeamSSRF:
 # Header Injection & CORS Tests
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestPodcastListRedTeamHeaders:
     """Header injection and CORS tests."""
@@ -832,9 +971,9 @@ class TestPodcastListRedTeamHeaders:
         response = api_client.options(
             "/api/v2/podcasts",
             HTTP_ORIGIN="https://evil.com",
-            HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET"
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET",
         )
-        
+
         allow_origin = response.get("Access-Control-Allow-Origin")
         if allow_origin == "*" or allow_origin == "https://evil.com":
             pytest.xfail("T696: CORS allows arbitrary origin")
@@ -846,7 +985,7 @@ class TestPodcastListRedTeamHeaders:
         response = api_client.get(
             "/api/v2/podcasts",
             HTTP_HOST="evil.com",
-            HTTP_X_FORWARDED_HOST="evil.com"
+            HTTP_X_FORWARDED_HOST="evil.com",
         )
         # If response reflects poisoned host, it might be vulnerable
         if "evil.com" in str(response.content):
@@ -858,12 +997,11 @@ class TestPodcastListRedTeamHeaders:
         """
         # First request with poisoned header
         response1 = api_client.get(
-            "/api/v2/podcasts",
-            HTTP_X_FORWARDED_HOST="evil.com"
+            "/api/v2/podcasts", HTTP_X_FORWARDED_HOST="evil.com",
         )
         # Normal request
         response2 = api_client.get("/api/v2/podcasts")
-        
+
         if "evil.com" in str(response2.content):
             pytest.xfail("T698: Cache poisoning via X-Forwarded-Host")
 
@@ -871,6 +1009,7 @@ class TestPodcastListRedTeamHeaders:
 # =============================================================================
 # Business Logic Tests
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestPodcastListRedTeamBusinessLogic:
@@ -886,7 +1025,7 @@ class TestPodcastListRedTeamBusinessLogic:
             ("title", "test%20"),  # URL-encoded space
             ("title", "test\t"),  # Tab
         ]
-        
+
         for field, value in encodings:
             response = api_client.get(f"/api/v2/podcasts?{field}={value}")
             if response.status_code == 500:
@@ -901,7 +1040,7 @@ class TestPodcastListRedTeamBusinessLogic:
             "<script>alert(1)</script>",
             "function(){alert(1)}",
         ]
-        
+
         for callback in malicious_callbacks:
             response = api_client.get(f"/api/v2/podcasts?callback={callback}")
             if callback in str(response.content):

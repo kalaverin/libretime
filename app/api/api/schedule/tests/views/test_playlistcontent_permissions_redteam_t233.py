@@ -10,6 +10,7 @@ Tests focus on:
 import json
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -79,8 +80,10 @@ class TestPlaylistContentPermissionsRedTeam:
 
         for pattern in admin_patterns:
             response = api_client.get(pattern)
-            assert response.status_code in [403, 404], \
-                f"BFLA: {pattern} returned {response.status_code}"
+            assert response.status_code in [
+                403,
+                404,
+            ], f"BFLA: {pattern} returned {response.status_code}"
 
     # ========================================================================
     # Cross-User Access
@@ -91,7 +94,9 @@ class TestPlaylistContentPermissionsRedTeam:
         """Cross-user: User should only see own contents."""
         victim = baker.make(User, username="testred_victim")
         victim_playlist = baker.make(Playlist, name="Victim", owner=victim)
-        victim_file = baker.make(File, name="victim.mp3", mime="audio/mp3", owner=victim)
+        victim_file = baker.make(
+            File, name="victim.mp3", mime="audio/mp3", owner=victim,
+        )
         victim_content = baker.make(
             PlaylistContent,
             playlist=victim_playlist,
@@ -104,8 +109,9 @@ class TestPlaylistContentPermissionsRedTeam:
         data = response.json()
 
         ids = [c["id"] for c in data]
-        assert victim_content.id not in ids, \
-            "Cross-user: Attacker sees victim's content"
+        assert (
+            victim_content.id not in ids
+        ), "Cross-user: Attacker sees victim's content"
 
     # ========================================================================
     # Permission Elevation
@@ -113,7 +119,11 @@ class TestPlaylistContentPermissionsRedTeam:
 
     def test_permission_elevation_param(self, api_client):
         """Elevation: Try to elevate via query params."""
-        response = api_client.get("/api/v2/playlist-contents?admin=true&role=admin")
+        response = api_client.get(
+            "/api/v2/playlist-contents?admin=true&role=admin",
+        )
         # Should ignore params or return 403
-        assert response.status_code in [200, 403], \
-            f"Elevation param caused {response.status_code}"
+        assert response.status_code in [
+            200,
+            403,
+        ], f"Elevation param caused {response.status_code}"

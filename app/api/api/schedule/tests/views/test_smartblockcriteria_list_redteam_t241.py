@@ -10,6 +10,7 @@ Tests focus on:
 """
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -30,7 +31,9 @@ class TestSmartBlockCriteriaListRedTeam:
     # API1:2023 - BOLA (Broken Object Level Authorization)
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T488: BOLA - LIST shows all users' criteria without filtering")
+    @pytest.mark.xfail(
+        reason="T488: BOLA - LIST shows all users' criteria without filtering",
+    )
     def test_bola_list_shows_all_users_criteria(self, api_client):
         """BOLA: LIST should only show criteria from user's own blocks."""
         victim = baker.make(User, username="testred_victim")
@@ -56,12 +59,17 @@ class TestSmartBlockCriteriaListRedTeam:
         assert response.status_code == 200
 
         data = response.json()
-        victim_criteria_ids = [c["id"] for c in data if c.get("block") == victim_block.id]
+        victim_criteria_ids = [
+            c["id"] for c in data if c.get("block") == victim_block.id
+        ]
 
-        assert len(victim_criteria_ids) == 0, \
-            f"BOLA: Attacker can see {len(victim_criteria_ids)} victim's criteria"
+        assert (
+            len(victim_criteria_ids) == 0
+        ), f"BOLA: Attacker can see {len(victim_criteria_ids)} victim's criteria"
 
-    @pytest.mark.xfail(reason="T489: BOLA - filter by block ID bypasses ownership")
+    @pytest.mark.xfail(
+        reason="T489: BOLA - filter by block ID bypasses ownership",
+    )
     def test_bola_filter_by_other_users_block(self, api_client):
         """BOLA: Should not be able to filter by other user's block ID."""
         victim = baker.make(User, username="testred_victim")
@@ -89,14 +97,20 @@ class TestSmartBlockCriteriaListRedTeam:
         assert response.status_code == 200
 
         data = response.json()
-        assert len(data) == 0, \
-            f"BOLA: Filter by victim's block returned {len(data)} items"
+        assert (
+            len(data) == 0
+        ), f"BOLA: Filter by victim's block returned {len(data)} items"
 
     def test_criteria_id_enumeration_mitigated(self, api_client):
         """Security: Criteria ID enumeration mitigated by owner filtering."""
         user = baker.make(User, username="testred_enum")
         for i in range(5):
-            block = baker.make(SmartBlock, name=f"Block {i}", kind=SmartBlock.Kind.DYNAMIC, owner=user)
+            block = baker.make(
+                SmartBlock,
+                name=f"Block {i}",
+                kind=SmartBlock.Kind.DYNAMIC,
+                owner=user,
+            )
             baker.make(
                 SmartBlockCriteria,
                 block=block,
@@ -114,7 +128,9 @@ class TestSmartBlockCriteriaListRedTeam:
     # Filter Bypass Attacks
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T490: Filter bypass - SQL injection in block parameter")
+    @pytest.mark.xfail(
+        reason="T490: Filter bypass - SQL injection in block parameter",
+    )
     def test_filter_sql_injection_block_param(self, api_client):
         """Injection: SQLi in block filter parameter."""
         sqli_payloads = [
@@ -128,34 +144,45 @@ class TestSmartBlockCriteriaListRedTeam:
             response = api_client.get(
                 f"/api/v2/smart-block-criteria?block={payload}",
             )
-            assert response.status_code in [200, 400, 404], \
-                f"SQLi payload '{payload}' caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+                404,
+            ], f"SQLi payload '{payload}' caused {response.status_code}"
 
     def test_filter_negative_block_id_handled(self, api_client):
         """Validation: Negative block ID handled gracefully."""
         response = api_client.get("/api/v2/smart-block-criteria?block=-1")
-        assert response.status_code in [200, 400], \
-            f"Negative block ID caused {response.status_code}"
+        assert response.status_code in [
+            200,
+            400,
+        ], f"Negative block ID caused {response.status_code}"
 
     def test_filter_zero_block_id_handled(self, api_client):
         """Validation: Zero block ID handled gracefully."""
         response = api_client.get("/api/v2/smart-block-criteria?block=0")
-        assert response.status_code in [200, 400], \
-            f"Zero block ID caused {response.status_code}"
+        assert response.status_code in [
+            200,
+            400,
+        ], f"Zero block ID caused {response.status_code}"
 
     @pytest.mark.xfail(reason="T491: 500 error on non-numeric block_id filter")
     def test_filter_non_numeric_block_id(self, api_client):
         """Validation: Non-numeric block ID in filter - BUG T491."""
         response = api_client.get("/api/v2/smart-block-criteria?block=abc")
-        assert response.status_code in [400, 404], \
-            f"BUG T491: Non-numeric block ID caused {response.status_code}"
+        assert response.status_code in [
+            400,
+            404,
+        ], f"BUG T491: Non-numeric block ID caused {response.status_code}"
 
     @pytest.mark.xfail(reason="T492: 500 error on unicode block_id filter")
     def test_filter_unicode_block_id(self, api_client):
         """Validation: Unicode in block filter - BUG T492."""
         response = api_client.get("/api/v2/smart-block-criteria?block=日本語")
-        assert response.status_code in [400, 404], \
-            f"BUG T492: Unicode block ID caused {response.status_code}"
+        assert response.status_code in [
+            400,
+            404,
+        ], f"BUG T492: Unicode block ID caused {response.status_code}"
 
     # ========================================================================
     # Sorting / Ordering Attacks
@@ -164,8 +191,16 @@ class TestSmartBlockCriteriaListRedTeam:
     def test_sorting_arbitrary_field_rejected(self, api_client):
         """Security: Arbitrary ordering fields are rejected."""
         user = baker.make(User, username="testred_user")
-        block = baker.make(SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user)
-        baker.make(SmartBlockCriteria, block=block, criteria="genre", condition="contains", value="Jazz")
+        block = baker.make(
+            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+        )
+        baker.make(
+            SmartBlockCriteria,
+            block=block,
+            criteria="genre",
+            condition="contains",
+            value="Jazz",
+        )
 
         malicious_orderings = [
             "id; DROP TABLE cc_blockcriteria;--",
@@ -176,8 +211,10 @@ class TestSmartBlockCriteriaListRedTeam:
             response = api_client.get(
                 f"/api/v2/smart-block-criteria?ordering={ordering}",
             )
-            assert response.status_code in [200, 400], \
-                f"Ordering '{ordering}' caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"Ordering '{ordering}' caused {response.status_code}"
 
     # ========================================================================
     # Pagination Abuse
@@ -187,7 +224,9 @@ class TestSmartBlockCriteriaListRedTeam:
         """Security: Page size is properly limited."""
         user = baker.make(User, username="testred_user")
 
-        block = baker.make(SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user)
+        block = baker.make(
+            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+        )
         for i in range(100):
             baker.make(
                 SmartBlockCriteria,
@@ -197,15 +236,20 @@ class TestSmartBlockCriteriaListRedTeam:
                 value=f"Genre {i}",
             )
 
-        response = api_client.get("/api/v2/smart-block-criteria?page_size=999999")
-        assert response.status_code == 200, \
-            f"Large page size caused {response.status_code}"
+        response = api_client.get(
+            "/api/v2/smart-block-criteria?page_size=999999",
+        )
+        assert (
+            response.status_code == 200
+        ), f"Large page size caused {response.status_code}"
 
     def test_pagination_negative_page(self, api_client):
         """Validation: Negative page number."""
         response = api_client.get("/api/v2/smart-block-criteria?page=-1")
-        assert response.status_code in [200, 400], \
-            f"Negative page caused {response.status_code}"
+        assert response.status_code in [
+            200,
+            400,
+        ], f"Negative page caused {response.status_code}"
 
     # ========================================================================
     # Field Exposure
@@ -214,23 +258,45 @@ class TestSmartBlockCriteriaListRedTeam:
     def test_field_exposure_no_internal_fields(self, api_client):
         """Security: Internal fields are not exposed."""
         user = baker.make(User, username="testred_user")
-        block = baker.make(SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user)
-        baker.make(SmartBlockCriteria, block=block, criteria="genre", condition="contains", value="Jazz")
+        block = baker.make(
+            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+        )
+        baker.make(
+            SmartBlockCriteria,
+            block=block,
+            criteria="genre",
+            condition="contains",
+            value="Jazz",
+        )
 
         response = api_client.get("/api/v2/smart-block-criteria")
         data = response.json()
 
         if len(data) > 0:
             fields = set(data[0].keys())
-            forbidden_fields = {"_state", "password", "secret", "token", "internal_id"}
+            forbidden_fields = {
+                "_state",
+                "password",
+                "secret",
+                "token",
+                "internal_id",
+            }
             leaked = fields & forbidden_fields
             assert len(leaked) == 0, f"Internal fields leaked: {leaked}"
 
     def test_field_exposure_related_objects_are_ids(self, api_client):
         """Security: Related objects are returned as IDs only."""
         user = baker.make(User, username="testred_user")
-        block = baker.make(SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user)
-        baker.make(SmartBlockCriteria, block=block, criteria="genre", condition="contains", value="Jazz")
+        block = baker.make(
+            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+        )
+        baker.make(
+            SmartBlockCriteria,
+            block=block,
+            criteria="genre",
+            condition="contains",
+            value="Jazz",
+        )
 
         response = api_client.get("/api/v2/smart-block-criteria")
         data = response.json()
@@ -262,8 +328,7 @@ class TestSmartBlockCriteriaListRedTeam:
         ]
 
         for pattern in sensitive_patterns:
-            assert pattern not in error_body, \
-                f"Error message leaks: {pattern}"
+            assert pattern not in error_body, f"Error message leaks: {pattern}"
 
     # ========================================================================
     # HPP (HTTP Parameter Pollution)
@@ -272,17 +337,34 @@ class TestSmartBlockCriteriaListRedTeam:
     def test_hpp_duplicate_filter_params(self, api_client):
         """HPP: Duplicate block filter parameters."""
         user = baker.make(User, username="testred_user")
-        block1 = baker.make(SmartBlock, name="Block1", kind=SmartBlock.Kind.DYNAMIC, owner=user)
-        block2 = baker.make(SmartBlock, name="Block2", kind=SmartBlock.Kind.DYNAMIC, owner=user)
+        block1 = baker.make(
+            SmartBlock, name="Block1", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+        )
+        block2 = baker.make(
+            SmartBlock, name="Block2", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+        )
 
-        baker.make(SmartBlockCriteria, block=block1, criteria="genre", condition="contains", value="Jazz")
-        baker.make(SmartBlockCriteria, block=block2, criteria="genre", condition="contains", value="Rock")
+        baker.make(
+            SmartBlockCriteria,
+            block=block1,
+            criteria="genre",
+            condition="contains",
+            value="Jazz",
+        )
+        baker.make(
+            SmartBlockCriteria,
+            block=block2,
+            criteria="genre",
+            condition="contains",
+            value="Rock",
+        )
 
         response = api_client.get(
             f"/api/v2/smart-block-criteria?block={block1.id}&block={block2.id}",
         )
-        assert response.status_code == 200, \
-            f"HPP caused {response.status_code}"
+        assert (
+            response.status_code == 200
+        ), f"HPP caused {response.status_code}"
 
     # ========================================================================
     # CORS and Headers
@@ -297,14 +379,15 @@ class TestSmartBlockCriteriaListRedTeam:
         )
 
         allowed_origin = response.get("Access-Control-Allow-Origin", "")
-        assert "evil.com" not in allowed_origin, \
-            "CORS allows arbitrary origin"
+        assert "evil.com" not in allowed_origin, "CORS allows arbitrary origin"
 
     # ========================================================================
     # Fuzzing
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T494: 500 error on special query params (undefined, null)")
+    @pytest.mark.xfail(
+        reason="T494: 500 error on special query params (undefined, null)",
+    )
     def test_fuzzing_query_params(self, api_client):
         """Fuzzing: Naughty strings in query parameters - BUG T494."""
         naughty_params = [
@@ -317,8 +400,10 @@ class TestSmartBlockCriteriaListRedTeam:
             response = api_client.get(
                 f"/api/v2/smart-block-criteria?block={param}",
             )
-            assert response.status_code in [400, 404], \
-                f"BUG T494: Naughty param '{param}' caused {response.status_code}"
+            assert response.status_code in [
+                400,
+                404,
+            ], f"BUG T494: Naughty param '{param}' caused {response.status_code}"
 
     # ========================================================================
     # Value-based Information Leak
@@ -350,4 +435,6 @@ class TestSmartBlockCriteriaListRedTeam:
 
         for criteria in data:
             if criteria.get("value") == "specific_artist_name":
-                assert False, "Criteria value leaks victim's private configuration"
+                assert (
+                    False
+                ), "Criteria value leaks victim's private configuration"

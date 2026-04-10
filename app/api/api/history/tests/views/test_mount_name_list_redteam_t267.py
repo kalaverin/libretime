@@ -5,7 +5,6 @@ and authentication bypass vulnerabilities in MountName LIST endpoint.
 """
 
 import pytest
-import requests
 
 from api.history.models import MountName
 
@@ -15,7 +14,7 @@ class TestMountNameListRedTeamAuthorization:
     """Authorization tests for MountName LIST."""
 
     def test_list_requires_specific_permission(
-        self, api_client, admin_user, regular_user
+        self, api_client, admin_user, regular_user,
     ):
         """
         MountName LIST requires specific 'mountname' permission.
@@ -40,9 +39,7 @@ class TestMountNameListRedTeamAuthorization:
         assert "/main" in mount_names
         assert "/live" in mount_names
 
-    def test_guest_user_cannot_list_mounts(
-        self, api_client, guest_user
-    ):
+    def test_guest_user_cannot_list_mounts(self, api_client, guest_user):
         """
         Guest user cannot list mount names without permission.
         """
@@ -65,7 +62,8 @@ class TestMountNameListRedTeamInjection:
 
         api_client.force_authenticate(user=admin_user)
         response = api_client.get(
-            "/api/v2/mount-names", {"ordering": "mount_name; DROP TABLE cc_mount_name;--"}
+            "/api/v2/mount-names",
+            {"ordering": "mount_name; DROP TABLE cc_mount_name;--"},
         )
 
         # Should not crash or execute malicious SQL
@@ -123,14 +121,16 @@ class TestMountNameListRedTeamInformationDisclosure:
         api_client.force_authenticate(user=admin_user)
 
         response = api_client.get(
-            "/api/v2/mount-names", {"invalid_param": "test"}
+            "/api/v2/mount-names", {"invalid_param": "test"},
         )
 
         # Should not expose internal details
         if response.status_code == 400:
             content = str(response.content)
             assert "cc_mount_name" not in content.lower()
-            assert "mount_name" not in content.lower() or "mount_name" in str(response.json())
+            assert "mount_name" not in content.lower() or "mount_name" in str(
+                response.json(),
+            )
 
 
 @pytest.mark.django_db

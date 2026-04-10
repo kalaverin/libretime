@@ -8,10 +8,10 @@ Tests focus on:
 - Filter manipulation attacks
 """
 
-import json
 from datetime import timedelta
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -60,8 +60,10 @@ class TestScheduleOverbookedFilterRedTeam:
 
         for payload in nosql_payloads:
             response = api_client.get("/api/v2/schedule", payload)
-            assert response.status_code in [200, 400], \
-                f"NoSQLi caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"NoSQLi caused {response.status_code}"
 
     @pytest.mark.xfail(reason="T614: Filter - overbooked bypass using null")
     def test_overbooked_null_bypass(self, api_client, faker):
@@ -69,7 +71,9 @@ class TestScheduleOverbookedFilterRedTeam:
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         base_time = now()
         # Create overbooked schedule
@@ -92,7 +96,9 @@ class TestScheduleOverbookedFilterRedTeam:
         # Should not return data when filter is bypassed
         ids = [s["id"] for s in data]
         if overbooked.id in ids:
-            pytest.fail("T614: Filter bypass with null returned overbooked schedule")
+            pytest.fail(
+                "T614: Filter bypass with null returned overbooked schedule",
+            )
 
     # ========================================================================
     # Filter Logic Bypass
@@ -113,7 +119,9 @@ class TestScheduleOverbookedFilterRedTeam:
             ends_at=None,  # No end time
         )
 
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         schedule = baker.make(
             Schedule,
@@ -130,20 +138,28 @@ class TestScheduleOverbookedFilterRedTeam:
         # Query overbooked with null ends_at
         response = api_client.get("/api/v2/schedule?overbooked=1")
         # Should handle gracefully, not crash
-        assert response.status_code in [200, 500], \
-            f"Unexpected status: {response.status_code}"
+        assert response.status_code in [
+            200,
+            500,
+        ], f"Unexpected status: {response.status_code}"
 
     # ========================================================================
     # BOLA via Filter
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T616: BOLA - overbooked filter reveals other users' schedules")
+    @pytest.mark.xfail(
+        reason="T616: BOLA - overbooked filter reveals other users' schedules",
+    )
     def test_overbooked_bola_info_leak(self, api_client, faker):
         """BOLA: overbooked filter reveals other users' schedules."""
-        victim = baker.make(User, username=f"testred_victim_{faker.user_name()}")
+        victim = baker.make(
+            User, username=f"testred_victim_{faker.user_name()}",
+        )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=victim)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=victim,
+        )
 
         base_time = now()
         # Victim's overbooked schedule
@@ -165,7 +181,9 @@ class TestScheduleOverbookedFilterRedTeam:
 
         ids = [s["id"] for s in data]
         if victim_schedule.id in ids:
-            pytest.fail("T616: overbooked filter reveals other user's schedule")
+            pytest.fail(
+                "T616: overbooked filter reveals other user's schedule",
+            )
 
     # ========================================================================
     # Filter Combination Attacks
@@ -176,7 +194,9 @@ class TestScheduleOverbookedFilterRedTeam:
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         base_time = now()
         baker.make(
@@ -193,17 +213,21 @@ class TestScheduleOverbookedFilterRedTeam:
 
         # Combine filters
         response = api_client.get(
-            "/api/v2/schedule?overbooked=1&position=1&broadcasted=1"
+            "/api/v2/schedule?overbooked=1&position=1&broadcasted=1",
         )
         assert response.status_code == 200
 
     @pytest.mark.xfail(reason="T617: Filter - overbooked with instance bypass")
     def test_overbooked_instance_bypass(self, api_client, faker):
         """Filter: Using instance filter to bypass overbooked."""
-        victim = baker.make(User, username=f"testred_victim_{faker.user_name()}")
+        victim = baker.make(
+            User, username=f"testred_victim_{faker.user_name()}",
+        )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=victim)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=victim,
+        )
 
         base_time = now()
         victim_schedule = baker.make(
@@ -220,7 +244,7 @@ class TestScheduleOverbookedFilterRedTeam:
 
         # Try to bypass using instance filter
         response = api_client.get(
-            f"/api/v2/schedule?overbooked=0&instance={instance.id}"
+            f"/api/v2/schedule?overbooked=0&instance={instance.id}",
         )
         data = response.json()
 
@@ -235,16 +259,25 @@ class TestScheduleOverbookedFilterRedTeam:
     def test_overbooked_invalid_values(self, api_client, faker):
         """Validation: Invalid overbooked parameter values."""
         invalid_values = [
-            "true", "false", "yes", "no",
-            "", "null", "undefined",
-            "2", "-1", "999",
+            "true",
+            "false",
+            "yes",
+            "no",
+            "",
+            "null",
+            "undefined",
+            "2",
+            "-1",
+            "999",
         ]
 
         for value in invalid_values:
             response = api_client.get(f"/api/v2/schedule?overbooked={value}")
             # Should handle gracefully
-            assert response.status_code in [200, 400], \
-                f"overbooked={value} caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"overbooked={value} caused {response.status_code}"
 
     def test_overbooked_unicode(self, api_client, faker):
         """Validation: Unicode in overbooked parameter."""
@@ -255,7 +288,9 @@ class TestScheduleOverbookedFilterRedTeam:
     # Performance / DoS
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T618: DoS - overbooked filter performance issue")
+    @pytest.mark.xfail(
+        reason="T618: DoS - overbooked filter performance issue",
+    )
     def test_overbooked_performance_dos(self, api_client, faker):
         """DoS: overbooked filter with large dataset."""
         import time
@@ -263,7 +298,9 @@ class TestScheduleOverbookedFilterRedTeam:
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         base_time = now()
         # Create many schedules
@@ -297,7 +334,9 @@ class TestScheduleOverbookedFilterRedTeam:
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         base_time = now()
         # Schedule exactly at show end (edge case)
@@ -328,6 +367,8 @@ class TestScheduleOverbookedFilterRedTeam:
         in_false = edge_schedule.id in ids_false
 
         if in_true and in_false:
-            pytest.fail("T619: Schedule appears in both overbooked=true and false")
+            pytest.fail(
+                "T619: Schedule appears in both overbooked=true and false",
+            )
         if not in_true and not in_false:
             pytest.fail("T619: Schedule missing from both filters")

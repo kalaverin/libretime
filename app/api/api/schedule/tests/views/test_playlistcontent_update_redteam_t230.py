@@ -10,13 +10,20 @@ Tests focus on:
 
 import json
 import time
+
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
-from api.schedule.models import Playlist, PlaylistContent, SmartBlock, Webstream
+from api.schedule.models import (
+    Playlist,
+    PlaylistContent,
+    SmartBlock,
+    Webstream,
+)
 from api.storage.models import File
 
 
@@ -42,7 +49,9 @@ class TestPlaylistContentUpdateRedTeam:
         """BOLA: Should not update another user's playlist content."""
         victim = baker.make(User, username="testred_victim")
         victim_playlist = baker.make(Playlist, name="Victim", owner=victim)
-        victim_file = baker.make(File, name="victim.mp3", mime="audio/mp3", owner=victim)
+        victim_file = baker.make(
+            File, name="victim.mp3", mime="audio/mp3", owner=victim,
+        )
         content = baker.make(
             PlaylistContent,
             playlist=victim_playlist,
@@ -57,10 +66,14 @@ class TestPlaylistContentUpdateRedTeam:
             content_type="application/json",
         )
 
-        assert response.status_code in [403, 404], \
-            f"BOLA: Updated victim's content with {response.status_code}"
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA: Updated victim's content with {response.status_code}"
 
-    @pytest.mark.xfail(reason="T420: BOLA - can move content to other's playlist")
+    @pytest.mark.xfail(
+        reason="T420: BOLA - can move content to other's playlist",
+    )
     def test_bola_move_content_to_other_playlist(self, api_client):
         """BOLA: Should not move content to another user's playlist."""
         user = baker.make(User, username="testred_user")
@@ -69,7 +82,9 @@ class TestPlaylistContentUpdateRedTeam:
         user_playlist = baker.make(Playlist, name="User", owner=user)
         victim_playlist = baker.make(Playlist, name="Victim", owner=victim)
 
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
         content = baker.make(
             PlaylistContent,
             playlist=user_playlist,
@@ -85,19 +100,25 @@ class TestPlaylistContentUpdateRedTeam:
             content_type="application/json",
         )
 
-        assert response.status_code in [403, 400], \
-            f"BOLA: Moved content to victim's playlist with {response.status_code}"
+        assert response.status_code in [
+            403,
+            400,
+        ], f"BOLA: Moved content to victim's playlist with {response.status_code}"
 
     # ========================================================================
     # API3:2023 - BOPLA
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T425: Mass assignment - id modification allowed")
+    @pytest.mark.xfail(
+        reason="T425: Mass assignment - id modification allowed",
+    )
     def test_bopla_update_id_field(self, api_client):
         """BOPLA: Should not allow modifying id field."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
         content = baker.make(
             PlaylistContent,
             playlist=playlist,
@@ -125,7 +146,9 @@ class TestPlaylistContentUpdateRedTeam:
         """Race: Concurrent updates to same content."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
         content = baker.make(
             PlaylistContent,
             playlist=playlist,
@@ -158,7 +181,9 @@ class TestPlaylistContentUpdateRedTeam:
         """SQLi: Injection in update fields."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
         content = baker.make(
             PlaylistContent,
             playlist=playlist,
@@ -179,8 +204,10 @@ class TestPlaylistContentUpdateRedTeam:
                 json.dumps({"cue_in": payload}),
                 content_type="application/json",
             )
-            assert response.status_code in [200, 400], \
-                f"SQLi caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"SQLi caused {response.status_code}"
 
     # ========================================================================
     # Validation
@@ -191,7 +218,9 @@ class TestPlaylistContentUpdateRedTeam:
         """Validation: Negative position should be rejected."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
         content = baker.make(
             PlaylistContent,
             playlist=playlist,
@@ -206,8 +235,9 @@ class TestPlaylistContentUpdateRedTeam:
             content_type="application/json",
         )
 
-        assert response.status_code == 400, \
-            f"Negative position accepted with {response.status_code}"
+        assert (
+            response.status_code == 400
+        ), f"Negative position accepted with {response.status_code}"
 
     def test_update_nonexistent_content(self, api_client):
         """Validation: Update non-existent content should return 404."""
@@ -226,7 +256,9 @@ class TestPlaylistContentUpdateRedTeam:
         """Resource: Rapid updates should be rate limited."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
         content = baker.make(
             PlaylistContent,
             playlist=playlist,
@@ -258,7 +290,9 @@ class TestPlaylistContentUpdateRedTeam:
         """BOPLA: Try to update read-only/system fields."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
         content = baker.make(
             PlaylistContent,
             playlist=playlist,
@@ -280,5 +314,7 @@ class TestPlaylistContentUpdateRedTeam:
                 content_type="application/json",
             )
             # Should ignore or reject
-            assert response.status_code in [200, 400], \
-                f"Protected fields update returned {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"Protected fields update returned {response.status_code}"

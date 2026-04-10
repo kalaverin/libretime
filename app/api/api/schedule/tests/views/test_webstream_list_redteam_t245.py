@@ -10,6 +10,7 @@ Tests focus on:
 """
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -29,7 +30,9 @@ class TestWebstreamListRedTeam:
     # API1:2023 - BOLA (Broken Object Level Authorization)
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T518: BOLA - LIST shows all users' webstreams without filtering")
+    @pytest.mark.xfail(
+        reason="T518: BOLA - LIST shows all users' webstreams without filtering",
+    )
     def test_bola_list_shows_all_users_webstreams(self, api_client):
         """BOLA: LIST should only show webstreams from user's own account."""
         victim = baker.make(User, username="testred_victim")
@@ -49,10 +52,13 @@ class TestWebstreamListRedTeam:
         assert response.status_code == 200
 
         data = response.json()
-        victim_stream_ids = [s["id"] for s in data if s.get("name") == "Victim Private Stream"]
+        victim_stream_ids = [
+            s["id"] for s in data if s.get("name") == "Victim Private Stream"
+        ]
 
-        assert len(victim_stream_ids) == 0, \
-            f"BOLA: Attacker can see {len(victim_stream_ids)} victim's webstreams"
+        assert (
+            len(victim_stream_ids) == 0
+        ), f"BOLA: Attacker can see {len(victim_stream_ids)} victim's webstreams"
 
     def test_stream_id_enumeration_mitigated(self, api_client):
         """Security: Stream ID enumeration mitigated by owner filtering."""
@@ -92,9 +98,18 @@ class TestWebstreamListRedTeam:
         if len(data) > 0:
             fields = set(data[0].keys())
             # Check for potentially sensitive fields
-            sensitive_fields = {"password", "secret", "token", "key", "internal_id", "_state"}
+            sensitive_fields = {
+                "password",
+                "secret",
+                "token",
+                "key",
+                "internal_id",
+                "_state",
+            }
             leaked = fields & sensitive_fields
-            assert len(leaked) == 0, f"Potentially sensitive fields exposed: {leaked}"
+            assert (
+                len(leaked) == 0
+            ), f"Potentially sensitive fields exposed: {leaked}"
 
     # ========================================================================
     # SSRF via URL Field
@@ -104,7 +119,7 @@ class TestWebstreamListRedTeam:
     def test_url_field_ssrf_reflection(self, api_client):
         """Security: URL field should not reflect internal network URLs."""
         user = baker.make(User, username="testred_user")
-        
+
         # Create stream with internal URL (should not be visible to others)
         baker.make(
             Webstream,
@@ -117,9 +132,12 @@ class TestWebstreamListRedTeam:
         data = response.json()
 
         # If BOLA not fixed, attacker sees internal URL
-        internal_urls = [s["url"] for s in data if "localhost" in s.get("url", "")]
-        assert len(internal_urls) == 0, \
-            f"SSRF info leak: internal URLs visible: {internal_urls}"
+        internal_urls = [
+            s["url"] for s in data if "localhost" in s.get("url", "")
+        ]
+        assert (
+            len(internal_urls) == 0
+        ), f"SSRF info leak: internal URLs visible: {internal_urls}"
 
     # ========================================================================
     # MIME Type Validation
@@ -129,7 +147,7 @@ class TestWebstreamListRedTeam:
     def test_mime_type_arbitrary_values(self, api_client):
         """Validation: MIME type field should validate against allowed types."""
         user = baker.make(User, username="testred_user")
-        
+
         # Create with malicious mime type (XSS vector)
         baker.make(
             Webstream,
@@ -145,8 +163,9 @@ class TestWebstreamListRedTeam:
         if len(data) > 0:
             mime = data[0].get("mime", "")
             # If mime is reflected without sanitization, potential XSS
-            assert "<script>" not in mime, \
-                "MIME type XSS: script tags not sanitized"
+            assert (
+                "<script>" not in mime
+            ), "MIME type XSS: script tags not sanitized"
 
     # ========================================================================
     # URL Length and Format Validation
@@ -156,7 +175,7 @@ class TestWebstreamListRedTeam:
     def test_url_length_overflow(self, api_client):
         """Validation: Very long URLs should be rejected."""
         user = baker.make(User, username="testred_user")
-        
+
         # Model allows 512 chars, but should validate reasonable length
         long_url = "http://example.com/" + "A" * 1000
         baker.make(
@@ -168,14 +187,16 @@ class TestWebstreamListRedTeam:
 
         response = api_client.get("/api/v2/webstreams")
         # Should either reject or handle gracefully
-        assert response.status_code in [200, 400], \
-            f"Long URL caused {response.status_code}"
+        assert response.status_code in [
+            200,
+            400,
+        ], f"Long URL caused {response.status_code}"
 
     @pytest.mark.xfail(reason="T523: Invalid URL format accepted")
     def test_url_format_validation(self, api_client):
         """Validation: Invalid URL formats should be rejected."""
         user = baker.make(User, username="testred_user")
-        
+
         invalid_urls = [
             "not-a-url",
             "ftp://malicious.com",
@@ -183,7 +204,7 @@ class TestWebstreamListRedTeam:
             "javascript:alert(1)",
             "data:text/html,<script>alert(1)</script>",
         ]
-        
+
         for url in invalid_urls:
             # Try to create with invalid URL
             stream = baker.make(
@@ -202,7 +223,7 @@ class TestWebstreamListRedTeam:
     def test_pagination_page_size_limits(self, api_client):
         """Security: Page size is properly limited."""
         user = baker.make(User, username="testred_user")
-        
+
         # Create many streams
         for i in range(100):
             baker.make(
@@ -214,8 +235,9 @@ class TestWebstreamListRedTeam:
 
         response = api_client.get("/api/v2/webstreams?page_size=999999")
         # Should have pagination limits
-        assert response.status_code == 200, \
-            f"Large page size caused {response.status_code}"
+        assert (
+            response.status_code == 200
+        ), f"Large page size caused {response.status_code}"
 
     # ========================================================================
     # Sorting / Ordering Attacks
@@ -224,7 +246,9 @@ class TestWebstreamListRedTeam:
     def test_sorting_sql_injection_attempt(self, api_client):
         """Injection: SQLi in ordering parameter."""
         user = baker.make(User, username="testred_user")
-        baker.make(Webstream, name="Stream", url="http://example.com", owner=user)
+        baker.make(
+            Webstream, name="Stream", url="http://example.com", owner=user,
+        )
 
         malicious_orderings = [
             "name; DROP TABLE cc_webstream;--",
@@ -237,8 +261,10 @@ class TestWebstreamListRedTeam:
                 f"/api/v2/webstreams?ordering={ordering}",
             )
             # Django DRF safely ignores invalid ordering
-            assert response.status_code in [200, 400], \
-                f"Ordering '{ordering}' caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"Ordering '{ordering}' caused {response.status_code}"
 
     # ========================================================================
     # CORS and Security Headers
@@ -253,16 +279,17 @@ class TestWebstreamListRedTeam:
         )
 
         allowed_origin = response.get("Access-Control-Allow-Origin", "")
-        assert "evil.com" not in allowed_origin, \
-            "CORS allows arbitrary origin"
+        assert "evil.com" not in allowed_origin, "CORS allows arbitrary origin"
 
     def test_security_headers_present(self, api_client):
         """Security: Required security headers present."""
         user = baker.make(User, username="testred_user")
-        baker.make(Webstream, name="Stream", url="http://example.com", owner=user)
+        baker.make(
+            Webstream, name="Stream", url="http://example.com", owner=user,
+        )
 
         response = api_client.get("/api/v2/webstreams")
-        
+
         # Check for basic security headers
         headers = response.headers
         assert "Content-Type" in headers, "Missing Content-Type header"
@@ -288,8 +315,11 @@ class TestWebstreamListRedTeam:
                 f"/api/v2/webstreams?page={param}",
             )
             # Should not crash with 500
-            assert response.status_code in [200, 400, 404], \
-                f"Naughty param '{param}' caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+                404,
+            ], f"Naughty param '{param}' caused {response.status_code}"
 
     # ========================================================================
     # Timing Attacks
@@ -322,8 +352,9 @@ class TestWebstreamListRedTeam:
         # Difference should not be extreme (less than 5x)
         if time_empty > 0:
             ratio = time_populated / time_empty
-            assert ratio < 5.0, \
-                f"Timing leak: empty={time_empty:.4f}s, populated={time_populated:.4f}s (ratio {ratio:.1f})"
+            assert (
+                ratio < 5.0
+            ), f"Timing leak: empty={time_empty:.4f}s, populated={time_populated:.4f}s (ratio {ratio:.1f})"
 
     # ========================================================================
     # Description Field Security
@@ -333,13 +364,13 @@ class TestWebstreamListRedTeam:
     def test_description_xss_protection(self, api_client):
         """Security: Description field should sanitize XSS."""
         user = baker.make(User, username="testred_user")
-        
+
         xss_payloads = [
             "<script>alert(1)</script>",
             "<img src=x onerror=alert(1)>",
             "javascript:alert(1)",
         ]
-        
+
         for payload in xss_payloads:
             baker.make(
                 Webstream,
@@ -354,8 +385,12 @@ class TestWebstreamListRedTeam:
 
         for stream in data:
             desc = stream.get("description", "")
-            assert "<script>" not in desc, "Description XSS: script tags not sanitized"
-            assert "onerror=" not in desc, "Description XSS: event handlers not sanitized"
+            assert (
+                "<script>" not in desc
+            ), "Description XSS: script tags not sanitized"
+            assert (
+                "onerror=" not in desc
+            ), "Description XSS: event handlers not sanitized"
 
     # ========================================================================
     # Unicode and Encoding
@@ -364,14 +399,14 @@ class TestWebstreamListRedTeam:
     def test_unicode_in_name_handling(self, api_client):
         """Validation: Unicode in name handled correctly."""
         user = baker.make(User, username="testred_user")
-        
+
         unicode_names = [
             "日本語ストリーム",
             "Радио поток",
             "🔴 Live Stream",
             "<script>alert(1)</script>",
         ]
-        
+
         for name in unicode_names:
             baker.make(
                 Webstream,

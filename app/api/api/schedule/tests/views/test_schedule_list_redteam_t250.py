@@ -12,9 +12,9 @@ Tests focus on:
 
 import json
 import time
-from datetime import datetime, timedelta
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -39,7 +39,9 @@ class TestScheduleListRedTeam:
     # API1:2023 - BOLA (Broken Object Level Authorization)
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T568: BOLA - LIST shows all users' schedule entries")
+    @pytest.mark.xfail(
+        reason="T568: BOLA - LIST shows all users' schedule entries",
+    )
     def test_bola_list_shows_all_users_schedule(self, api_client):
         """BOLA: LIST endpoint returns schedule entries from all users without filtering."""
         # Create schedule entries for multiple users
@@ -47,7 +49,9 @@ class TestScheduleListRedTeam:
             user = baker.make(User, username=f"testred_user{i}")
             show = baker.make(Show, name=f"Show {i}")
             instance = baker.make(ShowInstance, show=show)
-            file_obj = baker.make(File, name=f"file{i}.mp3", mime="audio/mp3", owner=user)
+            file_obj = baker.make(
+                File, name=f"file{i}.mp3", mime="audio/mp3", owner=user,
+            )
 
             baker.make(
                 Schedule,
@@ -66,15 +70,18 @@ class TestScheduleListRedTeam:
 
         data = response.json()
         # Should only see own entries, not all
-        assert len(data) <= 1, \
-            f"BOLA: LIST returned {len(data)} entries from different users"
+        assert (
+            len(data) <= 1
+        ), f"BOLA: LIST returned {len(data)} entries from different users"
 
     def test_bola_id_enumeration(self, api_client):
         """BOLA: Sequential ID enumeration on schedule entries."""
         user = baker.make(User, username="testred_user")
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
 
         schedules = []
         for i in range(5):
@@ -99,16 +106,21 @@ class TestScheduleListRedTeam:
                 found_count += 1
 
         # If sequential IDs are used, enumeration is possible
-        assert found_count <= len(schedules), \
-            f"ID enumeration vulnerability: found {found_count} accessible entries"
+        assert found_count <= len(
+            schedules,
+        ), f"ID enumeration vulnerability: found {found_count} accessible entries"
 
-    @pytest.mark.xfail(reason="T569: BOLA - Can access other user's schedule by ID")
+    @pytest.mark.xfail(
+        reason="T569: BOLA - Can access other user's schedule by ID",
+    )
     def test_bola_access_other_users_schedule_by_id(self, api_client):
         """BOLA: Can retrieve another user's schedule entry by ID."""
         victim = baker.make(User, username="testred_victim")
         show = baker.make(Show, name="Victim Show")
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name="victim.mp3", mime="audio/mp3", owner=victim)
+        file_obj = baker.make(
+            File, name="victim.mp3", mime="audio/mp3", owner=victim,
+        )
 
         victim_schedule = baker.make(
             Schedule,
@@ -123,8 +135,9 @@ class TestScheduleListRedTeam:
         )
 
         response = api_client.get(f"/api/v2/schedule/{victim_schedule.id}")
-        assert response.status_code == 403, \
-            f"BOLA: Got {response.status_code}, expected 403 - can access other's schedule"
+        assert (
+            response.status_code == 403
+        ), f"BOLA: Got {response.status_code}, expected 403 - can access other's schedule"
 
     # ========================================================================
     # API3:2023 - BOPLA (Filter Parameter Injection)
@@ -139,7 +152,9 @@ class TestScheduleListRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.get(f"/api/v2/schedule?starts_after={payload}")
+            response = api_client.get(
+                f"/api/v2/schedule?starts_after={payload}",
+            )
             # Should return 400 or filter error, never 500
             # PASS means SQLi was properly blocked
             if response.status_code == 500:
@@ -171,8 +186,10 @@ class TestScheduleListRedTeam:
             value = payload[param]
             response = api_client.get(f"/api/v2/schedule?{param}={value}")
             # Should handle gracefully
-            assert response.status_code in [200, 400], \
-                f"NoSQLi '{param}={value}' caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"NoSQLi '{param}={value}' caused {response.status_code}"
 
     def test_filter_bypass_with_null_values(self, api_client):
         """BOPLA: Using null/undefined in filters should not bypass restrictions."""
@@ -197,7 +214,9 @@ class TestScheduleListRedTeam:
         user = baker.make(User, username="testred_user")
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
 
         # Create many schedule entries
         for i in range(100):
@@ -225,7 +244,9 @@ class TestScheduleListRedTeam:
         user = baker.make(User, username="testred_user")
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
 
         baker.make(
             Schedule,
@@ -275,13 +296,21 @@ class TestScheduleListRedTeam:
     def test_verbose_filter_errors(self, api_client):
         """Misconfig: Filter error messages reveal implementation details."""
         # Trigger filter error with invalid input
-        response = api_client.get("/api/v2/schedule?starts_after=invalid'union")
+        response = api_client.get(
+            "/api/v2/schedule?starts_after=invalid'union",
+        )
 
         error_body = response.content.decode().lower()
 
         sensitive_patterns = [
-            "sql", "sqlite", "mysql", "postgresql",
-            "django", "column", "table", "cc_schedule",
+            "sql",
+            "sqlite",
+            "mysql",
+            "postgresql",
+            "django",
+            "column",
+            "table",
+            "cc_schedule",
         ]
 
         for pattern in sensitive_patterns:
@@ -299,15 +328,25 @@ class TestScheduleListRedTeam:
 
         for method, data in methods:
             if method == "put":
-                response = api_client.put("/api/v2/schedule", json.dumps(data), content_type="application/json")
+                response = api_client.put(
+                    "/api/v2/schedule",
+                    json.dumps(data),
+                    content_type="application/json",
+                )
             elif method == "delete":
                 response = api_client.delete("/api/v2/schedule")
             elif method == "patch":
-                response = api_client.patch("/api/v2/schedule", json.dumps(data), content_type="application/json")
+                response = api_client.patch(
+                    "/api/v2/schedule",
+                    json.dumps(data),
+                    content_type="application/json",
+                )
 
             # LIST endpoint should not accept these methods
-            assert response.status_code in [405, 403], \
-                f"Method {method.upper()} on LIST returned {response.status_code}"
+            assert response.status_code in [
+                405,
+                403,
+            ], f"Method {method.upper()} on LIST returned {response.status_code}"
 
     # ========================================================================
     # Information Disclosure
@@ -318,7 +357,9 @@ class TestScheduleListRedTeam:
         user = baker.make(User, username="testred_user")
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
 
         baker.make(
             Schedule,
@@ -338,18 +379,29 @@ class TestScheduleListRedTeam:
         if data and len(data) > 0:
             entry = data[0]
             # Check for sensitive fields
-            sensitive_fields = ["password", "secret", "token", "key", "internal"]
+            sensitive_fields = [
+                "password",
+                "secret",
+                "token",
+                "key",
+                "internal",
+            ]
             for field in sensitive_fields:
-                assert field not in entry, \
-                    f"Info leak: sensitive field '{field}' in response"
+                assert (
+                    field not in entry
+                ), f"Info leak: sensitive field '{field}' in response"
 
-    @pytest.mark.xfail(reason="T573: Info Leak - Error message reveals if schedule exists")
+    @pytest.mark.xfail(
+        reason="T573: Info Leak - Error message reveals if schedule exists",
+    )
     def test_error_message_leaks_existence(self, api_client):
         """Info Leak: Error messages reveal if schedule entry exists."""
         victim = baker.make(User, username="testred_victim")
         show = baker.make(Show, name="Victim Show")
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name="victim.mp3", mime="audio/mp3", owner=victim)
+        file_obj = baker.make(
+            File, name="victim.mp3", mime="audio/mp3", owner=victim,
+        )
 
         victim_schedule = baker.make(
             Schedule,
@@ -364,14 +416,16 @@ class TestScheduleListRedTeam:
         )
 
         # Try to access existing vs non-existing
-        response_existing = api_client.get(f"/api/v2/schedule/{victim_schedule.id}")
+        response_existing = api_client.get(
+            f"/api/v2/schedule/{victim_schedule.id}",
+        )
         response_nonexistent = api_client.get("/api/v2/schedule/999999")
 
         # Both should return same status to not leak existence
         if response_existing.status_code != response_nonexistent.status_code:
             pytest.fail(
                 f"Status leak: existing={response_existing.status_code}, "
-                f"nonexistent={response_nonexistent.status_code}"
+                f"nonexistent={response_nonexistent.status_code}",
             )
 
     # ========================================================================
@@ -383,7 +437,9 @@ class TestScheduleListRedTeam:
         response = client.get("/api/v2/schedule")
         assert response.status_code == 403
 
-    @pytest.mark.xfail(reason="T575: Auth - Invalid token returns 200 instead of 403")
+    @pytest.mark.xfail(
+        reason="T575: Auth - Invalid token returns 200 instead of 403",
+    )
     def test_list_with_invalid_token(self, api_client):
         """Auth: Invalid token should be rejected."""
         original = api_client.defaults.get("HTTP_AUTHORIZATION", "")
@@ -392,7 +448,9 @@ class TestScheduleListRedTeam:
         try:
             response = api_client.get("/api/v2/schedule")
             if response.status_code == 200:
-                pytest.fail("T575: Invalid token accepted - authentication bypass")
+                pytest.fail(
+                    "T575: Invalid token accepted - authentication bypass",
+                )
             assert response.status_code == 403
         finally:
             api_client.defaults["HTTP_AUTHORIZATION"] = original
@@ -407,14 +465,17 @@ class TestScheduleListRedTeam:
             "?instance=日本語",
             "?starts_after=日本語",
             "?instance=\u0000",
-            "?instance=\uFEFF",
+            "?instance=\ufeff",
         ]
 
         for payload in unicode_payloads:
             response = api_client.get(f"/api/v2/schedule{payload}")
             # Should handle gracefully (400 or 200, not 500)
-            assert response.status_code in [200, 400, 404], \
-                f"Unicode '{repr(payload)}' caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+                404,
+            ], f"Unicode '{repr(payload)}' caused {response.status_code}"
 
     def test_path_traversal_in_id(self, api_client):
         """Validation: Path traversal in schedule ID."""
@@ -426,22 +487,36 @@ class TestScheduleListRedTeam:
 
         for test_id in traversal_ids:
             response = api_client.get(f"/api/v2/schedule/{test_id}")
-            assert response.status_code in [400, 404], \
-                f"Path traversal '{test_id}' caused {response.status_code}"
+            assert response.status_code in [
+                400,
+                404,
+            ], f"Path traversal '{test_id}' caused {response.status_code}"
 
     def test_overbooked_filter_manipulation(self, api_client):
         """Validation: Manipulate overbooked filter with various values."""
         test_values = [
-            "true", "false", "1", "0", "yes", "no",
-            "True", "False", "TRUE", "FALSE",
-            "", "null", "undefined",
+            "true",
+            "false",
+            "1",
+            "0",
+            "yes",
+            "no",
+            "True",
+            "False",
+            "TRUE",
+            "FALSE",
+            "",
+            "null",
+            "undefined",
         ]
 
         for value in test_values:
             response = api_client.get(f"/api/v2/schedule?overbooked={value}")
             # Should not crash
-            assert response.status_code in [200, 400], \
-                f"overbooked={value} caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"overbooked={value} caused {response.status_code}"
 
     def test_date_format_injection(self, api_client):
         """Validation: Various date formats in date filters."""
@@ -459,8 +534,10 @@ class TestScheduleListRedTeam:
         for date in date_payloads:
             response = api_client.get(f"/api/v2/schedule?starts_after={date}")
             # Should handle gracefully
-            assert response.status_code in [200, 400], \
-                f"Date '{date}' caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"Date '{date}' caused {response.status_code}"
 
     # ========================================================================
     # Rate Limiting
@@ -484,13 +561,17 @@ class TestScheduleListRedTeam:
     # Business Logic
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T574: Logic - Filter combination bypasses ownership")
+    @pytest.mark.xfail(
+        reason="T574: Logic - Filter combination bypasses ownership",
+    )
     def test_filter_combination_bypass(self, api_client):
         """Logic: Combining filters may bypass ownership checks."""
         victim = baker.make(User, username="testred_victim")
         show = baker.make(Show, name="Victim Show")
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name="victim.mp3", mime="audio/mp3", owner=victim)
+        file_obj = baker.make(
+            File, name="victim.mp3", mime="audio/mp3", owner=victim,
+        )
 
         victim_schedule = baker.make(
             Schedule,
@@ -506,7 +587,7 @@ class TestScheduleListRedTeam:
 
         # Try to access via filter combination
         response = api_client.get(
-            f"/api/v2/schedule?instance={instance.id}&position=1&broadcasted=1"
+            f"/api/v2/schedule?instance={instance.id}&position=1&broadcasted=1",
         )
 
         if response.status_code == 200:

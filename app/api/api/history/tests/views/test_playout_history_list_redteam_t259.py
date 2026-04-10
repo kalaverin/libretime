@@ -4,27 +4,27 @@ Red Team security tests for PlayoutHistory LIST endpoint.
 Tests for BOLA, BFLA, injection, and other API vulnerabilities.
 """
 
-import pytest
-import itertools
-from concurrent.futures import ThreadPoolExecutor
+
 from datetime import timedelta
 
-from django.urls import reverse
-from model_bakery import baker
-from sdk import now, format_datetime, reformat_datetime
+import pytest
 
-from api.history.models import PlayoutHistory
-from api.schedule.models import Show, ShowInstance
-from api.storage.models import File
+from model_bakery import baker
+
 from api.core.models.role import Role
 from api.core.models.user import User
+from api.history.models import PlayoutHistory
+from api.storage.models import File
+from sdk import now
 
 
 @pytest.mark.django_db
 class TestPlayoutHistoryListRedTeamBOLA:
     """API1:2023 Broken Object Level Authorization - LIST BOLA tests."""
 
-    def test_bfla_regular_user_cannot_list(self, api_client, regular_user, faker):
+    def test_bfla_regular_user_cannot_list(
+        self, api_client, regular_user, faker,
+    ):
         """
         BFLA: Regular user cannot access LIST endpoint.
 
@@ -37,7 +37,9 @@ class TestPlayoutHistoryListRedTeamBOLA:
         # Should be forbidden for regular users
         assert response.status_code == 403
 
-    def test_bola_admin_can_see_all_playout(self, api_client, admin_user, manager_user, faker):
+    def test_bola_admin_can_see_all_playout(
+        self, api_client, admin_user, manager_user, faker,
+    ):
         """
         BOLA: Admin/Manager sees ALL playout history (no owner filtering).
 
@@ -75,9 +77,13 @@ class TestPlayoutHistoryListRedTeamBOLA:
             data = response.json()
             victim_ids = [p.get("id") for p in data]
             if victim_playout.id in victim_ids:
-                pytest.xfail("T556: BOLA - Manager can see all users' playout (may be unintended)")
+                pytest.xfail(
+                    "T556: BOLA - Manager can see all users' playout (may be unintended)",
+                )
 
-    def test_bola_list_with_no_owner_field_in_model(self, api_client, admin_user, faker):
+    def test_bola_list_with_no_owner_field_in_model(
+        self, api_client, admin_user, faker,
+    ):
         """
         BOLA: PlayoutHistory model has no owner field for filtering.
 
@@ -99,7 +105,9 @@ class TestPlayoutHistoryListRedTeamBOLA:
         assert "file" in fields
         assert "instance" in fields
 
-    def test_bola_list_returns_all_data_no_filtering(self, api_client, admin_user, faker):
+    def test_bola_list_returns_all_data_no_filtering(
+        self, api_client, admin_user, faker,
+    ):
         """
         BOLA: LIST endpoint has no owner-based filtering in queryset.
 
@@ -107,10 +115,20 @@ class TestPlayoutHistoryListRedTeamBOLA:
         This is acceptable for admin but may be unintended for others.
         """
         # Create multiple users with files/playouts
-        users = [baker.make(User, role=Role.HOST, username=f"user_{i}_{faker.user_name()}") for i in range(3)]
+        users = [
+            baker.make(
+                User, role=Role.HOST, username=f"user_{i}_{faker.user_name()}",
+            )
+            for i in range(3)
+        ]
         files = [baker.make(File, mime="audio/mp3", owner=u) for u in users]
         for f in files:
-            baker.make(PlayoutHistory, file=f, starts=now(), ends=now() + timedelta(minutes=5))
+            baker.make(
+                PlayoutHistory,
+                file=f,
+                starts=now(),
+                ends=now() + timedelta(minutes=5),
+            )
 
         response = api_client.get("/api/v2/playout-history")
         assert response.status_code == 200
@@ -137,7 +155,12 @@ class TestPlayoutHistoryListRedTeamBFLA:
 
         # Create some data
         f = baker.make(File, mime="audio/mp3", owner=regular_user)
-        baker.make(PlayoutHistory, file=f, starts=now(), ends=now() + timedelta(minutes=5))
+        baker.make(
+            PlayoutHistory,
+            file=f,
+            starts=now(),
+            ends=now() + timedelta(minutes=5),
+        )
 
         response = api_client.get("/api/v2/playout-history")
 
@@ -163,7 +186,9 @@ class TestPlayoutHistoryListRedTeamBFLA:
 
         # Guests should probably not access playout history
         if response.status_code == 200:
-            pytest.xfail("T557: BFLA - Guest user can access playout history LIST")
+            pytest.xfail(
+                "T557: BFLA - Guest user can access playout history LIST",
+            )
 
     def test_bfla_list_unauthenticated(self, api_client):
         """
@@ -174,7 +199,9 @@ class TestPlayoutHistoryListRedTeamBFLA:
         api_client.logout()
         response = api_client.get("/api/v2/playout-history")
 
-        assert response.status_code == 403, f"Expected 403, got {response.status_code}"
+        assert (
+            response.status_code == 403
+        ), f"Expected 403, got {response.status_code}"
 
 
 @pytest.mark.django_db
@@ -200,18 +227,24 @@ class TestPlayoutHistoryListRedTeamInjection:
         DRF ordering filter passes directly to ORM - vulnerable if not sanitized.
         """
         for payload in self.SQLI_PAYLOADS:
-            response = api_client.get(f"/api/v2/playout-history?ordering={payload}")
+            response = api_client.get(
+                f"/api/v2/playout-history?ordering={payload}",
+            )
 
             # Check for SQL error leakage or 500 errors
             if response.status_code == 500:
-                pytest.xfail(f"T558: SQLi in ordering param causes 500: {payload[:30]}...")
+                pytest.xfail(
+                    f"T558: SQLi in ordering param causes 500: {payload[:30]}...",
+                )
 
             # Check response doesn't contain SQL keywords in error
             if response.status_code >= 400:
                 error_text = str(response.content).lower()
                 sql_keywords = ["sql", "syntax", "error", "pg_query", "sqlite"]
                 if any(kw in error_text for kw in sql_keywords):
-                    pytest.xfail(f"T558: SQLi error disclosure in ordering: {payload[:30]}...")
+                    pytest.xfail(
+                        f"T558: SQLi error disclosure in ordering: {payload[:30]}...",
+                    )
 
     def test_sqli_in_search_param(self, api_client, admin_user):
         """
@@ -220,10 +253,14 @@ class TestPlayoutHistoryListRedTeamInjection:
         If search filter is enabled, test for SQLi.
         """
         for payload in self.SQLI_PAYLOADS[:5]:  # Test subset
-            response = api_client.get(f"/api/v2/playout-history?search={payload}")
+            response = api_client.get(
+                f"/api/v2/playout-history?search={payload}",
+            )
 
             if response.status_code == 500:
-                pytest.xfail(f"T558: SQLi in search param causes 500: {payload[:30]}...")
+                pytest.xfail(
+                    f"T558: SQLi in search param causes 500: {payload[:30]}...",
+                )
 
     def test_nosql_injection_in_filter(self, api_client, admin_user):
         """
@@ -270,7 +307,9 @@ class TestPlayoutHistoryListRedTeamResourceConsumption:
         if response.status_code == 200:
             data = response.json()
             if isinstance(data, list) and len(data) > 1000:
-                pytest.xfail("T559: No pagination limit - can request huge datasets")
+                pytest.xfail(
+                    "T559: No pagination limit - can request huge datasets",
+                )
 
     def test_pagination_offset_abuse(self, api_client, admin_user):
         """
@@ -314,7 +353,9 @@ class TestPlayoutHistoryListRedTeamInformationDisclosure:
         500 errors should not expose SQL or table names.
         """
         # Trigger error with malformed ordering
-        response = api_client.get("/api/v2/playout-history?ordering=starts;DROP")
+        response = api_client.get(
+            "/api/v2/playout-history?ordering=starts;DROP",
+        )
 
         if response.status_code == 500:
             error_text = str(response.content).lower()
@@ -383,6 +424,7 @@ class TestPlayoutHistoryListRedTeamInformationDisclosure:
                 value = response.headers[header]
                 # Check for version numbers
                 import re
+
                 if re.search(r"\d+\.\d+", str(value)):
                     # Version disclosure
                     pass  # Document but don't fail
@@ -393,10 +435,41 @@ class TestPlayoutHistoryListRedTeamFuzzing:
     """Fuzzing tests for LIST endpoint parameters."""
 
     FUZZ_PARAMS = [
-        ("page", ["0", "-1", "99999999999999999999", "abc", "1.5", "", "null", "undefined", "'", '"', ";"]),
+        (
+            "page",
+            [
+                "0",
+                "-1",
+                "99999999999999999999",
+                "abc",
+                "1.5",
+                "",
+                "null",
+                "undefined",
+                "'",
+                '"',
+                ";",
+            ],
+        ),
         ("page_size", ["0", "-1", "999999", "abc", "1.5", "", "null", "-999"]),
-        ("ordering", ["", "id", "-id", "starts", "-starts", "invalid_field", "id;DROP", "'", "--"]),
-        ("search", ["", "'", ";", "<script>", "../../../etc/passwd", "A" * 10000]),
+        (
+            "ordering",
+            [
+                "",
+                "id",
+                "-id",
+                "starts",
+                "-starts",
+                "invalid_field",
+                "id;DROP",
+                "'",
+                "--",
+            ],
+        ),
+        (
+            "search",
+            ["", "'", ";", "<script>", "../../../etc/passwd", "A" * 10000],
+        ),
         ("format", ["json", "api", "html", "xml", "csv", "evil"]),
     ]
 
@@ -417,7 +490,9 @@ class TestPlayoutHistoryListRedTeamFuzzing:
 
         # Report findings
         if errors_found:
-            pytest.xfail(f"T562: Fuzzing found {len(errors_found)} parameters causing 500 errors: {errors_found[:3]}")
+            pytest.xfail(
+                f"T562: Fuzzing found {len(errors_found)} parameters causing 500 errors: {errors_found[:3]}",
+            )
 
     def test_fuzzing_unicode_in_params(self, api_client, admin_user):
         """
@@ -436,24 +511,35 @@ class TestPlayoutHistoryListRedTeamFuzzing:
         ]
 
         for payload in unicode_payloads:
-            response = api_client.get(f"/api/v2/playout-history?search={payload}")
+            response = api_client.get(
+                f"/api/v2/playout-history?search={payload}",
+            )
 
             if response.status_code == 500:
-                pytest.xfail(f"T562: Unicode payload causes 500: {repr(payload[:30])}")
+                pytest.xfail(
+                    f"T562: Unicode payload causes 500: {repr(payload[:30])}",
+                )
 
 
 @pytest.mark.django_db
 class TestPlayoutHistoryListRedTeamMassAssignment:
     """API3:2023 Broken Object Property Level Authorization - via LIST context."""
 
-    def test_list_response_includes_all_fields(self, api_client, admin_user, faker):
+    def test_list_response_includes_all_fields(
+        self, api_client, admin_user, faker,
+    ):
         """
         BOPLA: LIST response includes all model fields.
 
         fields = '__all__' exposes everything including potential secrets.
         """
         f = baker.make(File, mime="audio/mp3", owner=admin_user)
-        baker.make(PlayoutHistory, file=f, starts=now(), ends=now() + timedelta(minutes=5))
+        baker.make(
+            PlayoutHistory,
+            file=f,
+            starts=now(),
+            ends=now() + timedelta(minutes=5),
+        )
 
         response = api_client.get("/api/v2/playout-history")
         assert response.status_code == 200
@@ -467,14 +553,21 @@ class TestPlayoutHistoryListRedTeamMassAssignment:
             exposed_sensitive = sensitive_fields & fields_returned
 
             if exposed_sensitive:
-                pytest.xfail(f"T563: Sensitive fields exposed in LIST: {exposed_sensitive}")
+                pytest.xfail(
+                    f"T563: Sensitive fields exposed in LIST: {exposed_sensitive}",
+                )
 
     def test_list_fields_review(self, api_client, admin_user, faker):
         """
         Document all fields returned by LIST for security review.
         """
         f = baker.make(File, mime="audio/mp3", owner=admin_user)
-        baker.make(PlayoutHistory, file=f, starts=now(), ends=now() + timedelta(minutes=5))
+        baker.make(
+            PlayoutHistory,
+            file=f,
+            starts=now(),
+            ends=now() + timedelta(minutes=5),
+        )
 
         response = api_client.get("/api/v2/playout-history")
         data = response.json()
@@ -486,7 +579,9 @@ class TestPlayoutHistoryListRedTeamMassAssignment:
 
             # Check all expected fields are present
             for field in expected_fields:
-                assert field in fields, f"Expected field {field} not in response"
+                assert (
+                    field in fields
+                ), f"Expected field {field} not in response"
 
 
 @pytest.mark.django_db
@@ -502,7 +597,9 @@ class TestPlayoutHistoryListRedTeamIDEnumeration:
         # Create multiple records
         f = baker.make(File, mime="audio/mp3", owner=admin_user)
         playouts = [
-            baker.make(PlayoutHistory, file=f, starts=now() + timedelta(minutes=i))
+            baker.make(
+                PlayoutHistory, file=f, starts=now() + timedelta(minutes=i),
+            )
             for i in range(5)
         ]
 
@@ -531,7 +628,9 @@ class TestPlayoutHistoryListRedTeamIDEnumeration:
         p1_id = p1.id
         p1.delete()
 
-        p2 = baker.make(PlayoutHistory, file=f, starts=now() + timedelta(minutes=10))
+        p2 = baker.make(
+            PlayoutHistory, file=f, starts=now() + timedelta(minutes=10),
+        )
         p2_id = p2.id
 
         # If IDs are not sequential, gap reveals deletion
@@ -553,7 +652,7 @@ class TestPlayoutHistoryListRedTeamHTTPMethodOverride:
         response = api_client.post(
             "/api/v2/playout-history",
             data={},
-            headers={"X-HTTP-Method-Override": "GET"}
+            headers={"X-HTTP-Method-Override": "GET"},
         )
 
         # Should not work - POST is for CREATE
@@ -567,7 +666,9 @@ class TestPlayoutHistoryListRedTeamHTTPMethodOverride:
         methods = ["PUT", "PATCH", "DELETE", "OPTIONS", "HEAD", "TRACE"]
 
         for method in methods:
-            response = getattr(api_client, method.lower())("/api/v2/playout-history")
+            response = getattr(api_client, method.lower())(
+                "/api/v2/playout-history",
+            )
 
             # Only GET and POST should work
             if method == "OPTIONS":

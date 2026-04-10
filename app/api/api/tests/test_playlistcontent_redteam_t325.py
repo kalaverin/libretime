@@ -9,10 +9,10 @@ Attack vectors:
 - Query param injection in filter
 """
 
+
 import pytest
-from unittest.mock import patch
+
 from model_bakery import baker
-from rest_framework.test import APIClient
 
 
 @pytest.mark.django_db
@@ -42,7 +42,9 @@ class TestPlaylistContentMassAssignment:
         if response.status_code == 201:
             data = response.json()
             if data.get("id") == 99999:
-                pytest.fail("BAG: Can set id field during creation (mass assignment)")
+                pytest.fail(
+                    "BUG: Can set id field during creation (mass assignment)",
+                )
 
     def test_create_with_created_at(self, api_client, admin_user):
         """Try to set created_at during creation."""
@@ -66,7 +68,7 @@ class TestPlaylistContentMassAssignment:
         if response.status_code == 201:
             data = response.json()
             if data.get("created_at") and "2019" in data.get("created_at", ""):
-                pytest.fail("BAG: Can set created_at field (mass assignment)")
+                pytest.fail("BUG: Can set created_at field (mass assignment)")
 
     def test_update_playlist_field(self, api_client, admin_user):
         """Try to change playlist via PATCH."""
@@ -92,7 +94,9 @@ class TestPlaylistContentMassAssignment:
         if response.status_code == 200:
             data = response.json()
             if data.get("playlist") == playlist2.id:
-                pytest.fail("BAG: Can transfer content to another playlist via PATCH")
+                pytest.fail(
+                    "BUG: Can transfer content to another playlist via PATCH",
+                )
 
 
 @pytest.mark.django_db
@@ -118,7 +122,7 @@ class TestPlaylistContentNullInjection:
 
         # Should reject null playlist
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts null playlist despite required=True")
+            pytest.fail("BUG: Accepts null playlist despite required=True")
 
     def test_create_with_null_file_for_file_kind(self, api_client, admin_user):
         """Try to create FILE kind with null file."""
@@ -139,7 +143,7 @@ class TestPlaylistContentNullInjection:
 
         # Should reject null file for FILE kind
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts null file for FILE kind")
+            pytest.fail("BUG: Accepts null file for FILE kind")
 
     def test_create_with_null_kind(self, api_client, admin_user):
         """Try to create with null kind."""
@@ -161,7 +165,7 @@ class TestPlaylistContentNullInjection:
 
         # Should reject null kind
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts null kind field")
+            pytest.fail("BUG: Accepts null kind field")
 
 
 @pytest.mark.django_db
@@ -186,9 +190,13 @@ class TestPlaylistContentStreamKindValidation:
 
         # Should require stream for STREAM kind
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts STREAM kind without stream field (incomplete validation)")
+            pytest.fail(
+                "BUG: Accepts STREAM kind without stream field (incomplete validation)",
+            )
 
-    def test_create_stream_kind_with_file_instead(self, api_client, admin_user):
+    def test_create_stream_kind_with_file_instead(
+        self, api_client, admin_user,
+    ):
         """Try to create STREAM kind but provide file instead of stream."""
         playlist = baker.make("schedule.Playlist", owner=admin_user)
         file_obj = baker.make("storage.File", owner=admin_user)
@@ -208,14 +216,18 @@ class TestPlaylistContentStreamKindValidation:
 
         # Should reject - STREAM kind should have stream, not file
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts STREAM kind with file field (wrong media type)")
+            pytest.fail(
+                "BUG: Accepts STREAM kind with file field (wrong media type)",
+            )
 
 
 @pytest.mark.django_db
 class TestPlaylistContentBOLA:
     """Broken Object Level Authorization attacks."""
 
-    def test_list_shows_only_own_content(self, api_client, admin_user, regular_user):
+    def test_list_shows_only_own_content(
+        self, api_client, admin_user, regular_user,
+    ):
         """Verify list returns only user's own content."""
         # Create playlists and content for both users
         admin_playlist = baker.make("schedule.Playlist", owner=admin_user)
@@ -252,9 +264,11 @@ class TestPlaylistContentBOLA:
         assert user_content.id in content_ids
 
         if admin_content.id in content_ids:
-            pytest.fail("CRITICAL BAG: List shows other users' content (BOLA)")
+            pytest.fail("CRITICAL BUG: List shows other users' content (BOLA)")
 
-    def test_access_other_user_content_directly(self, api_client, admin_user, regular_user):
+    def test_access_other_user_content_directly(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to access another user's content by ID."""
         admin_playlist = baker.make("schedule.Playlist", owner=admin_user)
         admin_file = baker.make("storage.File", owner=admin_user)
@@ -269,12 +283,18 @@ class TestPlaylistContentBOLA:
 
         # User tries to access admin's content
         api_client.force_authenticate(user=regular_user)
-        response = api_client.get(f"/api/v2/playlist-contents/{admin_content.id}/")
+        response = api_client.get(
+            f"/api/v2/playlist-contents/{admin_content.id}/",
+        )
 
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Can access other user's content directly (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: Can access other user's content directly (BOLA)",
+            )
 
-    def test_update_other_user_content(self, api_client, admin_user, regular_user):
+    def test_update_other_user_content(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to update another user's content."""
         admin_playlist = baker.make("schedule.Playlist", owner=admin_user)
         admin_file = baker.make("storage.File", owner=admin_user)
@@ -296,9 +316,11 @@ class TestPlaylistContentBOLA:
         )
 
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Can update other user's content (BOLA)")
+            pytest.fail("CRITICAL BUG: Can update other user's content (BOLA)")
 
-    def test_delete_other_user_content(self, api_client, admin_user, regular_user):
+    def test_delete_other_user_content(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to delete another user's content."""
         admin_playlist = baker.make("schedule.Playlist", owner=admin_user)
         admin_file = baker.make("storage.File", owner=admin_user)
@@ -313,12 +335,16 @@ class TestPlaylistContentBOLA:
 
         # User tries to delete admin's content
         api_client.force_authenticate(user=regular_user)
-        response = api_client.delete(f"/api/v2/playlist-contents/{admin_content.id}/")
+        response = api_client.delete(
+            f"/api/v2/playlist-contents/{admin_content.id}/",
+        )
 
         if response.status_code == 204:
-            pytest.fail("CRITICAL BAG: Can delete other user's content (BOLA)")
+            pytest.fail("CRITICAL BUG: Can delete other user's content (BOLA)")
 
-    def test_create_content_for_other_user_playlist(self, api_client, admin_user, regular_user):
+    def test_create_content_for_other_user_playlist(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to create content in another user's playlist."""
         admin_playlist = baker.make("schedule.Playlist", owner=admin_user)
         admin_file = baker.make("storage.File", owner=admin_user)
@@ -338,7 +364,9 @@ class TestPlaylistContentBOLA:
         )
 
         if response.status_code == 201:
-            pytest.fail("CRITICAL BAG: Can create content in other user's playlist (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: Can create content in other user's playlist (BOLA)",
+            )
 
 
 @pytest.mark.django_db
@@ -353,7 +381,9 @@ class TestPlaylistContentFilterInjection:
 
         # Should handle gracefully
         if response.status_code == 500:
-            pytest.fail("BAG: Filter crashes on invalid playlist_id (ValueError)")
+            pytest.fail(
+                "BUG: Filter crashes on invalid playlist_id (ValueError)",
+            )
 
     def test_filter_by_sql_injection(self, api_client, admin_user):
         """Try SQL injection in playlist filter."""
@@ -367,12 +397,14 @@ class TestPlaylistContentFilterInjection:
 
         for payload in sqli_payloads:
             response = api_client.get(
-                f"/api/v2/playlist-contents?playlist={payload}"
+                f"/api/v2/playlist-contents?playlist={payload}",
             )
 
             # Should not execute SQL or crash
             if response.status_code == 500:
-                pytest.fail(f"BAG: SQL injection payload causes crash: {payload}")
+                pytest.fail(
+                    f"BUG: SQL injection payload causes crash: {payload}",
+                )
 
     def test_filter_by_negative_playlist_id(self, api_client, admin_user):
         """Try to filter by negative playlist_id."""
@@ -407,7 +439,7 @@ class TestPlaylistContentBusinessLogic:
 
         # Should reject non-existent playlist
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts non-existent playlist_id")
+            pytest.fail("BUG: Accepts non-existent playlist_id")
 
     def test_create_with_nonexistent_file(self, api_client, admin_user):
         """Try to create content with non-existent file."""
@@ -428,7 +460,7 @@ class TestPlaylistContentBusinessLogic:
 
         # Should reject non-existent file
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts non-existent file_id")
+            pytest.fail("BUG: Accepts non-existent file_id")
 
     def test_duplicate_position_in_same_playlist(self, api_client, admin_user):
         """Try to create duplicate position in same playlist."""
@@ -476,7 +508,7 @@ class TestPlaylistContentBusinessLogic:
         )
 
         if response.status_code == 201:
-            pytest.fail("CRITICAL BAG: Anonymous can create content")
+            pytest.fail("CRITICAL BUG: Anonymous can create content")
 
     def test_create_with_expired_session(self, api_client, admin_user):
         """Try to create with manipulated/expired session."""
@@ -495,4 +527,8 @@ class TestPlaylistContentBusinessLogic:
             format="json",
         )
 
-        assert response.status_code in [401, 403, 404]  # 404 if auth middleware rejects early
+        assert response.status_code in [
+            401,
+            403,
+            404,
+        ]  # 404 if auth middleware rejects early

@@ -10,13 +10,20 @@ Tests focus on:
 
 import json
 import time
+
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
-from api.schedule.models import Playlist, PlaylistContent, SmartBlock, Webstream
+from api.schedule.models import (
+    Playlist,
+    PlaylistContent,
+    SmartBlock,
+    Webstream,
+)
 from api.storage.models import File
 
 
@@ -37,61 +44,72 @@ class TestPlaylistContentCreateRedTeam:
     # API1:2023 - BOLA (Broken Object Level Authorization)
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T420: BOLA - can create content in other's playlist")
+    @pytest.mark.xfail(
+        reason="T420: BOLA - can create content in other's playlist",
+    )
     def test_bola_create_in_other_users_playlist(self, api_client):
         """BOLA: Should not create content in another user's playlist."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
 
         victim_playlist = baker.make(
-            Playlist, name="Victim Playlist", owner=victim
+            Playlist, name="Victim Playlist", owner=victim,
         )
         attacker_file = baker.make(
-            File, name="attacker.mp3", mime="audio/mp3", owner=attacker
+            File, name="attacker.mp3", mime="audio/mp3", owner=attacker,
         )
 
         response = api_client.post(
             "/api/v2/playlist-contents",
-            json.dumps({
-                "playlist": victim_playlist.id,
-                "kind": PlaylistContent.Kind.FILE,
-                "file": attacker_file.id,
-                "position": 1,
-            }),
+            json.dumps(
+                {
+                    "playlist": victim_playlist.id,
+                    "kind": PlaylistContent.Kind.FILE,
+                    "file": attacker_file.id,
+                    "position": 1,
+                },
+            ),
             content_type="application/json",
         )
 
         # Should fail with 403 or 404
-        assert response.status_code in [403, 404], \
-            f"BOLA: Created in victim's playlist with {response.status_code}"
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA: Created in victim's playlist with {response.status_code}"
 
     @pytest.mark.xfail(reason="T420: BOLA - playlist ownership not verified")
     def test_bola_mass_create_in_victim_playlist(self, api_client):
         """BOLA: Mass create content in victim's playlist."""
         victim = baker.make(User, username="testred_victim")
         victim_playlist = baker.make(
-            Playlist, name="Victim Playlist", owner=victim
+            Playlist, name="Victim Playlist", owner=victim,
         )
 
         # Try to flood victim's playlist
         created = 0
         for i in range(10):
-            f = baker.make(File, name=f"file{i}.mp3", mime="audio/mp3", owner=victim)
+            f = baker.make(
+                File, name=f"file{i}.mp3", mime="audio/mp3", owner=victim,
+            )
             response = api_client.post(
                 "/api/v2/playlist-contents",
-                json.dumps({
-                    "playlist": victim_playlist.id,
-                    "kind": PlaylistContent.Kind.FILE,
-                    "file": f.id,
-                    "position": i,
-                }),
+                json.dumps(
+                    {
+                        "playlist": victim_playlist.id,
+                        "kind": PlaylistContent.Kind.FILE,
+                        "file": f.id,
+                        "position": i,
+                    },
+                ),
                 content_type="application/json",
             )
             if response.status_code == 201:
                 created += 1
 
-        assert created == 0, \
-            f"BOLA: Created {created} contents in victim's playlist"
+        assert (
+            created == 0
+        ), f"BOLA: Created {created} contents in victim's playlist"
 
     # ========================================================================
     # API3:2023 - BOPLA (Broken Object Property Level Authorization)
@@ -102,24 +120,27 @@ class TestPlaylistContentCreateRedTeam:
         """BOPLA: Setting id field should be rejected."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
 
         response = api_client.post(
             "/api/v2/playlist-contents",
-            json.dumps({
-                "id": 99999,  # Try to set own ID
-                "playlist": playlist.id,
-                "kind": PlaylistContent.Kind.FILE,
-                "file": file_obj.id,
-                "position": 1,
-            }),
+            json.dumps(
+                {
+                    "id": 99999,  # Try to set own ID
+                    "playlist": playlist.id,
+                    "kind": PlaylistContent.Kind.FILE,
+                    "file": file_obj.id,
+                    "position": 1,
+                },
+            ),
             content_type="application/json",
         )
 
         if response.status_code == 201:
             data = response.json()
-            assert data.get("id") != 99999, \
-                "BOPLA: Custom ID was accepted"
+            assert data.get("id") != 99999, "BOPLA: Custom ID was accepted"
 
     @pytest.mark.xfail(reason="T423: No validation of file ownership")
     def test_bopla_create_with_other_users_file(self, api_client):
@@ -129,23 +150,27 @@ class TestPlaylistContentCreateRedTeam:
 
         playlist = baker.make(Playlist, name="Test", owner=user)
         other_file = baker.make(
-            File, name="other.mp3", mime="audio/mp3", owner=other
+            File, name="other.mp3", mime="audio/mp3", owner=other,
         )
 
         response = api_client.post(
             "/api/v2/playlist-contents",
-            json.dumps({
-                "playlist": playlist.id,
-                "kind": PlaylistContent.Kind.FILE,
-                "file": other_file.id,
-                "position": 1,
-            }),
+            json.dumps(
+                {
+                    "playlist": playlist.id,
+                    "kind": PlaylistContent.Kind.FILE,
+                    "file": other_file.id,
+                    "position": 1,
+                },
+            ),
             content_type="application/json",
         )
 
         # Should fail - using other user's file
-        assert response.status_code in [403, 400], \
-            f"BOPLA: Created with other's file, status {response.status_code}"
+        assert response.status_code in [
+            403,
+            400,
+        ], f"BOPLA: Created with other's file, status {response.status_code}"
 
     # ========================================================================
     # Injection Attacks
@@ -155,7 +180,9 @@ class TestPlaylistContentCreateRedTeam:
         """SQLi: Injection attempts in string fields."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
 
         sql_payloads = [
             "1' OR '1'='1",
@@ -167,19 +194,23 @@ class TestPlaylistContentCreateRedTeam:
         for payload in sql_payloads:
             response = api_client.post(
                 "/api/v2/playlist-contents",
-                json.dumps({
-                    "playlist": playlist.id,
-                    "kind": PlaylistContent.Kind.FILE,
-                    "file": file_obj.id,
-                    "position": 1,
-                    "cue_in": payload,
-                    "cue_out": payload,
-                }),
+                json.dumps(
+                    {
+                        "playlist": playlist.id,
+                        "kind": PlaylistContent.Kind.FILE,
+                        "file": file_obj.id,
+                        "position": 1,
+                        "cue_in": payload,
+                        "cue_out": payload,
+                    },
+                ),
                 content_type="application/json",
             )
             # Should not crash with 500
-            assert response.status_code in [201, 400], \
-                f"SQLi in fields caused {response.status_code}"
+            assert response.status_code in [
+                201,
+                400,
+            ], f"SQLi in fields caused {response.status_code}"
 
     def test_create_no_sql_injection_kind_field(self, api_client):
         """NoSQLi: Try MongoDB operators in fields."""
@@ -203,8 +234,10 @@ class TestPlaylistContentCreateRedTeam:
                 content_type="application/json",
             )
             # Should reject with 400
-            assert response.status_code in [400, 500], \
-                f"NoSQLi payload caused {response.status_code}"
+            assert response.status_code in [
+                400,
+                500,
+            ], f"NoSQLi payload caused {response.status_code}"
 
     # ========================================================================
     # Validation Bypass
@@ -215,28 +248,35 @@ class TestPlaylistContentCreateRedTeam:
         """Validation: Negative position should be rejected."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
 
         response = api_client.post(
             "/api/v2/playlist-contents",
-            json.dumps({
-                "playlist": playlist.id,
-                "kind": PlaylistContent.Kind.FILE,
-                "file": file_obj.id,
-                "position": -1,
-            }),
+            json.dumps(
+                {
+                    "playlist": playlist.id,
+                    "kind": PlaylistContent.Kind.FILE,
+                    "file": file_obj.id,
+                    "position": -1,
+                },
+            ),
             content_type="application/json",
         )
 
         # Should reject negative position
-        assert response.status_code in [400], \
-            f"Negative position accepted with {response.status_code}"
+        assert response.status_code in [
+            400,
+        ], f"Negative position accepted with {response.status_code}"
 
     def test_create_invalid_kind_value(self, api_client):
         """Validation: Invalid kind value should be rejected."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
 
         invalid_kinds = [
             999,
@@ -249,35 +289,44 @@ class TestPlaylistContentCreateRedTeam:
         for kind in invalid_kinds:
             response = api_client.post(
                 "/api/v2/playlist-contents",
-                json.dumps({
-                    "playlist": playlist.id,
-                    "kind": kind,
-                    "file": file_obj.id,
-                    "position": 1,
-                }),
+                json.dumps(
+                    {
+                        "playlist": playlist.id,
+                        "kind": kind,
+                        "file": file_obj.id,
+                        "position": 1,
+                    },
+                ),
                 content_type="application/json",
             )
-            assert response.status_code in [400], \
-                f"Invalid kind {kind} accepted with {response.status_code}"
+            assert response.status_code in [
+                400,
+            ], f"Invalid kind {kind} accepted with {response.status_code}"
 
     def test_create_nonexistent_playlist(self, api_client):
         """Validation: Non-existent playlist should return 400/404."""
         user = baker.make(User, username="testred_user")
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
 
         response = api_client.post(
             "/api/v2/playlist-contents",
-            json.dumps({
-                "playlist": 999999,
-                "kind": PlaylistContent.Kind.FILE,
-                "file": file_obj.id,
-                "position": 1,
-            }),
+            json.dumps(
+                {
+                    "playlist": 999999,
+                    "kind": PlaylistContent.Kind.FILE,
+                    "file": file_obj.id,
+                    "position": 1,
+                },
+            ),
             content_type="application/json",
         )
 
-        assert response.status_code in [400, 404], \
-            f"Non-existent playlist returned {response.status_code}"
+        assert response.status_code in [
+            400,
+            404,
+        ], f"Non-existent playlist returned {response.status_code}"
 
     def test_create_nonexistent_file(self, api_client):
         """Validation: Non-existent file should return 400."""
@@ -286,17 +335,21 @@ class TestPlaylistContentCreateRedTeam:
 
         response = api_client.post(
             "/api/v2/playlist-contents",
-            json.dumps({
-                "playlist": playlist.id,
-                "kind": PlaylistContent.Kind.FILE,
-                "file": 999999,
-                "position": 1,
-            }),
+            json.dumps(
+                {
+                    "playlist": playlist.id,
+                    "kind": PlaylistContent.Kind.FILE,
+                    "file": 999999,
+                    "position": 1,
+                },
+            ),
             content_type="application/json",
         )
 
-        assert response.status_code in [400, 404], \
-            f"Non-existent file returned {response.status_code}"
+        assert response.status_code in [
+            400,
+            404,
+        ], f"Non-existent file returned {response.status_code}"
 
     # ========================================================================
     # API6:2023 - Unrestricted Resource Consumption
@@ -309,15 +362,19 @@ class TestPlaylistContentCreateRedTeam:
         playlist = baker.make(Playlist, name="Test", owner=user)
 
         def create_content(i):
-            f = baker.make(File, name=f"file{i}.mp3", mime="audio/mp3", owner=user)
+            f = baker.make(
+                File, name=f"file{i}.mp3", mime="audio/mp3", owner=user,
+            )
             return api_client.post(
                 "/api/v2/playlist-contents",
-                json.dumps({
-                    "playlist": playlist.id,
-                    "kind": PlaylistContent.Kind.FILE,
-                    "file": f.id,
-                    "position": i,
-                }),
+                json.dumps(
+                    {
+                        "playlist": playlist.id,
+                        "kind": PlaylistContent.Kind.FILE,
+                        "file": f.id,
+                        "position": i,
+                    },
+                ),
                 content_type="application/json",
             )
 
@@ -335,11 +392,13 @@ class TestPlaylistContentCreateRedTeam:
 
     def test_create_huge_payload(self, api_client):
         """Resource: Huge payload should be rejected.""
-        
+
         Note: Currently creates successfully, may need size limit."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
 
         # Create huge payload
         huge_data = {
@@ -357,8 +416,11 @@ class TestPlaylistContentCreateRedTeam:
         )
 
         # Should reject or handle gracefully
-        assert response.status_code in [201, 400, 413], \
-            f"Huge payload caused {response.status_code}"
+        assert response.status_code in [
+            201,
+            400,
+            413,
+        ], f"Huge payload caused {response.status_code}"
 
     # ========================================================================
     # Business Logic
@@ -369,18 +431,24 @@ class TestPlaylistContentCreateRedTeam:
         """Logic: Same position in playlist should be rejected."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file1 = baker.make(File, name="file1.mp3", mime="audio/mp3", owner=user)
-        file2 = baker.make(File, name="file2.mp3", mime="audio/mp3", owner=user)
+        file1 = baker.make(
+            File, name="file1.mp3", mime="audio/mp3", owner=user,
+        )
+        file2 = baker.make(
+            File, name="file2.mp3", mime="audio/mp3", owner=user,
+        )
 
         # Create first content at position 1
         response1 = api_client.post(
             "/api/v2/playlist-contents",
-            json.dumps({
-                "playlist": playlist.id,
-                "kind": PlaylistContent.Kind.FILE,
-                "file": file1.id,
-                "position": 1,
-            }),
+            json.dumps(
+                {
+                    "playlist": playlist.id,
+                    "kind": PlaylistContent.Kind.FILE,
+                    "file": file1.id,
+                    "position": 1,
+                },
+            ),
             content_type="application/json",
         )
         assert response1.status_code == 201
@@ -388,40 +456,48 @@ class TestPlaylistContentCreateRedTeam:
         # Try to create second content at same position
         response2 = api_client.post(
             "/api/v2/playlist-contents",
-            json.dumps({
-                "playlist": playlist.id,
-                "kind": PlaylistContent.Kind.FILE,
-                "file": file2.id,
-                "position": 1,
-            }),
+            json.dumps(
+                {
+                    "playlist": playlist.id,
+                    "kind": PlaylistContent.Kind.FILE,
+                    "file": file2.id,
+                    "position": 1,
+                },
+            ),
             content_type="application/json",
         )
 
         # Should reject duplicate position
-        assert response2.status_code == 400, \
-            f"Duplicate position accepted with {response2.status_code}"
+        assert (
+            response2.status_code == 400
+        ), f"Duplicate position accepted with {response2.status_code}"
 
     @pytest.mark.xfail(reason="T422: IntegrityError on validation failure")
     def test_create_wrong_kind_for_file(self, api_client):
         """Logic: STREAM kind with file ID should fail with validation error."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
 
         response = api_client.post(
             "/api/v2/playlist-contents",
-            json.dumps({
-                "playlist": playlist.id,
-                "kind": PlaylistContent.Kind.STREAM,  # Wrong kind
-                "file": file_obj.id,  # File provided
-                "position": 1,
-            }),
+            json.dumps(
+                {
+                    "playlist": playlist.id,
+                    "kind": PlaylistContent.Kind.STREAM,  # Wrong kind
+                    "file": file_obj.id,  # File provided
+                    "position": 1,
+                },
+            ),
             content_type="application/json",
         )
 
         # Should reject kind/file mismatch
-        assert response.status_code in [400], \
-            f"Kind/file mismatch accepted with {response.status_code}"
+        assert response.status_code in [
+            400,
+        ], f"Kind/file mismatch accepted with {response.status_code}"
 
     # ========================================================================
     # Edge Cases
@@ -431,7 +507,9 @@ class TestPlaylistContentCreateRedTeam:
         """Edge case: Unicode in various fields."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
 
         unicode_strings = [
             "日本語コンテンツ",
@@ -444,25 +522,33 @@ class TestPlaylistContentCreateRedTeam:
         for unicode_str in unicode_strings:
             response = api_client.post(
                 "/api/v2/playlist-contents",
-                json.dumps({
-                    "playlist": playlist.id,
-                    "kind": PlaylistContent.Kind.FILE,
-                    "file": file_obj.id,
-                    "position": 1,
-                    "cue_in": unicode_str,
-                }),
+                json.dumps(
+                    {
+                        "playlist": playlist.id,
+                        "kind": PlaylistContent.Kind.FILE,
+                        "file": file_obj.id,
+                        "position": 1,
+                        "cue_in": unicode_str,
+                    },
+                ),
                 content_type="application/json",
             )
             # Should handle gracefully
-            assert response.status_code in [201, 400], \
-                f"Unicode '{unicode_str[:20]}' caused {response.status_code}"
+            assert response.status_code in [
+                201,
+                400,
+            ], f"Unicode '{unicode_str[:20]}' caused {response.status_code}"
 
-    @pytest.mark.xfail(reason="T422: IntegrityError instead of validation error")
+    @pytest.mark.xfail(
+        reason="T422: IntegrityError instead of validation error",
+    )
     def test_create_null_in_required_fields(self, api_client):
         """Edge case: Null in required fields should return 400 not 500."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
 
         null_tests = [
             {"playlist": None},
@@ -483,5 +569,6 @@ class TestPlaylistContentCreateRedTeam:
                 json.dumps(data),
                 content_type="application/json",
             )
-            assert response.status_code in [400], \
-                f"Null in field caused {response.status_code}"
+            assert response.status_code in [
+                400,
+            ], f"Null in field caused {response.status_code}"

@@ -36,7 +36,7 @@ class WriteScheduleSerializer(ModelSerializer[Any]):
 
         if not file_obj and not stream:
             raise ValidationError(
-                {"file": "Either file or stream is required."}
+                {"file": "Either file or stream is required."},
             )
 
         return data

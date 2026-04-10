@@ -10,7 +10,9 @@ Attack vectors:
 """
 
 import json
+
 import pytest
+
 from model_bakery import baker
 
 from api.schedule.models import Show, ShowRebroadcast
@@ -24,7 +26,10 @@ class TestShowRebroadcastListAuthentication:
     def test_list_without_auth(self, api_client):
         """Anonymous LIST should fail."""
         response = api_client.get("/api/v2/show-rebroadcasts")
-        assert response.status_code in [401, 403], "Anonymous can list rebroadcasts"
+        assert response.status_code in [
+            401,
+            403,
+        ], "Anonymous can list rebroadcasts"
 
 
 @pytest.mark.django_db(transaction=True)
@@ -32,11 +37,13 @@ class TestShowRebroadcastListBOLA:
     """LIST BOLA tests."""
 
     @pytest.mark.xfail(reason="T405: No owner filtering")
-    def test_list_other_user_rebroadcasts(self, api_client, admin_user, regular_user):
+    def test_list_other_user_rebroadcasts(
+        self, api_client, admin_user, regular_user,
+    ):
         """List shows other users' rebroadcasts."""
         show1 = baker.make(Show, name="Admin Show")
         show2 = baker.make(Show, name="User Show")
-        
+
         rebroadcast1 = baker.make(ShowRebroadcast, show=show1)
         rebroadcast2 = baker.make(ShowRebroadcast, show=show2)
 
@@ -46,8 +53,10 @@ class TestShowRebroadcastListBOLA:
         assert response.status_code == 200
         data = response.json()
         ids = [d["id"] for d in data]
-        
-        assert rebroadcast1.id not in ids, "List shows other users' rebroadcasts (BOLA)"
+
+        assert (
+            rebroadcast1.id not in ids
+        ), "List shows other users' rebroadcasts (BOLA)"
 
 
 @pytest.mark.django_db(transaction=True)
@@ -68,7 +77,10 @@ class TestShowRebroadcastCreateAuthentication:
             json.dumps(data),
             content_type="application/json",
         )
-        assert response.status_code in [401, 403], "Anonymous can create rebroadcasts"
+        assert response.status_code in [
+            401,
+            403,
+        ], "Anonymous can create rebroadcasts"
 
 
 @pytest.mark.django_db(transaction=True)
@@ -76,10 +88,12 @@ class TestShowRebroadcastCreateBOLA:
     """CREATE BOLA tests."""
 
     @pytest.mark.xfail(reason="T405: No owner filtering")
-    def test_create_for_other_user_show(self, api_client, regular_user, admin_user):
+    def test_create_for_other_user_show(
+        self, api_client, regular_user, admin_user,
+    ):
         """Create rebroadcast for another user's show."""
         show = baker.make(Show, name="Admin Show")
-        
+
         api_client.force_authenticate(user=regular_user)
         data = {
             "show": show.id,
@@ -91,7 +105,10 @@ class TestShowRebroadcastCreateBOLA:
             json.dumps(data),
             content_type="application/json",
         )
-        assert response.status_code in [403, 400], "Can create rebroadcast for other user's show (BOLA)"
+        assert response.status_code in [
+            403,
+            400,
+        ], "Can create rebroadcast for other user's show (BOLA)"
 
 
 @pytest.mark.django_db(transaction=True)
@@ -102,7 +119,7 @@ class TestShowRebroadcastCreateMassAssignment:
         """Try to set id during CREATE."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "id": 99999,
             "show": show.id,
@@ -114,7 +131,7 @@ class TestShowRebroadcastCreateMassAssignment:
             json.dumps(data),
             content_type="application/json",
         )
-        
+
         if response.status_code == 201:
             result = response.json()
             assert result.get("id") != 99999, "ID was set via mass assignment"
@@ -128,7 +145,7 @@ class TestShowRebroadcastDayOffsetAbuse:
         """Try negative day_offset."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "day_offset": -1,
@@ -146,7 +163,7 @@ class TestShowRebroadcastDayOffsetAbuse:
         """Try very large day_offset."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "day_offset": 999999,
@@ -169,7 +186,7 @@ class TestShowRebroadcastTimeManipulation:
         """Try invalid start_time format."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "day_offset": 1,
@@ -186,7 +203,7 @@ class TestShowRebroadcastTimeManipulation:
         """Try start_time with timezone info."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "day_offset": 1,
@@ -208,7 +225,7 @@ class TestShowRebroadcastFilterInjection:
     def test_filter_by_invalid_show(self, api_client, admin_user):
         """Try filter by invalid show_id."""
         api_client.force_authenticate(user=admin_user)
-        
+
         response = api_client.get("/api/v2/show-rebroadcasts?show=invalid")
         if response.status_code == 500:
             pytest.fail("BUG: Filter crash on invalid show")
@@ -216,13 +233,15 @@ class TestShowRebroadcastFilterInjection:
     def test_filter_sqli(self, api_client, admin_user):
         """Try SQL injection in filter."""
         api_client.force_authenticate(user=admin_user)
-        
+
         sqli_payloads = [
             "1' OR '1'='1",
             "1; DROP TABLE--",
         ]
-        
+
         for payload in sqli_payloads:
-            response = api_client.get(f"/api/v2/show-rebroadcasts?show={payload}")
+            response = api_client.get(
+                f"/api/v2/show-rebroadcasts?show={payload}",
+            )
             if response.status_code == 500:
                 pytest.fail(f"BUG: SQLi in filter: {payload}")

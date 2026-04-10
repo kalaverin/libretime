@@ -9,6 +9,7 @@ Tests focus on:
 """
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -28,7 +29,9 @@ class TestWebstreamDeleteRedTeam:
     # API1:2023 - BOLA (Broken Object Level Authorization)
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T556: BOLA - DELETE other user's stream returns wrong status")
+    @pytest.mark.xfail(
+        reason="T556: BOLA - DELETE other user's stream returns wrong status",
+    )
     def test_bola_delete_other_users_stream_status(self, api_client):
         """BOLA: DELETE of other's stream should return 403 not 404."""
         victim = baker.make(User, username="testred_victim")
@@ -43,14 +46,15 @@ class TestWebstreamDeleteRedTeam:
 
         response = api_client.delete(f"/api/v2/webstreams/{victim_stream.id}")
         # 403 = permission denied (correct), 404 = not found (leaks existence)
-        assert response.status_code == 403, \
-            f"BOLA: Wrong status {response.status_code} - leaks existence (404) or allows deletion (204)"
+        assert (
+            response.status_code == 403
+        ), f"BOLA: Wrong status {response.status_code} - leaks existence (404) or allows deletion (204)"
 
     @pytest.mark.xfail(reason="T557: BOLA - Batch delete scope verification")
     def test_bola_batch_delete_scope(self, api_client):
         """BOLA: Ensure delete only affects single stream."""
         victim = baker.make(User, username="testred_victim")
-        
+
         # Create multiple victim streams
         victim_streams = []
         for i in range(5):
@@ -65,12 +69,15 @@ class TestWebstreamDeleteRedTeam:
         initial_count = Webstream.objects.count()
 
         # Attacker tries to delete one
-        response = api_client.delete(f"/api/v2/webstreams/{victim_streams[0].id}")
+        response = api_client.delete(
+            f"/api/v2/webstreams/{victim_streams[0].id}",
+        )
 
         # Only one should be affected (if any)
         final_count = Webstream.objects.count()
-        assert final_count >= initial_count - 1, \
-            f"BOLA: Batch delete affected {initial_count - final_count} streams instead of 1"
+        assert (
+            final_count >= initial_count - 1
+        ), f"BOLA: Batch delete affected {initial_count - final_count} streams instead of 1"
 
     # ========================================================================
     # Information Disclosure via Error Messages
@@ -88,13 +95,16 @@ class TestWebstreamDeleteRedTeam:
         )
 
         # Try to delete existing vs non-existing
-        response_existing = api_client.delete(f"/api/v2/webstreams/{victim_stream.id}")
+        response_existing = api_client.delete(
+            f"/api/v2/webstreams/{victim_stream.id}",
+        )
         response_nonexistent = api_client.delete("/api/v2/webstreams/999999")
 
         # Both should return same status to not leak existence
         if response_existing.status_code != response_nonexistent.status_code:
-            assert False, \
-                f"Status leak: existing={response_existing.status_code}, nonexistent={response_nonexistent.status_code}"
+            assert (
+                False
+            ), f"Status leak: existing={response_existing.status_code}, nonexistent={response_nonexistent.status_code}"
 
     # ========================================================================
     # ID Enumeration Attacks
@@ -125,8 +135,9 @@ class TestWebstreamDeleteRedTeam:
         # Times should be similar (within 3x factor)
         if time_existing > 0:
             ratio = time_nonexistent / time_existing
-            assert ratio < 3.0, \
-                f"Timing leak: existing={time_existing:.4f}s, nonexistent={time_nonexistent:.4f}s (ratio {ratio:.1f})"
+            assert (
+                ratio < 3.0
+            ), f"Timing leak: existing={time_existing:.4f}s, nonexistent={time_nonexistent:.4f}s (ratio {ratio:.1f})"
 
     # ========================================================================
     # Mass Deletion Attack
@@ -135,7 +146,7 @@ class TestWebstreamDeleteRedTeam:
     def test_mass_deletion_rate_limit(self, api_client):
         """Security: Rate limiting on delete operations."""
         user = baker.make(User, username="testred_user")
-        
+
         # Create many streams
         streams = []
         for i in range(50):
@@ -176,8 +187,10 @@ class TestWebstreamDeleteRedTeam:
         for payload in sqli_payloads:
             response = api_client.delete(f"/api/v2/webstreams/{payload}")
             # Should return 404, never 500
-            assert response.status_code in [400, 404], \
-                f"SQLi '{payload}' caused {response.status_code}"
+            assert response.status_code in [
+                400,
+                404,
+            ], f"SQLi '{payload}' caused {response.status_code}"
 
     def test_path_traversal_in_delete_id(self, api_client):
         """Injection: Path traversal in DELETE id."""
@@ -189,8 +202,10 @@ class TestWebstreamDeleteRedTeam:
 
         for payload in traversal_payloads:
             response = api_client.delete(f"/api/v2/webstreams/{payload}")
-            assert response.status_code in [400, 404], \
-                f"Path traversal '{payload}' caused {response.status_code}"
+            assert response.status_code in [
+                400,
+                404,
+            ], f"Path traversal '{payload}' caused {response.status_code}"
 
     # ========================================================================
     # Race Condition in Delete
@@ -210,21 +225,27 @@ class TestWebstreamDeleteRedTeam:
         )
 
         def delete_stream():
-            return api_client.delete(f"/api/v2/webstreams/{stream.id}").status_code
+            return api_client.delete(
+                f"/api/v2/webstreams/{stream.id}",
+            ).status_code
 
         # Fire 5 concurrent delete requests
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             futures = [executor.submit(delete_stream) for _ in range(5)]
-            results = [f.result() for f in concurrent.futures.as_completed(futures)]
+            results = [
+                f.result() for f in concurrent.futures.as_completed(futures)
+            ]
 
         # One should succeed (204), others should get 404
         success_count = results.count(204)
         not_found_count = results.count(404)
 
-        assert success_count == 1, \
-            f"Race condition: {success_count} deletes succeeded, expected 1"
-        assert not_found_count == 4, \
-            f"Race condition: {not_found_count} got 404, expected 4"
+        assert (
+            success_count == 1
+        ), f"Race condition: {success_count} deletes succeeded, expected 1"
+        assert (
+            not_found_count == 4
+        ), f"Race condition: {not_found_count} got 404, expected 4"
 
     # ========================================================================
     # Authentication
@@ -244,8 +265,9 @@ class TestWebstreamDeleteRedTeam:
         try:
             response = api_client.delete("/api/v2/webstreams/1")
             # Should return 403, not 404
-            assert response.status_code == 403, \
-                f"BUG T560: Invalid token caused {response.status_code}"
+            assert (
+                response.status_code == 403
+            ), f"BUG T560: Invalid token caused {response.status_code}"
         finally:
             api_client.defaults["HTTP_AUTHORIZATION"] = original
 
@@ -256,14 +278,18 @@ class TestWebstreamDeleteRedTeam:
     def test_delete_unicode_id(self, api_client):
         """Validation: Unicode in ID handled gracefully."""
         response = api_client.delete("/api/v2/webstreams/日本語")
-        assert response.status_code in [400, 404], \
-            f"Unicode ID caused {response.status_code}"
+        assert response.status_code in [
+            400,
+            404,
+        ], f"Unicode ID caused {response.status_code}"
 
     def test_delete_null_bytes(self, api_client):
         """Validation: Null bytes in ID handled gracefully."""
         response = api_client.delete("/api/v2/webstreams/1%00test")
-        assert response.status_code in [400, 404], \
-            f"Null bytes caused {response.status_code}"
+        assert response.status_code in [
+            400,
+            404,
+        ], f"Null bytes caused {response.status_code}"
 
     # ========================================================================
     # HTTP Method Override
@@ -285,7 +311,8 @@ class TestWebstreamDeleteRedTeam:
             f"/api/v2/webstreams/{stream.id}",
             HTTP_X_HTTP_METHOD_OVERRIDE="DELETE",
         )
-        
+
         # Should not delete the stream
-        assert Webstream.objects.filter(id=stream.id).exists(), \
-            "HTTP method override bypassed delete protection"
+        assert Webstream.objects.filter(
+            id=stream.id,
+        ).exists(), "HTTP method override bypassed delete protection"

@@ -12,6 +12,7 @@ import json
 import time
 
 import pytest
+
 from django.conf import settings
 from model_bakery import baker
 
@@ -40,34 +41,36 @@ class TestPlaylistPermissionsRedTeam:
         # Try to access with API Key but without user session
         response = client.get(
             "/api/v2/playlists",
-            headers={"Authorization": f"Api-Key {real_api_key}"}
+            headers={"Authorization": f"Api-Key {real_api_key}"},
         )
 
         # API Key should work for service-to-service calls
         # But this might bypass user-specific permission checks
-        assert response.status_code in [200, 403], \
-            f"API Key auth returned unexpected status: {response.status_code}"
+        assert response.status_code in [
+            200,
+            403,
+        ], f"API Key auth returned unexpected status: {response.status_code}"
 
     def test_api_key_invalid_prefix(self, client):
         """API Key: Test various invalid API-Key prefixes."""
         invalid_prefixes = [
-            "api-key test",      # lowercase
-            "API-KEY test",      # uppercase
-            "Api-key test",      # mixed case
-            "Bearer test",       # wrong scheme
-            "Basic dGVzdA==",    # basic auth
-            "Token test",        # token scheme
-            "ApiKey test",       # no hyphen
+            "api-key test",  # lowercase
+            "API-KEY test",  # uppercase
+            "Api-key test",  # mixed case
+            "Bearer test",  # wrong scheme
+            "Basic dGVzdA==",  # basic auth
+            "Token test",  # token scheme
+            "ApiKey test",  # no hyphen
         ]
 
         for prefix in invalid_prefixes:
             response = client.get(
-                "/api/v2/playlists",
-                headers={"Authorization": prefix}
+                "/api/v2/playlists", headers={"Authorization": prefix},
             )
             # All should fail
-            assert response.status_code == 403, \
-                f"Prefix '{prefix}' should fail but got {response.status_code}"
+            assert (
+                response.status_code == 403
+            ), f"Prefix '{prefix}' should fail but got {response.status_code}"
 
     def test_api_key_timing_attack(self, client):
         """Timing attack: API key comparison should be constant-time."""
@@ -80,14 +83,15 @@ class TestPlaylistPermissionsRedTeam:
             start = time.time()
             client.get(
                 "/api/v2/playlists",
-                headers={"Authorization": f"Api-Key {key}"}
+                headers={"Authorization": f"Api-Key {key}"},
             )
             times.append(time.time() - start)
 
         # All times should be similar (constant-time comparison)
         max_diff = max(times) - min(times)
-        assert max_diff < 0.1, \
-            f"Timing leak: {max_diff}s difference in API key comparison"
+        assert (
+            max_diff < 0.1
+        ), f"Timing leak: {max_diff}s difference in API key comparison"
 
     # ========================================================================
     # API5:2023 - Broken Function Level Authorization (BFLA)
@@ -108,8 +112,11 @@ class TestPlaylistPermissionsRedTeam:
             response = api_client.get(pattern)
             # Should be 404 (not exist), 403 (forbidden), or 200 (if exists but auth ok)
             # 200 with admin=true is acceptable (param ignored)
-            assert response.status_code in [200, 403, 404], \
-                f"BFLA: Admin pattern '{pattern}' returned {response.status_code}"
+            assert response.status_code in [
+                200,
+                403,
+                404,
+            ], f"BFLA: Admin pattern '{pattern}' returned {response.status_code}"
 
     def test_bfla_method_override_permission_bypass(self, api_client):
         """BFLA: Test if method override bypasses permission checks."""
@@ -122,15 +129,18 @@ class TestPlaylistPermissionsRedTeam:
             f"/api/v2/playlists/{playlist.id}",
             headers={
                 "X-HTTP-Method-Override": "DELETE",
-            }
+            },
         )
 
         # Should NOT delete - either return 200 (GET) or 403
         if response.status_code == 204:
-            pytest.fail("BFLA: Method override bypassed permissions and deleted")
+            pytest.fail(
+                "BFLA: Method override bypassed permissions and deleted",
+            )
 
-        assert Playlist.objects.filter(id=playlist.id).exists(), \
-            "BFLA: Playlist was deleted via method override"
+        assert Playlist.objects.filter(
+            id=playlist.id,
+        ).exists(), "BFLA: Playlist was deleted via method override"
 
     def test_bfla_version_based_endpoint_bypass(self, api_client):
         """BFLA: Test older API versions for permission bypasses."""
@@ -139,8 +149,10 @@ class TestPlaylistPermissionsRedTeam:
         for version in versions:
             response = api_client.get(f"/api/{version}/playlists")
             # Should be 404 (not exist) or properly protected
-            assert response.status_code in [403, 404], \
-                f"BFLA: Version '{version}' returned {response.status_code}"
+            assert response.status_code in [
+                403,
+                404,
+            ], f"BFLA: Version '{version}' returned {response.status_code}"
 
     # ========================================================================
     # Permission Elevation
@@ -166,8 +178,10 @@ class TestPlaylistPermissionsRedTeam:
         response = api_client.delete(f"/api/v2/playlists/{playlist.id}")
 
         # HOST should NOT be able to delete other's playlist
-        assert response.status_code in [403, 404], \
-            f"Elevation: HOST deleted other's playlist with {response.status_code}"
+        assert response.status_code in [
+            403,
+            404,
+        ], f"Elevation: HOST deleted other's playlist with {response.status_code}"
 
     def test_permission_elevation_role_parameter_tampering(self, api_client):
         """Elevation: Try to elevate role via request parameters."""
@@ -192,10 +206,12 @@ class TestPlaylistPermissionsRedTeam:
             if response.status_code == 201:
                 data = response.json()
                 # Role should NOT be changed
-                assert data.get("role") != "admin", \
-                    f"Elevation: role changed via payload {payload}"
-                assert data.get("owner") != "admin", \
-                    f"Elevation: owner changed via payload {payload}"
+                assert (
+                    data.get("role") != "admin"
+                ), f"Elevation: role changed via payload {payload}"
+                assert (
+                    data.get("owner") != "admin"
+                ), f"Elevation: owner changed via payload {payload}"
 
     # ========================================================================
     # Missing Permission Tests
@@ -214,7 +230,7 @@ class TestPlaylistPermissionsRedTeam:
         response = api_client.get("/api/v2/playlists")
         # Current: 200 (all users have permissions)
         # Expected with RBAC: 403
-        pass  # Document current behavior
+        # Document current behavior
 
     # ========================================================================
     # Cross-User Access Vectors
@@ -239,8 +255,9 @@ class TestPlaylistPermissionsRedTeam:
         # Attacker should NOT see victim's playlists
         playlist_names = [p["name"] for p in data.get("results", data)]
         for vp in victim_playlists:
-            assert vp.name not in playlist_names, \
-                f"BOLA: Attacker can see victim's playlist '{vp.name}'"
+            assert (
+                vp.name not in playlist_names
+            ), f"BOLA: Attacker can see victim's playlist '{vp.name}'"
 
     @pytest.mark.xfail(reason="T420: BOLA - IDOR vulnerability")
     def test_idor_sequential_id_access(self, api_client):
@@ -249,17 +266,17 @@ class TestPlaylistPermissionsRedTeam:
 
         # Create victim's playlist
         victim_playlist = baker.make(
-            Playlist,
-            name="Victim Secret Playlist",
-            owner=victim
+            Playlist, name="Victim Secret Playlist", owner=victim,
         )
 
         # Attacker tries to access by ID
         response = api_client.get(f"/api/v2/playlists/{victim_playlist.id}")
 
         # Should be 403 or 404 (not visible to attacker)
-        assert response.status_code in [403, 404], \
-            f"IDOR: Attacker accessed victim's playlist with {response.status_code}"
+        assert response.status_code in [
+            403,
+            404,
+        ], f"IDOR: Attacker accessed victim's playlist with {response.status_code}"
 
     # ========================================================================
     # Authentication Edge Cases
@@ -269,20 +286,20 @@ class TestPlaylistPermissionsRedTeam:
         """Auth: Test various Bearer token formats."""
         # Try different token formats
         tokens = [
-            "Bearer ",           # empty token
-            "Bearer invalid",    # invalid token
-            "Bearer null",       # null token
+            "Bearer ",  # empty token
+            "Bearer invalid",  # invalid token
+            "Bearer null",  # null token
             "Bearer undefined",  # undefined token
-            "Bearer 12345",      # numeric token
+            "Bearer 12345",  # numeric token
         ]
 
         for token in tokens:
             response = client.get(
-                "/api/v2/playlists",
-                headers={"Authorization": token}
+                "/api/v2/playlists", headers={"Authorization": token},
             )
-            assert response.status_code == 403, \
-                f"Token '{token}' should fail but got {response.status_code}"
+            assert (
+                response.status_code == 403
+            ), f"Token '{token}' should fail but got {response.status_code}"
 
     def test_auth_session_vs_api_key_priority(self, api_client, client):
         """Auth: Test session auth vs API key priority."""
@@ -291,12 +308,14 @@ class TestPlaylistPermissionsRedTeam:
         # Request with both session (via api_client) and API key
         response = api_client.get(
             "/api/v2/playlists",
-            headers={"Authorization": f"Api-Key {real_api_key}"}
+            headers={"Authorization": f"Api-Key {real_api_key}"},
         )
 
         # Should work (either auth method is valid)
-        assert response.status_code in [200, 403], \
-            f"Dual auth returned unexpected: {response.status_code}"
+        assert response.status_code in [
+            200,
+            403,
+        ], f"Dual auth returned unexpected: {response.status_code}"
 
     def test_auth_cookie_tampering(self, client):
         """Auth: Test cookie-based auth tampering."""
@@ -312,8 +331,9 @@ class TestPlaylistPermissionsRedTeam:
             client.cookies.load(cookies)
             response = client.get("/api/v2/playlists")
             # All should fail
-            assert response.status_code == 403, \
-                f"Cookie {cookies} should fail but got {response.status_code}"
+            assert (
+                response.status_code == 403
+            ), f"Cookie {cookies} should fail but got {response.status_code}"
             client.cookies.clear()
 
     # ========================================================================
@@ -325,8 +345,10 @@ class TestPlaylistPermissionsRedTeam:
         # Try multiple values for same parameter
         response = api_client.get("/api/v2/playlists?id=1&id=2&id=3")
         # Should handle gracefully
-        assert response.status_code in [200, 400], \
-            f"HPP returned unexpected: {response.status_code}"
+        assert response.status_code in [
+            200,
+            400,
+        ], f"HPP returned unexpected: {response.status_code}"
 
     # ========================================================================
     # Cache Poisoning
@@ -347,5 +369,8 @@ class TestPlaylistPermissionsRedTeam:
             response = api_client.get("/api/v2/playlists", headers=headers)
             # Should not return cached data for different user
             # 400 is acceptable for invalid Host headers (Django protection)
-            assert response.status_code in [200, 400, 403], \
-                f"Cache header {headers} caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+                403,
+            ], f"Cache header {headers} caused {response.status_code}"

@@ -9,8 +9,8 @@ Attack vectors:
 """
 
 import pytest
+
 from model_bakery import baker
-from rest_framework.test import APIClient
 
 
 @pytest.mark.django_db
@@ -24,7 +24,7 @@ class TestSmartBlockCriteriaFilterInjection:
         response = api_client.get("/api/v2/smart-block-criteria?block=invalid")
 
         if response.status_code == 500:
-            pytest.fail("BAG: Filter crashes on invalid block_id (500 error)")
+            pytest.fail("BUG: Filter crashes on invalid block_id (500 error)")
         assert response.status_code in [200, 400]
 
     def test_filter_by_sql_injection(self, api_client, admin_user):
@@ -39,11 +39,11 @@ class TestSmartBlockCriteriaFilterInjection:
 
         for payload in sqli_payloads:
             response = api_client.get(
-                f"/api/v2/smart-block-criteria?block={payload}"
+                f"/api/v2/smart-block-criteria?block={payload}",
             )
 
             if response.status_code == 500:
-                pytest.fail(f"BAG: SQL injection causes 500: {payload}")
+                pytest.fail(f"BUG: SQL injection causes 500: {payload}")
 
     def test_filter_by_negative_block_id(self, api_client, admin_user):
         """Try to filter by negative block_id."""
@@ -64,18 +64,24 @@ class TestSmartBlockCriteriaFilterInjection:
         response = api_client.get("/api/v2/smart-block-criteria?block=1")
 
         if response.status_code == 200:
-            pytest.fail("BAG: Anonymous can filter smart block criteria")
+            pytest.fail("BUG: Anonymous can filter smart block criteria")
 
 
 @pytest.mark.django_db
 class TestSmartBlockCriteriaBOLA:
     """Broken Object Level Authorization attacks."""
 
-    def test_list_shows_only_own_criteria(self, api_client, admin_user, regular_user):
+    def test_list_shows_only_own_criteria(
+        self, api_client, admin_user, regular_user,
+    ):
         """Verify list returns only user's own criteria."""
         # Create blocks and criteria for both users
-        admin_block = baker.make("schedule.SmartBlock", owner=admin_user, kind="dynamic")
-        user_block = baker.make("schedule.SmartBlock", owner=regular_user, kind="dynamic")
+        admin_block = baker.make(
+            "schedule.SmartBlock", owner=admin_user, kind="dynamic",
+        )
+        user_block = baker.make(
+            "schedule.SmartBlock", owner=regular_user, kind="dynamic",
+        )
 
         admin_criteria = baker.make(
             "schedule.SmartBlockCriteria",
@@ -102,11 +108,17 @@ class TestSmartBlockCriteriaBOLA:
         assert user_criteria.id in criteria_ids
 
         if admin_criteria.id in criteria_ids:
-            pytest.fail("CRITICAL BAG: List shows other users' criteria (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: List shows other users' criteria (BOLA)",
+            )
 
-    def test_access_other_user_criteria(self, api_client, admin_user, regular_user):
+    def test_access_other_user_criteria(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to access another user's criteria by ID."""
-        admin_block = baker.make("schedule.SmartBlock", owner=admin_user, kind="dynamic")
+        admin_block = baker.make(
+            "schedule.SmartBlock", owner=admin_user, kind="dynamic",
+        )
         criteria = baker.make(
             "schedule.SmartBlockCriteria",
             block=admin_block,
@@ -116,14 +128,22 @@ class TestSmartBlockCriteriaBOLA:
         )
 
         api_client.force_authenticate(user=regular_user)
-        response = api_client.get(f"/api/v2/smart-block-criteria/{criteria.id}/")
+        response = api_client.get(
+            f"/api/v2/smart-block-criteria/{criteria.id}/",
+        )
 
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Can access other user's criteria (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: Can access other user's criteria (BOLA)",
+            )
 
-    def test_update_other_user_criteria(self, api_client, admin_user, regular_user):
+    def test_update_other_user_criteria(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to update another user's criteria."""
-        admin_block = baker.make("schedule.SmartBlock", owner=admin_user, kind="dynamic")
+        admin_block = baker.make(
+            "schedule.SmartBlock", owner=admin_user, kind="dynamic",
+        )
         criteria = baker.make(
             "schedule.SmartBlockCriteria",
             block=admin_block,
@@ -140,11 +160,17 @@ class TestSmartBlockCriteriaBOLA:
         )
 
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Can update other user's criteria (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: Can update other user's criteria (BOLA)",
+            )
 
-    def test_delete_other_user_criteria(self, api_client, admin_user, regular_user):
+    def test_delete_other_user_criteria(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to delete another user's criteria."""
-        admin_block = baker.make("schedule.SmartBlock", owner=admin_user, kind="dynamic")
+        admin_block = baker.make(
+            "schedule.SmartBlock", owner=admin_user, kind="dynamic",
+        )
         criteria = baker.make(
             "schedule.SmartBlockCriteria",
             block=admin_block,
@@ -154,15 +180,25 @@ class TestSmartBlockCriteriaBOLA:
         )
 
         api_client.force_authenticate(user=regular_user)
-        response = api_client.delete(f"/api/v2/smart-block-criteria/{criteria.id}/")
+        response = api_client.delete(
+            f"/api/v2/smart-block-criteria/{criteria.id}/",
+        )
 
         if response.status_code == 204:
-            pytest.fail("CRITICAL BAG: Can delete other user's criteria (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: Can delete other user's criteria (BOLA)",
+            )
 
-    def test_filter_shows_only_own_by_block(self, api_client, admin_user, regular_user):
+    def test_filter_shows_only_own_by_block(
+        self, api_client, admin_user, regular_user,
+    ):
         """Verify filter by block returns only user's own criteria."""
-        admin_block = baker.make("schedule.SmartBlock", owner=admin_user, kind="dynamic")
-        user_block = baker.make("schedule.SmartBlock", owner=regular_user, kind="dynamic")
+        admin_block = baker.make(
+            "schedule.SmartBlock", owner=admin_user, kind="dynamic",
+        )
+        user_block = baker.make(
+            "schedule.SmartBlock", owner=regular_user, kind="dynamic",
+        )
 
         admin_criteria = baker.make(
             "schedule.SmartBlockCriteria",
@@ -180,7 +216,9 @@ class TestSmartBlockCriteriaBOLA:
         )
 
         api_client.force_authenticate(user=regular_user)
-        response = api_client.get(f"/api/v2/smart-block-criteria?block={user_block.id}")
+        response = api_client.get(
+            f"/api/v2/smart-block-criteria?block={user_block.id}",
+        )
 
         assert response.status_code == 200
         data = response.json()
@@ -189,7 +227,9 @@ class TestSmartBlockCriteriaBOLA:
         assert user_criteria.id in criteria_ids
 
         if admin_criteria.id in criteria_ids:
-            pytest.fail("BAG: Filter by block shows other users' criteria (BOLA)")
+            pytest.fail(
+                "BUG: Filter by block shows other users' criteria (BOLA)",
+            )
 
 
 @pytest.mark.django_db
@@ -198,7 +238,9 @@ class TestSmartBlockCriteriaMassAssignment:
 
     def test_create_with_id_field(self, api_client, admin_user):
         """Try to set id field during creation."""
-        block = baker.make("schedule.SmartBlock", owner=admin_user, kind="dynamic")
+        block = baker.make(
+            "schedule.SmartBlock", owner=admin_user, kind="dynamic",
+        )
 
         api_client.force_authenticate(user=admin_user)
         response = api_client.post(
@@ -216,12 +258,16 @@ class TestSmartBlockCriteriaMassAssignment:
         if response.status_code == 201:
             data = response.json()
             if data.get("id") == 99999:
-                pytest.fail("BAG: Can set id field")
+                pytest.fail("BUG: Can set id field")
 
     def test_update_block_field(self, api_client, admin_user, regular_user):
         """Try to change block via PATCH."""
-        block1 = baker.make("schedule.SmartBlock", owner=admin_user, kind="dynamic")
-        block2 = baker.make("schedule.SmartBlock", owner=regular_user, kind="dynamic")
+        block1 = baker.make(
+            "schedule.SmartBlock", owner=admin_user, kind="dynamic",
+        )
+        block2 = baker.make(
+            "schedule.SmartBlock", owner=regular_user, kind="dynamic",
+        )
         criteria = baker.make(
             "schedule.SmartBlockCriteria",
             block=block1,
@@ -240,7 +286,7 @@ class TestSmartBlockCriteriaMassAssignment:
         if response.status_code == 200:
             data = response.json()
             if data.get("block") == block2.id:
-                pytest.fail("BAG: Can transfer criteria to another block")
+                pytest.fail("BUG: Can transfer criteria to another block")
 
 
 @pytest.mark.django_db
@@ -260,7 +306,7 @@ class TestSmartBlockCriteriaBusinessLogic:
         )
 
         if response.status_code == 201:
-            pytest.fail("CRITICAL BAG: Anonymous can create criteria")
+            pytest.fail("CRITICAL BUG: Anonymous can create criteria")
 
     def test_create_with_nonexistent_block(self, api_client, admin_user):
         """Try to create with non-existent block."""
@@ -277,11 +323,13 @@ class TestSmartBlockCriteriaBusinessLogic:
         )
 
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts non-existent block_id")
+            pytest.fail("BUG: Accepts non-existent block_id")
 
     def test_create_criteria_for_static_block(self, api_client, admin_user):
         """Try to create criteria for static block (should be dynamic only)."""
-        block = baker.make("schedule.SmartBlock", owner=admin_user, kind="static")
+        block = baker.make(
+            "schedule.SmartBlock", owner=admin_user, kind="static",
+        )
 
         api_client.force_authenticate(user=admin_user)
         response = api_client.post(

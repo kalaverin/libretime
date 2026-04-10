@@ -11,16 +11,18 @@ Tests focus on:
 """
 
 import json
+
 from datetime import timedelta
 
 import pytest
+
 from model_bakery import baker
+from sdk.datetime import format_datetime
 
 from api.core.models import User
 from api.schedule.models import Schedule, Show, ShowInstance, Webstream
 from api.storage.models import File
 from sdk import now
-from sdk.datetime import format_datetime, reformat_datetime
 
 
 @pytest.mark.django_db(transaction=True)
@@ -36,7 +38,9 @@ class TestScheduleCreateRedTeam:
         Show.objects.all().delete()
         User.objects.filter(username__startswith="testred").delete()
 
-    def _get_schedule_data(self, instance, file_obj=None, stream=None, **overrides):
+    def _get_schedule_data(
+        self, instance, file_obj=None, stream=None, **overrides,
+    ):
         """Helper to generate valid schedule data with proper datetime formatting."""
         base_time = now()
         starts_at = base_time + timedelta(hours=1)
@@ -64,10 +68,14 @@ class TestScheduleCreateRedTeam:
     # API1:2023 - BOLA (Broken Object Level Authorization)
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T576: BOLA - Can create schedule for other user's show")
+    @pytest.mark.xfail(
+        reason="T576: BOLA - Can create schedule for other user's show",
+    )
     def test_bola_create_schedule_for_other_user_show(self, api_client, faker):
         """BOLA: Can create schedule entry in another user's show instance."""
-        victim = baker.make(User, username=f"testred_victim_{faker.user_name()}")
+        victim = baker.make(
+            User, username=f"testred_victim_{faker.user_name()}",
+        )
         attacker_file = baker.make(
             File,
             name=faker.file_name(),
@@ -87,13 +95,20 @@ class TestScheduleCreateRedTeam:
             content_type="application/json",
         )
 
-        assert response.status_code == 403, \
-            f"BOLA: Got {response.status_code}, expected 403 - can create schedule in other's show"
+        assert (
+            response.status_code == 403
+        ), f"BOLA: Got {response.status_code}, expected 403 - can create schedule in other's show"
 
-    @pytest.mark.xfail(reason="T577: BOLA - Can create schedule using other user's file")
-    def test_bola_create_schedule_with_other_user_file(self, api_client, faker):
+    @pytest.mark.xfail(
+        reason="T577: BOLA - Can create schedule using other user's file",
+    )
+    def test_bola_create_schedule_with_other_user_file(
+        self, api_client, faker,
+    ):
         """BOLA: Can create schedule using another user's file without permission."""
-        victim = baker.make(User, username=f"testred_victim_{faker.user_name()}")
+        victim = baker.make(
+            User, username=f"testred_victim_{faker.user_name()}",
+        )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
 
@@ -113,13 +128,20 @@ class TestScheduleCreateRedTeam:
             content_type="application/json",
         )
 
-        assert response.status_code == 403, \
-            f"BOLA: Got {response.status_code}, expected 403 - can use other's file"
+        assert (
+            response.status_code == 403
+        ), f"BOLA: Got {response.status_code}, expected 403 - can use other's file"
 
-    @pytest.mark.xfail(reason="T578: BOLA - Can create schedule using other user's stream")
-    def test_bola_create_schedule_with_other_user_stream(self, api_client, faker):
+    @pytest.mark.xfail(
+        reason="T578: BOLA - Can create schedule using other user's stream",
+    )
+    def test_bola_create_schedule_with_other_user_stream(
+        self, api_client, faker,
+    ):
         """BOLA: Can create schedule using another user's webstream."""
-        victim = baker.make(User, username=f"testred_victim_{faker.user_name()}")
+        victim = baker.make(
+            User, username=f"testred_victim_{faker.user_name()}",
+        )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
 
@@ -139,8 +161,9 @@ class TestScheduleCreateRedTeam:
             content_type="application/json",
         )
 
-        assert response.status_code == 403, \
-            f"BOLA: Got {response.status_code}, expected 403 - can use other's stream"
+        assert (
+            response.status_code == 403
+        ), f"BOLA: Got {response.status_code}, expected 403 - can use other's stream"
 
     # ========================================================================
     # API3:2023 - BOPLA (Broken Object Property Level Authorization)
@@ -151,7 +174,9 @@ class TestScheduleCreateRedTeam:
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         fake_id = faker.random_int(min=100000, max=999999)
         data = self._get_schedule_data(instance, file_obj=file_obj, id=fake_id)
@@ -165,14 +190,18 @@ class TestScheduleCreateRedTeam:
         if response.status_code == 201:
             resp_data = response.json()
             if resp_data.get("id") == fake_id:
-                pytest.fail(f"BOPLA: Can set custom ID during CREATE (id={fake_id})")
+                pytest.fail(
+                    f"BOPLA: Can set custom ID during CREATE (id={fake_id})",
+                )
 
     def test_bopla_mass_assignment_readonly(self, api_client, faker):
         """BOPLA: Check if read-only fields can be mass assigned."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         data = self._get_schedule_data(
             instance,
@@ -195,13 +224,17 @@ class TestScheduleCreateRedTeam:
     # API6:2023 - Unsafe Business Flows
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T581: Business Logic - No schedule overlap validation")
+    @pytest.mark.xfail(
+        reason="T581: Business Logic - No schedule overlap validation",
+    )
     def test_business_logic_schedule_overlap(self, api_client, faker):
         """Logic: Can create overlapping schedule entries."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         base_time = now() + timedelta(hours=1)
 
@@ -222,7 +255,9 @@ class TestScheduleCreateRedTeam:
         data2 = self._get_schedule_data(
             instance,
             file_obj=file_obj,
-            starts_at=format_datetime(base_time + timedelta(minutes=2)),  # Overlaps
+            starts_at=format_datetime(
+                base_time + timedelta(minutes=2),
+            ),  # Overlaps
             ends_at=format_datetime(base_time + timedelta(minutes=7)),
             position=2,
         )
@@ -236,7 +271,9 @@ class TestScheduleCreateRedTeam:
         if response.status_code == 201:
             pytest.fail("Logic: Overlapping schedules allowed")
 
-    @pytest.mark.xfail(reason="T582: Business Logic - No show time boundary validation")
+    @pytest.mark.xfail(
+        reason="T582: Business Logic - No show time boundary validation",
+    )
     def test_business_logic_outside_show_time(self, api_client, faker):
         """Logic: Can create schedule outside show time boundaries."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
@@ -251,13 +288,17 @@ class TestScheduleCreateRedTeam:
             ends_at=base_time + timedelta(hours=1),
         )
 
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         # Try to create schedule outside show time
         data = self._get_schedule_data(
             instance,
             file_obj=file_obj,
-            starts_at=format_datetime(base_time + timedelta(hours=2)),  # Outside show time
+            starts_at=format_datetime(
+                base_time + timedelta(hours=2),
+            ),  # Outside show time
             ends_at=format_datetime(base_time + timedelta(hours=2, minutes=5)),
         )
         response = api_client.post(
@@ -273,8 +314,12 @@ class TestScheduleCreateRedTeam:
     # API7:2023 - SSRF via Stream URLs
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T583: SSRF - Schedule created with internal stream URL")
-    def test_ssrf_create_schedule_with_internal_stream(self, api_client, faker):
+    @pytest.mark.xfail(
+        reason="T583: SSRF - Schedule created with internal stream URL",
+    )
+    def test_ssrf_create_schedule_with_internal_stream(
+        self, api_client, faker,
+    ):
         """SSRF: Can create schedule with internal stream URL."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -311,7 +356,9 @@ class TestScheduleCreateRedTeam:
         )
         assert response.status_code == 403
 
-    @pytest.mark.xfail(reason="T584: Auth - Invalid token returns 200 instead of 403")
+    @pytest.mark.xfail(
+        reason="T584: Auth - Invalid token returns 200 instead of 403",
+    )
     def test_create_with_invalid_token(self, api_client, faker):
         """Auth: Invalid token should be rejected."""
         original = api_client.defaults.get("HTTP_AUTHORIZATION", "")
@@ -324,7 +371,9 @@ class TestScheduleCreateRedTeam:
                 content_type="application/json",
             )
             if response.status_code == 200:
-                pytest.fail("T584: Invalid token accepted - authentication bypass")
+                pytest.fail(
+                    "T584: Invalid token accepted - authentication bypass",
+                )
             assert response.status_code == 403
         finally:
             api_client.defaults["HTTP_AUTHORIZATION"] = original
@@ -338,7 +387,9 @@ class TestScheduleCreateRedTeam:
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         sqli_payloads = [
             "00:00:00' OR '1'='1",
@@ -346,7 +397,9 @@ class TestScheduleCreateRedTeam:
         ]
 
         for payload in sqli_payloads:
-            data = self._get_schedule_data(instance, file_obj=file_obj, cue_in=payload)
+            data = self._get_schedule_data(
+                instance, file_obj=file_obj, cue_in=payload,
+            )
             response = api_client.post(
                 "/api/v2/schedule",
                 json.dumps(data),
@@ -378,8 +431,11 @@ class TestScheduleCreateRedTeam:
             content_type="application/json",
         )
         # Should not crash
-        assert response.status_code in [200, 201, 400], \
-            f"NoSQLi caused unexpected {response.status_code}"
+        assert response.status_code in [
+            200,
+            201,
+            400,
+        ], f"NoSQLi caused unexpected {response.status_code}"
 
     # ========================================================================
     # Input Validation
@@ -390,41 +446,56 @@ class TestScheduleCreateRedTeam:
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
-        data = self._get_schedule_data(instance, file_obj=file_obj, cue_in="日本語")
+        data = self._get_schedule_data(
+            instance, file_obj=file_obj, cue_in="日本語",
+        )
         response = api_client.post(
             "/api/v2/schedule",
             json.dumps(data),
             content_type="application/json",
         )
         # Should handle gracefully
-        assert response.status_code in [200, 201, 400], \
-            f"Unicode caused unexpected {response.status_code}"
+        assert response.status_code in [
+            200,
+            201,
+            400,
+        ], f"Unicode caused unexpected {response.status_code}"
 
     def test_negative_position(self, api_client, faker):
         """Validation: Negative position values."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
-        data = self._get_schedule_data(instance, file_obj=file_obj, position=-999)
+        data = self._get_schedule_data(
+            instance, file_obj=file_obj, position=-999,
+        )
         response = api_client.post(
             "/api/v2/schedule",
             json.dumps(data),
             content_type="application/json",
         )
         # Should validate position range
-        assert response.status_code in [201, 400], \
-            f"Negative position returned {response.status_code}"
+        assert response.status_code in [
+            201,
+            400,
+        ], f"Negative position returned {response.status_code}"
 
     def test_invalid_date_formats(self, api_client, faker):
         """Validation: Invalid date formats."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         invalid_dates = [
             "not-a-date",
@@ -443,8 +514,10 @@ class TestScheduleCreateRedTeam:
                 json.dumps(data),
                 content_type="application/json",
             )
-            assert response.status_code in [201, 400], \
-                f"Date '{date_str}' caused unexpected {response.status_code}"
+            assert response.status_code in [
+                201,
+                400,
+            ], f"Date '{date_str}' caused unexpected {response.status_code}"
 
     # ========================================================================
     # Information Disclosure
@@ -478,7 +551,9 @@ class TestScheduleCreateRedTeam:
     # Race Condition
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T586: Race condition - concurrent CREATE same slot")
+    @pytest.mark.xfail(
+        reason="T586: Race condition - concurrent CREATE same slot",
+    )
     def test_race_condition_concurrent_create(self, api_client, faker):
         """Race: Concurrent CREATE for same time slot."""
         import concurrent.futures
@@ -486,7 +561,9 @@ class TestScheduleCreateRedTeam:
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         def create_schedule():
             data = self._get_schedule_data(instance, file_obj=file_obj)
@@ -499,9 +576,13 @@ class TestScheduleCreateRedTeam:
         # Fire 5 concurrent creates
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             futures = [executor.submit(create_schedule) for _ in range(5)]
-            results = [f.result() for f in concurrent.futures.as_completed(futures)]
+            results = [
+                f.result() for f in concurrent.futures.as_completed(futures)
+            ]
 
         success_count = results.count(201)
         # Should only allow one or reject all consistently
         if success_count > 1:
-            pytest.fail(f"Race condition: {success_count}/5 concurrent creates succeeded")
+            pytest.fail(
+                f"Race condition: {success_count}/5 concurrent creates succeeded",
+            )

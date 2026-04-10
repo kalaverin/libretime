@@ -7,10 +7,10 @@ Tests focus on:
 - Information disclosure
 """
 
-import json
 import time
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -38,7 +38,9 @@ class TestPlaylistContentRetrieveRedTeam:
         """BOLA: Should not retrieve another user's content."""
         victim = baker.make(User, username="testred_victim")
         victim_playlist = baker.make(Playlist, name="Victim", owner=victim)
-        victim_file = baker.make(File, name="victim.mp3", mime="audio/mp3", owner=victim)
+        victim_file = baker.make(
+            File, name="victim.mp3", mime="audio/mp3", owner=victim,
+        )
         content = baker.make(
             PlaylistContent,
             playlist=victim_playlist,
@@ -49,8 +51,10 @@ class TestPlaylistContentRetrieveRedTeam:
 
         response = api_client.get(f"/api/v2/playlist-contents/{content.id}")
 
-        assert response.status_code in [403, 404], \
-            f"BOLA: Retrieved victim's content with {response.status_code}"
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA: Retrieved victim's content with {response.status_code}"
 
     @pytest.mark.xfail(reason="T420: IDOR - sequential ID enumeration")
     def test_idor_enumerate_content_ids(self, api_client):
@@ -60,7 +64,9 @@ class TestPlaylistContentRetrieveRedTeam:
 
         contents = []
         for i in range(3):
-            f = baker.make(File, name=f"victim{i}.mp3", mime="audio/mp3", owner=victim)
+            f = baker.make(
+                File, name=f"victim{i}.mp3", mime="audio/mp3", owner=victim,
+            )
             c = baker.make(
                 PlaylistContent,
                 playlist=victim_playlist,
@@ -78,7 +84,9 @@ class TestPlaylistContentRetrieveRedTeam:
             if r.status_code == 200:
                 found += 1
 
-        assert found == 0, f"IDOR: Found {found} victim contents via enumeration"
+        assert (
+            found == 0
+        ), f"IDOR: Found {found} victim contents via enumeration"
 
     # ========================================================================
     # API3:2023 - BOPLA
@@ -88,7 +96,9 @@ class TestPlaylistContentRetrieveRedTeam:
         """BOPLA: Check sensitive field exposure in retrieve."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
         content = baker.make(
             PlaylistContent,
             playlist=playlist,
@@ -103,8 +113,9 @@ class TestPlaylistContentRetrieveRedTeam:
         sensitive = ["password", "secret", "token", "internal"]
         for field in data.keys():
             for s in sensitive:
-                assert s not in field.lower(), \
-                    f"BOPLA: Sensitive field '{field}' exposed"
+                assert (
+                    s not in field.lower()
+                ), f"BOPLA: Sensitive field '{field}' exposed"
 
     # ========================================================================
     # API6:2023 - Resource
@@ -114,7 +125,9 @@ class TestPlaylistContentRetrieveRedTeam:
         """Resource: Rapid retrieve should be rate limited."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
         content = baker.make(
             PlaylistContent,
             playlist=playlist,
@@ -145,9 +158,13 @@ class TestPlaylistContentRetrieveRedTeam:
         invalid_ids = ["abc", "1.5", "-1", "1' OR '1'='1"]
 
         for invalid_id in invalid_ids:
-            response = api_client.get(f"/api/v2/playlist-contents/{invalid_id}")
-            assert response.status_code in [400, 404], \
-                f"Invalid id '{invalid_id}' caused {response.status_code}"
+            response = api_client.get(
+                f"/api/v2/playlist-contents/{invalid_id}",
+            )
+            assert response.status_code in [
+                400,
+                404,
+            ], f"Invalid id '{invalid_id}' caused {response.status_code}"
 
     def test_retrieve_timing_attack(self, api_client):
         """Timing: Response time should not reveal existence."""
@@ -159,7 +176,9 @@ class TestPlaylistContentRetrieveRedTeam:
         # Create and time existent
         user = baker.make(User, username="testred_timing")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
         content = baker.make(
             PlaylistContent,
             playlist=playlist,

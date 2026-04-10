@@ -7,10 +7,10 @@ Tests focus on:
 - Injection in filter params
 """
 
-import json
 import time
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -45,8 +45,9 @@ class TestSmartBlockListRedTeam:
         data = response.json()
 
         block_names = [b["name"] for b in data]
-        assert "Victim Secret Block" not in block_names, \
-            "BOLA: Attacker sees victim's block"
+        assert (
+            "Victim Secret Block" not in block_names
+        ), "BOLA: Attacker sees victim's block"
 
     @pytest.mark.xfail(reason="T425: BOLA via kind filter")
     def test_bola_filter_kind_shows_others(self, api_client):
@@ -60,13 +61,14 @@ class TestSmartBlockListRedTeam:
         )
 
         response = api_client.get(
-            f"/api/v2/smart-blocks?kind={SmartBlock.Kind.DYNAMIC}"
+            f"/api/v2/smart-blocks?kind={SmartBlock.Kind.DYNAMIC}",
         )
         data = response.json()
 
         names = [b["name"] for b in data]
-        assert "Victim Dynamic" not in names, \
-            "BOLA: Filter exposes victim's blocks"
+        assert (
+            "Victim Dynamic" not in names
+        ), "BOLA: Filter exposes victim's blocks"
 
     # ========================================================================
     # API3:2023 - BOPLA
@@ -89,8 +91,9 @@ class TestSmartBlockListRedTeam:
         for block in data:
             for field in block.keys():
                 for s in sensitive:
-                    assert s not in field.lower(), \
-                        f"BOPLA: Sensitive field '{field}'"
+                    assert (
+                        s not in field.lower()
+                    ), f"BOPLA: Sensitive field '{field}'"
 
     # ========================================================================
     # API6:2023 - Resource
@@ -134,8 +137,11 @@ class TestSmartBlockListRedTeam:
 
         for payload in sqli_payloads:
             response = api_client.get(f"/api/v2/smart-blocks?kind={payload}")
-            assert response.status_code in [200, 400, 404], \
-                f"SQLi '{payload}' caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+                404,
+            ], f"SQLi '{payload}' caused {response.status_code}"
 
     def test_ordering_sql_injection(self, api_client):
         """SQLi: Injection in ordering param."""
@@ -145,9 +151,13 @@ class TestSmartBlockListRedTeam:
         ]
 
         for payload in payloads:
-            response = api_client.get(f"/api/v2/smart-blocks?ordering={payload}")
-            assert response.status_code in [200, 400], \
-                f"Order injection caused {response.status_code}"
+            response = api_client.get(
+                f"/api/v2/smart-blocks?ordering={payload}",
+            )
+            assert response.status_code in [
+                200,
+                400,
+            ], f"Order injection caused {response.status_code}"
 
     # ========================================================================
     # Edge Cases
@@ -156,8 +166,10 @@ class TestSmartBlockListRedTeam:
     def test_list_invalid_kind(self, api_client):
         """Edge: Invalid kind value."""
         response = api_client.get("/api/v2/smart-blocks?kind=invalid")
-        assert response.status_code in [200, 400], \
-            f"Invalid kind caused {response.status_code}"
+        assert response.status_code in [
+            200,
+            400,
+        ], f"Invalid kind caused {response.status_code}"
 
     def test_list_no_auth(self, client):
         """Auth: No auth should fail."""

@@ -11,8 +11,8 @@ Attack vectors:
 """
 
 import pytest
+
 from model_bakery import baker
-from rest_framework.test import APIClient
 
 
 @pytest.mark.django_db
@@ -22,7 +22,7 @@ class TestShowDeleteIDEnumeration:
     def test_sequential_delete_enumeration(self, api_client, admin_user):
         """Try to enumerate shows by attempting deletes."""
         api_client.force_authenticate(user=admin_user)
-        
+
         for i in range(1, 10):
             response = api_client.delete(f"/api/v2/shows/{i}")
             # Should return 404 for non-existent, not reveal existence
@@ -32,21 +32,21 @@ class TestShowDeleteIDEnumeration:
         """Try to delete with negative ID."""
         api_client.force_authenticate(user=admin_user)
         response = api_client.delete("/api/v2/shows/-1")
-        
+
         assert response.status_code in [404, 400]
 
     def test_delete_zero_id(self, api_client, admin_user):
         """Try to delete with zero ID."""
         api_client.force_authenticate(user=admin_user)
         response = api_client.delete("/api/v2/shows/0")
-        
+
         assert response.status_code in [404, 400]
 
     def test_delete_very_large_id(self, api_client, admin_user):
         """Try to delete with very large ID."""
         api_client.force_authenticate(user=admin_user)
         response = api_client.delete("/api/v2/shows/999999999999999999")
-        
+
         assert response.status_code in [404, 400]
 
 
@@ -57,17 +57,19 @@ class TestShowDeleteSQLInjection:
     def test_sql_injection_in_delete_id(self, api_client, admin_user):
         """Try SQL injection in DELETE ID."""
         api_client.force_authenticate(user=admin_user)
-        
+
         sqli_payloads = [
             "1' OR '1'='1",
             "1; DROP TABLE cc_show;--",
             "1' OR '1'='1' OR '1'='1",
         ]
-        
+
         for payload in sqli_payloads:
             response = api_client.delete(f"/api/v2/shows/{payload}")
             if response.status_code == 500:
-                pytest.fail(f"BAG: SQL injection in DELETE causes crash: {payload}")
+                pytest.fail(
+                    f"BUG: SQL injection in DELETE causes crash: {payload}",
+                )
             assert response.status_code in [404, 400]
 
 
@@ -78,13 +80,13 @@ class TestShowDeletePathTraversal:
     def test_path_traversal_in_delete(self, api_client, admin_user):
         """Try path traversal in DELETE."""
         api_client.force_authenticate(user=admin_user)
-        
+
         traversal_paths = [
             "../../../etc/passwd",
             "..\\..\\..\\windows\\system32",
             "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd",
         ]
-        
+
         for path in traversal_paths:
             response = api_client.delete(f"/api/v2/shows/{path}")
             assert response.status_code in [404, 400]
@@ -94,7 +96,9 @@ class TestShowDeletePathTraversal:
 class TestShowDeleteBOLA:
     """Broken Object Level Authorization on DELETE."""
 
-    def test_delete_other_user_show(self, api_client, admin_user, regular_user):
+    def test_delete_other_user_show(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to DELETE another user's show."""
         show = baker.make("schedule.Show", name="Admin Show")
 
@@ -102,13 +106,13 @@ class TestShowDeleteBOLA:
         response = api_client.delete(f"/api/v2/shows/{show.id}")
 
         if response.status_code == 204:
-            pytest.fail("CRITICAL BAG: Can DELETE other user's show")
+            pytest.fail("CRITICAL BUG: Can DELETE other user's show")
 
     def test_delete_with_related_models(self, api_client, admin_user):
         """Try to delete show with related data."""
         show = baker.make("schedule.Show", name="Test Show")
         # Related models may exist depending on the setup
-        
+
         api_client.force_authenticate(user=admin_user)
         response = api_client.delete(f"/api/v2/shows/{show.id}")
 
@@ -124,11 +128,11 @@ class TestShowDeleteRaceCondition:
         show = baker.make("schedule.Show", name="Test Show")
 
         api_client.force_authenticate(user=admin_user)
-        
+
         # First delete
         response1 = api_client.delete(f"/api/v2/shows/{show.id}")
         assert response1.status_code == 204
-        
+
         # Second delete (should return 404)
         response2 = api_client.delete(f"/api/v2/shows/{show.id}")
         assert response2.status_code == 404
@@ -138,7 +142,7 @@ class TestShowDeleteRaceCondition:
         show = baker.make("schedule.Show", name="Test Show")
 
         api_client.force_authenticate(user=admin_user)
-        
+
         # Start with both operations (may not actually race in test)
         response_patch = api_client.patch(
             f"/api/v2/shows/{show.id}",
@@ -146,7 +150,7 @@ class TestShowDeleteRaceCondition:
             format="json",
         )
         response_delete = api_client.delete(f"/api/v2/shows/{show.id}")
-        
+
         # One should succeed, one should fail
         statuses = {response_patch.status_code, response_delete.status_code}
         assert 204 in statuses or 200 in statuses or 404 in statuses
@@ -163,13 +167,13 @@ class TestShowDeleteBusinessLogic:
         response = api_client.delete(f"/api/v2/shows/{show.id}")
 
         if response.status_code == 204:
-            pytest.fail("CRITICAL BAG: Anonymous can DELETE shows")
+            pytest.fail("CRITICAL BUG: Anonymous can DELETE shows")
 
     def test_delete_nonexistent_show(self, api_client, admin_user):
         """Try to DELETE non-existent show."""
         api_client.force_authenticate(user=admin_user)
         response = api_client.delete("/api/v2/shows/99999")
-        
+
         assert response.status_code == 404
 
     def test_get_after_delete(self, api_client, admin_user):
@@ -178,11 +182,11 @@ class TestShowDeleteBusinessLogic:
         show_id = show.id
 
         api_client.force_authenticate(user=admin_user)
-        
+
         # Delete
         delete_response = api_client.delete(f"/api/v2/shows/{show_id}")
         assert delete_response.status_code == 204
-        
+
         # Verify GET returns 404
         get_response = api_client.get(f"/api/v2/shows/{show_id}")
         assert get_response.status_code == 404
@@ -197,7 +201,7 @@ class TestShowDeleteBusinessLogic:
             {},
             format="json",
         )
-        
+
         # Should return 405 Method Not Allowed
         assert response.status_code in [405, 404]
 
@@ -211,7 +215,7 @@ class TestShowDeleteBusinessLogic:
             {"name": "Test"},
             format="json",
         )
-        
+
         # PUT should update, not delete
         assert response.status_code == 200
 
@@ -222,10 +226,12 @@ class TestShowDeleteBulk:
 
     def test_rapid_deletions(self, api_client, admin_user):
         """Try rapid sequential deletions."""
-        shows = [baker.make("schedule.Show", name=f"Show {i}") for i in range(5)]
+        shows = [
+            baker.make("schedule.Show", name=f"Show {i}") for i in range(5)
+        ]
 
         api_client.force_authenticate(user=admin_user)
-        
+
         for show in shows:
             response = api_client.delete(f"/api/v2/shows/{show.id}")
             assert response.status_code == 204
@@ -233,16 +239,18 @@ class TestShowDeleteBulk:
     def test_delete_all_shows(self, api_client, admin_user):
         """Try to enumerate and delete all shows."""
         # Create some shows
-        shows = [baker.make("schedule.Show", name=f"Show {i}") for i in range(3)]
-        
+        shows = [
+            baker.make("schedule.Show", name=f"Show {i}") for i in range(3)
+        ]
+
         api_client.force_authenticate(user=admin_user)
-        
+
         # List shows
         list_response = api_client.get("/api/v2/shows")
         if list_response.status_code == 200:
             data = list_response.json()
             show_ids = [s["id"] for s in data]
-            
+
             # Delete all
             for show_id in show_ids:
                 response = api_client.delete(f"/api/v2/shows/{show_id}")

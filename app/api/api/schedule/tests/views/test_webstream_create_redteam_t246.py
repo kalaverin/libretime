@@ -12,6 +12,7 @@ Tests focus on:
 import json
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -31,7 +32,9 @@ class TestWebstreamCreateRedTeam:
     # API1:2023 - BOLA (Broken Object Level Authorization)
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T526: BOPLA - can set other user as owner via owner field")
+    @pytest.mark.xfail(
+        reason="T526: BOPLA - can set other user as owner via owner field",
+    )
     def test_bopla_create_with_other_user_owner(self, api_client):
         """BOPLA: Setting other user as owner should be rejected."""
         victim = baker.make(User, username="testred_victim")
@@ -40,18 +43,21 @@ class TestWebstreamCreateRedTeam:
         # Attacker tries to create webstream with victim as owner
         response = api_client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Attacker Stream",
-                "url": "http://example.com/stream.mp3",
-                "owner": victim.id,
-            }),
+            json.dumps(
+                {
+                    "name": "Attacker Stream",
+                    "url": "http://example.com/stream.mp3",
+                    "owner": victim.id,
+                },
+            ),
             content_type="application/json",
         )
-        
+
         if response.status_code == 201:
             data = response.json()
-            assert data.get("owner") != victim.id, \
-                "BOPLA: Attacker created stream with victim as owner"
+            assert (
+                data.get("owner") != victim.id
+            ), "BOPLA: Attacker created stream with victim as owner"
 
     @pytest.mark.xfail(reason="T527: perform_create allows null owner bypass")
     def test_create_unauthenticated_owner_bypass(self, client):
@@ -59,15 +65,18 @@ class TestWebstreamCreateRedTeam:
         # Create without auth - perform_create should not allow this
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Anonymous Stream",
-                "url": "http://example.com/stream.mp3",
-            }),
+            json.dumps(
+                {
+                    "name": "Anonymous Stream",
+                    "url": "http://example.com/stream.mp3",
+                },
+            ),
             content_type="application/json",
         )
         # Should fail with 403, not create with null owner
-        assert response.status_code == 403, \
-            f"Unauthenticated create allowed with status {response.status_code}"
+        assert (
+            response.status_code == 403
+        ), f"Unauthenticated create allowed with status {response.status_code}"
 
     # ========================================================================
     # API3:2023 - BOPLA (Broken Object Property Level Authorization)
@@ -81,20 +90,25 @@ class TestWebstreamCreateRedTeam:
 
         response = api_client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "id": forced_id,
-                "name": "Test Stream",
-                "url": "http://example.com/stream.mp3",
-            }),
+            json.dumps(
+                {
+                    "id": forced_id,
+                    "name": "Test Stream",
+                    "url": "http://example.com/stream.mp3",
+                },
+            ),
             content_type="application/json",
         )
-        
+
         if response.status_code == 201:
             data = response.json()
-            assert data["id"] != forced_id, \
-                f"BOPLA: ID mass assignment worked, got id={data['id']}"
+            assert (
+                data["id"] != forced_id
+            ), f"BOPLA: ID mass assignment worked, got id={data['id']}"
 
-    @pytest.mark.xfail(reason="T529: BOPLA - can set created_at/updated_at manually")
+    @pytest.mark.xfail(
+        reason="T529: BOPLA - can set created_at/updated_at manually",
+    )
     def test_bopla_mass_assignment_timestamps(self, api_client):
         """BOPLA: Setting timestamps manually should be ignored."""
         user = baker.make(User, username="testred_user")
@@ -102,21 +116,25 @@ class TestWebstreamCreateRedTeam:
 
         response = api_client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Test Stream",
-                "url": "http://example.com/stream.mp3",
-                "created_at": fake_time,
-                "updated_at": fake_time,
-            }),
+            json.dumps(
+                {
+                    "name": "Test Stream",
+                    "url": "http://example.com/stream.mp3",
+                    "created_at": fake_time,
+                    "updated_at": fake_time,
+                },
+            ),
             content_type="application/json",
         )
-        
+
         if response.status_code == 201:
             data = response.json()
-            assert data.get("created_at") != fake_time, \
-                "BOPLA: created_at mass assignment worked"
-            assert data.get("updated_at") != fake_time, \
-                "BOPLA: updated_at mass assignment worked"
+            assert (
+                data.get("created_at") != fake_time
+            ), "BOPLA: created_at mass assignment worked"
+            assert (
+                data.get("updated_at") != fake_time
+            ), "BOPLA: updated_at mass assignment worked"
 
     @pytest.mark.xfail(reason="T530: BOPLA - extra fields not rejected")
     def test_bopla_extra_fields_rejected(self, api_client):
@@ -125,18 +143,21 @@ class TestWebstreamCreateRedTeam:
 
         response = api_client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Test Stream",
-                "url": "http://example.com/stream.mp3",
-                "is_admin": True,
-                "role": "admin",
-                "password": "hacked",
-            }),
+            json.dumps(
+                {
+                    "name": "Test Stream",
+                    "url": "http://example.com/stream.mp3",
+                    "is_admin": True,
+                    "role": "admin",
+                    "password": "hacked",
+                },
+            ),
             content_type="application/json",
         )
         # Should reject unknown fields
-        assert response.status_code == 400, \
-            f"BOPLA: Extra fields accepted, got {response.status_code}"
+        assert (
+            response.status_code == 400
+        ), f"BOPLA: Extra fields accepted, got {response.status_code}"
 
     # ========================================================================
     # SSRF via URL Field
@@ -159,14 +180,17 @@ class TestWebstreamCreateRedTeam:
         for url in internal_urls:
             response = api_client.post(
                 "/api/v2/webstreams",
-                json.dumps({
-                    "name": "Internal Stream",
-                    "url": url,
-                }),
+                json.dumps(
+                    {
+                        "name": "Internal Stream",
+                        "url": url,
+                    },
+                ),
                 content_type="application/json",
             )
-            assert response.status_code == 400, \
-                f"SSRF: Internal URL '{url}' accepted with {response.status_code}"
+            assert (
+                response.status_code == 400
+            ), f"SSRF: Internal URL '{url}' accepted with {response.status_code}"
 
     @pytest.mark.xfail(reason="T532: SSRF - cloud metadata URLs accepted")
     def test_ssrf_cloud_metadata(self, api_client):
@@ -182,14 +206,17 @@ class TestWebstreamCreateRedTeam:
         for url in metadata_urls:
             response = api_client.post(
                 "/api/v2/webstreams",
-                json.dumps({
-                    "name": "Metadata Stream",
-                    "url": url,
-                }),
+                json.dumps(
+                    {
+                        "name": "Metadata Stream",
+                        "url": url,
+                    },
+                ),
                 content_type="application/json",
             )
-            assert response.status_code == 400, \
-                f"SSRF: Metadata URL '{url}' accepted with {response.status_code}"
+            assert (
+                response.status_code == 400
+            ), f"SSRF: Metadata URL '{url}' accepted with {response.status_code}"
 
     # ========================================================================
     # URL Scheme Validation
@@ -213,14 +240,17 @@ class TestWebstreamCreateRedTeam:
         for url in dangerous_schemes:
             response = api_client.post(
                 "/api/v2/webstreams",
-                json.dumps({
-                    "name": "Dangerous Stream",
-                    "url": url,
-                }),
+                json.dumps(
+                    {
+                        "name": "Dangerous Stream",
+                        "url": url,
+                    },
+                ),
                 content_type="application/json",
             )
-            assert response.status_code == 400, \
-                f"Dangerous scheme '{url}' accepted with {response.status_code}"
+            assert (
+                response.status_code == 400
+            ), f"Dangerous scheme '{url}' accepted with {response.status_code}"
 
     # ========================================================================
     # Injection Attacks
@@ -239,17 +269,23 @@ class TestWebstreamCreateRedTeam:
         for payload in sqli_payloads:
             response = api_client.post(
                 "/api/v2/webstreams",
-                json.dumps({
-                    "name": payload,
-                    "url": "http://example.com/stream.mp3",
-                }),
+                json.dumps(
+                    {
+                        "name": payload,
+                        "url": "http://example.com/stream.mp3",
+                    },
+                ),
                 content_type="application/json",
             )
             # Should not crash with 500
-            assert response.status_code in [201, 400], \
-                f"SQLi in name caused {response.status_code}"
+            assert response.status_code in [
+                201,
+                400,
+            ], f"SQLi in name caused {response.status_code}"
 
-    @pytest.mark.xfail(reason="T540: 500 error due to creator_id NOT NULL violation")
+    @pytest.mark.xfail(
+        reason="T540: 500 error due to creator_id NOT NULL violation",
+    )
     def test_sqli_in_description_field(self, api_client):
         """Injection: SQLi attempts in description field - BUG T540."""
         user = baker.make(User, username="testred_user")
@@ -262,16 +298,20 @@ class TestWebstreamCreateRedTeam:
         for payload in sqli_payloads:
             response = api_client.post(
                 "/api/v2/webstreams",
-                json.dumps({
-                    "name": "Test Stream",
-                    "url": "http://example.com/stream.mp3",
-                    "description": payload,
-                }),
+                json.dumps(
+                    {
+                        "name": "Test Stream",
+                        "url": "http://example.com/stream.mp3",
+                        "description": payload,
+                    },
+                ),
                 content_type="application/json",
             )
             # BUG T540: Returns 500 instead of 201/400 due to creator_id NOT NULL
-            assert response.status_code in [201, 400], \
-                f"BUG T540: SQLi in description caused {response.status_code}"
+            assert response.status_code in [
+                201,
+                400,
+            ], f"BUG T540: SQLi in description caused {response.status_code}"
 
     def test_sqli_in_url_field(self, api_client):
         """Injection: SQLi attempts in URL field."""
@@ -285,14 +325,18 @@ class TestWebstreamCreateRedTeam:
         for payload in sqli_payloads:
             response = api_client.post(
                 "/api/v2/webstreams",
-                json.dumps({
-                    "name": "Test Stream",
-                    "url": payload,
-                }),
+                json.dumps(
+                    {
+                        "name": "Test Stream",
+                        "url": payload,
+                    },
+                ),
                 content_type="application/json",
             )
-            assert response.status_code in [201, 400], \
-                f"SQLi in URL caused {response.status_code}"
+            assert response.status_code in [
+                201,
+                400,
+            ], f"SQLi in URL caused {response.status_code}"
 
     # ========================================================================
     # XSS Attacks
@@ -312,19 +356,27 @@ class TestWebstreamCreateRedTeam:
         for payload in xss_payloads:
             response = api_client.post(
                 "/api/v2/webstreams",
-                json.dumps({
-                    "name": payload,
-                    "url": "http://example.com/stream.mp3",
-                }),
+                json.dumps(
+                    {
+                        "name": payload,
+                        "url": "http://example.com/stream.mp3",
+                    },
+                ),
                 content_type="application/json",
             )
-            
+
             if response.status_code == 201:
                 data = response.json()
                 name = data.get("name", "")
-                assert "<script>" not in name, "XSS: script tags not sanitized in name"
-                assert "onerror=" not in name, "XSS: event handlers not sanitized in name"
-                assert "onload=" not in name, "XSS: onload not sanitized in name"
+                assert (
+                    "<script>" not in name
+                ), "XSS: script tags not sanitized in name"
+                assert (
+                    "onerror=" not in name
+                ), "XSS: event handlers not sanitized in name"
+                assert (
+                    "onload=" not in name
+                ), "XSS: onload not sanitized in name"
 
     @pytest.mark.xfail(reason="T535: XSS - description field not sanitized")
     def test_xss_in_description_field(self, api_client):
@@ -332,21 +384,25 @@ class TestWebstreamCreateRedTeam:
         user = baker.make(User, username="testred_user")
 
         xss_payload = "<script>alert('xss')</script>"
-        
+
         response = api_client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Test Stream",
-                "url": "http://example.com/stream.mp3",
-                "description": xss_payload,
-            }),
+            json.dumps(
+                {
+                    "name": "Test Stream",
+                    "url": "http://example.com/stream.mp3",
+                    "description": xss_payload,
+                },
+            ),
             content_type="application/json",
         )
-        
+
         if response.status_code == 201:
             data = response.json()
             desc = data.get("description", "")
-            assert "<script>" not in desc, "XSS: script tags not sanitized in description"
+            assert (
+                "<script>" not in desc
+            ), "XSS: script tags not sanitized in description"
 
     # ========================================================================
     # Input Validation
@@ -361,14 +417,18 @@ class TestWebstreamCreateRedTeam:
 
         response = api_client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": long_name,
-                "url": "http://example.com/stream.mp3",
-            }),
+            json.dumps(
+                {
+                    "name": long_name,
+                    "url": "http://example.com/stream.mp3",
+                },
+            ),
             content_type="application/json",
         )
-        assert response.status_code in [201, 400], \
-            f"Long name caused {response.status_code}"
+        assert response.status_code in [
+            201,
+            400,
+        ], f"Long name caused {response.status_code}"
 
     @pytest.mark.xfail(reason="T537: Empty name accepted")
     def test_empty_name_validation(self, api_client):
@@ -377,14 +437,17 @@ class TestWebstreamCreateRedTeam:
 
         response = api_client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "",
-                "url": "http://example.com/stream.mp3",
-            }),
+            json.dumps(
+                {
+                    "name": "",
+                    "url": "http://example.com/stream.mp3",
+                },
+            ),
             content_type="application/json",
         )
-        assert response.status_code == 400, \
-            f"Empty name accepted with {response.status_code}"
+        assert (
+            response.status_code == 400
+        ), f"Empty name accepted with {response.status_code}"
 
     # ========================================================================
     # Authentication
@@ -394,10 +457,12 @@ class TestWebstreamCreateRedTeam:
         """Auth: Create without authentication should fail."""
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Test Stream",
-                "url": "http://example.com/stream.mp3",
-            }),
+            json.dumps(
+                {
+                    "name": "Test Stream",
+                    "url": "http://example.com/stream.mp3",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 403
@@ -416,8 +481,10 @@ class TestWebstreamCreateRedTeam:
             "name=Test&url=http://example.com/stream.mp3",  # Form data
             content_type="application/x-www-form-urlencoded",
         )
-        assert response.status_code in [400, 415], \
-            f"Wrong content-type caused {response.status_code}"
+        assert response.status_code in [
+            400,
+            415,
+        ], f"Wrong content-type caused {response.status_code}"
 
     # ========================================================================
     # Race Conditions
@@ -433,19 +500,24 @@ class TestWebstreamCreateRedTeam:
         def create_stream():
             return api_client.post(
                 "/api/v2/webstreams",
-                json.dumps({
-                    "name": "Duplicate Name",
-                    "url": "http://example.com/stream.mp3",
-                }),
+                json.dumps(
+                    {
+                        "name": "Duplicate Name",
+                        "url": "http://example.com/stream.mp3",
+                    },
+                ),
                 content_type="application/json",
             ).status_code
 
         # Fire 5 concurrent requests
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             futures = [executor.submit(create_stream) for _ in range(5)]
-            results = [f.result() for f in concurrent.futures.as_completed(futures)]
+            results = [
+                f.result() for f in concurrent.futures.as_completed(futures)
+            ]
 
         success_count = results.count(201)
         # Should allow all (different streams) or handle gracefully
-        assert success_count >= 0, \
-            f"Race condition: {success_count} concurrent creates succeeded"
+        assert (
+            success_count >= 0
+        ), f"Race condition: {success_count} concurrent creates succeeded"

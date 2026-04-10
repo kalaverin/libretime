@@ -10,9 +10,11 @@ Tests focus on:
 """
 
 import json
+
 from datetime import timedelta
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -39,14 +41,22 @@ class TestSchedulePermissionsRedTeam:
     # API1:2023 - BOLA (Broken Object Level Authorization)
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T603: BOLA - Guest can modify other user's schedule")
+    @pytest.mark.xfail(
+        reason="T603: BOLA - Guest can modify other user's schedule",
+    )
     def test_bola_guest_modify_other_user_schedule(self, api_client, faker):
         """BOLA: Guest user can modify another user's schedule."""
         # Create victim's schedule
-        victim = baker.make(User, username=f"testred_victim_{faker.user_name()}", role=Role.HOST)
+        victim = baker.make(
+            User,
+            username=f"testred_victim_{faker.user_name()}",
+            role=Role.HOST,
+        )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=victim)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=victim,
+        )
 
         base_time = now()
         schedule = baker.make(
@@ -62,7 +72,11 @@ class TestSchedulePermissionsRedTeam:
         )
 
         # Guest tries to modify
-        guest = baker.make(User, username=f"testred_guest_{faker.user_name()}", role=Role.GUEST)
+        guest = baker.make(
+            User,
+            username=f"testred_guest_{faker.user_name()}",
+            role=Role.GUEST,
+        )
         api_client.force_authenticate(user=guest)
 
         response = api_client.patch(
@@ -71,16 +85,23 @@ class TestSchedulePermissionsRedTeam:
             content_type="application/json",
         )
 
-        assert response.status_code == 403, \
-            f"BOLA: Guest got {response.status_code}, expected 403"
+        assert (
+            response.status_code == 403
+        ), f"BOLA: Guest got {response.status_code}, expected 403"
 
     @pytest.mark.xfail(reason="T604: BOLA - Host can delete admin's schedule")
     def test_bola_host_delete_admin_schedule(self, api_client, faker):
         """BOLA: Host user can delete admin's schedule."""
-        admin = baker.make(User, username=f"testred_admin_{faker.user_name()}", role=Role.ADMIN)
+        admin = baker.make(
+            User,
+            username=f"testred_admin_{faker.user_name()}",
+            role=Role.ADMIN,
+        )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=admin)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=admin,
+        )
 
         base_time = now()
         schedule = baker.make(
@@ -96,12 +117,15 @@ class TestSchedulePermissionsRedTeam:
         )
 
         # Host tries to delete admin's schedule
-        host = baker.make(User, username=f"testred_host_{faker.user_name()}", role=Role.HOST)
+        host = baker.make(
+            User, username=f"testred_host_{faker.user_name()}", role=Role.HOST,
+        )
         api_client.force_authenticate(user=host)
 
         response = api_client.delete(f"/api/v2/schedule/{schedule.id}")
-        assert response.status_code == 403, \
-            f"BOLA: Host got {response.status_code}, expected 403"
+        assert (
+            response.status_code == 403
+        ), f"BOLA: Host got {response.status_code}, expected 403"
 
     # ========================================================================
     # API2:2023 - Broken Authentication
@@ -112,7 +136,6 @@ class TestSchedulePermissionsRedTeam:
         """Broken Auth: Session fixation check."""
         # This would require session-based auth which API doesn't use
         # Skipping as API uses token auth
-        pass
 
     @pytest.mark.xfail(reason="T606: Auth - Token reuse after logout")
     def test_token_reuse_after_logout(self, api_client, admin_user, faker):
@@ -137,13 +160,17 @@ class TestSchedulePermissionsRedTeam:
     # API3:2023 - BOPLA (Broken Object Property Level Authorization)
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T607: BOPLA - Can change owner via permission field")
+    @pytest.mark.xfail(
+        reason="T607: BOPLA - Can change owner via permission field",
+    )
     def test_bopla_permission_field_manipulation(self, api_client, faker):
         """BOPLA: Manipulating permission-related fields."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         base_time = now()
         schedule = baker.make(
@@ -161,10 +188,12 @@ class TestSchedulePermissionsRedTeam:
         # Try to manipulate permission-related fields
         response = api_client.patch(
             f"/api/v2/schedule/{schedule.id}",
-            json.dumps({
-                "broadcasted": 0,  # Change broadcast status
-                "position_status": 999,  # Invalid status
-            }),
+            json.dumps(
+                {
+                    "broadcasted": 0,  # Change broadcast status
+                    "position_status": 999,  # Invalid status
+                },
+            ),
             content_type="application/json",
         )
 
@@ -180,7 +209,11 @@ class TestSchedulePermissionsRedTeam:
     @pytest.mark.xfail(reason="T608: BFLA - Guest can access admin endpoints")
     def test_bfla_guest_admin_endpoints(self, api_client, faker):
         """BFLA: Guest accessing admin-only endpoints."""
-        guest = baker.make(User, username=f"testred_guest_{faker.user_name()}", role=Role.GUEST)
+        guest = baker.make(
+            User,
+            username=f"testred_guest_{faker.user_name()}",
+            role=Role.GUEST,
+        )
         api_client.force_authenticate(user=guest)
 
         # Try to access admin endpoints
@@ -191,34 +224,44 @@ class TestSchedulePermissionsRedTeam:
 
         for endpoint in admin_endpoints:
             response = api_client.get(endpoint)
-            assert response.status_code in [404, 403], \
-                f"BFLA: Guest accessed {endpoint} with {response.status_code}"
+            assert response.status_code in [
+                404,
+                403,
+            ], f"BFLA: Guest accessed {endpoint} with {response.status_code}"
 
     @pytest.mark.xfail(reason="T609: BFLA - Host can perform admin operations")
     def test_bfla_host_admin_operations(self, api_client, faker):
         """BFLA: Host performing admin-only operations."""
-        host = baker.make(User, username=f"testred_host_{faker.user_name()}", role=Role.HOST)
+        host = baker.make(
+            User, username=f"testred_host_{faker.user_name()}", role=Role.HOST,
+        )
         api_client.force_authenticate(user=host)
 
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=host)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=host,
+        )
 
         base_time = now()
 
         # Create schedule
         response = api_client.post(
             "/api/v2/schedule",
-            json.dumps({
-                "instance": instance.id,
-                "file": file_obj.id,
-                "starts_at": (base_time + timedelta(hours=1)).isoformat(),
-                "ends_at": (base_time + timedelta(hours=1, minutes=5)).isoformat(),
-                "cue_in": "00:00:00",
-                "cue_out": "00:05:00",
-                "position": 1,
-                "broadcasted": 1,
-            }),
+            json.dumps(
+                {
+                    "instance": instance.id,
+                    "file": file_obj.id,
+                    "starts_at": (base_time + timedelta(hours=1)).isoformat(),
+                    "ends_at": (
+                        base_time + timedelta(hours=1, minutes=5)
+                    ).isoformat(),
+                    "cue_in": "00:00:00",
+                    "cue_out": "00:05:00",
+                    "position": 1,
+                    "broadcasted": 1,
+                },
+            ),
             content_type="application/json",
         )
 
@@ -255,8 +298,14 @@ class TestSchedulePermissionsRedTeam:
 
         # Check for info leak
         sensitive_patterns = [
-            "permission", "role", "admin", "host", "guest",
-            "sql", "query", "database",
+            "permission",
+            "role",
+            "admin",
+            "host",
+            "guest",
+            "sql",
+            "query",
+            "database",
         ]
 
         for pattern in sensitive_patterns:
@@ -282,30 +331,39 @@ class TestSchedulePermissionsRedTeam:
 
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type())
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(),
+        )
 
         base_time = now()
         response = api_client.post(
             "/api/v2/schedule",
-            json.dumps({
-                "instance": instance.id,
-                "file": file_obj.id,
-                "starts_at": (base_time + timedelta(hours=1)).isoformat(),
-                "ends_at": (base_time + timedelta(hours=1, minutes=5)).isoformat(),
-                "cue_in": "00:00:00",
-                "cue_out": "00:05:00",
-                "position": 1,
-                "broadcasted": 1,
-            }),
+            json.dumps(
+                {
+                    "instance": instance.id,
+                    "file": file_obj.id,
+                    "starts_at": (base_time + timedelta(hours=1)).isoformat(),
+                    "ends_at": (
+                        base_time + timedelta(hours=1, minutes=5)
+                    ).isoformat(),
+                    "cue_in": "00:00:00",
+                    "cue_out": "00:05:00",
+                    "position": 1,
+                    "broadcasted": 1,
+                },
+            ),
             content_type="application/json",
         )
 
-        assert response.status_code == 403, \
-            f"Guest CREATE returned {response.status_code}, expected 403"
+        assert (
+            response.status_code == 403
+        ), f"Guest CREATE returned {response.status_code}, expected 403"
 
     def test_role_host_operations(self, api_client, faker):
         """Role: Host user operations."""
-        host = baker.make(User, username=f"testred_host_{faker.user_name()}", role=Role.HOST)
+        host = baker.make(
+            User, username=f"testred_host_{faker.user_name()}", role=Role.HOST,
+        )
         api_client.force_authenticate(user=host)
 
         # Host should be able to list
@@ -314,7 +372,11 @@ class TestSchedulePermissionsRedTeam:
 
     def test_role_manager_operations(self, api_client, faker):
         """Role: Manager user operations."""
-        manager = baker.make(User, username=f"testred_manager_{faker.user_name()}", role=Role.MANAGER)
+        manager = baker.make(
+            User,
+            username=f"testred_manager_{faker.user_name()}",
+            role=Role.MANAGER,
+        )
         api_client.force_authenticate(user=manager)
 
         # Manager should be able to list
@@ -333,22 +395,28 @@ class TestSchedulePermissionsRedTeam:
         # Try to manipulate user role via schedule endpoint
         response = api_client.post(
             "/api/v2/schedule",
-            json.dumps({
-                "role": "admin",  # Attempt role escalation
-                "is_admin": True,
-            }),
+            json.dumps(
+                {
+                    "role": "admin",  # Attempt role escalation
+                    "is_admin": True,
+                },
+            ),
             content_type="application/json",
         )
 
         # Should not allow role escalation
-        assert response.status_code in [400, 403], \
-            f"Potential privilege escalation: {response.status_code}"
+        assert response.status_code in [
+            400,
+            403,
+        ], f"Potential privilege escalation: {response.status_code}"
 
     # ========================================================================
     # Cross-User Access
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T612: Cross-user - Can access schedules across instances")
+    @pytest.mark.xfail(
+        reason="T612: Cross-user - Can access schedules across instances",
+    )
     def test_cross_instance_access(self, api_client, faker):
         """Cross-user: Accessing schedules across different show instances."""
         user1 = baker.make(User, username=f"testred_user1_{faker.user_name()}")
@@ -356,7 +424,9 @@ class TestSchedulePermissionsRedTeam:
 
         show1 = baker.make(Show, name=faker.catch_phrase())
         instance1 = baker.make(ShowInstance, show=show1)
-        file1 = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user1)
+        file1 = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user1,
+        )
 
         base_time = now()
         schedule = baker.make(
@@ -375,5 +445,6 @@ class TestSchedulePermissionsRedTeam:
         api_client.force_authenticate(user=user2)
         response = api_client.get(f"/api/v2/schedule/{schedule.id}")
 
-        assert response.status_code == 403, \
-            f"Cross-instance access: {response.status_code}"
+        assert (
+            response.status_code == 403
+        ), f"Cross-instance access: {response.status_code}"

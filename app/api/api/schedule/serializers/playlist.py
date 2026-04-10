@@ -32,7 +32,7 @@ class PlaylistContentSerializer(ModelSerializer[Any]):
 
         if kind == PlaylistContent.Kind.FILE and not file_obj:
             raise ValidationError(
-                {"file": "File is required when kind is FILE."}
+                {"file": "File is required when kind is FILE."},
             )
 
         return data

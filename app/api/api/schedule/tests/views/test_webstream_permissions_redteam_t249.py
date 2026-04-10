@@ -12,12 +12,11 @@ Tests focus on:
 - Rate limiting bypasses
 """
 
-import base64
 import json
 import time
-from datetime import timedelta
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -37,7 +36,9 @@ class TestWebstreamPermissionsRedTeam:
     # API1:2023 - BOLA (Broken Object Level Authorization)
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T562: BOLA - Any user can modify other user's webstream")
+    @pytest.mark.xfail(
+        reason="T562: BOLA - Any user can modify other user's webstream",
+    )
     def test_bola_modify_other_users_webstream(self, api_client):
         """BOLA: User can PATCH another user's webstream without permission check."""
         victim = baker.make(User, username="testred_victim")
@@ -56,14 +57,17 @@ class TestWebstreamPermissionsRedTeam:
             content_type="application/json",
         )
 
-        assert response.status_code == 403, \
-            f"BOLA: Got {response.status_code}, expected 403 - any user can modify other's stream"
+        assert (
+            response.status_code == 403
+        ), f"BOLA: Got {response.status_code}, expected 403 - any user can modify other's stream"
 
-    @pytest.mark.xfail(reason="T563: BOLA - Any user can delete other user's webstream")
+    @pytest.mark.xfail(
+        reason="T563: BOLA - Any user can delete other user's webstream",
+    )
     def test_bola_delete_other_users_webstream(self, api_client):
         """BOLA: User can DELETE another user's webstream without permission check."""
         victim = baker.make(User, username="testred_victim")
-        
+
         victim_stream = baker.make(
             Webstream,
             name="Victim Stream",
@@ -73,8 +77,9 @@ class TestWebstreamPermissionsRedTeam:
 
         response = api_client.delete(f"/api/v2/webstreams/{victim_stream.id}")
 
-        assert response.status_code == 403, \
-            f"BOLA: Got {response.status_code}, expected 403 - any user can delete other's stream"
+        assert (
+            response.status_code == 403
+        ), f"BOLA: Got {response.status_code}, expected 403 - any user can delete other's stream"
 
     def test_bola_id_enumeration(self, api_client):
         """BOLA: Sequential ID enumeration allows accessing all webstreams."""
@@ -98,10 +103,13 @@ class TestWebstreamPermissionsRedTeam:
                 found_count += 1
 
         # If we found more than expected, IDs are sequential and enumerable
-        assert found_count <= len(streams), \
-            f"ID enumeration: found {found_count} streams, vulnerability exists"
+        assert found_count <= len(
+            streams,
+        ), f"ID enumeration: found {found_count} streams, vulnerability exists"
 
-    @pytest.mark.xfail(reason="T564: BOLA - Batch endpoint allows mass access to all streams")
+    @pytest.mark.xfail(
+        reason="T564: BOLA - Batch endpoint allows mass access to all streams",
+    )
     def test_bola_batch_access_all_streams(self, api_client):
         """BOLA: Batch/List endpoint returns all users' streams without filtering."""
         # Create streams for multiple users
@@ -128,8 +136,9 @@ class TestWebstreamPermissionsRedTeam:
                 owners.add(stream.get("owner"))
 
         # Should only see own streams, not all
-        assert len(owners) <= 1, \
-            f"BOLA: List returned streams from {len(owners)} different owners"
+        assert (
+            len(owners) <= 1
+        ), f"BOLA: List returned streams from {len(owners)} different owners"
 
     # ========================================================================
     # API2:2023 - Broken Authentication
@@ -155,7 +164,9 @@ class TestWebstreamPermissionsRedTeam:
 
         # If invalid key allows modification, it's a vulnerability
         if response.status_code not in [401, 403]:
-            pytest.fail(f"T565: Auth bypass - invalid API key got {response.status_code}, expected 401/403")
+            pytest.fail(
+                f"T565: Auth bypass - invalid API key got {response.status_code}, expected 401/403",
+            )
 
     def test_auth_case_sensitivity(self, api_client):
         """Broken Auth: Authorization header case sensitivity bypass."""
@@ -190,8 +201,10 @@ class TestWebstreamPermissionsRedTeam:
             HTTP_AUTHORIZATION="Bearer token%00invalid",
         )
         # Should not authenticate successfully
-        assert response.status_code in [401, 403], \
-            "Null byte in auth may cause bypass"
+        assert response.status_code in [
+            401,
+            403,
+        ], "Null byte in auth may cause bypass"
 
     # ========================================================================
     # API3:2023 - BOPLA (Broken Object Property Level Authorization)
@@ -203,11 +216,13 @@ class TestWebstreamPermissionsRedTeam:
 
         response = api_client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Hijacked Stream",
-                "url": "http://example.com/stream",
-                "owner": victim.id,
-            }),
+            json.dumps(
+                {
+                    "name": "Hijacked Stream",
+                    "url": "http://example.com/stream",
+                    "owner": victim.id,
+                },
+            ),
             content_type="application/json",
         )
 
@@ -216,12 +231,16 @@ class TestWebstreamPermissionsRedTeam:
             data = response.json()
             actual_owner = data.get("owner")
             if actual_owner == victim.id:
-                pytest.fail(f"T566: BOPLA - Can assign owner to another user during CREATE (owner={actual_owner})")
+                pytest.fail(
+                    f"T566: BOPLA - Can assign owner to another user during CREATE (owner={actual_owner})",
+                )
             elif actual_owner is not None and actual_owner != victim.id:
                 # Owner was set but not to victim - might be current user, which is acceptable
                 pass
 
-    @pytest.mark.xfail(reason="T567: BOPLA - Mass assignment via owner field in UPDATE")
+    @pytest.mark.xfail(
+        reason="T567: BOPLA - Mass assignment via owner field in UPDATE",
+    )
     def test_bopla_mass_assignment_owner_update(self, api_client):
         """BOPLA: Can change owner to another user during UPDATE."""
         victim = baker.make(User, username="testred_victim")
@@ -243,7 +262,9 @@ class TestWebstreamPermissionsRedTeam:
         if response.status_code == 200:
             data = response.json()
             if data.get("owner") == victim.id:
-                assert False, "BOPLA: Can change owner to another user during UPDATE"
+                assert (
+                    False
+                ), "BOPLA: Can change owner to another user during UPDATE"
 
     def test_bopla_mass_assignment_readonly_fields(self, api_client):
         """BOPLA: Check if read-only fields can be mass assigned."""
@@ -259,10 +280,12 @@ class TestWebstreamPermissionsRedTeam:
 
         response = api_client.patch(
             f"/api/v2/webstreams/{stream.id}",
-            json.dumps({
-                "id": 999999,
-                "created_at": "2020-01-01T00:00:00Z",
-            }),
+            json.dumps(
+                {
+                    "id": 999999,
+                    "created_at": "2020-01-01T00:00:00Z",
+                },
+            ),
             content_type="application/json",
         )
 
@@ -271,7 +294,9 @@ class TestWebstreamPermissionsRedTeam:
             data = response.json()
             new_id = data.get("id")
             if new_id != old_id:
-                pytest.fail(f"T568: BOPLA - Can modify id field (old={old_id}, new={new_id})")
+                pytest.fail(
+                    f"T568: BOPLA - Can modify id field (old={old_id}, new={new_id})",
+                )
 
     # ========================================================================
     # API5:2023 - BFLA (Broken Function Level Authorization)
@@ -297,7 +322,9 @@ class TestWebstreamPermissionsRedTeam:
 
         # Check if stream was deleted - if so, it's a vulnerability
         if not Webstream.objects.filter(id=stream.id).exists():
-            pytest.fail("T569: BFLA - Method override allowed DELETE via PATCH")
+            pytest.fail(
+                "T569: BFLA - Method override allowed DELETE via PATCH",
+            )
 
     def test_bfla_admin_endpoint_access(self, api_client):
         """BFLA: Check if admin endpoints are accessible to regular users."""
@@ -310,8 +337,10 @@ class TestWebstreamPermissionsRedTeam:
         for endpoint in admin_endpoints:
             response = api_client.get(endpoint)
             # Should return 404 (not found) or 403 (forbidden)
-            assert response.status_code in [404, 403], \
-                f"BFLA: Admin endpoint {endpoint} returned {response.status_code}"
+            assert response.status_code in [
+                404,
+                403,
+            ], f"BFLA: Admin endpoint {endpoint} returned {response.status_code}"
 
     # ========================================================================
     # API6:2023 - Unsafe Business Flows
@@ -338,14 +367,20 @@ class TestWebstreamPermissionsRedTeam:
 
         # Fire 10 concurrent updates
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-            futures = [executor.submit(update_stream, f"Name{i}") for i in range(10)]
-            results = [f.result() for f in concurrent.futures.as_completed(futures)]
+            futures = [
+                executor.submit(update_stream, f"Name{i}") for i in range(10)
+            ]
+            results = [
+                f.result() for f in concurrent.futures.as_completed(futures)
+            ]
 
         # Check for inconsistent results
         success_count = results.count(200)
         # If results are inconsistent (some succeed, some fail), it may indicate race condition
         if 0 < success_count < 10:
-            pytest.fail(f"T570: Race condition - {success_count}/10 updates succeeded inconsistently")
+            pytest.fail(
+                f"T570: Race condition - {success_count}/10 updates succeeded inconsistently",
+            )
 
     # ========================================================================
     # API7:2023 - SSRF via URL field
@@ -367,10 +402,12 @@ class TestWebstreamPermissionsRedTeam:
         for url, desc in ssrf_urls:
             response = api_client.post(
                 "/api/v2/webstreams",
-                json.dumps({
-                    "name": "SSRF Test",
-                    "url": url,
-                }),
+                json.dumps(
+                    {
+                        "name": "SSRF Test",
+                        "url": url,
+                    },
+                ),
                 content_type="application/json",
             )
 
@@ -378,7 +415,9 @@ class TestWebstreamPermissionsRedTeam:
                 vulnerabilities.append(f"{desc}: {url}")
 
         if vulnerabilities:
-            pytest.fail(f"T571: SSRF - Internal URLs accepted: {', '.join(vulnerabilities)}")
+            pytest.fail(
+                f"T571: SSRF - Internal URLs accepted: {', '.join(vulnerabilities)}",
+            )
 
     # ========================================================================
     # API8:2023 - Security Misconfiguration
@@ -423,9 +462,16 @@ class TestWebstreamPermissionsRedTeam:
 
         # Check for information leakage
         sensitive_patterns = [
-            "sql", "sqlite", "mysql", "postgresql",
-            "django", "python", "traceback",
-            "cc_webstream", "column", "table",
+            "sql",
+            "sqlite",
+            "mysql",
+            "postgresql",
+            "django",
+            "python",
+            "traceback",
+            "cc_webstream",
+            "column",
+            "table",
         ]
 
         for pattern in sensitive_patterns:
@@ -447,8 +493,10 @@ class TestWebstreamPermissionsRedTeam:
         for payload in nosql_payloads:
             response = api_client.get(f"/api/v2/webstreams{payload}")
             # Should not cause 500 or unexpected behavior
-            assert response.status_code in [200, 400], \
-                f"NoSQLi '{payload}' caused {response.status_code}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"NoSQLi '{payload}' caused {response.status_code}"
 
     def test_sql_injection_in_filter(self, api_client):
         """Injection: SQLi in filter parameters."""
@@ -461,8 +509,9 @@ class TestWebstreamPermissionsRedTeam:
         for payload in sqli_payloads:
             response = api_client.get(f"/api/v2/webstreams{payload}")
             # Should not cause 500
-            assert response.status_code != 500, \
-                f"SQLi '{payload}' caused 500 error"
+            assert (
+                response.status_code != 500
+            ), f"SQLi '{payload}' caused 500 error"
 
     # ========================================================================
     # Rate Limiting Bypasses
@@ -510,21 +559,26 @@ class TestWebstreamPermissionsRedTeam:
             "\u0000",  # Null byte
             "\uff00",  # Fullwidth characters
             "admin\u200b",  # Zero-width space
-            "admin\uFEFF",  # BOM
+            "admin\ufeff",  # BOM
         ]
 
         for payload in unicode_payloads:
             response = api_client.post(
                 "/api/v2/webstreams",
-                json.dumps({
-                    "name": f"Test {payload}",
-                    "url": "http://example.com/stream",
-                }),
+                json.dumps(
+                    {
+                        "name": f"Test {payload}",
+                        "url": "http://example.com/stream",
+                    },
+                ),
                 content_type="application/json",
             )
             # Should handle unicode gracefully
-            assert response.status_code in [200, 201, 400], \
-                f"Unicode '{repr(payload)}' caused unexpected {response.status_code}"
+            assert response.status_code in [
+                200,
+                201,
+                400,
+            ], f"Unicode '{repr(payload)}' caused unexpected {response.status_code}"
 
     def test_path_traversal_in_id(self, api_client):
         """Validation: Path traversal in object ID."""
@@ -536,8 +590,10 @@ class TestWebstreamPermissionsRedTeam:
 
         for test_id in traversal_ids:
             response = api_client.get(f"/api/v2/webstreams/{test_id}")
-            assert response.status_code in [400, 404], \
-                f"Path traversal '{test_id}' caused {response.status_code}"
+            assert response.status_code in [
+                400,
+                404,
+            ], f"Path traversal '{test_id}' caused {response.status_code}"
 
     # ========================================================================
     # Information Disclosure
@@ -574,19 +630,25 @@ class TestWebstreamPermissionsRedTeam:
 
         # Times should be similar (within 2x factor)
         if avg_existing > 0:
-            ratio = max(avg_existing, avg_nonexistent) / min(avg_existing, avg_nonexistent)
+            ratio = max(avg_existing, avg_nonexistent) / min(
+                avg_existing, avg_nonexistent,
+            )
             if ratio > 2:
-                pytest.fail(f"Timing leak: existing={avg_existing:.4f}s, nonexistent={avg_nonexistent:.4f}s (ratio {ratio:.1f})")
+                pytest.fail(
+                    f"Timing leak: existing={avg_existing:.4f}s, nonexistent={avg_nonexistent:.4f}s (ratio {ratio:.1f})",
+                )
 
     def test_field_enumeration_via_error(self, api_client):
         """Info Leak: Error messages reveal valid field names."""
         response = api_client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "invalid_field_name_xyz": "value",
-                "name": "Test",
-                "url": "http://example.com",
-            }),
+            json.dumps(
+                {
+                    "invalid_field_name_xyz": "value",
+                    "name": "Test",
+                    "url": "http://example.com",
+                },
+            ),
             content_type="application/json",
         )
 

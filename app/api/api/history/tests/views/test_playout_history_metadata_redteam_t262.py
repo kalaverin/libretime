@@ -4,16 +4,17 @@ Red Team security tests for PlayoutHistoryMetadata endpoints.
 Tests for BOLA, BOPLA, injection in metadata operations.
 """
 
-import pytest
 from datetime import timedelta
 
-from model_bakery import baker
-from sdk import now, format_datetime
+import pytest
 
-from api.history.models import PlayoutHistory, PlayoutHistoryMetadata
-from api.storage.models import File
+from model_bakery import baker
+
 from api.core.models.role import Role
 from api.core.models.user import User
+from api.history.models import PlayoutHistory, PlayoutHistoryMetadata
+from api.storage.models import File
+from sdk import now
 
 
 @pytest.mark.django_db
@@ -23,7 +24,9 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
     @pytest.fixture
     def victim_metadata(self, faker):
         """Create victim user's metadata."""
-        victim = baker.make(User, role=Role.HOST, username=f"victim_{faker.user_name()}")
+        victim = baker.make(
+            User, role=Role.HOST, username=f"victim_{faker.user_name()}",
+        )
         victim_file = baker.make(File, mime="audio/mp3", owner=victim)
         victim_playout = baker.make(
             PlayoutHistory,
@@ -38,7 +41,9 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
             value="Victim Artist",
         )
 
-    def test_bola_list_shows_all_metadata(self, api_client, admin_user, victim_metadata, faker):
+    def test_bola_list_shows_all_metadata(
+        self, api_client, admin_user, victim_metadata, faker,
+    ):
         """
         BOLA: LIST metadata returns all users' entries.
 
@@ -55,19 +60,23 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
             # Admin can see all - document this behavior
             pass
 
-    def test_bola_retrieve_other_users_metadata(self, api_client, admin_user, victim_metadata):
+    def test_bola_retrieve_other_users_metadata(
+        self, api_client, admin_user, victim_metadata,
+    ):
         """
         BOLA: RETRIEVE other user's metadata by ID.
         """
         response = api_client.get(
-            f"/api/v2/playout-history-metadata/{victim_metadata.id}"
+            f"/api/v2/playout-history-metadata/{victim_metadata.id}",
         )
 
         if response.status_code == 200:
             data = response.json()
             assert data["id"] == victim_metadata.id
 
-    def test_bola_create_metadata_for_other_users_playout(self, api_client, admin_user, faker):
+    def test_bola_create_metadata_for_other_users_playout(
+        self, api_client, admin_user, faker,
+    ):
         """
         BOLA: CREATE metadata for another user's playout.
 
@@ -97,9 +106,13 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
 
         if response.status_code == 201:
             # Successfully created metadata for victim's playout
-            pytest.xfail("T626: BOLA - Can create metadata for other user's playout")
+            pytest.xfail(
+                "T626: BOLA - Can create metadata for other user's playout",
+            )
 
-    def test_bola_update_other_users_metadata(self, api_client, admin_user, victim_metadata):
+    def test_bola_update_other_users_metadata(
+        self, api_client, admin_user, victim_metadata,
+    ):
         """
         BOLA: UPDATE other user's metadata.
         """
@@ -119,26 +132,30 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
             # Successfully modified victim's metadata
             pass
 
-    def test_bola_delete_other_users_metadata(self, api_client, admin_user, victim_metadata):
+    def test_bola_delete_other_users_metadata(
+        self, api_client, admin_user, victim_metadata,
+    ):
         """
         BOLA: DELETE other user's metadata.
         """
         response = api_client.delete(
-            f"/api/v2/playout-history-metadata/{victim_metadata.id}"
+            f"/api/v2/playout-history-metadata/{victim_metadata.id}",
         )
 
         if response.status_code == 204:
             # Successfully deleted victim's metadata
             pass
 
-    def test_bola_metadata_links_to_history_detail(self, api_client, admin_user, victim_metadata):
+    def test_bola_metadata_links_to_history_detail(
+        self, api_client, admin_user, victim_metadata,
+    ):
         """
         BOLA: Metadata reveals history details.
 
         Metadata includes history_id which can be used to access history.
         """
         response = api_client.get(
-            f"/api/v2/playout-history-metadata/{victim_metadata.id}"
+            f"/api/v2/playout-history-metadata/{victim_metadata.id}",
         )
 
         if response.status_code == 200:
@@ -148,17 +165,18 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
             if history_id:
                 # Try to access the linked history
                 history_response = api_client.get(
-                    f"/api/v2/playout-history/{history_id}"
+                    f"/api/v2/playout-history/{history_id}",
                 )
                 # Document whether history is accessible
-                pass
 
 
 @pytest.mark.django_db
 class TestPlayoutHistoryMetadataRedTeamBOPLA:
     """API3:2023 Broken Object Property Level Authorization - metadata mass assignment."""
 
-    def test_bopla_create_mass_assignment_id(self, api_client, admin_user, faker):
+    def test_bopla_create_mass_assignment_id(
+        self, api_client, admin_user, faker,
+    ):
         """
         BOPLA: CREATE metadata with forced ID.
         """
@@ -184,7 +202,9 @@ class TestPlayoutHistoryMetadataRedTeamBOPLA:
             if result.get("id") == forced_id:
                 pytest.xfail("T627: BOPLA - Metadata id mass assignment works")
 
-    def test_bopla_create_extra_fields_ignored(self, api_client, admin_user, faker):
+    def test_bopla_create_extra_fields_ignored(
+        self, api_client, admin_user, faker,
+    ):
         """
         BOPLA: CREATE metadata with extra fields silently ignored.
         """
@@ -206,9 +226,13 @@ class TestPlayoutHistoryMetadataRedTeamBOPLA:
         )
 
         if response.status_code == 201:
-            pytest.xfail("T628: BOPLA - Metadata extra fields silently ignored")
+            pytest.xfail(
+                "T628: BOPLA - Metadata extra fields silently ignored",
+            )
 
-    def test_bopla_update_extra_fields_ignored(self, api_client, admin_user, faker):
+    def test_bopla_update_extra_fields_ignored(
+        self, api_client, admin_user, faker,
+    ):
         """
         BOPLA: UPDATE metadata with extra fields.
         """
@@ -237,7 +261,9 @@ class TestPlayoutHistoryMetadataRedTeamBOPLA:
         if response.status_code == 200:
             pytest.xfail("T629: BOPLA - Metadata UPDATE extra fields ignored")
 
-    def test_bopla_patch_key_value_manipulation(self, api_client, admin_user, faker):
+    def test_bopla_patch_key_value_manipulation(
+        self, api_client, admin_user, faker,
+    ):
         """
         BOPLA: PATCH metadata key/value.
 
@@ -330,7 +356,9 @@ class TestPlayoutHistoryMetadataRedTeamInjection:
             )
 
             if response.status_code == 500:
-                pytest.xfail(f"T630: SQLi in value field causes 500: {value[:30]}")
+                pytest.xfail(
+                    f"T630: SQLi in value field causes 500: {value[:30]}",
+                )
 
     def test_xss_in_key_field(self, api_client, admin_user, faker):
         """
@@ -364,7 +392,7 @@ class TestPlayoutHistoryMetadataRedTeamInjection:
                 stored_key = result.get("key")
                 if stored_key == key:
                     # Stored without sanitization
-                    pytest.xfail(f"T631: XSS in key field stored unsanitized")
+                    pytest.xfail("T631: XSS in key field stored unsanitized")
 
     def test_xss_in_value_field(self, api_client, admin_user, faker):
         """
@@ -395,7 +423,9 @@ class TestPlayoutHistoryMetadataRedTeamInjection:
                 result = response.json()
                 stored_value = result.get("value")
                 if stored_value == value:
-                    pytest.xfail(f"T631: XSS in value field stored unsanitized")
+                    pytest.xfail(
+                        "T631: XSS in value field stored unsanitized",
+                    )
 
     def test_command_injection_in_value(self, api_client, admin_user, faker):
         """
@@ -470,7 +500,9 @@ class TestPlayoutHistoryMetadataRedTeamValidation:
 
         assert response.status_code == 400
 
-    def test_create_missing_required_value(self, api_client, admin_user, faker):
+    def test_create_missing_required_value(
+        self, api_client, admin_user, faker,
+    ):
         """
         Validation: CREATE without required value field.
         """
@@ -491,7 +523,9 @@ class TestPlayoutHistoryMetadataRedTeamValidation:
         # Value might be optional - document behavior
         assert response.status_code in [201, 400]
 
-    def test_create_duplicate_key_same_history(self, api_client, admin_user, faker):
+    def test_create_duplicate_key_same_history(
+        self, api_client, admin_user, faker,
+    ):
         """
         Validation: Duplicate key for same history.
 

@@ -10,7 +10,9 @@ Attack vectors:
 """
 
 import json
+
 import pytest
+
 from model_bakery import baker
 
 from api.schedule.models import Show, ShowDays
@@ -24,7 +26,7 @@ class TestShowDaysRepeatKindAbuse:
         """Try to create with integer outside valid choices."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "first_show_on": "2026-04-01",
@@ -45,7 +47,7 @@ class TestShowDaysRepeatKindAbuse:
         """Try to create with null repeat_kind."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "first_show_on": "2026-04-01",
@@ -71,7 +73,7 @@ class TestShowDaysWeekDayMismatch:
         """Try week_day that doesn't match first_show_on with monthly."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         # 2026-04-01 is Wednesday (week_day=2), but we try Friday (week_day=4)
         data = {
             "show": show.id,
@@ -94,7 +96,7 @@ class TestShowDaysWeekDayMismatch:
         """Try invalid week_day with weekly repeat."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         invalid_days = [-1, 7, 8, 100]
         for day in invalid_days:
             data = {
@@ -123,7 +125,7 @@ class TestShowDaysRepeatIntervalAbuse:
         """Try extremely long duration with repeating show."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "first_show_on": "2026-04-01",
@@ -145,7 +147,7 @@ class TestShowDaysRepeatIntervalAbuse:
         """Try 24+ hour duration causing overlap."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "first_show_on": "2026-04-01",
@@ -169,7 +171,7 @@ class TestShowDaysEndDateBypass:
 
     @pytest.mark.xfail(reason="T396: Can remove last_show_on via PATCH")
     def test_remove_last_show_on_via_patch(self, api_client):
-        """Try to remove end date via PATCH to create infinite repeat.""
+        """Try to remove end date via PATCH to create infinite repeat."""
         show = baker.make(Show, name="Test Show")
         show_days = baker.make(
             ShowDays,
@@ -179,7 +181,7 @@ class TestShowDaysEndDateBypass:
             repeat_kind=ShowDays.RepeatKind.WEEKLY,
         )
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {"last_show_on": None}
         response = api_client.patch(
             f"/api/v2/show-days/{show_days.id}",
@@ -189,13 +191,15 @@ class TestShowDaysEndDateBypass:
         if response.status_code == 200:
             result = response.json()
             if result.get("last_show_on") is None:
-                pytest.fail("BUG: Can remove last_show_on to create infinite repeat")
+                pytest.fail(
+                    "BUG: Can remove last_show_on to create infinite repeat",
+                )
 
     def test_far_future_last_show_on(self, api_client):
         """Try end date very far in future."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "first_show_on": "2026-04-01",
@@ -221,7 +225,7 @@ class TestShowDaysRepeatFilterAbuse:
     def test_filter_by_invalid_repeat_kind(self, api_client):
         """Try to filter by invalid repeat_kind."""
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         response = api_client.get("/api/v2/show-days?repeat_kind=invalid")
         if response.status_code == 500:
             pytest.fail("BUG: Filter by invalid repeat_kind causes crash")
@@ -229,15 +233,17 @@ class TestShowDaysRepeatFilterAbuse:
     def test_filter_by_sql_injection_in_repeat_kind(self, api_client):
         """Try SQL injection in repeat_kind filter."""
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         sqli_payloads = [
             "1' OR '1'='1",
             "1; DROP TABLE cc_show_days--",
             "weekly' UNION SELECT * FROM cc_subjs--",
         ]
-        
+
         for payload in sqli_payloads:
-            response = api_client.get(f"/api/v2/show-days?repeat_kind={payload}")
+            response = api_client.get(
+                f"/api/v2/show-days?repeat_kind={payload}",
+            )
             if response.status_code == 500:
                 pytest.fail(f"BUG: SQLi in repeat_kind filter: {payload}")
 
@@ -258,7 +264,7 @@ class TestShowDaysRepeatTimezoneAbuse:
             repeat_kind=ShowDays.RepeatKind.WEEKLY,
         )
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         # Change to timezone where start_time crosses day boundary
         data = {"timezone": "Pacific/Auckland"}  # UTC+12
         response = api_client.patch(
@@ -273,7 +279,7 @@ class TestShowDaysRepeatTimezoneAbuse:
         """Try invalid timezone with repeating show."""
         show = baker.make(Show, name="Test Show")
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         data = {
             "show": show.id,
             "first_show_on": "2026-04-01",
@@ -306,7 +312,7 @@ class TestShowDaysRepeatSwitchAbuse:
             repeat_kind=ShowDays.RepeatKind.WEEKLY,
         )
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         # Switch to monthly but keep wrong week_day
         data = {
             "repeat_kind": ShowDays.RepeatKind.MONTHLY,
@@ -330,7 +336,7 @@ class TestShowDaysRepeatSwitchAbuse:
             repeat_kind=ShowDays.RepeatKind.WEEKLY,
         )
         api_client.force_authenticate(user=baker.make("core.User"))
-        
+
         kinds = [
             ShowDays.RepeatKind.WEEKLY_2,
             ShowDays.RepeatKind.WEEKLY_3,
@@ -338,7 +344,7 @@ class TestShowDaysRepeatSwitchAbuse:
             ShowDays.RepeatKind.MONTHLY,
             ShowDays.RepeatKind.WEEKLY,
         ]
-        
+
         for kind in kinds:
             response = api_client.patch(
                 f"/api/v2/show-days/{show_days.id}",

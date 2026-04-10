@@ -9,17 +9,16 @@ Tests focus on:
 - Injection in path
 """
 
-import json
 from datetime import timedelta
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
 from api.schedule.models import Schedule, Show, ShowInstance, Webstream
 from api.storage.models import File
 from sdk import now
-from sdk.datetime import format_datetime
 
 
 @pytest.mark.django_db(transaction=True)
@@ -39,13 +38,19 @@ class TestScheduleRetrieveRedTeam:
     # API1:2023 - BOLA (Broken Object Level Authorization)
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T587: BOLA - Can retrieve other user's schedule")
+    @pytest.mark.xfail(
+        reason="T587: BOLA - Can retrieve other user's schedule",
+    )
     def test_bola_retrieve_other_users_schedule(self, api_client, faker):
         """BOLA: Can retrieve another user's schedule entry."""
-        victim = baker.make(User, username=f"testred_victim_{faker.user_name()}")
+        victim = baker.make(
+            User, username=f"testred_victim_{faker.user_name()}",
+        )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=victim)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=victim,
+        )
 
         base_time = now()
         victim_schedule = baker.make(
@@ -61,15 +66,18 @@ class TestScheduleRetrieveRedTeam:
         )
 
         response = api_client.get(f"/api/v2/schedule/{victim_schedule.id}")
-        assert response.status_code == 403, \
-            f"BOLA: Got {response.status_code}, expected 403 - can retrieve other's schedule"
+        assert (
+            response.status_code == 403
+        ), f"BOLA: Got {response.status_code}, expected 403 - can retrieve other's schedule"
 
     def test_bola_id_enumeration_retrieve(self, api_client, faker):
         """BOLA: Sequential ID enumeration on retrieve."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         base_time = now()
         schedules = []
@@ -94,8 +102,9 @@ class TestScheduleRetrieveRedTeam:
             if response.status_code == 200:
                 found_count += 1
 
-        assert found_count <= len(schedules), \
-            f"ID enumeration: found {found_count} accessible entries"
+        assert found_count <= len(
+            schedules,
+        ), f"ID enumeration: found {found_count} accessible entries"
 
     # ========================================================================
     # API2:2023 - Broken Authentication
@@ -129,7 +138,9 @@ class TestScheduleRetrieveRedTeam:
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         base_time = now()
         schedule = baker.make(
@@ -148,10 +159,18 @@ class TestScheduleRetrieveRedTeam:
         data = response.json()
 
         # Check for sensitive fields that shouldn't be exposed
-        sensitive_fields = ["password", "secret", "token", "key", "internal_notes"]
+        sensitive_fields = [
+            "password",
+            "secret",
+            "token",
+            "key",
+            "internal_notes",
+        ]
         for field in sensitive_fields:
             if field in data:
-                pytest.fail(f"Sensitive field '{field}' exposed in retrieve response")
+                pytest.fail(
+                    f"Sensitive field '{field}' exposed in retrieve response",
+                )
 
     # ========================================================================
     # API8:2023 - Security Misconfiguration
@@ -162,7 +181,9 @@ class TestScheduleRetrieveRedTeam:
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         base_time = now()
         schedule = baker.make(
@@ -184,8 +205,9 @@ class TestScheduleRetrieveRedTeam:
         )
 
         # Verify schedule still exists
-        assert Schedule.objects.filter(id=schedule.id).exists(), \
-            "Method override allowed DELETE via GET"
+        assert Schedule.objects.filter(
+            id=schedule.id,
+        ).exists(), "Method override allowed DELETE via GET"
 
     # ========================================================================
     # Injection Attacks
@@ -201,8 +223,10 @@ class TestScheduleRetrieveRedTeam:
 
         for payload in sqli_payloads:
             response = api_client.get(f"/api/v2/schedule/{payload}")
-            assert response.status_code in [400, 404], \
-                f"SQLi '{payload}' caused {response.status_code}"
+            assert response.status_code in [
+                400,
+                404,
+            ], f"SQLi '{payload}' caused {response.status_code}"
 
     def test_path_traversal_in_retrieve_id(self, api_client, faker):
         """Injection: Path traversal in retrieve ID."""
@@ -214,8 +238,10 @@ class TestScheduleRetrieveRedTeam:
 
         for test_id in traversal_ids:
             response = api_client.get(f"/api/v2/schedule/{test_id}")
-            assert response.status_code in [400, 404], \
-                f"Path traversal '{test_id}' caused {response.status_code}"
+            assert response.status_code in [
+                400,
+                404,
+            ], f"Path traversal '{test_id}' caused {response.status_code}"
 
     # ========================================================================
     # Input Validation
@@ -224,8 +250,10 @@ class TestScheduleRetrieveRedTeam:
     def test_unicode_in_retrieve_id(self, api_client, faker):
         """Validation: Unicode in retrieve ID."""
         response = api_client.get("/api/v2/schedule/日本語")
-        assert response.status_code in [400, 404], \
-            f"Unicode ID caused {response.status_code}"
+        assert response.status_code in [
+            400,
+            404,
+        ], f"Unicode ID caused {response.status_code}"
 
     def test_negative_id_retrieve(self, api_client, faker):
         """Validation: Negative ID in retrieve."""
@@ -236,13 +264,19 @@ class TestScheduleRetrieveRedTeam:
     # Information Disclosure
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T591: Info Leak - Error reveals if schedule exists")
+    @pytest.mark.xfail(
+        reason="T591: Info Leak - Error reveals if schedule exists",
+    )
     def test_error_message_leaks_existence_retrieve(self, api_client, faker):
         """Info Leak: Error messages reveal schedule existence."""
-        victim = baker.make(User, username=f"testred_victim_{faker.user_name()}")
+        victim = baker.make(
+            User, username=f"testred_victim_{faker.user_name()}",
+        )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=victim)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=victim,
+        )
 
         base_time = now()
         victim_schedule = baker.make(
@@ -258,13 +292,15 @@ class TestScheduleRetrieveRedTeam:
         )
 
         # Try to access existing vs non-existing
-        response_existing = api_client.get(f"/api/v2/schedule/{victim_schedule.id}")
+        response_existing = api_client.get(
+            f"/api/v2/schedule/{victim_schedule.id}",
+        )
         response_nonexistent = api_client.get("/api/v2/schedule/999999")
 
         if response_existing.status_code != response_nonexistent.status_code:
             pytest.fail(
                 f"Status leak: existing={response_existing.status_code}, "
-                f"nonexistent={response_nonexistent.status_code}"
+                f"nonexistent={response_nonexistent.status_code}",
             )
 
     def test_field_enumeration_via_response_retrieve(self, api_client, faker):
@@ -272,8 +308,12 @@ class TestScheduleRetrieveRedTeam:
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
-        stream = baker.make(Webstream, name=faker.catch_phrase(), url=faker.url(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
+        stream = baker.make(
+            Webstream, name=faker.catch_phrase(), url=faker.url(), owner=user,
+        )
 
         base_time = now()
         schedule = baker.make(
@@ -293,6 +333,16 @@ class TestScheduleRetrieveRedTeam:
         data = response.json()
 
         # Verify expected fields
-        expected_fields = ["id", "instance", "file", "stream", "starts_at", "ends_at", "cue_in", "cue_out", "position"]
+        expected_fields = [
+            "id",
+            "instance",
+            "file",
+            "stream",
+            "starts_at",
+            "ends_at",
+            "cue_in",
+            "cue_out",
+            "position",
+        ]
         for field in expected_fields:
             assert field in data, f"Expected field '{field}' not in response"

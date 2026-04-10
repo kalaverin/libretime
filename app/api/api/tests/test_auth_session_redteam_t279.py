@@ -4,9 +4,9 @@ Red Team security tests for session-based authentication.
 Tests for session fixation, hijacking, brute force, and permission bypasses.
 """
 
-import time
 
 import pytest
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from rest_framework.test import APIClient, APIRequestFactory
@@ -14,10 +14,10 @@ from rest_framework.test import APIClient, APIRequestFactory
 from api.core.models import Role
 from api.permissions import IsAdminOrOwnUser
 
-
 # =============================================================================
 # API2:2023 Broken Authentication - Session Attacks
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestSessionAuthRedTeamSessionFixation:
@@ -26,7 +26,7 @@ class TestSessionAuthRedTeamSessionFixation:
     def test_session_fixation_on_login(self):
         """
         Session fixation: Session ID should change after login.
-        
+
         If session ID remains the same after login, it's vulnerable to fixation.
         """
         User = get_user_model()
@@ -43,13 +43,17 @@ class TestSessionAuthRedTeamSessionFixation:
 
         # Get session before login
         response_before = client.get("/api/v2/files")
-        session_key_before = client.session.session_key if hasattr(client, 'session') else None
+        session_key_before = (
+            client.session.session_key if hasattr(client, "session") else None
+        )
 
         # Login
         client.login(username="fixation_test", password="testpassword123")
 
         # Get session after login
-        session_key_after = client.session.session_key if hasattr(client, 'session') else None
+        session_key_after = (
+            client.session.session_key if hasattr(client, "session") else None
+        )
 
         # Session key should change (regenerated) - but this is hard to test with APIClient
         # Just verify login works
@@ -59,10 +63,10 @@ class TestSessionAuthRedTeamSessionFixation:
     def test_session_expiration(self):
         """
         Session should expire after inactivity.
-        
+
         This test documents expected behavior - cannot actually test time.
         """
-        pass  # Documentation only
+        # Documentation only
 
     def test_session_invalidation_on_logout(self):
         """
@@ -97,6 +101,7 @@ class TestSessionAuthRedTeamSessionFixation:
 # API2:2023 Broken Authentication - Brute Force
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestSessionAuthRedTeamBruteForce:
     """Brute force and credential stuffing tests."""
@@ -104,7 +109,7 @@ class TestSessionAuthRedTeamBruteForce:
     def test_brute_force_login_no_rate_limit(self):
         """
         Brute force: Rapid login attempts should be rate limited.
-        
+
         Try many passwords rapidly - should be blocked.
         """
         User = get_user_model()
@@ -123,8 +128,7 @@ class TestSessionAuthRedTeamBruteForce:
         for i in range(20):
             # Try incorrect passwords
             logged_in = client.login(
-                username="brute_force_target",
-                password=f"wrong_password_{i}"
+                username="brute_force_target", password=f"wrong_password_{i}",
             )
             if logged_in:
                 success_count += 1
@@ -157,16 +161,21 @@ class TestSessionAuthRedTeamBruteForce:
             client.login(username="lockout_test", password="wrong")
 
         # Try correct password
-        logged_in = client.login(username="lockout_test", password="real_password_123")
+        logged_in = client.login(
+            username="lockout_test", password="real_password_123",
+        )
 
         # If login succeeds after 10 failures, no lockout mechanism
         if logged_in:
-            pytest.xfail("T740: No account lockout after 10 failed login attempts")
+            pytest.xfail(
+                "T740: No account lockout after 10 failed login attempts",
+            )
 
 
 # =============================================================================
 # API2:2023 Broken Authentication - Credential Validation
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestSessionAuthRedTeamCredentialValidation:
@@ -177,7 +186,7 @@ class TestSessionAuthRedTeamCredentialValidation:
         Weak passwords should be rejected.
         """
         User = get_user_model()
-        
+
         weak_passwords = [
             "123456",
             "password",
@@ -206,7 +215,7 @@ class TestSessionAuthRedTeamCredentialValidation:
         Common passwords from rockyou.txt should be rejected.
         """
         User = get_user_model()
-        
+
         common_passwords = [
             "password123",
             "12345678",
@@ -234,8 +243,16 @@ class TestSessionAuthRedTeamCredentialValidation:
         Password minimum length should be enforced.
         """
         User = get_user_model()
-        
-        short_passwords = ["a", "ab", "abc", "abcd", "abcde", "abcdef", "abcdefg"]
+
+        short_passwords = [
+            "a",
+            "ab",
+            "abc",
+            "abcd",
+            "abcde",
+            "abcdef",
+            "abcdefg",
+        ]
 
         for pwd in short_passwords:
             try:
@@ -248,7 +265,9 @@ class TestSessionAuthRedTeamCredentialValidation:
                     last_name="Pass",
                 )
                 if len(pwd) < 8:
-                    pytest.xfail(f"T743: Short password ({len(pwd)} chars) accepted")
+                    pytest.xfail(
+                        f"T743: Short password ({len(pwd)} chars) accepted",
+                    )
             except Exception:  # noqa: S110
                 pass
 
@@ -256,6 +275,7 @@ class TestSessionAuthRedTeamCredentialValidation:
 # =============================================================================
 # API5:2023 BFLA - Cross-Role Access
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestSessionAuthRedTeamCrossRoleAccess:
@@ -287,7 +307,9 @@ class TestSessionAuthRedTeamCrossRoleAccess:
             response = client.get(endpoint)
             # Should be 403, not 200
             if response.status_code == 200:
-                pytest.xfail(f"T744: BFLA - Host can access admin endpoint: {endpoint}")
+                pytest.xfail(
+                    f"T744: BFLA - Host can access admin endpoint: {endpoint}",
+                )
 
     def test_guest_user_access_restrictions(self):
         """
@@ -324,6 +346,7 @@ class TestSessionAuthRedTeamCrossRoleAccess:
 # API8:2023 Security Misconfiguration
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestSessionAuthRedTeamSecurityConfig:
     """Security configuration tests."""
@@ -333,21 +356,18 @@ class TestSessionAuthRedTeamSecurityConfig:
         Session cookie should have secure flag in production.
         """
         # This is a documentation test - actual check requires production config
-        pass
 
     def test_session_cookie_httponly(self, settings):
         """
         Session cookie should have HttpOnly flag.
         """
         # Documentation test
-        pass
 
     def test_session_cookie_samesite(self, settings):
         """
         Session cookie should have SameSite flag.
         """
         # Documentation test
-        pass
 
     def test_verbose_error_on_invalid_login(self):
         """
@@ -357,8 +377,7 @@ class TestSessionAuthRedTeamSecurityConfig:
 
         # Try login with non-existent user
         response_nonexistent = client.login(
-            username="definitely_does_not_exist_12345",
-            password="wrong"
+            username="definitely_does_not_exist_12345", password="wrong",
         )
 
         # Try login with wrong password (if user exists)
@@ -372,19 +391,22 @@ class TestSessionAuthRedTeamSecurityConfig:
 # T308 Bug Confirmation
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestBugT308RedTeam:
     """
     T308: IsAdminOrOwnUser crashes on AnonymousUser.
-    
+
     Confirms the bug with additional test cases.
     """
 
-    @pytest.mark.xfail(reason="T308: IsAdminOrOwnUser crashes on AnonymousUser")
+    @pytest.mark.xfail(
+        reason="T308: IsAdminOrOwnUser crashes on AnonymousUser",
+    )
     def test_t308_anonymous_user_crashes_is_admin_or_own_user(self):
         """
         T308: AnonymousUser causes TypeError in IsAdminOrOwnUser.
-        
+
         TypeError: 'bool' object is not callable in has_permission()
         """
         factory = APIRequestFactory()
@@ -414,7 +436,9 @@ class TestBugT308RedTeam:
 
         # Should be 403, but T308 causes 500
         if response.status_code == 500:
-            pytest.xfail("T308: Unauthenticated access causes 500 (server crash)")
+            pytest.xfail(
+                "T308: Unauthenticated access causes 500 (server crash)",
+            )
 
         assert response.status_code == 403
 
@@ -423,6 +447,7 @@ class TestBugT308RedTeam:
 # Session Hijacking Tests
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestSessionAuthRedTeamHijacking:
     """Session hijacking prevention tests."""
@@ -430,25 +455,23 @@ class TestSessionAuthRedTeamHijacking:
     def test_session_binding_to_ip(self):
         """
         Session should be bound to IP address.
-        
+
         If IP changes, session should be invalidated.
         """
         # This is a documentation test - implementation specific
-        pass
 
     def test_session_binding_to_user_agent(self):
         """
         Session should be bound to User-Agent.
-        
+
         Significant UA change should invalidate session.
         """
         # Documentation test
-        pass
 
     def test_concurrent_session_limit(self):
         """
         User should have limited concurrent sessions.
-        
+
         Unlimited concurrent sessions allow session hijacking.
         """
         User = get_user_model()
@@ -465,7 +488,9 @@ class TestSessionAuthRedTeamHijacking:
         clients = []
         for _ in range(10):
             client = APIClient()
-            logged_in = client.login(username="concurrent_test", password="testpassword123")
+            logged_in = client.login(
+                username="concurrent_test", password="testpassword123",
+            )
             if logged_in:
                 clients.append(client)
 
@@ -482,6 +507,7 @@ class TestSessionAuthRedTeamHijacking:
 # =============================================================================
 # Privilege Escalation Tests
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestSessionAuthRedTeamPrivilegeEscalation:
@@ -515,21 +541,21 @@ class TestSessionAuthRedTeamPrivilegeEscalation:
         # If it doesn't exist, the test passes by default
         try:
             response = client.patch(
-                f"/api/v2/users/{host.id}",
-                data,
-                format="json"
+                f"/api/v2/users/{host.id}", data, format="json",
             )
             if response.status_code == 200:
                 result = response.json()
                 if result.get("role") == Role.ADMIN:
-                    pytest.xfail("T747: Privilege escalation - user changed own role")
+                    pytest.xfail(
+                        "T747: Privilege escalation - user changed own role",
+                    )
         except Exception:  # noqa: S110
             pass  # Endpoint doesn't exist - that's fine
 
     def test_session_cookie_not_predictable(self):
         """
         Session ID should be cryptographically random.
-        
+
         Predictable session IDs allow session hijacking.
         """
         User = get_user_model()
@@ -543,10 +569,14 @@ class TestSessionAuthRedTeamPrivilegeEscalation:
         )
 
         client = APIClient()
-        client.login(username="session_random_test", password="testpassword123")
+        client.login(
+            username="session_random_test", password="testpassword123",
+        )
 
         # Session key should be random (not sequential, not timestamp-based)
-        session_key = client.session.session_key if hasattr(client, 'session') else None
+        session_key = (
+            client.session.session_key if hasattr(client, "session") else None
+        )
 
         if session_key:
             # Basic check: session key should be sufficiently long

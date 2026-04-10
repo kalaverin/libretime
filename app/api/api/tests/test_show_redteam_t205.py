@@ -11,8 +11,8 @@ Attack vectors:
 """
 
 import pytest
+
 from model_bakery import baker
-from rest_framework.test import APIClient
 
 
 @pytest.mark.django_db
@@ -34,7 +34,7 @@ class TestShowUpdateMassAssignment:
         if response.status_code == 200:
             data = response.json()
             if data.get("id") != original_id:
-                pytest.fail("BAG: Can change id via PATCH")
+                pytest.fail("BUG: Can change id via PATCH")
 
     def test_patch_created_at(self, api_client, admin_user):
         """Try to change created_at via PATCH."""
@@ -50,7 +50,7 @@ class TestShowUpdateMassAssignment:
         if response.status_code == 200:
             data = response.json()
             if "2019" in str(data.get("created_at", "")):
-                pytest.fail("BAG: Can modify created_at via PATCH")
+                pytest.fail("BUG: Can modify created_at via PATCH")
 
     def test_put_with_extra_fields(self, api_client, admin_user):
         """Try PUT with extra fields."""
@@ -94,7 +94,7 @@ class TestShowUpdateBOLA:
         )
 
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Can PATCH other user's show")
+            pytest.fail("CRITICAL BUG: Can PATCH other user's show")
 
     def test_put_other_user_show(self, api_client, admin_user, regular_user):
         """Try to PUT another user's show."""
@@ -116,9 +116,11 @@ class TestShowUpdateBOLA:
         )
 
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Can PUT other user's show")
+            pytest.fail("CRITICAL BUG: Can PUT other user's show")
 
-    def test_delete_other_user_show(self, api_client, admin_user, regular_user):
+    def test_delete_other_user_show(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to DELETE another user's show."""
         show = baker.make("schedule.Show", name="Admin Show")
 
@@ -126,7 +128,7 @@ class TestShowUpdateBOLA:
         response = api_client.delete(f"/api/v2/shows/{show.id}")
 
         if response.status_code == 204:
-            pytest.fail("CRITICAL BAG: Can DELETE other user's show")
+            pytest.fail("CRITICAL BUG: Can DELETE other user's show")
 
 
 @pytest.mark.django_db
@@ -148,7 +150,7 @@ class TestShowUpdateValidationBypass:
         if response.status_code == 200:
             data = response.json()
             if data.get("name") == "":
-                pytest.fail("BAG: Can set empty name via PATCH")
+                pytest.fail("BUG: Can set empty name via PATCH")
 
     def test_patch_to_whitespace_name(self, api_client, admin_user):
         """Try to PATCH name to whitespace only."""
@@ -164,7 +166,7 @@ class TestShowUpdateValidationBypass:
         if response.status_code == 200:
             data = response.json()
             if data.get("name") == "   ":
-                pytest.fail("BAG: Can set whitespace-only name via PATCH")
+                pytest.fail("BUG: Can set whitespace-only name via PATCH")
 
     def test_patch_to_null_name(self, api_client, admin_user):
         """Try to PATCH name to null."""
@@ -179,7 +181,7 @@ class TestShowUpdateValidationBypass:
 
         # Should reject null name
         if response.status_code == 200:
-            pytest.fail("BAG: Can set null name via PATCH")
+            pytest.fail("BUG: Can set null name via PATCH")
 
     def test_patch_to_very_long_name(self, api_client, admin_user):
         """Try to PATCH name to very long string."""
@@ -202,7 +204,9 @@ class TestShowUpdateURLAttacks:
 
     def test_patch_url_to_javascript(self, api_client, admin_user):
         """Try to PATCH URL to javascript protocol."""
-        show = baker.make("schedule.Show", name="Test Show", url="https://example.com")
+        show = baker.make(
+            "schedule.Show", name="Test Show", url="https://example.com",
+        )
 
         api_client.force_authenticate(user=admin_user)
         response = api_client.patch(
@@ -214,11 +218,13 @@ class TestShowUpdateURLAttacks:
         if response.status_code == 200:
             data = response.json()
             if "javascript:" in str(data.get("url", "")):
-                pytest.fail("BAG: Can set javascript: URL via PATCH")
+                pytest.fail("BUG: Can set javascript: URL via PATCH")
 
     def test_patch_url_to_data_protocol(self, api_client, admin_user):
         """Try to PATCH URL to data protocol."""
-        show = baker.make("schedule.Show", name="Test Show", url="https://example.com")
+        show = baker.make(
+            "schedule.Show", name="Test Show", url="https://example.com",
+        )
 
         api_client.force_authenticate(user=admin_user)
         response = api_client.patch(
@@ -228,7 +234,7 @@ class TestShowUpdateURLAttacks:
         )
 
         if response.status_code == 200:
-            pytest.fail("BAG: Can set data: URL via PATCH")
+            pytest.fail("BUG: Can set data: URL via PATCH")
 
 
 @pytest.mark.django_db
@@ -249,9 +255,11 @@ class TestShowUpdateDescriptionXSS:
         if response.status_code == 200:
             data = response.json()
             if "<script>" in str(data.get("description", "")):
-                pytest.fail("BAG: Can inject script via description PATCH")
+                pytest.fail("BUG: Can inject script via description PATCH")
 
-    def test_patch_description_with_event_handler(self, api_client, admin_user):
+    def test_patch_description_with_event_handler(
+        self, api_client, admin_user,
+    ):
         """Try to PATCH description with event handler."""
         show = baker.make("schedule.Show", name="Test Show")
 
@@ -265,7 +273,7 @@ class TestShowUpdateDescriptionXSS:
         if response.status_code == 200:
             data = response.json()
             if "onerror=" in str(data.get("description", "")):
-                pytest.fail("BAG: Can inject event handler via PATCH")
+                pytest.fail("BUG: Can inject event handler via PATCH")
 
 
 @pytest.mark.django_db
@@ -283,7 +291,7 @@ class TestShowUpdateBusinessLogic:
         )
 
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Anonymous can PATCH shows")
+            pytest.fail("CRITICAL BUG: Anonymous can PATCH shows")
 
     def test_put_without_auth(self, api_client):
         """Try to PUT without authentication."""
@@ -304,7 +312,7 @@ class TestShowUpdateBusinessLogic:
         )
 
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Anonymous can PUT shows")
+            pytest.fail("CRITICAL BUG: Anonymous can PUT shows")
 
     def test_patch_nonexistent_show(self, api_client, admin_user):
         """Try to PATCH non-existent show."""

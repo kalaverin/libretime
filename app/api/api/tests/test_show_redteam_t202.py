@@ -12,8 +12,8 @@ Attack vectors:
 """
 
 import pytest
+
 from model_bakery import baker
-from rest_framework.test import APIClient
 
 
 @pytest.mark.django_db
@@ -41,7 +41,7 @@ class TestShowCreateMassAssignment:
         if response.status_code == 201:
             data = response.json()
             if data.get("id") == 99999:
-                pytest.fail("BAG: Can set id field during creation")
+                pytest.fail("BUG: Can set id field during creation")
 
     def test_create_with_created_at(self, api_client, admin_user):
         """Try to set created_at timestamp."""
@@ -64,7 +64,7 @@ class TestShowCreateMassAssignment:
         if response.status_code == 201:
             data = response.json()
             if "2019" in str(data.get("created_at", "")):
-                pytest.fail("BAG: Can manipulate created_at timestamp")
+                pytest.fail("BUG: Can manipulate created_at timestamp")
 
 
 @pytest.mark.django_db
@@ -133,7 +133,7 @@ class TestShowCreateColorInjection:
 
         # Should reject invalid color
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts invalid color format")
+            pytest.fail("BUG: Accepts invalid color format")
 
     def test_color_with_sql_injection(self, api_client, admin_user):
         """Try SQL injection in color field."""
@@ -154,7 +154,7 @@ class TestShowCreateColorInjection:
         )
 
         if response.status_code == 500:
-            pytest.fail("BAG: Color SQL injection causes crash")
+            pytest.fail("BUG: Color SQL injection causes crash")
 
 
 @pytest.mark.django_db
@@ -180,7 +180,7 @@ class TestShowCreateURLAttacks:
         )
 
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts javascript: protocol URL (XSS risk)")
+            pytest.fail("BUG: Accepts javascript: protocol URL (XSS risk)")
 
     def test_url_with_data_protocol(self, api_client, admin_user):
         """Try data: protocol in URL."""
@@ -201,7 +201,7 @@ class TestShowCreateURLAttacks:
         )
 
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts data: protocol URL")
+            pytest.fail("BUG: Accepts data: protocol URL")
 
     def test_url_with_file_protocol(self, api_client, admin_user):
         """Try file: protocol in URL."""
@@ -222,7 +222,7 @@ class TestShowCreateURLAttacks:
         )
 
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts file: protocol URL")
+            pytest.fail("BUG: Accepts file: protocol URL")
 
 
 @pytest.mark.django_db
@@ -251,7 +251,7 @@ class TestShowCreateDescriptionAttacks:
         data = response.json()
         # Check if script is stored as-is (potential XSS)
         if "<script>" in str(data.get("description", "")):
-            pytest.fail("BAG: HTML script stored without sanitization")
+            pytest.fail("BUG: HTML script stored without sanitization")
 
     def test_description_with_event_handlers(self, api_client, admin_user):
         """Try event handlers in description."""
@@ -274,7 +274,7 @@ class TestShowCreateDescriptionAttacks:
         assert response.status_code == 201
         data = response.json()
         if "onerror=" in str(data.get("description", "")):
-            pytest.fail("BAG: Event handlers stored without sanitization")
+            pytest.fail("BUG: Event handlers stored without sanitization")
 
     def test_very_long_description(self, api_client, admin_user):
         """Try description over 8192 chars."""
@@ -305,7 +305,7 @@ class TestShowCreateUnicodeAttacks:
     def test_unicode_homograph_show_name(self, api_client, admin_user):
         """Try to create show with unicode homograph name."""
         api_client.force_authenticate(user=admin_user)
-        
+
         # Create first show with ASCII name
         response1 = api_client.post(
             "/api/v2/shows",
@@ -370,7 +370,7 @@ class TestShowCreateDuplicateBypass:
         baker.make("schedule.Show", name="Unique Show")
 
         api_client.force_authenticate(user=admin_user)
-        
+
         # Try with leading/trailing whitespace
         response = api_client.post(
             "/api/v2/shows",
@@ -433,7 +433,7 @@ class TestShowCreateBusinessLogic:
         )
 
         if response.status_code == 201:
-            pytest.fail("CRITICAL BAG: Anonymous can create show")
+            pytest.fail("CRITICAL BUG: Anonymous can create show")
 
     def test_create_with_empty_name(self, api_client, admin_user):
         """Try to create show with empty name."""
@@ -454,7 +454,7 @@ class TestShowCreateBusinessLogic:
 
         # Should reject empty name
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts empty show name")
+            pytest.fail("BUG: Accepts empty show name")
 
     def test_create_with_whitespace_only_name(self, api_client, admin_user):
         """Try to create show with whitespace-only name."""
@@ -474,4 +474,4 @@ class TestShowCreateBusinessLogic:
         )
 
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts whitespace-only show name")
+            pytest.fail("BUG: Accepts whitespace-only show name")

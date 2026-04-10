@@ -22,7 +22,7 @@ class PlayoutHistorySerializer(serializers.ModelSerializer):
 
         if starts and ends and ends <= starts:
             raise serializers.ValidationError(
-                {"ends": "End time must be after start time."}
+                {"ends": "End time must be after start time."},
             )
 
         return data

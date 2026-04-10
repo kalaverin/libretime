@@ -8,8 +8,9 @@ Attack vectors:
 - Object comparison exploitation
 """
 
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import MagicMock, patch
 
 from django.contrib.auth.models import AnonymousUser
 from rest_framework.test import APIRequestFactory
@@ -204,14 +205,16 @@ class TestIsAdminOrOwnUserObjectPermissionBypass:
     def test_object_username_equals_by_value(self):
         """obj.username equals request.user by value but different objects."""
         request = APIRequestFactory().get("/api/v2/users/1")
-        
+
         class FakeUser:
             is_authenticated = True
+
             def is_superuser(self):
                 return False
+
             def __eq__(self, other):
                 return True  # Always equal!
-        
+
         request.user = FakeUser()
 
         obj = MagicMock()
@@ -237,7 +240,7 @@ class TestIsAdminOrOwnUserEdgeCases:
         """AnonymousUser with patched is_superuser - should still fail."""
         request = APIRequestFactory().get("/api/v2/users")
         request.user = AnonymousUser()
-        
+
         # Even if we somehow patch is_superuser, is_authenticated is False
         result = IsAdminOrOwnUser().has_permission(request, None)
         assert result is False
@@ -245,11 +248,11 @@ class TestIsAdminOrOwnUserEdgeCases:
     def test_user_with_is_authenticated_as_callable(self):
         """is_authenticated as callable property."""
         request = APIRequestFactory().get("/api/v2/users")
-        
+
         class CallableBool:
             def __bool__(self):
                 return True
-        
+
         user = MagicMock()
         user.is_authenticated = CallableBool()
         user.is_superuser.return_value = True
@@ -266,9 +269,11 @@ class TestIsAdminOrOwnUserEdgeCases:
     def test_permission_with_request_without_user(self):
         """Request without user attribute - raises AttributeError."""
         request = APIRequestFactory().get("/api/v2/users")
+
         # Create request-like object without user
         class NoUserRequest:
             pass
+
         no_user_req = NoUserRequest()
 
         with pytest.raises(AttributeError):
@@ -281,16 +286,19 @@ class TestIsAdminOrOwnUserComparisonAttacks:
     def test_obj_username_not_equals_but_eq_overridden(self):
         """obj.username with overridden __eq__ that always returns True."""
         request = APIRequestFactory().get("/api/v2/users/1")
-        
+
         class AlwaysEqual:
             is_authenticated = True
+
             def is_superuser(self):
                 return False
+
             def __eq__(self, other):
                 return True
+
             def __str__(self):
                 return "different_user"
-        
+
         request.user = AlwaysEqual()
 
         obj = MagicMock()
@@ -303,14 +311,16 @@ class TestIsAdminOrOwnUserComparisonAttacks:
     def test_obj_username_never_equal(self):
         """obj.username with __eq__ that always returns False."""
         request = APIRequestFactory().get("/api/v2/users/1")
-        
+
         class NeverEqual:
             is_authenticated = True
+
             def is_superuser(self):
                 return False
+
             def __eq__(self, other):
                 return False
-        
+
         request.user = NeverEqual()
 
         obj = MagicMock()
@@ -322,14 +332,16 @@ class TestIsAdminOrOwnUserComparisonAttacks:
     def test_obj_username_type_mismatch(self):
         """obj.username is string, request.user is int-like object - different types."""
         request = APIRequestFactory().get("/api/v2/users/1")
-        
+
         class IntLikeUser:
             is_authenticated = True
+
             def is_superuser(self):
                 return False
+
             def __eq__(self, other):
                 return False  # Never equal to anything
-        
+
         request.user = IntLikeUser()
 
         obj = MagicMock()
@@ -346,25 +358,25 @@ class TestIsAdminOrOwnUserPrototypePollution:
     def test_user_class_monkey_patch(self):
         """Monkey-patching user class attributes - demonstrates mutability risk."""
         request = APIRequestFactory().get("/api/v2/users")
-        
+
         user = MagicMock()
         user.is_authenticated = True
         user.is_superuser.return_value = False
-        
+
         # Simulate prototype pollution by adding attribute
         user.__class__.polluted_attr = True
         request.user = user
 
         result = IsAdminOrOwnUser().has_permission(request, None)
         assert result is False
-        
+
         # Cleanup
-        delattr(user.__class__, 'polluted_attr')
+        delattr(user.__class__, "polluted_attr")
 
     def test_object_dunder_method_override(self):
         """Override __getattribute__ to always return True-like values."""
         request = APIRequestFactory().get("/api/v2/users")
-        
+
         class EvilUser:
             def __getattribute__(self, name):
                 if name == "is_authenticated":
@@ -372,7 +384,7 @@ class TestIsAdminOrOwnUserPrototypePollution:
                 if name == "is_superuser":
                     return lambda: True
                 return super().__getattribute__(name)
-        
+
         request.user = EvilUser()
 
         result = IsAdminOrOwnUser().has_permission(request, None)

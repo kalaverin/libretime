@@ -7,11 +7,12 @@ Tests focus on:
 - Recovery after delete
 """
 
-import json
 import time
+
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -39,7 +40,9 @@ class TestPlaylistContentDeleteRedTeam:
         """BOLA: Should not delete another user's playlist content."""
         victim = baker.make(User, username="testred_victim")
         victim_playlist = baker.make(Playlist, name="Victim", owner=victim)
-        victim_file = baker.make(File, name="victim.mp3", mime="audio/mp3", owner=victim)
+        victim_file = baker.make(
+            File, name="victim.mp3", mime="audio/mp3", owner=victim,
+        )
         content = baker.make(
             PlaylistContent,
             playlist=victim_playlist,
@@ -50,10 +53,13 @@ class TestPlaylistContentDeleteRedTeam:
 
         response = api_client.delete(f"/api/v2/playlist-contents/{content.id}")
 
-        assert response.status_code in [403, 404], \
-            f"BOLA: Deleted victim's content with {response.status_code}"
-        assert PlaylistContent.objects.filter(id=content.id).exists(), \
-            "BOLA: Victim's content was deleted"
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA: Deleted victim's content with {response.status_code}"
+        assert PlaylistContent.objects.filter(
+            id=content.id,
+        ).exists(), "BOLA: Victim's content was deleted"
 
     @pytest.mark.xfail(reason="T420: BOLA - mass delete other's content")
     def test_bola_mass_delete_other_users_contents(self, api_client):
@@ -63,7 +69,9 @@ class TestPlaylistContentDeleteRedTeam:
 
         contents = []
         for i in range(5):
-            f = baker.make(File, name=f"victim{i}.mp3", mime="audio/mp3", owner=victim)
+            f = baker.make(
+                File, name=f"victim{i}.mp3", mime="audio/mp3", owner=victim,
+            )
             c = baker.make(
                 PlaylistContent,
                 playlist=victim_playlist,
@@ -80,8 +88,7 @@ class TestPlaylistContentDeleteRedTeam:
             if r.status_code == 204:
                 deleted += 1
 
-        assert deleted == 0, \
-            f"BOLA: Deleted {deleted} victim's contents"
+        assert deleted == 0, f"BOLA: Deleted {deleted} victim's contents"
 
     # ========================================================================
     # API6:2023 - Resource Consumption
@@ -95,7 +102,9 @@ class TestPlaylistContentDeleteRedTeam:
         # Create many contents
         contents = []
         for i in range(20):
-            f = baker.make(File, name=f"file{i}.mp3", mime="audio/mp3", owner=user)
+            f = baker.make(
+                File, name=f"file{i}.mp3", mime="audio/mp3", owner=user,
+            )
             c = baker.make(
                 PlaylistContent,
                 playlist=playlist,
@@ -122,7 +131,9 @@ class TestPlaylistContentDeleteRedTeam:
         """Race: Concurrent delete attempts."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
         content = baker.make(
             PlaylistContent,
             playlist=playlist,
@@ -155,7 +166,9 @@ class TestPlaylistContentDeleteRedTeam:
         """Edge: Double delete same content."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        file_obj = baker.make(File, name="test.mp3", mime="audio/mp3", owner=user)
+        file_obj = baker.make(
+            File, name="test.mp3", mime="audio/mp3", owner=user,
+        )
         content = baker.make(
             PlaylistContent,
             playlist=playlist,
@@ -178,6 +191,10 @@ class TestPlaylistContentDeleteRedTeam:
         ]
 
         for sqli_id in sqli_ids:
-            response = api_client.delete(f"/api/v2/playlist-contents/{sqli_id}")
-            assert response.status_code in [400, 404], \
-                f"SQLi id '{sqli_id}' caused {response.status_code}"
+            response = api_client.delete(
+                f"/api/v2/playlist-contents/{sqli_id}",
+            )
+            assert response.status_code in [
+                400,
+                404,
+            ], f"SQLi id '{sqli_id}' caused {response.status_code}"

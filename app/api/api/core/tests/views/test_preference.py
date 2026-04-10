@@ -5,7 +5,6 @@ Full coverage for PreferenceViewSet with all edge cases.
 Preferences are key-value pairs for site and user settings.
 """
 
-import pytest
 
 from django.conf import settings
 from model_bakery import baker
@@ -380,8 +379,8 @@ class TestPreferenceViewSetCreate(APITestCase):
         which enforces unique keys for site preferences only.
         But cc_pref_subj_key_idx (user, key) allows same key for user prefs.
         However, if site pref exists with key='X', user pref with same key
-        would violate the partial index when user=null. Actually no - 
-        user pref has user!=null, so it should work... 
+        would violate the partial index when user=null. Actually no -
+        user pref has user!=null, so it should work...
 
         Wait, let me check the actual behavior...
         """

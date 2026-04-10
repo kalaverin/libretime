@@ -7,18 +7,17 @@ Tests for BOPLA, BOLA, injection, and validation vulnerabilities.
 import pytest
 
 from model_bakery import baker
-from sdk import now
 
 from api.history.models import PlayoutHistoryTemplate
-from api.core.models.role import Role
-from api.core.models.user import User
 
 
 @pytest.mark.django_db
 class TestPlayoutHistoryTemplateRedTeamBOPLA:
     """API3:2023 Broken Object Property Level Authorization - mass assignment."""
 
-    def test_bopla_create_mass_assignment_id(self, api_client, admin_user, fake_small_int):
+    def test_bopla_create_mass_assignment_id(
+        self, api_client, admin_user, fake_small_int,
+    ):
         """
         BOPLA: CREATE template with forced ID.
 
@@ -43,7 +42,9 @@ class TestPlayoutHistoryTemplateRedTeamBOPLA:
             if result.get("id") == forced_id:
                 pytest.xfail("T632: BOPLA - Template id mass assignment works")
 
-    def test_bopla_create_extra_fields_ignored(self, api_client, admin_user, fake_catch_phrase):
+    def test_bopla_create_extra_fields_ignored(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         BOPLA: CREATE with extra fields silently ignored.
 
@@ -65,13 +66,19 @@ class TestPlayoutHistoryTemplateRedTeamBOPLA:
         )
 
         if response.status_code == 201:
-            pytest.xfail("T633: BOPLA - Template extra fields silently ignored")
+            pytest.xfail(
+                "T633: BOPLA - Template extra fields silently ignored",
+            )
 
-    def test_bopla_update_change_id(self, api_client, admin_user, fake_catch_phrase, fake_small_int):
+    def test_bopla_update_change_id(
+        self, api_client, admin_user, fake_catch_phrase, fake_small_int,
+    ):
         """
         BOPLA: UPDATE attempt to change ID.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
         new_id = fake_small_int + 800000
 
         data = {
@@ -89,13 +96,19 @@ class TestPlayoutHistoryTemplateRedTeamBOPLA:
         if response.status_code == 200:
             result = response.json()
             if result.get("id") == new_id:
-                pytest.xfail("T634: BOPLA - Template id can be modified via PUT")
+                pytest.xfail(
+                    "T634: BOPLA - Template id can be modified via PUT",
+                )
 
-    def test_bopla_update_extra_fields_ignored(self, api_client, admin_user, fake_catch_phrase, fake_word):
+    def test_bopla_update_extra_fields_ignored(
+        self, api_client, admin_user, fake_catch_phrase, fake_word,
+    ):
         """
         BOPLA: UPDATE with extra fields silently ignored.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         data = {
             "name": fake_word,
@@ -113,11 +126,15 @@ class TestPlayoutHistoryTemplateRedTeamBOPLA:
         if response.status_code == 200:
             pytest.xfail("T635: BOPLA - Template UPDATE extra fields ignored")
 
-    def test_bopla_patch_extra_fields_ignored(self, api_client, admin_user, fake_catch_phrase):
+    def test_bopla_patch_extra_fields_ignored(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         BOPLA: PATCH with extra fields silently ignored.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         data = {
             "name": "Patched Name",
@@ -154,7 +171,7 @@ class TestPlayoutHistoryTemplateRedTeamBOLA:
         assert "user" not in fields
 
     def test_bola_regular_user_can_modify_global_template(
-        self, api_client, regular_user, fake_catch_phrase, fake_word
+        self, api_client, regular_user, fake_catch_phrase, fake_word,
     ):
         """
         BFLA/BOLA: Regular user can modify global templates.
@@ -162,7 +179,9 @@ class TestPlayoutHistoryTemplateRedTeamBOLA:
         If regular users can edit templates, this affects all users.
         """
         # Create template as admin would
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         # Regular user tries to modify
         api_client.force_authenticate(user=regular_user)
@@ -179,28 +198,36 @@ class TestPlayoutHistoryTemplateRedTeamBOLA:
         )
 
         if response.status_code == 200:
-            pytest.xfail("T637: BFLA - Regular user can modify global templates")
+            pytest.xfail(
+                "T637: BFLA - Regular user can modify global templates",
+            )
 
     def test_bola_regular_user_can_delete_global_template(
-        self, api_client, regular_user, fake_catch_phrase
+        self, api_client, regular_user, fake_catch_phrase,
     ):
         """
         BFLA/BOLA: Regular user can delete global templates.
 
         Template deletion affects all users of the system.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         api_client.force_authenticate(user=regular_user)
 
         response = api_client.delete(
-            f"/api/v2/playout-history-templates/{template.id}"
+            f"/api/v2/playout-history-templates/{template.id}",
         )
 
         if response.status_code == 204:
-            pytest.xfail("T638: BFLA - Regular user can delete global templates")
+            pytest.xfail(
+                "T638: BFLA - Regular user can delete global templates",
+            )
 
-    def test_bola_guest_user_can_access_templates(self, api_client, guest_user):
+    def test_bola_guest_user_can_access_templates(
+        self, api_client, guest_user,
+    ):
         """
         BFLA: Guest user can access templates.
 
@@ -244,7 +271,9 @@ class TestPlayoutHistoryTemplateRedTeamInjection:
             if "sql" in error_text or "syntax" in error_text:
                 pytest.xfail(f"T640: SQLi error disclosure: {name[:30]}")
 
-    def test_sqli_in_type_field(self, api_client, admin_user, fake_catch_phrase):
+    def test_sqli_in_type_field(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         SQL Injection via type field.
         """
@@ -263,7 +292,7 @@ class TestPlayoutHistoryTemplateRedTeamInjection:
             )
 
             if response.status_code == 500:
-                pytest.xfail(f"T640: SQLi in type causes 500")
+                pytest.xfail("T640: SQLi in type causes 500")
 
     def test_xss_in_name_field(self, api_client, admin_user):
         """
@@ -288,9 +317,11 @@ class TestPlayoutHistoryTemplateRedTeamInjection:
                 result = response.json()
                 stored_name = result.get("name")
                 if stored_name == name:
-                    pytest.xfail(f"T641: XSS in name stored unsanitized")
+                    pytest.xfail("T641: XSS in name stored unsanitized")
 
-    def test_xss_in_type_field(self, api_client, admin_user, fake_catch_phrase):
+    def test_xss_in_type_field(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         XSS via type field.
         """
@@ -309,7 +340,9 @@ class TestPlayoutHistoryTemplateRedTeamInjection:
             if result.get("type") == xss_type:
                 pytest.xfail("T641: XSS in type stored unsanitized")
 
-    def test_command_injection_patterns(self, api_client, admin_user, fake_catch_phrase):
+    def test_command_injection_patterns(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         Command injection patterns in fields.
         """
@@ -352,7 +385,9 @@ class TestPlayoutHistoryTemplateRedTeamValidation:
         if response.status_code == 201:
             pytest.xfail("T642: Empty name accepted")
 
-    def test_create_empty_type(self, api_client, admin_user, fake_catch_phrase):
+    def test_create_empty_type(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         Validation: Empty type should be rejected.
         """
@@ -384,7 +419,9 @@ class TestPlayoutHistoryTemplateRedTeamValidation:
             if len(result.get("name", "")) == 1000:
                 pytest.xfail("T644: No max_length enforcement on name")
 
-    def test_create_very_long_type(self, api_client, admin_user, fake_catch_phrase):
+    def test_create_very_long_type(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         Validation: Very long type beyond max_length (35).
         """
@@ -415,7 +452,9 @@ class TestPlayoutHistoryTemplateRedTeamValidation:
 
         assert response.status_code == 400
 
-    def test_create_invalid_type_values(self, api_client, admin_user, fake_catch_phrase):
+    def test_create_invalid_type_values(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         Validation: Invalid type values.
 
@@ -442,7 +481,9 @@ class TestPlayoutHistoryTemplateRedTeamValidation:
             if response.status_code == 201:
                 pass  # No validation on type values
 
-    def test_create_duplicate_name(self, api_client, admin_user, fake_catch_phrase):
+    def test_create_duplicate_name(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         Validation: Duplicate template names.
 
@@ -475,7 +516,9 @@ class TestPlayoutHistoryTemplateRedTeamValidation:
 class TestPlayoutHistoryTemplateRedTeamResourceConsumption:
     """API4:2023 Unrestricted Resource Consumption."""
 
-    def test_rapid_template_creation(self, api_client, admin_user, fake_catch_phrase):
+    def test_rapid_template_creation(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         Rate limiting: Rapid CREATE requests.
         """
@@ -493,11 +536,15 @@ class TestPlayoutHistoryTemplateRedTeamResourceConsumption:
         if success_count == 20:
             pytest.xfail("T646: No rate limiting on template CREATE")
 
-    def test_rapid_template_updates(self, api_client, admin_user, fake_catch_phrase, fake_word):
+    def test_rapid_template_updates(
+        self, api_client, admin_user, fake_catch_phrase, fake_word,
+    ):
         """
         Rate limiting: Rapid UPDATE requests.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         success_count = 0
         for i in range(20):
@@ -513,13 +560,19 @@ class TestPlayoutHistoryTemplateRedTeamResourceConsumption:
         if success_count == 20:
             pytest.xfail("T647: No rate limiting on template UPDATE")
 
-    def test_list_large_number_of_templates(self, api_client, admin_user, fake_catch_phrase):
+    def test_list_large_number_of_templates(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         Resource consumption: List with many templates.
         """
         # Create many templates
         for i in range(100):
-            baker.make(PlayoutHistoryTemplate, name=f"Template_{i}_{fake_catch_phrase}", type="file")
+            baker.make(
+                PlayoutHistoryTemplate,
+                name=f"Template_{i}_{fake_catch_phrase}",
+                type="file",
+            )
 
         response = api_client.get("/api/v2/playout-history-templates")
 
@@ -554,11 +607,15 @@ class TestPlayoutHistoryTemplateRedTeamAuthentication:
         )
         assert response.status_code == 403
 
-    def test_unauthenticated_update(self, api_client, fake_catch_phrase, fake_word):
+    def test_unauthenticated_update(
+        self, api_client, fake_catch_phrase, fake_word,
+    ):
         """
         Auth: Unauthenticated UPDATE should fail.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         api_client.logout()
         data = {"name": fake_word, "type": "file"}
@@ -573,15 +630,19 @@ class TestPlayoutHistoryTemplateRedTeamAuthentication:
         """
         Auth: Unauthenticated DELETE should fail.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         api_client.logout()
         response = api_client.delete(
-            f"/api/v2/playout-history-templates/{template.id}"
+            f"/api/v2/playout-history-templates/{template.id}",
         )
         assert response.status_code == 403
 
-    def test_guest_user_create(self, api_client, guest_user, fake_catch_phrase):
+    def test_guest_user_create(
+        self, api_client, guest_user, fake_catch_phrase,
+    ):
         """
         BFLA: Guest user CREATE should fail.
         """
@@ -602,13 +663,19 @@ class TestPlayoutHistoryTemplateRedTeamAuthentication:
 class TestPlayoutHistoryTemplateRedTeamIDEnumeration:
     """ID enumeration and information disclosure."""
 
-    def test_id_sequence_predictable(self, api_client, admin_user, fake_catch_phrase):
+    def test_id_sequence_predictable(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         Sequential IDs allow enumeration.
         """
         templates = []
         for i in range(5):
-            t = baker.make(PlayoutHistoryTemplate, name=f"Template_{i}_{fake_catch_phrase}", type="file")
+            t = baker.make(
+                PlayoutHistoryTemplate,
+                name=f"Template_{i}_{fake_catch_phrase}",
+                type="file",
+            )
             templates.append(t)
 
         ids = [t.id for t in templates]
@@ -635,11 +702,15 @@ class TestPlayoutHistoryTemplateRedTeamIDEnumeration:
 class TestPlayoutHistoryTemplateRedTeamHTTPMethodTampering:
     """HTTP method tampering tests."""
 
-    def test_method_override_header(self, api_client, admin_user, fake_catch_phrase):
+    def test_method_override_header(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         Method override via headers.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
         response = api_client.post(
             f"/api/v2/playout-history-templates/{template.id}",
@@ -650,12 +721,18 @@ class TestPlayoutHistoryTemplateRedTeamHTTPMethodTampering:
         # Should not work
         assert response.status_code in [405, 403, 400, 301]
 
-    def test_trace_method_disabled(self, api_client, admin_user, fake_catch_phrase):
+    def test_trace_method_disabled(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         TRACE method should be disabled.
         """
-        template = baker.make(PlayoutHistoryTemplate, name=fake_catch_phrase, type="file")
+        template = baker.make(
+            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+        )
 
-        response = api_client.trace(f"/api/v2/playout-history-templates/{template.id}")
+        response = api_client.trace(
+            f"/api/v2/playout-history-templates/{template.id}",
+        )
 
         assert response.status_code in [405, 403]

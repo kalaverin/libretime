@@ -4,15 +4,14 @@ Red Team security tests for LiveLog endpoints.
 Tests for BOLA, BOPLA, time-based injection, and DoS.
 """
 
-import pytest
 from datetime import timedelta
 
+import pytest
+
 from model_bakery import baker
-from sdk import now, format_datetime
 
 from api.history.models import LiveLog
-from api.core.models.role import Role
-from api.core.models.user import User
+from sdk import format_datetime, now
 
 
 @pytest.mark.django_db
@@ -34,7 +33,9 @@ class TestLiveLogRedTeamBOLA:
         assert "creator" not in fields
         assert "station" not in fields
 
-    def test_bola_list_shows_all_live_logs(self, api_client, admin_user, fake_catch_phrase):
+    def test_bola_list_shows_all_live_logs(
+        self, api_client, admin_user, fake_catch_phrase,
+    ):
         """
         BOLA: LIST returns all live logs without filtering.
         """
@@ -44,7 +45,11 @@ class TestLiveLogRedTeamBOLA:
                 LiveLog,
                 state=f"streaming_{i}",
                 start_time=now() - timedelta(hours=i),
-                end_time=now() - timedelta(hours=i) + timedelta(minutes=30) if i > 0 else None,
+                end_time=(
+                    now() - timedelta(hours=i) + timedelta(minutes=30)
+                    if i > 0
+                    else None
+                ),
             )
 
         response = api_client.get("/api/v2/live-logs")
@@ -56,7 +61,9 @@ class TestLiveLogRedTeamBOLA:
         if len(data) == 5:
             pass  # Document: global access
 
-    def test_bola_regular_user_can_access_all_logs(self, api_client, regular_user, fake_catch_phrase):
+    def test_bola_regular_user_can_access_all_logs(
+        self, api_client, regular_user, fake_catch_phrase,
+    ):
         """
         BFLA: Regular user can access all live logs.
 
@@ -93,7 +100,9 @@ class TestLiveLogRedTeamBOLA:
 class TestLiveLogRedTeamBOPLA:
     """API3:2023 Broken Object Property Level Authorization."""
 
-    def test_bopla_create_mass_assignment_id(self, api_client, admin_user, fake_small_int, fake_word):
+    def test_bopla_create_mass_assignment_id(
+        self, api_client, admin_user, fake_small_int, fake_word,
+    ):
         """
         BOPLA: CREATE with forced ID.
         """
@@ -112,7 +121,9 @@ class TestLiveLogRedTeamBOPLA:
             if result.get("id") == forced_id:
                 pytest.xfail("T654: BOPLA - LiveLog id mass assignment works")
 
-    def test_bopla_create_extra_fields_ignored(self, api_client, admin_user, fake_word):
+    def test_bopla_create_extra_fields_ignored(
+        self, api_client, admin_user, fake_word,
+    ):
         """
         BOPLA: CREATE with extra fields silently ignored.
         """
@@ -129,7 +140,9 @@ class TestLiveLogRedTeamBOPLA:
         if response.status_code == 201:
             pytest.xfail("T655: BOPLA - LiveLog extra fields silently ignored")
 
-    def test_bopla_update_fake_end_time(self, api_client, admin_user, fake_word):
+    def test_bopla_update_fake_end_time(
+        self, api_client, admin_user, fake_word,
+    ):
         """
         BOPLA: UPDATE to manipulate end_time.
 
@@ -160,7 +173,9 @@ class TestLiveLogRedTeamBOPLA:
                 if end_dt == format_datetime(fake_end):
                     pytest.xfail("T656: BOPLA - Can fake stream end time")
 
-    def test_bopla_end_time_before_start_time(self, api_client, admin_user, fake_word):
+    def test_bopla_end_time_before_start_time(
+        self, api_client, admin_user, fake_word,
+    ):
         """
         BOPLA/Validation: end_time before start_time should be rejected.
         """
@@ -176,7 +191,9 @@ class TestLiveLogRedTeamBOPLA:
         response = api_client.post("/api/v2/live-logs", data, format="json")
 
         if response.status_code == 201:
-            pytest.xfail("T657: Validation bypass - end_time before start_time")
+            pytest.xfail(
+                "T657: Validation bypass - end_time before start_time",
+            )
 
     def test_bopla_future_start_time(self, api_client, admin_user, fake_word):
         """
@@ -194,7 +211,9 @@ class TestLiveLogRedTeamBOPLA:
         if response.status_code == 201:
             pytest.xfail("T658: Future start_time accepted")
 
-    def test_bopla_patch_extra_fields_ignored(self, api_client, admin_user, fake_word):
+    def test_bopla_patch_extra_fields_ignored(
+        self, api_client, admin_user, fake_word,
+    ):
         """
         BOPLA: PATCH with extra fields silently ignored.
         """
@@ -231,14 +250,16 @@ class TestLiveLogRedTeamTimeBasedInjection:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.get(f"/api/v2/live-logs?start_time={payload}")
+            response = api_client.get(
+                f"/api/v2/live-logs?start_time={payload}",
+            )
 
             if response.status_code == 500:
-                pytest.xfail(f"T660: SQLi in start_time filter causes 500")
+                pytest.xfail("T660: SQLi in start_time filter causes 500")
 
             error_text = str(response.content).lower()
             if "sql" in error_text or "syntax" in error_text:
-                pytest.xfail(f"T660: SQLi error disclosure")
+                pytest.xfail("T660: SQLi error disclosure")
 
     def test_sqli_in_end_time_filter(self, api_client, admin_user):
         """
@@ -264,9 +285,11 @@ class TestLiveLogRedTeamTimeBasedInjection:
             response = api_client.get(f"/api/v2/live-logs?state={state}")
 
             if response.status_code == 500:
-                pytest.xfail(f"T660: SQLi in state filter causes 500")
+                pytest.xfail("T660: SQLi in state filter causes 500")
 
-    def test_sqli_in_datetime_field_create(self, api_client, admin_user, fake_word):
+    def test_sqli_in_datetime_field_create(
+        self, api_client, admin_user, fake_word,
+    ):
         """
         SQL Injection via datetime fields in CREATE.
         """
@@ -302,7 +325,9 @@ class TestLiveLogRedTeamInjection:
                 "start_time": format_datetime(now()),
             }
 
-            response = api_client.post("/api/v2/live-logs", data, format="json")
+            response = api_client.post(
+                "/api/v2/live-logs", data, format="json",
+            )
 
             if response.status_code == 201:
                 result = response.json()
@@ -325,7 +350,9 @@ class TestLiveLogRedTeamInjection:
                 "start_time": format_datetime(now()),
             }
 
-            response = api_client.post("/api/v2/live-logs", data, format="json")
+            response = api_client.post(
+                "/api/v2/live-logs", data, format="json",
+            )
 
             # Should accept any string
             assert response.status_code in [201, 400]
@@ -345,7 +372,9 @@ class TestLiveLogRedTeamResourceConsumption:
                 "state": f"{fake_word}_{i}",
                 "start_time": format_datetime(now() - timedelta(minutes=i)),
             }
-            response = api_client.post("/api/v2/live-logs", data, format="json")
+            response = api_client.post(
+                "/api/v2/live-logs", data, format="json",
+            )
             if response.status_code == 201:
                 success_count += 1
 
@@ -369,7 +398,9 @@ class TestLiveLogRedTeamResourceConsumption:
         start = format_datetime(now() - timedelta(days=365 * 10))
         end = format_datetime(now())
 
-        response = api_client.get(f"/api/v2/live-logs?start_time={start}&end_time={end}")
+        response = api_client.get(
+            f"/api/v2/live-logs?start_time={start}&end_time={end}",
+        )
 
         if response.status_code == 200:
             data = response.json()
@@ -485,7 +516,9 @@ class TestLiveLogRedTeamValidation:
                 "start_time": format_datetime(now()),
             }
 
-            response = api_client.post("/api/v2/live-logs", data, format="json")
+            response = api_client.post(
+                "/api/v2/live-logs", data, format="json",
+            )
 
             # Document behavior
             if response.status_code == 201:

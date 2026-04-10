@@ -11,16 +11,18 @@ Tests focus on:
 """
 
 import json
+
 from datetime import timedelta
 
 import pytest
+
 from model_bakery import baker
+from sdk.datetime import format_datetime
 
 from api.core.models import User
 from api.schedule.models import Schedule, Show, ShowInstance, Webstream
 from api.storage.models import File
 from sdk import now
-from sdk.datetime import format_datetime
 
 
 @pytest.mark.django_db(transaction=True)
@@ -36,7 +38,9 @@ class TestScheduleUpdateRedTeam:
         Show.objects.all().delete()
         User.objects.filter(username__startswith="testred").delete()
 
-    def _get_update_data(self, instance, file_obj=None, stream=None, **overrides):
+    def _get_update_data(
+        self, instance, file_obj=None, stream=None, **overrides,
+    ):
         """Helper to generate valid update data with proper datetime formatting."""
         base_time = now() + timedelta(hours=1)
 
@@ -70,10 +74,14 @@ class TestScheduleUpdateRedTeam:
     @pytest.mark.xfail(reason="T592: BOLA - Can update other user's schedule")
     def test_bola_update_other_users_schedule(self, api_client, faker):
         """BOLA: Can update another user's schedule entry."""
-        victim = baker.make(User, username=f"testred_victim_{faker.user_name()}")
+        victim = baker.make(
+            User, username=f"testred_victim_{faker.user_name()}",
+        )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=victim)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=victim,
+        )
 
         base_time = now()
         victim_schedule = baker.make(
@@ -96,19 +104,33 @@ class TestScheduleUpdateRedTeam:
             content_type="application/json",
         )
 
-        assert response.status_code == 403, \
-            f"BOLA: Got {response.status_code}, expected 403 - can update other's schedule"
+        assert (
+            response.status_code == 403
+        ), f"BOLA: Got {response.status_code}, expected 403 - can update other's schedule"
 
-    @pytest.mark.xfail(reason="T593: BOLA - Can change schedule to other user's file")
+    @pytest.mark.xfail(
+        reason="T593: BOLA - Can change schedule to other user's file",
+    )
     def test_bola_update_to_other_user_file(self, api_client, faker):
         """BOLA: Can update schedule to use another user's file."""
-        victim = baker.make(User, username=f"testred_victim_{faker.user_name()}")
-        attacker = baker.make(User, username=f"testred_attacker_{faker.user_name()}")
+        victim = baker.make(
+            User, username=f"testred_victim_{faker.user_name()}",
+        )
+        attacker = baker.make(
+            User, username=f"testred_attacker_{faker.user_name()}",
+        )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
 
-        attacker_file = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=attacker)
-        victim_file = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=victim)
+        attacker_file = baker.make(
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=attacker,
+        )
+        victim_file = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=victim,
+        )
 
         base_time = now()
         schedule = baker.make(
@@ -134,16 +156,29 @@ class TestScheduleUpdateRedTeam:
         if response.status_code == 200:
             pytest.fail("BOLA: Can change schedule to other user's file")
 
-    @pytest.mark.xfail(reason="T594: BOLA - Can change schedule to other user's stream")
+    @pytest.mark.xfail(
+        reason="T594: BOLA - Can change schedule to other user's stream",
+    )
     def test_bola_update_to_other_user_stream(self, api_client, faker):
         """BOLA: Can update schedule to use another user's stream."""
-        victim = baker.make(User, username=f"testred_victim_{faker.user_name()}")
-        attacker = baker.make(User, username=f"testred_attacker_{faker.user_name()}")
+        victim = baker.make(
+            User, username=f"testred_victim_{faker.user_name()}",
+        )
+        attacker = baker.make(
+            User, username=f"testred_attacker_{faker.user_name()}",
+        )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
 
-        attacker_stream = baker.make(Webstream, name=faker.catch_phrase(), url=faker.url(), owner=attacker)
-        victim_stream = baker.make(Webstream, name=faker.catch_phrase(), url=faker.url(), owner=victim)
+        attacker_stream = baker.make(
+            Webstream,
+            name=faker.catch_phrase(),
+            url=faker.url(),
+            owner=attacker,
+        )
+        victim_stream = baker.make(
+            Webstream, name=faker.catch_phrase(), url=faker.url(), owner=victim,
+        )
 
         base_time = now()
         schedule = baker.make(
@@ -179,7 +214,9 @@ class TestScheduleUpdateRedTeam:
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         base_time = now()
         schedule = baker.make(
@@ -213,13 +250,17 @@ class TestScheduleUpdateRedTeam:
     # API6:2023 - Unsafe Business Flows
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T595: Logic - Can create schedule overlap via update")
+    @pytest.mark.xfail(
+        reason="T595: Logic - Can create schedule overlap via update",
+    )
     def test_business_logic_overlap_via_update(self, api_client, faker):
         """Logic: Can create overlapping schedules via UPDATE."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         base_time = now()
 
@@ -253,7 +294,9 @@ class TestScheduleUpdateRedTeam:
         data = self._get_update_data(
             instance,
             file_obj=file_obj,
-            starts_at=format_datetime(base_time + timedelta(minutes=3)),  # Overlaps
+            starts_at=format_datetime(
+                base_time + timedelta(minutes=3),
+            ),  # Overlaps
             ends_at=format_datetime(base_time + timedelta(minutes=8)),
         )
         response = api_client.patch(
@@ -275,7 +318,9 @@ class TestScheduleUpdateRedTeam:
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         base_time = now()
         schedule = baker.make(
@@ -348,7 +393,9 @@ class TestScheduleUpdateRedTeam:
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         base_time = now()
         schedule = baker.make(
@@ -369,7 +416,9 @@ class TestScheduleUpdateRedTeam:
         ]
 
         for payload in sqli_payloads:
-            data = self._get_update_data(instance, file_obj=file_obj, cue_in=payload)
+            data = self._get_update_data(
+                instance, file_obj=file_obj, cue_in=payload,
+            )
             response = api_client.patch(
                 f"/api/v2/schedule/{schedule.id}",
                 json.dumps(data),
@@ -383,7 +432,9 @@ class TestScheduleUpdateRedTeam:
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         base_time = now()
         schedule = baker.make(
@@ -415,8 +466,10 @@ class TestScheduleUpdateRedTeam:
             json.dumps(data),
             content_type="application/json",
         )
-        assert response.status_code in [200, 400], \
-            f"NoSQLi caused unexpected {response.status_code}"
+        assert response.status_code in [
+            200,
+            400,
+        ], f"NoSQLi caused unexpected {response.status_code}"
 
     # ========================================================================
     # Input Validation
@@ -427,7 +480,9 @@ class TestScheduleUpdateRedTeam:
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         base_time = now()
         schedule = baker.make(
@@ -442,14 +497,18 @@ class TestScheduleUpdateRedTeam:
             broadcasted=1,
         )
 
-        data = self._get_update_data(instance, file_obj=file_obj, cue_in="日本語")
+        data = self._get_update_data(
+            instance, file_obj=file_obj, cue_in="日本語",
+        )
         response = api_client.patch(
             f"/api/v2/schedule/{schedule.id}",
             json.dumps(data),
             content_type="application/json",
         )
-        assert response.status_code in [200, 400], \
-            f"Unicode caused unexpected {response.status_code}"
+        assert response.status_code in [
+            200,
+            400,
+        ], f"Unicode caused unexpected {response.status_code}"
 
     # ========================================================================
     # Race Condition
@@ -462,7 +521,9 @@ class TestScheduleUpdateRedTeam:
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
-        file_obj = baker.make(File, name=faker.file_name(), mime=faker.mime_type(), owner=user)
+        file_obj = baker.make(
+            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+        )
 
         base_time = now()
         schedule = baker.make(
@@ -478,7 +539,9 @@ class TestScheduleUpdateRedTeam:
         )
 
         def update_schedule(position):
-            data = self._get_update_data(instance, file_obj=file_obj, position=position)
+            data = self._get_update_data(
+                instance, file_obj=file_obj, position=position,
+            )
             return api_client.patch(
                 f"/api/v2/schedule/{schedule.id}",
                 json.dumps(data),
@@ -488,9 +551,13 @@ class TestScheduleUpdateRedTeam:
         # Fire 5 concurrent updates
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             futures = [executor.submit(update_schedule, i) for i in range(5)]
-            results = [f.result() for f in concurrent.futures.as_completed(futures)]
+            results = [
+                f.result() for f in concurrent.futures.as_completed(futures)
+            ]
 
         success_count = results.count(200)
         # Should be consistent
         if success_count != 5 and success_count != 0:
-            pytest.fail(f"Race condition: {success_count}/5 updates succeeded inconsistently")
+            pytest.fail(
+                f"Race condition: {success_count}/5 updates succeeded inconsistently",
+            )

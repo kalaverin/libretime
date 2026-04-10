@@ -27,14 +27,16 @@ class WebstreamSerializer(ModelSerializer[Any]):
         validated_data.setdefault("created_at", current_time)
         validated_data.setdefault("updated_at", current_time)
         validated_data.setdefault("length", timedelta(seconds=0))
-        
+
         return super().create(validated_data)
 
-    def update(self, instance: Webstream, validated_data: dict[str, Any]) -> Webstream:
+    def update(
+        self, instance: Webstream, validated_data: dict[str, Any],
+    ) -> Webstream:
         """Update webstream with auto-updated updated_at."""
         # Always update the updated_at timestamp
         validated_data["updated_at"] = now()
-        
+
         return super().update(instance, validated_data)
 
 

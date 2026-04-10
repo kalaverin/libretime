@@ -5,29 +5,33 @@ Paranoid security tests for race conditions and TOCTOU vulnerabilities.
 OWASP API Top 10 2023: API1:2023 BOLA, API2:2023 Broken Authentication
 """
 
-import json
 import concurrent.futures
+import json
 import time
-from datetime import timedelta
 
 import pytest
+
 from model_bakery import baker
 from rest_framework.test import APIClient
 
-from api.core.models import User, Role
-from api.schedule.models import Playlist, PlaylistContent, Show, ShowInstance
+from api.core.models import Role, User
+from api.schedule.models import Playlist, PlaylistContent
 from api.storage.models import File, Library
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 class TestTOCTOUAuthorization:
     """Time-of-check to time-of-use authorization bypass tests."""
 
     def test_toctou_change_owner_during_update(self, api_client, faker):
         """Change owner between permission check and update."""
-        user_a = baker.make(User, username=f"toctou_a_{faker.user_name()}", role=Role.HOST)
-        user_b = baker.make(User, username=f"toctou_b_{faker.user_name()}", role=Role.HOST)
-        
+        user_a = baker.make(
+            User, username=f"toctou_a_{faker.user_name()}", role=Role.HOST,
+        )
+        user_b = baker.make(
+            User, username=f"toctou_b_{faker.user_name()}", role=Role.HOST,
+        )
+
         playlist = baker.make(
             Playlist,
             name="Original",
@@ -45,15 +49,22 @@ class TestTOCTOUAuthorization:
             json.dumps({"name": "Hacked"}),
             content_type="application/json",
         )
-        
+
         # Should be 403 or 404 - if 200, it's BOLA
-        assert response.status_code in [403, 404], f"Expected 403/404, got {response.status_code}"
+        assert response.status_code in [
+            403,
+            404,
+        ], f"Expected 403/404, got {response.status_code}"
 
     def test_toctou_delete_after_ownership_change(self, api_client, faker):
         """Delete after ownership transfer - should require re-auth."""
-        user_a = baker.make(User, username=f"del_a_{faker.user_name()}", role=Role.HOST)
-        user_b = baker.make(User, username=f"del_b_{faker.user_name()}", role=Role.HOST)
-        
+        user_a = baker.make(
+            User, username=f"del_a_{faker.user_name()}", role=Role.HOST,
+        )
+        user_b = baker.make(
+            User, username=f"del_b_{faker.user_name()}", role=Role.HOST,
+        )
+
         playlist = baker.make(
             Playlist,
             name="To Delete",
@@ -69,23 +80,32 @@ class TestTOCTOUAuthorization:
         client_a.force_authenticate(user=user_a)
 
         response = client_a.delete(f"/api/v2/playlists/{playlist.id}")
-        
+
         # Should be 403 - user A no longer owns it (if 204, it's a bug)
-        assert response.status_code in [403, 404], f"Expected 403/404, got {response.status_code}"
+        assert response.status_code in [
+            403,
+            404,
+        ], f"Expected 403/404, got {response.status_code}"
 
 
-@pytest.mark.django_db  
+@pytest.mark.django_db
 class TestConcurrentBOLA:
     """Concurrent Broken Object Level Authorization tests."""
 
-    @pytest.mark.xfail(reason="Concurrent test - thread instability", strict=False)
+    @pytest.mark.xfail(
+        reason="Concurrent test - thread instability", strict=False,
+    )
     def test_concurrent_cross_user_update(self, api_client, faker):
         """User A and User B update same object simultaneously (race test)."""
         from django.conf import settings
-        
-        user_a = baker.make(User, username=f"race_a_{faker.user_name()}", role=Role.HOST)
-        user_b = baker.make(User, username=f"race_b_{faker.user_name()}", role=Role.HOST)
-        
+
+        user_a = baker.make(
+            User, username=f"race_a_{faker.user_name()}", role=Role.HOST,
+        )
+        user_b = baker.make(
+            User, username=f"race_b_{faker.user_name()}", role=Role.HOST,
+        )
+
         playlist = baker.make(
             Playlist,
             name="Race Target",
@@ -118,7 +138,7 @@ class TestConcurrentBOLA:
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             future_a = executor.submit(user_a_update)
             future_b = executor.submit(user_b_update)
-            
+
             response_a = future_a.result()
             response_b = future_b.result()
 
@@ -126,13 +146,17 @@ class TestConcurrentBOLA:
         assert response_a.status_code == 200
         assert response_b.status_code == 200
 
-    @pytest.mark.xfail(reason="Concurrent test - thread instability", strict=False)
+    @pytest.mark.xfail(
+        reason="Concurrent test - thread instability", strict=False,
+    )
     def test_concurrent_same_user_updates(self, api_client, faker):
         """Same user updates from two sessions concurrently."""
         from django.conf import settings
-        
-        user = baker.make(User, username=f"same_{faker.user_name()}", role=Role.HOST)
-        
+
+        user = baker.make(
+            User, username=f"same_{faker.user_name()}", role=Role.HOST,
+        )
+
         playlist = baker.make(
             Playlist,
             name="Concurrent",
@@ -164,7 +188,7 @@ class TestConcurrentBOLA:
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             future_1 = executor.submit(update_1)
             future_2 = executor.submit(update_2)
-            
+
             resp_1 = future_1.result()
             resp_2 = future_2.result()
 
@@ -180,9 +204,11 @@ class TestRaceConditionDelete:
     def test_delete_during_update(self, api_client, faker):
         """DELETE while UPDATE in progress - consistency check."""
         from django.conf import settings
-        
-        user = baker.make(User, username=f"delupd_{faker.user_name()}", role=Role.HOST)
-        
+
+        user = baker.make(
+            User, username=f"delupd_{faker.user_name()}", role=Role.HOST,
+        )
+
         playlist = baker.make(
             Playlist,
             name="Race Delete",
@@ -211,7 +237,7 @@ class TestRaceConditionDelete:
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             future_update = executor.submit(do_update)
             future_delete = executor.submit(do_delete)
-            
+
             resp_update = future_update.result()
             resp_delete = future_delete.result()
 
@@ -223,9 +249,11 @@ class TestRaceConditionDelete:
     def test_double_delete_idempotency(self, api_client, faker):
         """Double DELETE should return consistent response."""
         from django.conf import settings
-        
-        user = baker.make(User, username=f"dbl_{faker.user_name()}", role=Role.HOST)
-        
+
+        user = baker.make(
+            User, username=f"dbl_{faker.user_name()}", role=Role.HOST,
+        )
+
         playlist = baker.make(
             Playlist,
             name="Double Delete",
@@ -243,15 +271,22 @@ class TestRaceConditionDelete:
 
         # Second delete of same object
         resp2 = client.delete(f"/api/v2/playlists/{playlist.id}")
-        
+
         # Should be 404 (not found), not 500
-        assert resp2.status_code in [404, 204], f"Double delete returned {resp2.status_code}"
+        assert resp2.status_code in [
+            404,
+            204,
+        ], f"Double delete returned {resp2.status_code}"
 
     def test_cross_user_delete_race(self, api_client, faker):
         """User B deletes while User A reads - data leak."""
-        user_a = baker.make(User, username=f"rdr_a_{faker.user_name()}", role=Role.HOST)
-        user_b = baker.make(User, username=f"rdr_b_{faker.user_name()}", role=Role.HOST)
-        
+        user_a = baker.make(
+            User, username=f"rdr_a_{faker.user_name()}", role=Role.HOST,
+        )
+        user_b = baker.make(
+            User, username=f"rdr_b_{faker.user_name()}", role=Role.HOST,
+        )
+
         playlist = baker.make(
             Playlist,
             name="Race Delete Data",
@@ -272,12 +307,15 @@ class TestRaceConditionDelete:
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             future_read = executor.submit(user_a_read)
             future_delete = executor.submit(user_b_delete)
-            
+
             resp_read = future_read.result()
             resp_delete = future_delete.result()
 
         # User B should NOT be able to delete User A's playlist
-        assert resp_delete.status_code in [403, 404], f"User B delete got {resp_delete.status_code}"
+        assert resp_delete.status_code in [
+            403,
+            404,
+        ], f"User B delete got {resp_delete.status_code}"
 
 
 @pytest.mark.django_db
@@ -287,9 +325,11 @@ class TestConcurrentMassAssignment:
     def test_concurrent_mass_assignment_id(self, api_client, faker):
         """Try to change ID via mass assignment."""
         from django.conf import settings
-        
-        user = baker.make(User, username=f"mass_{faker.user_name()}", role=Role.HOST)
-        
+
+        user = baker.make(
+            User, username=f"mass_{faker.user_name()}", role=Role.HOST,
+        )
+
         playlist = baker.make(
             Playlist,
             name="Mass Test",
@@ -309,18 +349,26 @@ class TestConcurrentMassAssignment:
         )
 
         playlist.refresh_from_db()
-        
-        # ID should not change - if changed, it's mass assignment vulnerability
-        assert playlist.id == original_id, f"ID changed from {original_id} to {playlist.id}"
 
-    @pytest.mark.xfail(reason="BOPLA: Mass assignment allows owner change - T880", strict=True)
+        # ID should not change - if changed, it's mass assignment vulnerability
+        assert (
+            playlist.id == original_id
+        ), f"ID changed from {original_id} to {playlist.id}"
+
+    @pytest.mark.xfail(
+        reason="BOPLA: Mass assignment allows owner change - T880", strict=True,
+    )
     def test_concurrent_mass_assignment_owner(self, api_client, faker):
         """Try to change owner via mass assignment. (T880)"""
         from django.conf import settings
-        
-        user_a = baker.make(User, username=f"own_a_{faker.user_name()}", role=Role.HOST)
-        user_b = baker.make(User, username=f"own_b_{faker.user_name()}", role=Role.HOST)
-        
+
+        user_a = baker.make(
+            User, username=f"own_a_{faker.user_name()}", role=Role.HOST,
+        )
+        user_b = baker.make(
+            User, username=f"own_b_{faker.user_name()}", role=Role.HOST,
+        )
+
         playlist = baker.make(
             Playlist,
             name="Owner Test",
@@ -339,17 +387,23 @@ class TestConcurrentMassAssignment:
         )
 
         playlist.refresh_from_db()
-        
-        # Owner should not change via mass assignment
-        assert playlist.owner_id == user_a.id, f"Owner changed to {playlist.owner_id}"
 
-    @pytest.mark.xfail(reason="Concurrent test - thread instability", strict=False)
+        # Owner should not change via mass assignment
+        assert (
+            playlist.owner_id == user_a.id
+        ), f"Owner changed to {playlist.owner_id}"
+
+    @pytest.mark.xfail(
+        reason="Concurrent test - thread instability", strict=False,
+    )
     def test_concurrent_legal_field_updates(self, api_client, faker):
         """Multiple legal field updates concurrently (race test)."""
         from django.conf import settings
-        
-        user = baker.make(User, username=f"legal_{faker.user_name()}", role=Role.HOST)
-        
+
+        user = baker.make(
+            User, username=f"legal_{faker.user_name()}", role=Role.HOST,
+        )
+
         playlist = baker.make(
             Playlist,
             name="Legal Test",
@@ -384,7 +438,7 @@ class TestConcurrentMassAssignment:
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             future_name = executor.submit(update_name)
             future_desc = executor.submit(update_description)
-            
+
             status_name = future_name.result()
             status_desc = future_desc.result()
 
@@ -397,15 +451,33 @@ class TestConcurrentMassAssignment:
 class TestRaceConditionContentModification:
     """Race conditions in playlist content."""
 
-    @pytest.mark.xfail(reason="Concurrent test - thread instability", strict=False)
+    @pytest.mark.xfail(
+        reason="Concurrent test - thread instability", strict=False,
+    )
     def test_concurrent_content_add_same_position(self, api_client, faker):
         """Two contents added at same position concurrently (race test)."""
-        user = baker.make(User, username=f"pos_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="POS", name="Pos", description="Test")
+        user = baker.make(
+            User, username=f"pos_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="POS", name="Pos", description="Test",
+        )
         playlist = baker.make(Playlist, name="Position Test", owner=user)
 
-        file1 = baker.make(File, name="song1.mp3", mime="audio/mp3", library=library, owner=user)
-        file2 = baker.make(File, name="song2.mp3", mime="audio/mp3", library=library, owner=user)
+        file1 = baker.make(
+            File,
+            name="song1.mp3",
+            mime="audio/mp3",
+            library=library,
+            owner=user,
+        )
+        file2 = baker.make(
+            File,
+            name="song2.mp3",
+            mime="audio/mp3",
+            library=library,
+            owner=user,
+        )
 
         def add_content_1():
             return baker.make(
@@ -428,7 +500,7 @@ class TestRaceConditionContentModification:
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             future1 = executor.submit(add_content_1)
             future2 = executor.submit(add_content_2)
-            
+
             future1.result()
             future2.result()
 
@@ -438,11 +510,21 @@ class TestRaceConditionContentModification:
 
     def test_concurrent_content_delete_and_update(self, api_client, faker):
         """Delete content while updating it."""
-        user = baker.make(User, username=f"delup_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="DELUP", name="DelUp", description="Test")
+        user = baker.make(
+            User, username=f"delup_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="DELUP", name="DelUp", description="Test",
+        )
         playlist = baker.make(Playlist, name="Delete Update", owner=user)
-        file_obj = baker.make(File, name="song.mp3", mime="audio/mp3", library=library, owner=user)
-        
+        file_obj = baker.make(
+            File,
+            name="song.mp3",
+            mime="audio/mp3",
+            library=library,
+            owner=user,
+        )
+
         content = baker.make(
             PlaylistContent,
             playlist=playlist,
@@ -471,7 +553,7 @@ class TestRaceConditionContentModification:
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             future_update = executor.submit(do_update)
             future_delete = executor.submit(do_delete)
-            
+
             result_update = future_update.result()
             result_delete = future_delete.result()
 
@@ -486,9 +568,11 @@ class TestLostUpdateProblem:
     def test_lost_update_detection(self, api_client, faker):
         """Detect if updates are lost without optimistic locking."""
         from django.conf import settings
-        
-        user = baker.make(User, username=f"lost_{faker.user_name()}", role=Role.HOST)
-        
+
+        user = baker.make(
+            User, username=f"lost_{faker.user_name()}", role=Role.HOST,
+        )
+
         playlist = baker.make(
             Playlist,
             name="Lost Update Test",
@@ -530,11 +614,13 @@ class TestLostUpdateProblem:
     @pytest.mark.xfail(reason="ETag/Versioning: T881", strict=True)
     def test_optimistic_locking_missing(self, api_client, faker):
         """Check if optimistic locking (ETag/If-Match) is implemented. (T881)
-        
+
         Without optimistic locking, concurrent updates can cause data loss.
         """
-        user = baker.make(User, username=f"etag_{faker.user_name()}", role=Role.HOST)
-        
+        user = baker.make(
+            User, username=f"etag_{faker.user_name()}", role=Role.HOST,
+        )
+
         playlist = baker.make(
             Playlist,
             name="ETag Test",
@@ -546,7 +632,7 @@ class TestLostUpdateProblem:
 
         # Get resource - check for ETag
         resp = client.get(f"/api/v2/playlists/{playlist.id}")
-        
+
         # Should have ETag header for optimistic locking
         if "ETag" not in resp.headers and "etag" not in resp.headers:
             pytest.fail("Missing ETag header - no optimistic locking (T881)")
@@ -558,8 +644,10 @@ class TestTransactionIsolation:
 
     def test_read_committed_behavior(self, api_client, faker):
         """Verify READ COMMITTED isolation - read uncommitted not visible."""
-        user = baker.make(User, username=f"isol_{faker.user_name()}", role=Role.HOST)
-        
+        user = baker.make(
+            User, username=f"isol_{faker.user_name()}", role=Role.HOST,
+        )
+
         playlist = baker.make(
             Playlist,
             name="Isolation Test",
@@ -569,7 +657,7 @@ class TestTransactionIsolation:
         # Read 1
         client = APIClient()
         client.force_authenticate(user=user)
-        
+
         resp1 = client.get(f"/api/v2/playlists/{playlist.id}")
         name1 = resp1.json()["name"]
 
@@ -586,9 +674,13 @@ class TestTransactionIsolation:
     def test_concurrent_create_same_name(self, api_client, faker):
         """Create playlists with same name concurrently."""
         from django.conf import settings
-        
-        user = baker.make(User, username=f"same_{faker.user_name()}", role=Role.HOST)
-        library = baker.make(Library, code="CONC", name="Conc", description="Test")
+
+        user = baker.make(
+            User, username=f"same_{faker.user_name()}", role=Role.HOST,
+        )
+        library = baker.make(
+            Library, code="CONC", name="Conc", description="Test",
+        )
 
         def create_playlist(i):
             client = APIClient()
@@ -597,10 +689,12 @@ class TestTransactionIsolation:
             )
             return client.post(
                 "/api/v2/playlists",
-                json.dumps({
-                    "name": "Duplicate Name",
-                    "owner": user.id,
-                }),
+                json.dumps(
+                    {
+                        "name": "Duplicate Name",
+                        "owner": user.id,
+                    },
+                ),
                 content_type="application/json",
             )
 
@@ -611,7 +705,9 @@ class TestTransactionIsolation:
         # All should succeed
         success_count = sum(1 for r in responses if r.status_code == 201)
         # Should allow duplicates or reject consistently
-        assert success_count == 5 or success_count == 0, f"Unexpected success count: {success_count}"
+        assert (
+            success_count == 5 or success_count == 0
+        ), f"Unexpected success count: {success_count}"
 
 
 @pytest.mark.django_db
@@ -621,9 +717,11 @@ class TestDeadlockPrevention:
     def test_concurrent_updates_different_objects(self, api_client, faker):
         """Concurrent updates to different objects - no deadlock."""
         from django.conf import settings
-        
-        user = baker.make(User, username=f"ddl_{faker.user_name()}", role=Role.HOST)
-        
+
+        user = baker.make(
+            User, username=f"ddl_{faker.user_name()}", role=Role.HOST,
+        )
+
         playlists = []
         for i in range(5):
             pl = baker.make(Playlist, name=f"Playlist {i}", owner=user)
@@ -642,7 +740,9 @@ class TestDeadlockPrevention:
             return resp.status_code
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            futures = [executor.submit(update_playlist, pl) for pl in playlists]
+            futures = [
+                executor.submit(update_playlist, pl) for pl in playlists
+            ]
             statuses = [f.result() for f in futures]
 
         # All should succeed (or 404 if race deleted)

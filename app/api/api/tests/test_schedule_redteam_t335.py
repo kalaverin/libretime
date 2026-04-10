@@ -10,8 +10,8 @@ Attack vectors:
 """
 
 import pytest
+
 from model_bakery import baker
-from rest_framework.test import APIClient
 
 
 @pytest.mark.django_db
@@ -25,7 +25,9 @@ class TestScheduleFilterInjection:
         response = api_client.get("/api/v2/schedule?instance=invalid")
 
         if response.status_code == 500:
-            pytest.fail("BAG: Filter crashes on invalid instance_id (500 error)")
+            pytest.fail(
+                "BUG: Filter crashes on invalid instance_id (500 error)",
+            )
         assert response.status_code in [200, 400]
 
     def test_filter_by_sql_injection(self, api_client, admin_user):
@@ -42,7 +44,7 @@ class TestScheduleFilterInjection:
             response = api_client.get(f"/api/v2/schedule?instance={payload}")
 
             if response.status_code == 500:
-                pytest.fail(f"BAG: SQL injection causes 500: {payload}")
+                pytest.fail(f"BUG: SQL injection causes 500: {payload}")
 
     def test_filter_by_negative_instance_id(self, api_client, admin_user):
         """Try to filter by negative instance_id."""
@@ -63,7 +65,7 @@ class TestScheduleFilterInjection:
         response = api_client.get("/api/v2/schedule?instance=1")
 
         if response.status_code == 200:
-            pytest.fail("BAG: Anonymous can filter schedules")
+            pytest.fail("BUG: Anonymous can filter schedules")
 
 
 @pytest.mark.django_db
@@ -88,7 +90,7 @@ class TestScheduleValidationBypass:
         )
 
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts null file and null stream")
+            pytest.fail("BUG: Accepts null file and null stream")
 
     def test_create_with_both_file_and_stream(self, api_client, admin_user):
         """Try to create with BOTH file and stream (should be exclusive)."""
@@ -111,7 +113,9 @@ class TestScheduleValidationBypass:
 
         # Should reject - can't have both file AND stream
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts both file AND stream (should be exclusive)")
+            pytest.fail(
+                "BUG: Accepts both file AND stream (should be exclusive)",
+            )
 
     def test_create_with_empty_string_file(self, api_client, admin_user):
         """Try to create with empty string file."""
@@ -130,7 +134,7 @@ class TestScheduleValidationBypass:
         )
 
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts empty string as file")
+            pytest.fail("BUG: Accepts empty string as file")
 
     def test_create_with_zero_file_id(self, api_client, admin_user):
         """Try to create with file=0."""
@@ -149,7 +153,7 @@ class TestScheduleValidationBypass:
         )
 
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts file=0 as valid")
+            pytest.fail("BUG: Accepts file=0 as valid")
 
     def test_create_with_nonexistent_file(self, api_client, admin_user):
         """Try to create with non-existent file ID."""
@@ -169,7 +173,7 @@ class TestScheduleValidationBypass:
 
         # Should reject non-existent file
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts non-existent file_id")
+            pytest.fail("BUG: Accepts non-existent file_id")
 
     def test_create_with_nonexistent_stream(self, api_client, admin_user):
         """Try to create with non-existent stream ID."""
@@ -188,7 +192,7 @@ class TestScheduleValidationBypass:
         )
 
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts non-existent stream_id")
+            pytest.fail("BUG: Accepts non-existent stream_id")
 
 
 @pytest.mark.django_db
@@ -216,7 +220,7 @@ class TestScheduleMassAssignment:
         if response.status_code == 201:
             data = response.json()
             if data.get("id") == 99999:
-                pytest.fail("BAG: Can set id field during creation")
+                pytest.fail("BUG: Can set id field during creation")
 
     def test_update_instance_field(self, api_client, admin_user):
         """Try to change instance via PATCH."""
@@ -241,14 +245,16 @@ class TestScheduleMassAssignment:
         if response.status_code == 200:
             data = response.json()
             if data.get("instance") == instance2.id:
-                pytest.fail("BAG: Can transfer schedule to different instance")
+                pytest.fail("BUG: Can transfer schedule to different instance")
 
 
 @pytest.mark.django_db
 class TestScheduleBOLA:
     """Broken Object Level Authorization attacks."""
 
-    def test_list_shows_only_own_schedules(self, api_client, admin_user, regular_user):
+    def test_list_shows_only_own_schedules(
+        self, api_client, admin_user, regular_user,
+    ):
         """Verify list returns only user's own schedules."""
         # Create schedules for both users
         instance1 = baker.make("schedule.ShowInstance")
@@ -281,9 +287,13 @@ class TestScheduleBOLA:
         assert user_schedule.id in schedule_ids
 
         if admin_schedule.id in schedule_ids:
-            pytest.fail("CRITICAL BAG: List shows other users' schedules (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: List shows other users' schedules (BOLA)",
+            )
 
-    def test_access_other_user_schedule(self, api_client, admin_user, regular_user):
+    def test_access_other_user_schedule(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to access another user's schedule by ID."""
         instance = baker.make("schedule.ShowInstance")
         file_obj = baker.make("storage.File", owner=admin_user)
@@ -299,9 +309,13 @@ class TestScheduleBOLA:
         response = api_client.get(f"/api/v2/schedule/{schedule.id}/")
 
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Can access other user's schedule (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: Can access other user's schedule (BOLA)",
+            )
 
-    def test_update_other_user_schedule(self, api_client, admin_user, regular_user):
+    def test_update_other_user_schedule(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to update another user's schedule."""
         instance = baker.make("schedule.ShowInstance")
         file_obj = baker.make("storage.File", owner=admin_user)
@@ -321,9 +335,13 @@ class TestScheduleBOLA:
         )
 
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Can update other user's schedule (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: Can update other user's schedule (BOLA)",
+            )
 
-    def test_delete_other_user_schedule(self, api_client, admin_user, regular_user):
+    def test_delete_other_user_schedule(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to delete another user's schedule."""
         instance = baker.make("schedule.ShowInstance")
         file_obj = baker.make("storage.File", owner=admin_user)
@@ -339,7 +357,9 @@ class TestScheduleBOLA:
         response = api_client.delete(f"/api/v2/schedule/{schedule.id}/")
 
         if response.status_code == 204:
-            pytest.fail("CRITICAL BAG: Can delete other user's schedule (BOLA)")
+            pytest.fail(
+                "CRITICAL BUG: Can delete other user's schedule (BOLA)",
+            )
 
 
 @pytest.mark.django_db
@@ -361,7 +381,7 @@ class TestScheduleBusinessLogic:
         )
 
         if response.status_code == 201:
-            pytest.fail("CRITICAL BAG: Anonymous can create schedule")
+            pytest.fail("CRITICAL BUG: Anonymous can create schedule")
 
     def test_create_with_ends_before_starts(self, api_client, admin_user):
         """Try to create schedule where ends_at < starts_at."""
@@ -382,7 +402,7 @@ class TestScheduleBusinessLogic:
 
         # Should reject illogical times
         if response.status_code == 201:
-            pytest.fail("BAG: Accepts ends_at before starts_at")
+            pytest.fail("BUG: Accepts ends_at before starts_at")
 
     def test_create_with_overlapping_schedule(self, api_client, admin_user):
         """Try to create overlapping schedule for same instance."""

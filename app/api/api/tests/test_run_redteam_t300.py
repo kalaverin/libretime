@@ -83,7 +83,9 @@ class TestPathTraversalInTestPaths:
                         if file.startswith("test_") and file.endswith(".py"):
                             full_path = os.path.join(root, file)
                             # Path should be within project
-                            assert ".." not in full_path or os.path.isabs(full_path)
+                            assert ".." not in full_path or os.path.isabs(
+                                full_path,
+                            )
 
 
 class TestConfigurationFileSecurity:
@@ -94,7 +96,7 @@ class TestConfigurationFileSecurity:
         try:
             import tomllib
         except ImportError:
-            import tomli as tomllib
+            pass
 
         path = (
             "pyproject.toml"
@@ -118,9 +120,9 @@ class TestConfigurationFileSecurity:
             if matches:
                 # If found, verify they are placeholders or env vars
                 for match in matches:
-                    assert "changeme" in match.lower() or "${" in match, (
-                        f"Potential hardcoded secret found: {match[:50]}"
-                    )
+                    assert (
+                        "changeme" in match.lower() or "${" in match
+                    ), f"Potential hardcoded secret found: {match[:50]}"
 
     def test_pytest_ini_no_runnable_code(self):
         """pytest configuration should not contain executable code."""
@@ -147,9 +149,9 @@ class TestConfigurationFileSecurity:
                 ]
 
                 for pattern in dangerous_patterns:
-                    assert pattern not in content, (
-                        f"Dangerous pattern '{pattern}' found in {path}"
-                    )
+                    assert (
+                        pattern not in content
+                    ), f"Dangerous pattern '{pattern}' found in {path}"
 
     def test_conftest_no_arbitrary_code_execution(self):
         """conftest.py should not have arbitrary code execution on import."""
@@ -177,7 +179,7 @@ class TestConfigurationFileSecurity:
                 for pattern in dangerous:
                     if pattern in content:
                         pytest.skip(
-                            f"Warning: {pattern} found in {path} - review needed"
+                            f"Warning: {pattern} found in {path} - review needed",
                         )
 
 
@@ -199,24 +201,24 @@ class TestEnvironmentVariableSecurity:
             value = os.environ.get(var, "")
             if value:
                 # Should be masked or short
-                assert len(value) < 100 or "***" in value, (
-                    f"Env var {var} might be exposed - length: {len(value)}"
-                )
+                assert (
+                    len(value) < 100 or "***" in value
+                ), f"Env var {var} might be exposed - length: {len(value)}"
 
     def test_testing_settings_isolated(self):
         """Test settings should not affect production."""
         from django.conf import settings
 
         # Verify we're in testing mode
-        assert settings.DEBUG is False, (
-            "DEBUG should be False even in tests for security"
-        )
+        assert (
+            settings.DEBUG is False
+        ), "DEBUG should be False even in tests for security"
 
         # Database should be test database
         db_name = settings.DATABASES.get("default", {}).get("NAME", "")
-        assert "test" in db_name.lower() or db_name == ":memory:", (
-            f"Using non-test database: {db_name}"
-        )
+        assert (
+            "test" in db_name.lower() or db_name == ":memory:"
+        ), f"Using non-test database: {db_name}"
 
 
 class TestTestDataIsolation:
@@ -225,10 +227,10 @@ class TestTestDataIsolation:
     @pytest.mark.django_db
     def test_test_data_not_persisted_between_tests(self):
         """Test data should not leak between tests."""
-        from api.core.models import User
-
         # Create test user with unique name
         import uuid
+
+        from api.core.models import User
 
         unique_username = f"isolation_test_{uuid.uuid4().hex[:8]}"
         from api.core.models import Role
@@ -287,12 +289,14 @@ class TestFixtureSecurity:
             ]
 
             for pwd in hardcoded_passwords:
-                assert pwd not in source, (
-                    f"Hardcoded password in {fixture_func.__name__}: {pwd}"
-                )
+                assert (
+                    pwd not in source
+                ), f"Hardcoded password in {fixture_func.__name__}: {pwd}"
 
     @pytest.mark.django_db
-    def test_fixture_users_have_unique_credentials(self, admin_user, regular_user):
+    def test_fixture_users_have_unique_credentials(
+        self, admin_user, regular_user,
+    ):
         """Different fixture users should have unique credentials."""
         # Users should have different usernames
         assert admin_user.username != regular_user.username
@@ -340,10 +344,14 @@ class TestRegexDoSProtection:
 
             start = time.time()
             # Simulate matching
-            result = re.search(r"test_", pattern) if len(pattern) < 1000 else None
+            result = (
+                re.search(r"test_", pattern) if len(pattern) < 1000 else None
+            )
             elapsed = time.time() - start
 
-            assert elapsed < 1.0, f"ReDoS suspected with pattern: {pattern[:50]}"
+            assert (
+                elapsed < 1.0
+            ), f"ReDoS suspected with pattern: {pattern[:50]}"
 
 
 class TestInfoDisclosureInTestOutput:
@@ -412,9 +420,9 @@ class TestDependencyConfusion:
             # Should have version specifier
             if dep.startswith("libretime-"):
                 # Internal packages - should be path-based
-                assert "file://" in dep or "/" in dep, (
-                    f"Internal dependency should be path-based: {dep}"
-                )
+                assert (
+                    "file://" in dep or "/" in dep
+                ), f"Internal dependency should be path-based: {dep}"
 
 
 class TestTestDiscoverySecurity:
@@ -436,9 +444,9 @@ class TestTestDiscoverySecurity:
                 # Verify path is within project
                 abs_path = os.path.abspath(path)
                 project_root = os.path.abspath(".")
-                assert abs_path.startswith(project_root), (
-                    f"Test path outside project: {abs_path}"
-                )
+                assert abs_path.startswith(
+                    project_root,
+                ), f"Test path outside project: {abs_path}"
 
     def test_test_file_naming_convention(self):
         """Test files should follow naming convention."""
@@ -449,14 +457,14 @@ class TestTestDiscoverySecurity:
         for test_file in test_files:
             # Should start with test_
             basename = os.path.basename(test_file)
-            assert basename.startswith("test_"), (
-                f"Test file not following convention: {basename}"
-            )
+            assert basename.startswith(
+                "test_",
+            ), f"Test file not following convention: {basename}"
 
             # Should be .py file
-            assert basename.endswith(".py"), (
-                f"Test file not Python: {basename}"
-            )
+            assert basename.endswith(
+                ".py",
+            ), f"Test file not Python: {basename}"
 
 
 class TestExitCodeSecurity:
@@ -501,8 +509,10 @@ class TestSettingsSecurity:
         password = db_config.get("PASSWORD", "")
 
         # Should be empty or environment-based
-        assert password == "" or "${" in str(password) or password.startswith(
-            "{{"
+        assert (
+            password == ""
+            or "${" in str(password)
+            or password.startswith("{{")
         ), f"Database password might be hardcoded: {password[:10]}..."
 
     @pytest.mark.xfail(
@@ -545,9 +555,9 @@ class TestSettingsSecurity:
         """DEBUG should be False even in test settings."""
         from django.conf import settings
 
-        assert settings.DEBUG is False, (
-            "DEBUG is True in test settings. This is a security risk."
-        )
+        assert (
+            settings.DEBUG is False
+        ), "DEBUG is True in test settings. This is a security risk."
 
 
 class TestSessionFixturesSecurity:
@@ -559,9 +569,9 @@ class TestSessionFixturesSecurity:
         from django.conf import settings
 
         # Check session cookie settings
-        assert settings.SESSION_COOKIE_HTTPONLY is True, (
-            "SESSION_COOKIE_HTTPONLY should be True"
-        )
+        assert (
+            settings.SESSION_COOKIE_HTTPONLY is True
+        ), "SESSION_COOKIE_HTTPONLY should be True"
 
     @pytest.mark.xfail(
         reason="T918: CSRF_COOKIE_HTTPONLY is False in test settings",
@@ -576,9 +586,9 @@ class TestSessionFixturesSecurity:
         from django.conf import settings
 
         # CSRF cookie should be HttpOnly
-        assert settings.CSRF_COOKIE_HTTPONLY is True, (
-            "CSRF_COOKIE_HTTPONLY should be True"
-        )
+        assert (
+            settings.CSRF_COOKIE_HTTPONLY is True
+        ), "CSRF_COOKIE_HTTPONLY should be True"
 
 
 class TestPermissionInTestEnvironment:
@@ -600,9 +610,11 @@ class TestPermissionInTestEnvironment:
         for endpoint in admin_endpoints:
             response = client.get(endpoint)
             # Should be 403 Forbidden for non-admin
-            assert response.status_code in [200, 403, 404], (
-                f"Unexpected status {response.status_code} for {endpoint}"
-            )
+            assert response.status_code in [
+                200,
+                403,
+                404,
+            ], f"Unexpected status {response.status_code} for {endpoint}"
 
 
 class TestCorsInTestEnvironment:
@@ -617,9 +629,9 @@ class TestCorsInTestEnvironment:
         cors_regex = getattr(settings, "CORS_ALLOWED_ORIGIN_REGEXES", [])
 
         # Should not allow all origins with *
-        assert "*" not in cors_origins, (
-            "CORS allows all origins with '*'. Security risk."
-        )
+        assert (
+            "*" not in cors_origins
+        ), "CORS allows all origins with '*'. Security risk."
 
     def test_cors_not_allowing_null_origin(self):
         """CORS should not allow null origin."""
@@ -628,6 +640,6 @@ class TestCorsInTestEnvironment:
         cors_origins = getattr(settings, "CORS_ALLOWED_ORIGINS", [])
 
         # Null origin should not be in allowed origins
-        assert "null" not in cors_origins, (
-            "CORS allows 'null' origin. Security risk for CSRF bypass."
-        )
+        assert (
+            "null" not in cors_origins
+        ), "CORS allows 'null' origin. Security risk for CSRF bypass."

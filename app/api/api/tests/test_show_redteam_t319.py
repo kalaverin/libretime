@@ -9,8 +9,8 @@ Attack vectors:
 """
 
 import pytest
+
 from model_bakery import baker
-from rest_framework.test import APIClient
 
 
 @pytest.mark.django_db
@@ -37,7 +37,9 @@ class TestShowLiveAuthExposure:
         for show_data in data:
             if show_data.get("live_auth_custom_password"):
                 if show_data["live_auth_custom_password"] == "secret123":
-                    pytest.fail("CRITICAL BAG: Password exposed in LIST response")
+                    pytest.fail(
+                        "CRITICAL BUG: Password exposed in LIST response",
+                    )
 
     def test_password_visible_in_detail(self, api_client, admin_user):
         """Check if live_auth_custom_password is visible in detail."""
@@ -58,9 +60,13 @@ class TestShowLiveAuthExposure:
 
         password = data.get("live_auth_custom_password")
         if password and password == "secret123":
-            pytest.fail("CRITICAL BAG: Plaintext password exposed in detail view")
+            pytest.fail(
+                "CRITICAL BUG: Plaintext password exposed in detail view",
+            )
 
-    def test_other_user_password_not_visible(self, api_client, admin_user, regular_user):
+    def test_other_user_password_not_visible(
+        self, api_client, admin_user, regular_user,
+    ):
         """Verify other users can't see password."""
         show = baker.make(
             "schedule.Show",
@@ -80,14 +86,18 @@ class TestShowLiveAuthExposure:
             data = response.json()
             password = data.get("live_auth_custom_password")
             if password and "admin_secret" in str(password):
-                pytest.fail("CRITICAL BAG: Other user can see plaintext password")
+                pytest.fail(
+                    "CRITICAL BUG: Other user can see plaintext password",
+                )
 
 
 @pytest.mark.django_db
 class TestShowLiveAuthModification:
     """Unauthorized live auth modification attacks."""
 
-    def test_other_user_can_modify_live_auth(self, api_client, admin_user, regular_user):
+    def test_other_user_can_modify_live_auth(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to modify live auth settings on another user's show."""
         show = baker.make(
             "schedule.Show",
@@ -109,9 +119,13 @@ class TestShowLiveAuthModification:
         )
 
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Can modify other user's live auth settings")
+            pytest.fail(
+                "CRITICAL BUG: Can modify other user's live auth settings",
+            )
 
-    def test_disable_live_auth_on_other_show(self, api_client, admin_user, regular_user):
+    def test_disable_live_auth_on_other_show(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to disable live auth on another user's show."""
         show = baker.make(
             "schedule.Show",
@@ -131,7 +145,7 @@ class TestShowLiveAuthModification:
         )
 
         if response.status_code == 200:
-            pytest.fail("BAG: Can disable other user's live auth")
+            pytest.fail("BUG: Can disable other user's live auth")
 
 
 @pytest.mark.django_db
@@ -161,9 +175,11 @@ class TestShowLiveAuthBOLA:
         assert "User Show" in show_names
 
         if "Admin Show" in show_names:
-            pytest.fail("CRITICAL BAG: List shows other users' shows (BOLA)")
+            pytest.fail("CRITICAL BUG: List shows other users' shows (BOLA)")
 
-    def test_access_other_user_show(self, api_client, admin_user, regular_user):
+    def test_access_other_user_show(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to access another user's show."""
         show = baker.make(
             "schedule.Show",
@@ -175,9 +191,11 @@ class TestShowLiveAuthBOLA:
         response = api_client.get(f"/api/v2/shows{show.id}/")
 
         if response.status_code == 200:
-            pytest.fail("CRITICAL BAG: Can access other user's show (BOLA)")
+            pytest.fail("CRITICAL BUG: Can access other user's show (BOLA)")
 
-    def test_delete_other_user_show(self, api_client, admin_user, regular_user):
+    def test_delete_other_user_show(
+        self, api_client, admin_user, regular_user,
+    ):
         """Try to delete another user's show."""
         show = baker.make(
             "schedule.Show",
@@ -189,14 +207,16 @@ class TestShowLiveAuthBOLA:
         response = api_client.delete(f"/api/v2/shows{show.id}/")
 
         if response.status_code == 204:
-            pytest.fail("CRITICAL BAG: Can delete other user's show (BOLA)")
+            pytest.fail("CRITICAL BUG: Can delete other user's show (BOLA)")
 
 
 @pytest.mark.django_db
 class TestShowLiveAuthValidation:
     """Live auth validation bypass attacks."""
 
-    def test_create_with_live_auth_but_no_password(self, api_client, admin_user):
+    def test_create_with_live_auth_but_no_password(
+        self, api_client, admin_user,
+    ):
         """Try to create show with live_auth_custom=True but no password."""
         api_client.force_authenticate(user=admin_user)
         response = api_client.post(
@@ -279,7 +299,7 @@ class TestShowLiveAuthBusinessLogic:
         )
 
         if response.status_code == 201:
-            pytest.fail("CRITICAL BAG: Anonymous can create show")
+            pytest.fail("CRITICAL BUG: Anonymous can create show")
 
     def test_create_duplicate_name(self, api_client, admin_user):
         """Try to create show with duplicate name."""

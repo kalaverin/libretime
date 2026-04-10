@@ -236,7 +236,8 @@ class TestScheduleViewSetUpdate:
         assert data["broadcasted"] == 0
 
     @pytest.mark.xfail(
-        raises=AssertionError, reason="T337: cue_out not updated via API",
+        raises=AssertionError,
+        reason="T337: cue_out not updated via API",
     )
     def test_update_change_cue_times(self):
         data = {
