@@ -5843,3 +5843,14 @@ Notes: |
   TypeError: comparing strings with non-ASCII characters. Server crashes with 500.
   Ref: test_auth_invalid_redteam_t282.py::test_unicode_normalization_bypass,
        test_auth_invalid_redteam_t282.py::test_stack_trace_not_exposed
+
+## [DONE] test T283 — Public endpoints positive and security tests
+Status: DONE
+Created: 2026-04-10T17:25:00Z
+Completed: 2026-04-10T17:25:00Z
+Summary: |
+  Created comprehensive test suite for public endpoints (/api/v2/info, /api/v2/version).
+  Tests cover: positive access without auth, information disclosure, DoS protection,
+  CORS configuration, injection prevention, HTTP method restrictions, error handling.
+  18 tests total, 17 passed, 1 xfailed (rate limiting - T805).
+  Ref: test_public_endpoints_redteam_t283.py
