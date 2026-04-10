@@ -2995,3 +2995,48 @@ Notes: |
   
   Red team tests: test_playlistcontent_list_redteam_t228.py
 
+
+## [HIGH] fix T422 — IntegrityError on null trackoffset in PlaylistContent
+Status: NOT_STARTED
+Created: 2026-04-10T12:15:00Z
+Scope: api/schedule/models/playlist.py
+Next step: Add default value or null=True for trackoffset field
+Notes: |
+  IntegrityError: null value in column "trackoffset" violates not-null constraint.
+  
+  Current behavior (BROKEN):
+  - POST without offset field causes 500 IntegrityError
+  - Database requires trackoffset but model allows null
+  
+  Expected:
+  - Should have default value (0) or proper validation before save
+  
+  Found by: test_create_wrong_kind_for_file, test_create_null_in_required_fields
+
+## [HIGH] fix T423 — No validation of negative position values
+Status: NOT_STARTED
+Created: 2026-04-10T12:15:00Z
+Scope: api/schedule/serializers/playlist.py
+Next step: Add MinValueValidator(0) to position field
+Notes: |
+  Current behavior (BROKEN):
+  - Negative position values accepted without validation
+  - Position -1 stored in database
+  
+  Expected:
+  - Should reject negative positions with 400 error
+
+## [HIGH] fix T424 — No rate limiting on content creation
+Status: NOT_STARTED
+Created: 2026-04-10T12:15:00Z
+Scope: api/schedule/views/playlist.py
+Next step: Add DRF throttling or custom rate limiting
+Notes: |
+  Current behavior (BROKEN):
+  - Can create 20+ contents instantly without limits
+  - No protection against playlist flooding
+  
+  Expected:
+  - Rate limiting per user/IP after N requests
+  - Return 429 Too Many Requests
+
