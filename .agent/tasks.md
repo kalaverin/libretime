@@ -3451,3 +3451,85 @@ Notes: |
   
   Red team test: test_perm_mass_assignment_role_escalation in test_smartblock_permissions_redteam_t238.py
 
+
+## [CRITICAL] fix T461 — BOLA: LIST shows all users' SmartBlockContents
+Status: NOT_STARTED
+Created: 2026-04-10T16:30:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add owner filtering via block__owner to SmartBlockContentViewSet
+Notes: |
+  CRITICAL BOLA: LIST /api/v2/smart-block-contents returns ALL content from ALL users.
+  
+  Attack: Any authenticated user lists contents
+  Result: Sees all content items including those in other users' private blocks
+  
+  Red team test: test_bola_list_shows_all_users_content in test_smartblockcontent_list_redteam_t239.py
+
+## [CRITICAL] fix T462 — BOLA: Filter by block ID bypasses ownership
+Status: NOT_STARTED
+Created: 2026-04-10T16:30:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Verify block ownership before applying block filter
+Notes: |
+  CRITICAL BOLA: ?block={id} filter works for any block ID without ownership check.
+  
+  Attack: GET /api/v2/smart-block-contents?block={victim_block_id}
+  Result: Returns all contents from victim's block
+  
+  Red team test: test_bola_filter_by_other_users_block in test_smartblockcontent_list_redteam_t239.py
+
+## [MEDIUM] fix T464 — SQL injection in block filter parameter
+Status: NOT_STARTED
+Created: 2026-04-10T16:30:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Use parameterized queries or ORM properly
+Notes: |
+  SQLi: Malicious payloads in block filter may execute SQL.
+  
+  Attack: GET /api/v2/smart-block-contents?block=1' OR '1'='1
+  Risk: Potential data extraction or modification
+  
+  Red team test: test_filter_sql_injection_block_param in test_smartblockcontent_list_redteam_t239.py
+
+## [HIGH] fix T472 — 500 error on non-numeric block_id filter parameter
+Status: NOT_STARTED
+Created: 2026-04-10T16:30:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add validation for block_id parameter before filtering
+Notes: |
+  DOS/INFO LEAK: Non-numeric block_id causes 500 Internal Server Error.
+  
+  Attack: GET /api/v2/smart-block-contents?block=abc
+  Result: 500 error with stack trace instead of 400 Bad Request
+  
+  This reveals implementation details and can be used for DoS.
+  
+  Red team test: test_filter_non_numeric_block_id in test_smartblockcontent_list_redteam_t239.py
+
+## [HIGH] fix T473 — 500 error on unicode block_id filter parameter
+Status: NOT_STARTED
+Created: 2026-04-10T16:30:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add validation for block_id parameter encoding
+Notes: |
+  DOS/INFO LEAK: Unicode block_id causes 500 Internal Server Error.
+  
+  Attack: GET /api/v2/smart-block-contents?block=日本語
+  Result: 500 error instead of 400 Bad Request
+  
+  Red team test: test_filter_unicode_block_id in test_smartblockcontent_list_redteam_t239.py
+
+## [HIGH] fix T474 — 500 error on special query params (undefined, null, None)
+Status: NOT_STARTED
+Created: 2026-04-10T16:30:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Handle special string values gracefully
+Notes: |
+  DOS/INFO LEAK: Special JavaScript-like values cause 500 errors.
+  
+  Attack: GET /api/v2/smart-block-contents?block=undefined
+  Result: 500 error - Django tries to convert "undefined" to number
+  
+  These values are common in JavaScript/frontend contexts.
+  
+  Red team test: test_fuzzing_query_params in test_smartblockcontent_list_redteam_t239.py
