@@ -4887,3 +4887,38 @@ Notes: |
   not just the requesting user's schedules.
   Ref: test_schedule_overbooked_redteam_t257.py::test_overbooked_bola_info_leak
 
+
+
+## [CRITICAL] fix T617 — BOLA: Host can modify other host's show schedule
+Status: NOT_STARTED
+Created: 2026-04-10T14:00:00Z
+Last worked: 2026-04-10T14:00:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Add show ownership validation in update operations
+Notes: |
+  API1:2023 BOLA. Host can PATCH schedule entries belonging to other hosts' shows.
+  No validation ensures host can only modify schedules for shows they are assigned to.
+  Ref: test_schedule_show_host_permissions_redteam_t258.py::test_host_cannot_modify_other_host_show
+
+## [CRITICAL] fix T618 — BOLA: Host can delete other host's show schedule
+Status: NOT_STARTED
+Created: 2026-04-10T14:00:00Z
+Last worked: 2026-04-10T14:00:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Add show ownership validation in delete operations
+Notes: |
+  API1:2023 BOLA. Host can DELETE schedule entries belonging to other hosts' shows.
+  Same root cause as T617 - missing show ownership check.
+  Ref: test_schedule_show_host_permissions_redteam_t258.py::test_host_cannot_delete_other_host_show
+
+## [HIGH] fix T619 — BOPLA: Host can change schedule to other show instance
+Status: NOT_STARTED
+Created: 2026-04-10T14:00:00Z
+Last worked: 2026-04-10T14:00:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Validate instance ownership during schedule update
+Notes: |
+  API3:2023 BOPLA. Host can change schedule's instance_id to another host's show.
+  Allows moving schedule between shows without permission validation.
+  Ref: test_schedule_show_host_permissions_redteam_t258.py::test_host_cannot_change_to_other_show_instance
+

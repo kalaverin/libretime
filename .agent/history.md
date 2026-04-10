@@ -1732,3 +1732,29 @@ name = faker.name()     # Generate fake name
 - T257: 4 passed, 3 xfailed (T613, T615, T616), 4 xpassed (defense working)
 
 **DEADBEEF Protocol Progress:** 30 bugs total across Schedule endpoints
+
+## 2026-04-10T14:00:00Z — T258 Schedule show host permissions red team tests
+
+**Scope:** Security testing for Schedule show host permissions (T258)
+
+**Actions:**
+- Created `test_schedule_show_host_permissions_redteam_t258.py` with 10 tests covering:
+  - Show host own show permissions (CREATE)
+  - Host vs other host BOLA (PATCH, DELETE)
+  - Host vs admin permissions
+  - BOPLA: instance manipulation
+  - BFLA: guest vs host boundaries
+  - Multi-show host isolation
+  - IDOR via instance enumeration
+  - Privilege escalation attempts
+
+**Bugs found (3):**
+- T617: BOLA - Host can modify other host's show schedule
+- T618: BOLA - Host can delete other host's show schedule  
+- T619: BOPLA - Host can change schedule to other show instance
+
+**Commit:** `94282a27b` on branch `astra`
+
+**Test Results:** 4 passed, 3 xfailed (T617-T619), 3 xpassed (defense working)
+
+**DEADBEEF Protocol Progress:** 33 bugs total across all endpoints
