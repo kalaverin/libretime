@@ -5586,3 +5586,69 @@ Notes: |
   API6:2023 Unrestricted Access to Sensitive Business Flows. Concurrent requests
   can create duplicate podcasts with same URL. No unique constraint in model.
   Ref: test_podcast_create_redteam_t269.py::test_duplicate_creation_race
+
+## [CRITICAL] fix T727 — BOLA: Regular user can RETRIEVE admin's private podcast
+Status: NOT_STARTED
+Created: 2026-04-10T15:50:00Z
+Last worked: 2026-04-10T15:50:00Z
+File: `app/api/api/podcasts/views/podcast.py:21-26`
+Next step: Add owner-based permission check in retrieve()
+Notes: |
+  API1:2023 Broken Object Level Authorization. No ownership check on RETRIEVE.
+  Regular users can access full details of any podcast including description.
+  Ref: test_podcast_rud_redteam_t270.py::test_bola_retrieve_other_users_private_podcast
+
+## [MEDIUM] fix T730 — BOPLA: PATCH silently ignores extra/unknown fields
+Status: NOT_STARTED
+Created: 2026-04-10T15:50:00Z
+Last worked: 2026-04-10T15:50:00Z
+File: `app/api/api/podcasts/serializers/podcast.py`
+Next step: Add strict field validation to reject unknown fields in PATCH
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. PATCH accepts extra fields
+  like "is_system", "internal_id" and silently ignores them.
+  Ref: test_podcast_rud_redteam_t270.py::test_bopla_patch_extra_fields
+
+## [HIGH] fix T732 — Stored XSS: Script tags in UPDATE title not sanitized
+Status: NOT_STARTED
+Created: 2026-04-10T15:50:00Z
+Last worked: 2026-04-10T15:50:00Z
+File: `app/api/api/podcasts/serializers/podcast.py`
+Next step: Add HTML sanitization for title in UPDATE
+Notes: |
+  API8:2023 Injection. <script> tags in title field stored without sanitization
+  when updated via PUT. Stored XSS vulnerability.
+  Ref: test_podcast_rud_redteam_t270.py::test_xss_via_update_title
+
+## [HIGH] fix T733 — Stored XSS: Script tags in PATCH description not sanitized
+Status: NOT_STARTED
+Created: 2026-04-10T15:50:00Z
+Last worked: 2026-04-10T15:50:00Z
+File: `app/api/api/podcasts/serializers/podcast.py`
+Next step: Add HTML sanitization for description in PATCH
+Notes: |
+  API8:2023 Injection. <img onerror=> in description stored without sanitization
+  when patched. Stored XSS vulnerability.
+  Ref: test_podcast_rud_redteam_t270.py::test_xss_via_patch_description
+
+## [MEDIUM] fix T735 — No rate limiting on Podcast UPDATE endpoint
+Status: NOT_STARTED
+Created: 2026-04-10T15:50:00Z
+Last worked: 2026-04-10T15:50:00Z
+File: `app/api/api/podcasts/views/podcast.py:21-26`
+Next step: Add Django Ratelimit or DRF throttling for UPDATE
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. 30+ UPDATE requests per second
+  allowed without throttling. Can cause update storms and DoS.
+  Ref: test_podcast_rud_redteam_t270.py::test_rapid_update_requests
+
+## [MEDIUM] fix T736 — No rate limiting on Podcast DELETE endpoint
+Status: NOT_STARTED
+Created: 2026-04-10T15:50:00Z
+Last worked: 2026-04-10T15:50:00Z
+File: `app/api/api/podcasts/views/podcast.py:21-26`
+Next step: Add Django Ratelimit or DRF throttling for DELETE
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. 20+ DELETE requests per second
+  allowed. Rapid deletion can cause data loss and DoS.
+  Ref: test_podcast_rud_redteam_t270.py::test_rapid_delete_requests

@@ -1877,3 +1877,35 @@ name = faker.name()     # Generate fake name
 - `.agent/tasks.md` — added T701-T722
 
 **DEADBEEF:** T269 complete, moving to next commit
+
+
+---
+
+## Session: 2026-04-10T15:55:00Z
+
+**Context:** T270 Podcast RUD redteam tests
+
+**Task:** T270 — Podcast RUD redteam security tests
+
+**Completed:**
+1. Created `test_podcast_rud_redteam_t270.py` with 19 tests:
+   - TestPodcastRUDRedTeamBOLA: 5 tests (UPDATE/PATCH/DELETE/RETRIEVE other users')
+   - TestPodcastRUDRedTeamBOPLA: 4 tests (mass assignment, change owner, extra fields)
+   - TestPodcastRUDRedTeamInjection: 3 tests (XSS via UPDATE/PATCH, SQLi)
+   - TestPodcastRUDRedTeamResourceConsumption: 2 tests (rate limiting UPDATE/DELETE)
+   - TestPodcastRUDRedTeamIDOR: 2 tests (sequential ID access, enumeration)
+   - TestPodcastRUDRedTeamAuthentication: 3 tests (no auth, method override)
+
+2. Bugs found (6 confirmed):
+   - T727 (CRITICAL): BOLA - Regular user can RETRIEVE admin's private podcast
+   - T730: BOPLA - PATCH silently ignores extra fields
+   - T732-T733 (HIGH): Stored XSS via UPDATE/PATCH
+   - T735-T736: No rate limiting on UPDATE/DELETE
+
+**Test Results:** 13 passed, 6 xfailed
+
+**Files:**
+- `app/api/api/podcasts/tests/views/test_podcast_rud_redteam_t270.py` (new)
+- `.agent/tasks.md` — added T723-T739
+
+**DEADBEEF:** T270 complete
