@@ -4675,3 +4675,103 @@ Notes: |
   Race condition in create operation leads to data inconsistency.
   Ref: test_schedule_create_redteam_t251.py::test_race_condition_concurrent_create
 
+
+## [CRITICAL] fix T587 — BOLA: Can retrieve other user's schedule
+Status: NOT_STARTED
+Created: 2026-04-10T15:00:00Z
+Last worked: 2026-04-10T15:00:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Add ownership check in retrieve operation
+Notes: |
+  API1:2023 Broken Object Level Authorization. Attacker can retrieve victim's
+  schedule entry by knowing the ID. No object-level permission validation.
+  Ref: test_schedule_retrieve_redteam_t253.py::test_bola_retrieve_other_users_schedule
+
+## [CRITICAL] fix T589 — Auth: RETRIEVE with invalid token returns 200
+Status: NOT_STARTED
+Created: 2026-04-10T15:00:00Z
+Last worked: 2026-04-10T15:00:00Z
+File: `app/api/api/permissions.py:85-95`
+Next step: Reject requests with invalid/malformed authentication tokens
+Notes: |
+  Same as T575/T584/T597. GET with invalid Bearer token returns 200 OK.
+  Authentication bypass allowing unauthorized access to schedule data.
+  Ref: test_schedule_retrieve_redteam_t253.py::test_retrieve_with_invalid_token
+
+## [MEDIUM] fix T591 — Info Leak: Error message reveals schedule existence
+Status: NOT_STARTED
+Created: 2026-04-10T15:00:00Z
+Last worked: 2026-04-10T15:00:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Unify error responses for existing/non-existing resources
+Notes: |
+  Different error codes for existing (permission denied) vs non-existing
+  schedule entries allow ID enumeration attacks.
+  Ref: test_schedule_retrieve_redteam_t253.py::test_error_message_leaks_existence_retrieve
+
+## [CRITICAL] fix T592 — BOLA: Can update other user's schedule
+Status: NOT_STARTED
+Created: 2026-04-10T15:00:00Z
+Last worked: 2026-04-10T15:00:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Add ownership check in update operation
+Notes: |
+  API1:2023 Broken Object Level Authorization. Attacker can UPDATE victim's
+  schedule entry by knowing the ID. No ownership validation.
+  Ref: test_schedule_update_redteam_t254.py::test_bola_update_other_users_schedule
+
+## [CRITICAL] fix T593 — BOLA: Can change schedule to other user's file
+Status: NOT_STARTED
+Created: 2026-04-10T15:00:00Z
+Last worked: 2026-04-10T15:00:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Validate file ownership during schedule update
+Notes: |
+  Attacker can update schedule to use victim's file without permission.
+  File ownership not verified during UPDATE operation.
+  Ref: test_schedule_update_redteam_t254.py::test_bola_update_to_other_user_file
+
+## [CRITICAL] fix T594 — BOLA: Can change schedule to other user's stream
+Status: NOT_STARTED
+Created: 2026-04-10T15:00:00Z
+Last worked: 2026-04-10T15:00:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Validate webstream ownership during schedule update
+Notes: |
+  Attacker can update schedule to use victim's webstream without permission.
+  Stream ownership not verified during UPDATE operation.
+  Ref: test_schedule_update_redteam_t254.py::test_bola_update_to_other_user_stream
+
+## [HIGH] fix T595 — Business Logic: Can create overlap via UPDATE
+Status: NOT_STARTED
+Created: 2026-04-10T15:00:00Z
+Last worked: 2026-04-10T15:00:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Add overlap validation in update operations
+Notes: |
+  API allows creating overlapping schedule entries via UPDATE.
+  No validation prevents scheduling conflicts during update.
+  Ref: test_schedule_update_redteam_t254.py::test_business_logic_overlap_via_update
+
+## [HIGH] fix T596 — SSRF: Can update to internal stream URL
+Status: NOT_STARTED
+Created: 2026-04-10T15:00:00Z
+Last worked: 2026-04-10T15:00:00Z
+File: `app/api/api/schedule/views/schedule.py:38-45`
+Next step: Block stream URLs pointing to internal/metadata endpoints
+Notes: |
+  Can update schedule to use webstream with internal/metadata URLs.
+  May lead to SSRF when schedule is played and stream URL is fetched.
+  Ref: test_schedule_update_redteam_t254.py::test_ssrf_update_to_internal_stream
+
+## [CRITICAL] fix T597 — Auth: UPDATE with invalid token returns 200
+Status: NOT_STARTED
+Created: 2026-04-10T15:00:00Z
+Last worked: 2026-04-10T15:00:00Z
+File: `app/api/api/permissions.py:85-95`
+Next step: Reject requests with invalid/malformed authentication tokens
+Notes: |
+  Same as T575/T584/T589. PATCH/PUT with invalid Bearer token returns 200.
+  Authentication bypass allowing unauthorized schedule modification.
+  Ref: test_schedule_update_redteam_t254.py::test_update_with_invalid_token
+
