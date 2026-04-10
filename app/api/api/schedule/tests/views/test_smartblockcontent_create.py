@@ -121,7 +121,6 @@ class TestSmartBlockContentViewSetCreate:
         assert data["cue_in"] == "00:00:05"
         assert data["cue_out"] == "00:03:30"
 
-    @pytest.mark.xfail(reason="T330: missing block not validated")
     def test_create_missing_block_fails(self, api_client):
         """CREATE without block should return 400."""
         user = baker.make(User, username="testsbc_user")
@@ -145,7 +144,6 @@ class TestSmartBlockContentViewSetCreate:
         )
         assert response.status_code == 400
 
-    @pytest.mark.xfail(reason="T331: missing file not validated")
     def test_create_missing_file_fails(self, api_client):
         """CREATE without file should return 400."""
         user = baker.make(User, username="testsbc_user")

@@ -24,6 +24,10 @@ class SmartBlockContentSerializer(ModelSerializer[Any]):
     class Meta:
         model: type[Model] = SmartBlockContent
         fields: str = "__all__"
+        extra_kwargs = {
+            "block": {"required": True},
+            "file": {"required": True},
+        }
 
 
 @final

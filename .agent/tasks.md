@@ -1774,19 +1774,33 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add ordering_fields = ["position"] and ordering = ["position"]
 Notes: Results returned in arbitrary order.
 
-## [CRITICAL] fix T330 — SmartBlockContent missing block not validated
-Status: NOT_STARTED
+## [DONE] fix T330 — SmartBlockContent missing block not validated
+Status: DONE
 Created: 2026-04-09T18:10:00Z
+Last worked: 2026-04-10T02:30:00Z
 Scope: api/schedule/serializers/smart_block.py
-Next step: Add required validation for block field
-Notes: Creating content without block returns 201 instead of 400.
+Notes: |
+  FIXED: Added required validation for block field in SmartBlockContentSerializer.
+  
+  Changes:
+  - smart_block.py serializer: Added extra_kwargs with required=True for block field
+  - test_smartblockcontent_create.py: Removed xfail marker from test_create_missing_block_fails
+  
+  Result: Creating SmartBlockContent without block now returns 400 instead of 201.
 
-## [CRITICAL] fix T331 — SmartBlockContent missing file not validated
-Status: NOT_STARTED
+## [DONE] fix T331 — SmartBlockContent missing file not validated
+Status: DONE
 Created: 2026-04-09T18:10:00Z
+Last worked: 2026-04-10T02:30:00Z
 Scope: api/schedule/serializers/smart_block.py
-Next step: Add required validation for file field
-Notes: Creating content without file returns 201 instead of 400.
+Notes: |
+  FIXED: Added required validation for file field in SmartBlockContentSerializer.
+  
+  Changes:
+  - smart_block.py serializer: Added extra_kwargs with required=True for file field
+  - test_smartblockcontent_create.py: Removed xfail marker from test_create_missing_file_fails
+  
+  Result: Creating SmartBlockContent without file now returns 400 instead of 201.
 
 ## [CRITICAL] fix T332 — SmartBlockCriteria filter by block not implemented
 Status: NOT_STARTED
