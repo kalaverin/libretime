@@ -2755,3 +2755,33 @@ Notes: |
 
   Red team test: test_filter_by_other_user_show fails - returns other users' data
 
+## [CRITICAL] bug T391 — Anonymous users can CREATE ShowDays
+Status: OPEN
+Created: 2026-04-10T11:20:00Z
+Scope: api/schedule/views/show.py
+Next step: Add authentication required to ShowDaysViewSet
+Notes: |
+  SECURITY ISSUE: Anonymous POST /api/v2/show-days returns 201 Created.
+
+  Attack scenario:
+  - Unauthenticated attacker creates show schedules
+  - Can flood system with fake show days
+  - No audit trail of who created
+
+  Red team test: test_create_without_auth fails - returns 201 instead of 403
+
+## [MEDIUM] bug T392 — ShowDays repeat_next_on mutable by user
+Status: OPEN
+Created: 2026-04-10T11:20:00Z
+Scope: api/schedule/serializers/show.py
+Next step: Add repeat_next_on to read_only_fields in ShowDaysSerializer
+Notes: |
+  SECURITY ISSUE: User can manipulate repeat_next_on field during CREATE.
+
+  Attack scenario:
+  - User sets arbitrary repeat_next_on date
+  - Bypasses internal calculation logic
+  - May cause scheduling conflicts or infinite loops
+
+  Red team test: test_repeat_next_on_manipulation fails - field accepted
+
