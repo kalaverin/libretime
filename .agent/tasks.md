@@ -3241,3 +3241,59 @@ Notes: |
   
   Red team test: test_validation_put_null_required_fields in test_smartblock_update_redteam_t236.py
 
+## [CRITICAL] fix T444 — BOLA: Any user can DELETE other user's SmartBlock
+Status: NOT_STARTED
+Created: 2026-04-10T16:10:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add object-level permission check in SmartBlockViewSet.destroy
+Notes: |
+  CRITICAL BOLA VULNERABILITY: No owner verification on DELETE.
+  
+  Attack: DELETE /api/v2/smart-blocks/{victim_block_id}
+  Result: Attacker can delete any block by ID, regardless of ownership.
+  
+  Red team test: test_bola_delete_other_users_block in test_smartblock_delete_redteam_t237.py
+
+## [CRITICAL] fix T445 — BOLA: Cascade delete allows destroying other user's content
+Status: NOT_STARTED
+Created: 2026-04-10T16:10:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add ownership check before allowing cascade delete
+Notes: |
+  CRITICAL BOLA: Deleting a block cascades to SmartBlockContent/SmartBlockCriteria.
+  
+  If attacker can delete victim's block (T444), they also delete all associated
+  content and criteria, amplifying the damage.
+  
+  Red team test: test_bola_cascade_delete_other_user_content in test_smartblock_delete_redteam_t237.py
+
+## [MEDIUM] fix T446 — Information disclosure: 404 vs 403 leaks block existence
+Status: NOT_STARTED
+Created: 2026-04-10T16:10:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Return 403 for both existing and non-existing blocks when unauthorized
+Notes: |
+  SIDE CHANNEL: Different error codes leak whether block exists.
+  
+  Current: Non-existing returns 404, existing (but not owned) returns 403
+  Secure: Both should return 403 to not leak existence
+  
+  Attack: Attacker can enumerate valid block IDs by observing 404 vs 403
+  
+  Red team test: test_bola_delete_leaks_block_existence in test_smartblock_delete_redteam_t237.py
+
+## [CRITICAL] fix T447 — HTTP Method Override bypasses DELETE protection
+Status: NOT_STARTED
+Created: 2026-04-10T16:10:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Ignore X-HTTP-Method-Override or validate against actual method
+Notes: |
+  CRITICAL: X-HTTP-Method-Override header causes unintended deletion.
+  
+  Attack: DELETE /api/v2/smart-blocks/{id} with X-HTTP-Method-Override: GET
+  Result: Block is deleted even though override suggests GET!
+  
+  This may bypass CSRF protections or method-based access controls.
+  
+  Red team test: test_http_method_override_on_delete in test_smartblock_delete_redteam_t237.py
+
