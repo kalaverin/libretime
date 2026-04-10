@@ -1788,12 +1788,20 @@ Notes: |
   
   Result: Creating PlaylistContent with kind=FILE but without file now returns 400 instead of 201.
 
-## [CRITICAL] fix T327 — SmartBlock filter by kind not implemented
-Status: NOT_STARTED
+## [DONE] fix T327 — SmartBlock filter by kind not implemented
+Status: DONE
 Created: 2026-04-09T17:00:00Z
+Last worked: 2026-04-10T03:30:00Z
 Scope: api/schedule/views/smart_block.py
-Next step: Add filterset_fields = ["kind"] to SmartBlockViewSet
-Notes: Query param ?kind=static is silently ignored, returns all blocks.
+Notes: |
+  FIXED: Added filtering by kind to SmartBlockViewSet.
+  
+  Changes:
+  - smart_block.py view: Added filterset_fields=["kind"], ordering_fields, ordering to ViewSet
+  - smart_block.py view: Added get_queryset() to filter by kind query param
+  - test_smartblock_list.py: Removed xfail marker from test_list_filter_by_kind
+  
+  Result: Query param ?kind=static|dynamic now correctly filters smart blocks.
 
 ## [DONE] fix T328 — SmartBlockContent filter by block not implemented
 Status: DONE

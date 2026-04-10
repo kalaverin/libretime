@@ -83,7 +83,6 @@ class TestSmartBlockViewSetList:
         assert response.status_code == 200
         assert len(response.json()) == 3
 
-    @pytest.mark.xfail(reason="T327: filter by kind not implemented")
     def test_list_filter_by_kind(self, api_client):
         """LIST should filter by kind parameter."""
         user = baker.make(User, username="testsb_user")

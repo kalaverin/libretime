@@ -21,6 +21,18 @@ class SmartBlockViewSet(viewsets.ModelViewSet[Any]):
     queryset = SmartBlock.objects.all()
     serializer_class: type[Serializer[Any]] = SmartBlockSerializer
     model_permission_name: str = "smartblock"
+    filter_backends = [filters.OrderingFilter]
+    filterset_fields = ["kind"]
+    ordering_fields = ["name", "created_at"]
+    ordering = ["name"]
+
+    def get_queryset(self) -> Any:
+        """Filter by kind if provided."""
+        queryset = super().get_queryset()
+        kind = self.request.query_params.get("kind")
+        if kind:
+            queryset = queryset.filter(kind=kind)
+        return queryset
 
 
 @final
