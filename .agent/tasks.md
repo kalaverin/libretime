@@ -1267,6 +1267,168 @@ Last worked: 2026-04-06T16:53:26Z
 Files: `app/api-client/api_client/v1.py:118-128`, `app/api-client/api_client/v2.py:249-262`
 Notes: str vs int inconsistency.
 
+## [MEDIUM] fix T526 — BOPLA: Webstream create with other user as owner
+Status: NOT_STARTED
+Created: 2026-04-10T14:20:00Z
+Last worked: 2026-04-10T14:20:00Z
+File: `app/api/api/schedule/views/webstream.py:20-25`
+Next step: Remove owner from serializer fields or validate in perform_create
+Notes: |
+  Attacker can specify owner field to create webstream with victim as owner.
+  perform_create only sets owner if not already provided.
+  Ref: test_webstream_create_redteam_t246.py::test_bopla_create_with_other_user_owner
+
+## [HIGH] fix T527 — Webstream perform_create allows unauthenticated create
+Status: NOT_STARTED
+Created: 2026-04-10T14:20:00Z
+Last worked: 2026-04-10T14:20:00Z
+File: `app/api/api/schedule/views/webstream.py:20-25`
+Next step: Remove else branch that allows creation without owner
+Notes: |
+  perform_create has else branch: serializer.save() without owner when
+  user is not authenticated. Combined with missing auth check, allows
+  creation of streams without authentication.
+  Ref: test_webstream_create_redteam_t246.py::test_create_unauthenticated_owner_bypass
+
+## [MEDIUM] fix T528 — BOPLA: Webstream id field mass assignment
+Status: NOT_STARTED
+Created: 2026-04-10T14:20:00Z
+Last worked: 2026-04-10T14:20:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-21`
+Next step: Add read_only=True for id field
+Notes: |
+  Client can attempt to set id field during creation.
+  Should be read_only to prevent ID manipulation.
+  Ref: test_webstream_create_redteam_t246.py::test_bopla_mass_assignment_id
+
+## [MEDIUM] fix T529 — BOPLA: Webstream timestamps mass assignment
+Status: NOT_STARTED
+Created: 2026-04-10T14:20:00Z
+Last worked: 2026-04-10T14:20:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-21`
+Next step: Add read_only=True for created_at/updated_at
+Notes: |
+  Client can set created_at/updated_at fields manually.
+  Should be auto-generated and read_only.
+  Ref: test_webstream_create_redteam_t246.py::test_bopla_mass_assignment_timestamps
+
+## [LOW] fix T530 — BOPLA: Webstream extra fields not rejected
+Status: NOT_STARTED
+Created: 2026-04-10T14:20:00Z
+Last worked: 2026-04-10T14:20:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-21`
+Next step: Add strict validation or use explicit fields list
+Notes: |
+  Extra fields like "is_admin", "role" silently ignored instead of rejected.
+  Ref: test_webstream_create_redteam_t246.py::test_bopla_extra_fields_rejected
+
+## [CRITICAL] fix T531 — SSRF: Webstream internal URL accepted
+Status: NOT_STARTED
+Created: 2026-04-10T14:20:00Z
+Last worked: 2026-04-10T14:20:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-21`
+Next step: Add URL validation to block internal addresses
+Notes: |
+  Internal URLs (localhost, 192.168.x.x, 10.x.x.x) are accepted.
+  Combined with BOLA in LIST (T518), leaks internal network topology.
+  Ref: test_webstream_create_redteam_t246.py::test_ssrf_internal_url
+
+## [CRITICAL] fix T532 — SSRF: Webstream cloud metadata URLs accepted
+Status: NOT_STARTED
+Created: 2026-04-10T14:20:00Z
+Last worked: 2026-04-10T14:20:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-21`
+Next step: Block cloud metadata IP ranges (169.254.169.254)
+Notes: |
+  Cloud metadata endpoints (AWS, GCP, DigitalOcean) are accepted.
+  Can lead to credential exposure and server compromise.
+  Ref: test_webstream_create_redteam_t246.py::test_ssrf_cloud_metadata
+
+## [HIGH] fix T533 — Webstream dangerous URL schemes accepted
+Status: NOT_STARTED
+Created: 2026-04-10T14:20:00Z
+Last worked: 2026-04-10T14:20:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-21`
+Next step: Validate URL scheme (http/https only)
+Notes: |
+  Dangerous schemes accepted: file://, ftp://, javascript:, data:,
+  dict://, gopher://, ldap://. Can lead to XSS, LFI, or other attacks.
+  Ref: test_webstream_create_redteam_t246.py::test_url_scheme_validation
+
+## [MEDIUM] fix T534 — XSS: Webstream name field not sanitized
+Status: NOT_STARTED
+Created: 2026-04-10T14:20:00Z
+Last worked: 2026-04-10T14:20:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-21`
+Next step: Add HTML sanitization or validation
+Notes: |
+  Script tags and event handlers accepted in name field.
+  XSS vector if rendered in frontend without escaping.
+  Ref: test_webstream_create_redteam_t246.py::test_xss_in_name_field
+
+## [MEDIUM] fix T535 — XSS: Webstream description field not sanitized
+Status: NOT_STARTED
+Created: 2026-04-10T14:20:00Z
+Last worked: 2026-04-10T14:20:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-21`
+Next step: Add HTML sanitization for description field
+Notes: |
+  Description field accepts and reflects HTML/JS without sanitization.
+  Ref: test_webstream_create_redteam_t246.py::test_xss_in_description_field
+
+## [LOW] fix T536 — Webstream name length not validated
+Status: NOT_STARTED
+Created: 2026-04-10T14:20:00Z
+Last worked: 2026-04-10T14:20:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-21`
+Next step: Add max_length validation matching model (255)
+Notes: |
+  Name field accepts very long strings, may cause DB errors.
+  Ref: test_webstream_create_redteam_t246.py::test_name_length_validation
+
+## [MEDIUM] fix T537 — Webstream empty name accepted
+Status: NOT_STARTED
+Created: 2026-04-10T14:20:00Z
+Last worked: 2026-04-10T14:20:00Z
+File: `app/api/api/schedule/serializers/webstream.py:12-21`
+Next step: Add MinLengthValidator for name field
+Notes: |
+  Empty string name is accepted. Should require non-empty name.
+  Ref: test_webstream_create_redteam_t246.py::test_empty_name_validation
+
+## [LOW] fix T538 — Webstream wrong Content-Type accepted
+Status: NOT_STARTED
+Created: 2026-04-10T14:20:00Z
+Last worked: 2026-04-10T14:20:00Z
+File: `app/api/api/schedule/views/webstream.py:14-25`
+Next step: Add Content-Type validation
+Notes: |
+  Form data (x-www-form-urlencoded) accepted instead of JSON.
+  Should return 415 Unsupported Media Type.
+  Ref: test_webstream_create_redteam_t246.py::test_create_wrong_content_type
+
+## [LOW] fix T539 — Race condition in Webstream concurrent create
+Status: NOT_STARTED
+Created: 2026-04-10T14:20:00Z
+Last worked: 2026-04-10T14:20:00Z
+File: `app/api/api/schedule/views/webstream.py:14-25`
+Next step: Add unique constraint or proper locking
+Notes: |
+  Concurrent CREATE requests may create duplicates.
+  Ref: test_webstream_create_redteam_t246.py::test_race_condition_concurrent_create
+
+## [CRITICAL] fix T540 — Webstream creator_id NOT NULL violation
+Status: NOT_STARTED
+Created: 2026-04-10T14:20:00Z
+Last worked: 2026-04-10T14:20:00Z
+File: `app/api/api/schedule/views/webstream.py:20-25`
+Next step: Ensure creator_id is set or remove NOT NULL constraint
+Notes: |
+  Database requires creator_id (NOT NULL) but API doesn't provide it.
+  Causes 500 error on CREATE: "null value in column creator_id".
+  Found during SQLi test in description field.
+  Ref: test_webstream_create_redteam_t246.py::test_sqli_in_description_field
+
 ## [LOW] chore T57 — Fix variable scoping in fetch.py exception handler
 Status: NOT_STARTED
 Created: 2026-04-06T16:53:26Z
