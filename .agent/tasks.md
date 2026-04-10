@@ -5718,3 +5718,82 @@ Notes: |
   API2:2023 Broken Authentication. User can have unlimited concurrent sessions.
   Increases risk of session hijacking and makes session revocation difficult.
   Ref: test_auth_session_redteam_t279.py::test_concurrent_session_limit
+
+## [CRITICAL] fix T749 — UnicodeEncodeError: API key header with unicode causes 500
+Status: NOT_STARTED
+Created: 2026-04-10T16:40:00Z
+Last worked: 2026-04-10T16:40:00Z
+File: `app/api/api/permissions.py` or DRF authentication
+Next step: Add try/except for unicode encoding errors, return 403 instead of 500
+Notes: |
+  API8:2023 Security Misconfiguration. Unicode characters in Authorization header
+  cause UnicodeEncodeError: 'latin-1' codec can't encode characters. Server returns
+  500 instead of 403. Information disclosure via stack trace.
+  Ref: test_auth_apikey_redteam_t280.py::test_api_key_unicode_injection
+
+## [MEDIUM] fix T750 — No rate limiting on API key authentication attempts
+Status: NOT_STARTED
+Created: 2026-04-10T16:40:00Z
+Last worked: 2026-04-10T16:40:00Z
+File: `app/api/api/permissions.py`
+Next step: Implement rate limiting for failed API key attempts
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. 30+ API key attempts per second
+  allowed without throttling. Brute force vulnerability for API key guessing.
+  Ref: test_auth_apikey_redteam_t280.py::test_api_key_brute_force_detection
+
+## [MEDIUM] fix T751 — API key format variations may cause unexpected errors
+Status: NOT_STARTED
+Created: 2026-04-10T16:40:00Z
+Last worked: 2026-04-10T16:40:00Z
+File: `app/api/api/permissions.py`
+Next step: Validate API key format strictly, reject malformed headers with 403
+Notes: |
+  API8:2023 Security Misconfiguration. Malformed Authorization headers like
+  "Api-Key\nX-Injected: header" may cause unexpected behavior or header injection.
+  Ref: test_auth_apikey_redteam_t280.py::test_api_key_format_variations
+
+## [MEDIUM] fix T752 — Long API keys (>1000 chars) may cause DoS
+Status: NOT_STARTED
+Created: 2026-04-10T16:40:00Z
+Last worked: 2026-04-10T16:40:00Z
+File: `app/api/api/permissions.py`
+Next step: Add max length validation for API key (256 chars max)
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. Very long API keys (10K+ chars)
+  accepted without length limits. Potential memory exhaustion DoS.
+  Ref: test_auth_apikey_redteam_t280.py::test_api_key_length_limits
+
+## [MEDIUM] fix T753 — Case-sensitive Authorization header parsing
+Status: NOT_STARTED
+Created: 2026-04-10T16:40:00Z
+Last worked: 2026-04-10T16:40:00Z
+File: `app/api/api/permissions.py` or DRF
+Next step: Ensure header parsing is case-insensitive per HTTP spec
+Notes: |
+  API8:2023 Security Misconfiguration. Lowercase "authorization" header rejected
+  with 403, though HTTP spec requires case-insensitive header names. Client
+  compatibility issue.
+  Ref: test_auth_apikey_redteam_t280.py::test_authorization_header_case_sensitivity
+
+## [MEDIUM] fix T755 — API keys have no expiration (long-lived tokens)
+Status: NOT_STARTED
+Created: 2026-04-10T16:40:00Z
+Last worked: 2026-04-10T16:40:00Z
+File: `app/api/settings/_libretime.py`
+Next step: Implement API key rotation and expiration
+Notes: |
+  API2:2023 Broken Authentication. API keys from config never expire.
+  If key is leaked, attacker has permanent access until config changed.
+  Ref: test_auth_apikey_redteam_t280.py::test_api_key_no_expiration
+
+## [LOW] fix T756 — API key can access user-specific endpoints
+Status: NOT_STARTED
+Created: 2026-04-10T16:40:00Z
+Last worked: 2026-04-10T16:40:00Z
+File: `app/api/api/permissions.py`
+Next step: Restrict API key to service endpoints only
+Notes: |
+  API5:2023 Broken Function Level Authorization. API key (service token) can
+  access user-specific endpoints like /api/v2/users. Should be restricted.
+  Ref: test_auth_apikey_redteam_t280.py::test_api_key_vs_user_permissions

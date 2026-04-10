@@ -1950,3 +1950,39 @@ name = faker.name()     # Generate fake name
 - c5b7c1374 (T279) ✅
 
 **Total bugs documented:** T663-T748 (86 new bugs)
+
+
+---
+
+## Session: 2026-04-10T16:45:00Z
+
+**Context:** T280 Api-Key auth redteam tests
+
+**Task:** T280 — Api-Key authentication redteam security tests
+
+**Completed:**
+1. Created `test_auth_apikey_redteam_t280.py` with 20 tests:
+   - TestApiKeyRedTeamEnumeration: 4 tests (timing attack, brute force)
+   - TestApiKeyRedTeamFormatAttacks: 4 tests (unicode, length, null bytes)
+   - TestApiKeyRedTeamReplayAttacks: 3 tests (replay, expiration, revocation)
+   - TestApiKeyRedTeamCrossAccount: 2 tests (user endpoints, admin access)
+   - TestApiKeyRedTeamFuzzing: 2 tests (naughty strings, special chars)
+   - TestApiKeyRedTeamAuthConfusion: 3 tests (session priority, case sensitivity)
+   - TestApiKeyRedTeamInfoDisclosure: 2 tests (error messages, logs)
+
+2. Bugs found (5 confirmed):
+   - T749 (CRITICAL): UnicodeEncodeError in API key header causes 500
+   - T750: No rate limiting on API key brute force
+   - T753: Case-sensitive Authorization header parsing
+   - T755: API keys have no expiration
+   - T756: API key can access user-specific endpoints
+
+3. T341: Confirmed as FIXED (IndexError on empty Api-Key resolved)
+
+**Test Results:** 15 passed, 5 xfailed
+
+**Files:**
+- `app/api/api/tests/test_auth_apikey_redteam_t280.py` (new)
+- `.agent/tasks.md` — added T749-T759
+
+**DEADBEEF:** T280 complete, ready for T281
