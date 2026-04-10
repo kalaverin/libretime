@@ -1610,3 +1610,22 @@ name = faker.name()     # Generate fake name
 
 **Red Team Progress:** 6/16 commits complete
 **Active BAGS:** T353, T354, T355, T356
+
+## 2026-04-10T13:35:00Z - T248 DELETE Red Team Tests
+
+**Status**: DONE
+
+**Work**:
+- Created `test_webstream_delete_redteam_t248.py` with red team security tests
+- Tests cover: BOLA, mass deletion, ID enumeration, race conditions, injection
+- Found 4 confirmed bugs (T556-T559) + 2 potential issues (T560-T561)
+
+**Bugs Documented**:
+- T556: BOLA - DELETE other user's stream returns wrong status (404 vs 403)
+- T557: BOLA - Batch delete affects multiple streams (XPASS = potential issue)
+- T558: Error message leaks stream existence
+- T559: Race condition in concurrent delete
+- T560: Invalid auth token returns inconsistent status
+- T561: HTTP method override bypasses delete protection (XPASS = potential issue)
+
+**Test Results**: 7 passed, 4 xfailed, 2 xpassed

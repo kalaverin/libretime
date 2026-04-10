@@ -4419,3 +4419,112 @@ Notes: |
   These values are common in JavaScript/frontend contexts.
   
   Red team test: test_fuzzing_query_params in test_smartblockcontent_list_redteam_t239.py
+## [HIGH] fix T556 — BOLA: DELETE other user's webstream returns wrong status
+**Created**: 2026-04-10T13:33:00Z
+**Status**: NOT_STARTED
+
+### Problem
+When attempting to DELETE another user's webstream, the API returns 404 instead of 403. This leaks information about stream existence.
+
+### Expected
+- Status: 403 Forbidden (don't reveal stream exists)
+
+### Actual
+- Status: 404 Not Found (reveals stream exists if unauthorized)
+
+### File
+`app/api/api/schedule/views/webstream.py`
+
+---
+
+## [CRITICAL] fix T557 — BOLA: Batch delete affects multiple streams
+**Created**: 2026-04-10T13:33:00Z
+**Status**: NOT_STARTED
+
+### Problem
+DELETE request may affect multiple streams instead of single target, indicating lack of proper object-level authorization.
+
+### Expected
+- Only one stream deleted per request
+
+### Actual
+- Multiple streams may be affected (batch scope issue)
+
+### File
+`app/api/api/schedule/views/webstream.py`
+
+---
+
+## [MEDIUM] fix T558 — Error message leaks webstream existence
+**Created**: 2026-04-10T13:33:00Z
+**Status**: NOT_STARTED
+
+### Problem
+Different error messages for existing vs non-existing streams allow ID enumeration.
+
+### Expected
+- Same response for existing (unauthorized) and non-existing streams
+
+### Actual
+- Different status codes leak existence information
+
+### File
+`app/api/api/schedule/views/webstream.py`
+
+---
+
+## [MEDIUM] fix T559 — Race condition in concurrent webstream delete
+**Created**: 2026-04-10T13:33:00Z
+**Status**: NOT_STARTED
+
+### Problem
+Multiple concurrent DELETE requests for the same stream may cause inconsistent results.
+
+### Expected
+- Exactly one request succeeds (204)
+- Others get 404
+
+### Actual
+- Race condition behavior observed
+
+### File
+`app/api/api/schedule/views/webstream.py`
+
+---
+
+## [LOW] fix T560 — Invalid auth token returns inconsistent status
+**Created**: 2026-04-10T13:33:00Z
+**Status**: NOT_STARTED
+
+### Problem
+DELETE with invalid token returns wrong status code.
+
+### Expected
+- Status: 403 Forbidden
+
+### Actual
+- Inconsistent status codes
+
+### File
+`app/api/api/schedule/views/webstream.py`
+
+---
+
+## [MEDIUM] fix T561 — HTTP method override bypasses delete protection
+**Created**: 2026-04-10T13:33:00Z
+**Status**: NOT_STARTED
+
+### Problem
+HTTP method override (X-HTTP-Method-Override: DELETE) may bypass delete restrictions.
+
+### Expected
+- Method override should not allow unauthorized deletions
+
+### Actual
+- Delete protection may be bypassed via method override
+
+### File
+`app/api/api/schedule/views/webstream.py`
+
+---
+
