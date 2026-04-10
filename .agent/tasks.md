@@ -2770,6 +2770,21 @@ Notes: |
 
   Red team test: test_create_without_auth fails - returns 201 instead of 403
 
+## [MEDIUM] bug T419 — Playlist created_at mutable via PATCH
+Status: OPEN
+Created: 2026-04-10T11:45:00Z
+Scope: api/schedule/serializers/playlist.py
+Next step: Add created_at to read_only_fields in PlaylistSerializer
+Notes: |
+  SECURITY ISSUE: PATCH with created_at changes timestamp.
+
+  Attack scenario:
+  - User manipulates playlist creation date
+  - Audit trail compromised
+  - May affect sorting/reporting
+
+  Red team test: test_update_created_at fails - created_at changed to 2020
+
 ## [CRITICAL] bug T411 — Anonymous users can LIST Playlists
 Status: OPEN
 Created: 2026-04-10T11:40:00Z
