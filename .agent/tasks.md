@@ -1105,6 +1105,73 @@ Last worked: 2026-04-06T16:53:26Z
 File: `src/sdk/sdk/__init__.py:13-22`
 Notes: "config" appears twice.
 
+## [HIGH] fix T512 — BOLA: DELETE other user's criteria returns wrong status
+Status: NOT_STARTED
+Created: 2026-04-10T14:05:00Z
+Last worked: 2026-04-10T14:05:00Z
+File: `app/api/api/schedule/views/smart_block.py:61-77`
+Next step: Return 403 instead of 404 for unauthorized delete
+Notes: |
+  API1:2023 Broken Object Level Authorization. Currently returns 404 for both
+  non-existing and existing-but-unauthorized criteria, which leaks existence.
+  Should return 403 for existing criteria that user cannot access.
+  Ref: test_smartblockcriteria_delete_redteam_t244.py::test_bola_delete_other_users_criteria_status
+
+## [MEDIUM] fix T513 — BOLA: Batch delete scope verification
+Status: NOT_STARTED
+Created: 2026-04-10T14:05:00Z
+Last worked: 2026-04-10T14:05:00Z
+File: `app/api/api/schedule/views/smart_block.py:61-77`
+Next step: Add test to verify single-record deletion only
+Notes: |
+  Ensure DELETE /api/v2/smart-block-criteria/{id} only affects one record.
+  Mass deletion via URL manipulation should not be possible.
+  Ref: test_smartblockcriteria_delete_redteam_t244.py::test_bola_batch_delete_scope
+
+## [MEDIUM] fix T514 — DELETE error message leaks criteria existence
+Status: NOT_STARTED
+Created: 2026-04-10T14:05:00Z
+Last worked: 2026-04-10T14:05:00Z
+File: `app/api/api/schedule/views/smart_block.py:61-77`
+Next step: Unify error responses for existing/non-existing on unauthorized
+Notes: |
+  Different error messages for existing (permission denied) vs non-existing
+  allow attackers to enumerate which criteria IDs exist.
+  Ref: test_smartblockcriteria_delete_redteam_t244.py::test_error_message_leaks_existence
+
+## [LOW] fix T515 — Race condition in concurrent DELETE
+Status: NOT_STARTED
+Created: 2026-04-10T14:05:00Z
+Last worked: 2026-04-10T14:05:00Z
+File: `app/api/api/schedule/views/smart_block.py:61-77`
+Next step: Add atomic delete or handle gracefully
+Notes: |
+  Concurrent DELETE of same criteria may cause unexpected behavior.
+  Should handle race condition gracefully.
+  Ref: test_smartblockcriteria_delete_redteam_t244.py::test_race_condition_concurrent_delete
+
+## [LOW] fix T516 — Block without criteria behavior
+Status: NOT_STARTED
+Created: 2026-04-10T14:05:00Z
+Last worked: 2026-04-10T14:05:00Z
+File: `app/api/api/schedule/models/smart_block.py`
+Next step: Verify dynamic block without criteria is valid
+Notes: |
+  Ensure deleting all criteria from a block doesn't break the block.
+  Dynamic block with no criteria should still be valid (just empty).
+  Ref: test_smartblockcriteria_delete_redteam_t244.py::test_delete_all_criteria_from_block
+
+## [MEDIUM] fix T517 — Invalid auth token returns 404 instead of 403
+Status: NOT_STARTED
+Created: 2026-04-10T14:05:00Z
+Last worked: 2026-04-10T14:05:00Z
+File: `app/api/api/permissions.py`
+Next step: Fix auth check order - validate token before checking resource
+Notes: |
+  DELETE with invalid token returns 404 instead of 403, suggesting
+  auth check happens after resource lookup or not at all.
+  Ref: test_smartblockcriteria_delete_redteam_t244.py::test_delete_with_invalid_token
+
 ## [LOW] chore T56 — Fix inconsistent media_id typing
 Status: NOT_STARTED
 Created: 2026-04-06T16:53:26Z
