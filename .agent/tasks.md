@@ -1021,6 +1021,83 @@ Last worked: 2026-04-06T16:53:26Z
 File: `src/sdk/sdk/files.py:11`
 Notes: Not critical for file hashes but better to use SHA256.
 
+## [CRITICAL] fix T505 — BOLA: SmartBlockCriteria UPDATE other user's criteria
+Status: NOT_STARTED
+Created: 2026-04-10T14:00:00Z
+Last worked: 2026-04-10T14:00:00Z
+File: `app/api/api/schedule/views/smart_block.py:61-77`
+Next step: Add ownership check in update/patch operations
+Notes: |
+  API1:2023 Broken Object Level Authorization. Attacker can UPDATE victim's
+  SmartBlockCriteria by knowing the ID. No ownership validation.
+  Ref: test_smartblockcriteria_update_redteam_t243.py::test_bola_update_other_users_criteria
+
+## [CRITICAL] fix T506 — BOLA: SmartBlockCriteria DELETE other user's criteria
+Status: NOT_STARTED
+Created: 2026-04-10T14:00:00Z
+Last worked: 2026-04-10T14:00:00Z
+File: `app/api/api/schedule/views/smart_block.py:61-77`
+Next step: Add ownership check in destroy operation
+Notes: |
+  Attacker can DELETE victim's SmartBlockCriteria by knowing the ID.
+  Critical data loss vulnerability.
+  Ref: test_smartblockcriteria_update_redteam_t243.py::test_bola_delete_other_users_criteria
+
+## [CRITICAL] fix T507 — BOLA: SmartBlockCriteria block takeover via UPDATE
+Status: NOT_STARTED
+Created: 2026-04-10T14:00:00Z
+Last worked: 2026-04-10T14:00:00Z
+File: `app/api/api/schedule/views/smart_block.py:61-77`
+Next step: Validate block ownership on block field update
+Notes: |
+  Attacker can change criteria's block to victim's block via PATCH/PUT,
+  effectively "stealing" the criteria or injecting into victim's block.
+  Ref: test_smartblockcriteria_update_redteam_t243.py::test_block_takeover_via_update
+
+## [HIGH] fix T508 — BOPLA: SmartBlockCriteria UPDATE allows id modification
+Status: NOT_STARTED
+Created: 2026-04-10T14:00:00Z
+Last worked: 2026-04-10T14:00:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:34-38`
+Next step: Add read_only=True for id field
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. Client can attempt
+  to change id field on update (though may not work due to URL routing).
+  Ref: test_smartblockcriteria_update_redteam_t243.py::test_mass_assignment_id_on_update
+
+## [CRITICAL] fix T509 — BOLA: SmartBlockCriteria PUT allows block takeover
+Status: NOT_STARTED
+Created: 2026-04-10T14:00:00Z
+Last worked: 2026-04-10T14:00:00Z
+File: `app/api/api/schedule/views/smart_block.py:61-77`
+Next step: Block ownership validation on PUT full update
+Notes: |
+  PUT full update allows changing block to victim's block.
+  Similar to T507 but via PUT instead of PATCH.
+  Ref: test_smartblockcriteria_update_redteam_t243.py::test_put_full_update_block_takeover
+
+## [LOW] fix T510 — SmartBlockCriteria UPDATE accepts empty value
+Status: NOT_STARTED
+Created: 2026-04-10T14:00:00Z
+Last worked: 2026-04-10T14:00:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:34-38`
+Next step: Add MinLengthValidator or required validation
+Notes: |
+  Empty string value is accepted on PATCH/PUT update.
+  May cause issues with criteria matching.
+  Ref: test_smartblockcriteria_update_redteam_t243.py::test_update_empty_value
+
+## [LOW] fix T511 — SmartBlockCriteria UPDATE long value not validated
+Status: NOT_STARTED
+Created: 2026-04-10T14:00:00Z
+Last worked: 2026-04-10T14:00:00Z
+File: `app/api/api/schedule/serializers/smart_block.py:34-38`
+Next step: Add max_length validation for value field
+Notes: |
+  Very long values (10k+ chars) accepted on update.
+  Should enforce same limits as CREATE.
+  Ref: test_smartblockcriteria_update_redteam_t243.py::test_update_very_long_value
+
 ## [LOW] chore T55 — Remove duplicate in __all__
 Status: NOT_STARTED
 Created: 2026-04-06T16:53:26Z
