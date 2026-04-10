@@ -6092,6 +6092,7 @@ Notes: |
   Ref: test_smartblock_kind_redteam_t288.py::test_invalid_kind_values_rejected
 
 ## [MEDIUM] fix T849 — SmartBlock error message leaks table name cc_block
+
 Status: NOT_STARTED
 Created: 2026-04-10T17:10:00Z
 Last worked: 2026-04-10T17:10:00Z
@@ -6110,3 +6111,129 @@ Notes: |
   50+ rapid CREATE requests all succeeded. No brute force/DoS protection.
   Should implement rate limiting per user/IP.
   Ref: test_playlist_length_redteam_t287.py::test_rapid_create_requests
+
+## [CRITICAL] fix T850 — BOLA: File retrieve shows other user's file
+Status: NOT_STARTED
+Created: 2026-04-10T17:25:00Z
+Last worked: 2026-04-10T17:25:00Z
+File: `app/api/api/storage/views/file.py:33-40`
+Next step: Add get_queryset() to filter by owner
+Notes: |
+  API1:2023 BOLA. Attacker can retrieve victim's private file metadata by ID.
+  No ownership filtering in queryset.
+  Ref: test_file_unique_redteam_t289.py::test_bola_retrieve_other_users_file
+
+## [CRITICAL] fix T851 — BOLA: File LIST shows all users' files
+Status: NOT_STARTED
+Created: 2026-04-10T17:25:00Z
+Last worked: 2026-04-10T17:25:00Z
+File: `app/api/api/storage/views/file.py:33-40`
+Next step: Add get_queryset() to filter by owner
+Notes: |
+  API1:2023 BOLA. LIST endpoint returns all files regardless of owner.
+  Attacker can enumerate all files including private ones.
+  Ref: test_file_unique_redteam_t289.py::test_bola_list_shows_all_files
+
+## [CRITICAL] fix T853 — BOLA: File DELETE allows deleting other user's file
+Status: NOT_STARTED
+Created: 2026-04-10T17:25:00Z
+Last worked: 2026-04-10T17:25:00Z
+File: `app/api/api/storage/views/file.py:33-40`
+Next step: Add ownership check in destroy operation
+Notes: |
+  API1:2023 BOLA. Attacker can DELETE victim's file by knowing ID.
+  Critical data loss vulnerability.
+  Ref: test_file_unique_redteam_t289.py::test_bola_delete_other_users_file
+
+## [CRITICAL] fix T854 — BOLA: File download allows accessing other user's file
+Status: NOT_STARTED
+Created: 2026-04-10T17:25:00Z
+Last worked: 2026-04-10T17:25:00Z
+File: `app/api/api/storage/views/file.py:41-52`
+Next step: Add ownership check in download action
+Notes: |
+  API1:2023 BOLA. Attacker can download victim's file via /download endpoint.
+  Data exfiltration vulnerability.
+  Ref: test_file_unique_redteam_t289.py::test_bola_download_other_users_file
+
+## [CRITICAL] fix T855 — Path traversal in filepath field
+Status: NOT_STARTED
+Created: 2026-04-10T17:25:00Z
+Last worked: 2026-04-10T17:25:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add path traversal validation for filepath field
+Notes: |
+  Path traversal patterns like "../../../etc/passwd" accepted in filepath.
+  Can lead to LFI or unauthorized file access.
+  Ref: test_file_unique_redteam_t289.py::test_path_traversal_in_filepath_create
+
+## [CRITICAL] fix T856 — Path traversal in filepath UPDATE
+Status: NOT_STARTED
+Created: 2026-04-10T17:25:00Z
+Last worked: 2026-04-10T17:25:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add path traversal validation for filepath on update
+Notes: |
+  Path traversal accepted via PATCH/PUT update operations.
+  Ref: test_file_unique_redteam_t289.py::test_path_traversal_in_filepath_update
+
+## [HIGH] fix T857 — Absolute path accepted in filepath
+Status: NOT_STARTED
+Created: 2026-04-10T17:25:00Z
+Last worked: 2026-04-10T17:25:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Validate filepath is relative and within storage path
+Notes: |
+  Absolute paths like "/etc/passwd" accepted in filepath field.
+  Should enforce relative paths within allowed storage directory.
+  Ref: test_file_unique_redteam_t289.py::test_filepath_absolute_path_blocked
+
+## [HIGH] fix T858 — BOPLA: File CREATE allows mass assignment of id field
+Status: NOT_STARTED
+Created: 2026-04-10T17:25:00Z
+Last worked: 2026-04-10T17:25:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add read_only=True for id field
+Notes: |
+  API3:2023 BOPLA. Client can specify id field in CREATE request.
+  Ref: test_file_unique_redteam_t289.py::test_bopla_mass_assignment_id_field
+
+## [HIGH] fix T859 — BOPLA: File CREATE allows mass assignment of created_at
+Status: NOT_STARTED
+Created: 2026-04-10T17:25:00Z
+Last worked: 2026-04-10T17:25:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add read_only=True for created_at/updated_at
+Notes: |
+  API3:2023 BOPLA. Client can set created_at timestamp manually.
+  Ref: test_file_unique_redteam_t289.py::test_bopla_mass_assignment_created_at
+
+## [HIGH] fix T860 — BOPLA: File UPDATE allows changing owner
+Status: NOT_STARTED
+Created: 2026-04-10T17:25:00Z
+Last worked: 2026-04-10T17:25:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add read_only=True for owner field
+Notes: |
+  API3:2023 BOPLA. Client can change file owner via PATCH.
+  Ref: test_file_unique_redteam_t289.py::test_bopla_change_owner_via_update
+
+## [MEDIUM] fix T861 — BOPLA: File CREATE accepts extra fields silently
+Status: NOT_STARTED
+Created: 2026-04-10T17:25:00Z
+Last worked: 2026-04-10T17:25:00Z
+File: `app/api/api/storage/serializers/file.py`
+Next step: Add strict validation to reject unknown fields
+Notes: |
+  Extra fields like "is_admin", "role" silently ignored instead of rejected.
+  Ref: test_file_unique_redteam_t289.py::test_bopla_extra_fields_behavior
+
+## [MEDIUM] fix T862 — No rate limiting on file CREATE endpoint
+Status: NOT_STARTED
+Created: 2026-04-10T17:25:00Z
+Last worked: 2026-04-10T17:25:00Z
+File: `app/api/api/storage/views/file.py:33-40`
+Next step: Implement Django Ratelimit or similar
+Notes: |
+  Rapid CREATE requests not rate limited. Can lead to storage exhaustion.
+  Ref: test_file_unique_redteam_t289.py::test_rapid_create_requests_no_rate_limit
