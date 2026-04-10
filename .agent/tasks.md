@@ -5808,3 +5808,38 @@ Notes: |
   API4:2023 Unrestricted Resource Consumption. 100+ requests to /api/v2/info in under 5 seconds
   allowed without throttling. Can be used for DoS and resource exhaustion attacks.
   Ref: test_auth_public_redteam_t281.py::test_rapid_requests_no_rate_limit
+
+## [MEDIUM] fix T783 — No rate limiting on password brute force attempts
+Status: NOT_STARTED
+Created: 2026-04-10T17:00:00Z
+Last worked: 2026-04-10T17:00:00Z
+File: `app/api/api/core/auth.py`
+Next step: Implement rate limiting for failed login attempts
+Notes: |
+  API2:2023 Broken Authentication. 30+ password attempts in under 5 seconds allowed
+  without rate limiting or account lockout. Brute force vulnerability.
+  Ref: test_auth_invalid_redteam_t282.py::test_password_brute_force_no_rate_limit
+
+## [MEDIUM] fix T784 — No CAPTCHA or block on API key brute force
+Status: NOT_STARTED
+Created: 2026-04-10T17:00:00Z
+Last worked: 2026-04-10T17:00:00Z
+File: `app/api/api/permissions.py`
+Next step: Add rate limiting for API key authentication failures
+Notes: |
+  API2:2023 Broken Authentication. 50+ API key attempts allowed without CAPTCHA
+  or IP blocking. Automated guessing of API keys possible.
+  Ref: test_auth_invalid_redteam_t282.py::test_api_key_brute_force_no_captcha
+
+## [CRITICAL] fix T793 — Unicode in auth header causes unhandled exceptions
+Status: NOT_STARTED
+Created: 2026-04-10T17:00:00Z
+Last worked: 2026-04-10T17:00:00Z
+File: `app/api/api/permissions.py` and DRF authentication
+Next step: Add try/except for UnicodeEncodeError and TypeError, return 403
+Notes: |
+  API8:2023 Security Misconfiguration. Unicode characters in Authorization header
+  cause UnicodeEncodeError: 'latin-1' codec can't encode characters OR
+  TypeError: comparing strings with non-ASCII characters. Server crashes with 500.
+  Ref: test_auth_invalid_redteam_t282.py::test_unicode_normalization_bypass,
+       test_auth_invalid_redteam_t282.py::test_stack_trace_not_exposed

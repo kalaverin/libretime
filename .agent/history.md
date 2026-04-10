@@ -2016,3 +2016,35 @@ name = faker.name()     # Generate fake name
 - `.agent/tasks.md` — added T760-T779
 
 **DEADBEEF:** T281 complete, ready for T282
+
+
+---
+
+## Session: 2026-04-10T17:05:00Z
+
+**Context:** T282 Invalid authentication redteam tests
+
+**Task:** T282 — Invalid authentication redteam security tests
+
+**Completed:**
+1. Created `test_auth_invalid_redteam_t282.py` with 17 tests:
+   - TestInvalidAuthRedTeamTiming: 2 tests (timing attacks on user/password)
+   - TestInvalidAuthRedTeamEnumeration: 3 tests (error messages, response codes, lockout)
+   - TestInvalidAuthRedTeamBruteForce: 2 tests (password brute force, API key CAPTCHA)
+   - TestInvalidAuthRedTeamBypass: 4 tests (null byte, unicode, header injection, case)
+   - TestInvalidAuthRedTeamSessionFixation: 1 test (session ID on failed login)
+   - TestInvalidAuthRedTeamTokenConfusion: 3 tests (JWT alg=none, weak secrets, multiple headers)
+   - TestInvalidAuthRedTeamErrorHandling: 2 tests (verbose errors, stack traces)
+
+2. Bugs found (4 confirmed):
+   - T783: No rate limiting on password brute force
+   - T784: No CAPTCHA on API key brute force
+   - T793 (CRITICAL): Unicode in auth header causes unhandled exceptions (500 error)
+
+**Test Results:** 13 passed, 4 xfailed
+
+**Files:**
+- `app/api/api/tests/test_auth_invalid_redteam_t282.py` (new)
+- `.agent/tasks.md` — added T780-T793
+
+**DEADBEEF:** T282 complete, ready for T284 (last in this batch)
