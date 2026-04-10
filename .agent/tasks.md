@@ -5139,3 +5139,79 @@ Notes: |
   Rapid sequential updates (20) all succeed with 200. Can cause update storms.
   Ref: test_playout_history_template_redteam_t263.py::test_rapid_template_updates
 
+## [MEDIUM] fix T639 — BOPLA: TemplateField CREATE accepts extra fields
+Status: NOT_STARTED
+Created: 2026-04-10T15:55:00Z
+Last worked: 2026-04-10T15:55:00Z
+File: `app/api/api/history/serializers/played.py:43-46`
+Next step: Add strict validation to reject unknown fields
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. TemplateField CREATE accepts
+  extra fields like "is_admin", "password", "role" and silently ignores them.
+  Ref: test_playout_history_template_field_redteam_t264.py::test_bopla_create_extra_fields_ignored
+
+## [MEDIUM] fix T640 — BOPLA: TemplateField PATCH accepts extra fields
+Status: NOT_STARTED
+Created: 2026-04-10T15:55:00Z
+Last worked: 2026-04-10T15:55:00Z
+File: `app/api/api/history/serializers/played.py:43-46`
+Next step: Add strict validation on PATCH for unknown fields
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. TemplateField PATCH accepts
+  extra fields like "is_system", "internal_flag" and silently ignores them.
+  Ref: test_playout_history_template_field_redteam_t264.py::test_bopla_patch_extra_fields_ignored
+
+## [CRITICAL] fix T641 — BOLA: TemplateField CREATE in other user's template
+Status: NOT_STARTED
+Created: 2026-04-10T15:55:00Z
+Last worked: 2026-04-10T15:55:00Z
+File: `app/api/api/history/views/played.py:44-50`
+Next step: Add template ownership validation in serializer
+Notes: |
+  API1:2023 Broken Object Level Authorization. CREATE TemplateField allows specifying
+  any template_id regardless of ownership. Attacker can add fields to victim's template.
+  Ref: test_playout_history_template_field_redteam_t264.py::test_bola_create_field_for_other_users_template
+
+## [HIGH] fix T642 — XSS: TemplateField name field stored unsanitized
+Status: NOT_STARTED
+Created: 2026-04-10T15:55:00Z
+Last worked: 2026-04-10T15:55:00Z
+File: `app/api/api/history/serializers/played.py:43-46`
+Next step: Add HTML sanitization for name field
+Notes: |
+  XSS vulnerability. Script tags in field name are stored without sanitization.
+  Potential stored XSS if rendered in frontend without escaping.
+  Ref: test_playout_history_template_field_redteam_t264.py::test_xss_in_name_field
+
+## [HIGH] fix T643 — XSS: TemplateField label field stored unsanitized
+Status: NOT_STARTED
+Created: 2026-04-10T15:55:00Z
+Last worked: 2026-04-10T15:55:00Z
+File: `app/api/api/history/serializers/played.py:43-46`
+Next step: Add HTML sanitization for label field
+Notes: |
+  XSS vulnerability. Script tags and event handlers in label field stored unsanitized.
+  Ref: test_playout_history_template_field_redteam_t264.py::test_xss_in_label_field
+
+## [LOW] fix T644 — Validation: TemplateField accepts negative position
+Status: NOT_STARTED
+Created: 2026-04-10T15:55:00Z
+Last worked: 2026-04-10T15:55:00Z
+File: `app/api/api/history/serializers/played.py:43-46`
+Next step: Add MinValueValidator(0) for position field
+Notes: |
+  Negative position values are accepted but don't make sense for field ordering.
+  Should reject negative values with validation error.
+  Ref: test_playout_history_template_field_redteam_t264.py::test_create_negative_position
+
+## [MEDIUM] fix T645 — No rate limiting on TemplateField CREATE endpoint
+Status: NOT_STARTED
+Created: 2026-04-10T15:55:00Z
+Last worked: 2026-04-10T15:55:00Z
+File: `app/api/api/history/views/played.py:44-50`
+Next step: Add Django Ratelimit or DRF throttling
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. TemplateField CREATE has no rate limiting.
+  Rapid sequential requests (20) all succeed with 201. Can create field spam.
+  Ref: test_playout_history_template_field_redteam_t264.py::test_rapid_field_creation
+
