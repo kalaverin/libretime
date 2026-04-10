@@ -2770,6 +2770,35 @@ Notes: |
 
   Red team test: test_create_without_auth fails - returns 201 instead of 403
 
+## [CRITICAL] bug T407 — Anonymous users can LIST ShowHosts
+Status: OPEN
+Created: 2026-04-10T11:35:00Z
+Scope: api/schedule/views/show.py
+Next step: Add authentication required to ShowHostViewSet
+Notes: |
+  SECURITY ISSUE: Anonymous GET /api/v2/show-hosts returns 200 OK.
+
+  Attack scenario:
+  - Unauthenticated attacker lists all show-host assignments
+  - Information disclosure of station personnel
+
+  Red team test: test_list_without_auth fails - returns 200 instead of 403
+
+## [CRITICAL] bug T408 — ShowHosts BOLA: no owner filtering
+Status: OPEN
+Created: 2026-04-10T11:35:00Z
+Scope: api/schedule/views/show.py
+Next step: Add owner filtering to ShowHostViewSet.get_queryset
+Notes: |
+  CRITICAL BOLA: ShowHosts list returns ALL assignments regardless of owner.
+
+  Attack scenario:
+  - User A can see User B's show assignments
+  - User enumeration via user filter
+  - Complete information disclosure
+
+  Red team test: test_list_shows_only_own_hosts fails - shows other users' data
+
 ## [HIGH] bug T402 — ShowInstances description XSS vulnerability
 Status: OPEN
 Created: 2026-04-10T11:30:00Z
