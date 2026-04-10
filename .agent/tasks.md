@@ -3146,3 +3146,98 @@ Notes: |
   
   Red team test: test_create_race_condition_duplicate_names in test_smartblock_create_redteam_t235.py
 
+## [CRITICAL] fix T434 — BOLA: Any user can PATCH other user's SmartBlock
+Status: NOT_STARTED
+Created: 2026-04-10T15:45:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add object-level permission check in SmartBlockViewSet.update
+Notes: |
+  CRITICAL BOLA VULNERABILITY: No owner verification on PATCH.
+  
+  Attack: PATCH /api/v2/smart-blocks/{victim_block_id} {"name": "Hacked"}
+  Result: Attacker can modify any block by ID, regardless of ownership.
+  
+  Red team test: test_bola_patch_other_users_block in test_smartblock_update_redteam_t236.py
+
+## [CRITICAL] fix T435 — BOLA: Any user can PUT other user's SmartBlock
+Status: NOT_STARTED
+Created: 2026-04-10T15:45:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add object-level permission check in SmartBlockViewSet.update
+Notes: |
+  CRITICAL BOLA VULNERABILITY: No owner verification on PUT.
+  
+  Attack: PUT /api/v2/smart-blocks/{victim_block_id} {"name": "Hacked", "kind": "static"}
+  Result: Attacker can fully replace any block by ID, regardless of ownership.
+  
+  Red team test: test_bola_put_other_users_block in test_smartblock_update_redteam_t236.py
+
+
+## [CRITICAL] fix T438 — BOPLA/BOLA: Can change owner via PATCH (block hijacking)
+Status: NOT_STARTED
+Created: 2026-04-10T15:45:00Z
+Scope: api/schedule/serializers/smart_block.py
+Next step: Make 'owner' read-only in SmartBlockSerializer
+Notes: |
+  CRITICAL: Attacker can transfer ownership of any block to themselves.
+  
+  Attack: PATCH /api/v2/smart-blocks/{id} {"owner": attacker_id}
+  Result: Block ownership transferred, victim loses access, attacker gains control.
+  
+  Red team test: test_bopla_patch_change_owner in test_smartblock_update_redteam_t236.py
+
+## [HIGH] fix T439 — BOPLA: Can backdate created_at via PATCH
+Status: NOT_STARTED
+Created: 2026-04-10T15:45:00Z
+Scope: api/schedule/serializers/smart_block.py
+Next step: Make 'created_at' read-only in SmartBlockSerializer
+Notes: |
+  BOPLA: Audit trail can be manipulated by changing creation timestamp.
+  
+  Attack: PATCH /api/v2/smart-blocks/{id} {"created_at": "2010-01-01T00:00:00Z"}
+  Result: Block appears to be created years ago, bypassing time-based filters.
+  
+  Red team test: test_bopla_patch_backdate_created_at in test_smartblock_update_redteam_t236.py
+
+## [MEDIUM] fix T440 — BOPLA: Can set future updated_at via PATCH
+Status: NOT_STARTED
+Created: 2026-04-10T15:45:00Z
+Scope: api/schedule/serializers/smart_block.py
+Next step: Make 'updated_at' read-only or validate against current time
+Notes: |
+  BOPLA: Update timestamp can be set to future date.
+  
+  Attack: PATCH /api/v2/smart-blocks/{id} {"updated_at": "2035-12-31T23:59:59Z"}
+  Result: Block appears to be updated in the future, breaking sort order.
+  
+  Red team test: test_bopla_patch_future_updated_at in test_smartblock_update_redteam_t236.py
+
+## [MEDIUM] fix T441 — BOPLA: Invalid kind values accepted via PATCH
+Status: NOT_STARTED
+Created: 2026-04-10T15:45:00Z
+Scope: api/schedule/serializers/smart_block.py
+Next step: Add strict validation for kind field choices
+Notes: |
+  BOPLA: Invalid/null kind values may be accepted, causing data inconsistency.
+  
+  Attack: PATCH /api/v2/smart-blocks/{id} {"kind": null} or {"kind": "invalid"}
+  Result: Block kind may be set to invalid value, breaking business logic.
+  
+  Red team test: test_bopla_patch_invalid_kind_values in test_smartblock_update_redteam_t236.py
+
+## [HIGH] fix T443 — PUT accepts null for required fields (validation bypass)
+Status: NOT_STARTED
+Created: 2026-04-10T16:00:00Z
+Scope: api/schedule/serializers/smart_block.py
+Next step: Add validation to reject null for required fields (name, kind)
+Notes: |
+  VALIDATION BYPASS: PUT /api/v2/smart-blocks/{id} accepts null values for required fields.
+  
+  Expected: 400 Bad Request when trying to set name=null or kind=null
+  Actual: Returns 200 OK and accepts the null values
+  
+  Test: test_validation_put_null_required_fields (currently fails)
+  Test: test_validation_put_null_required_fields_xfail (documents bug)
+  
+  Red team test: test_validation_put_null_required_fields in test_smartblock_update_redteam_t236.py
+
