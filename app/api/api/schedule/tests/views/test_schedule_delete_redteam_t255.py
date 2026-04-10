@@ -148,23 +148,22 @@ class TestScheduleDeleteRedTeam:
         response = client.delete("/api/v2/schedule/1")
         assert response.status_code == 403
 
-    @pytest.mark.xfail(
-        reason="T600: Auth - Invalid token returns 200 instead of 403",
-    )
-    def test_delete_with_invalid_token(self, api_client, faker):
-        """Auth: Invalid token should be rejected."""
-        original = api_client.defaults.get("HTTP_AUTHORIZATION", "")
-        api_client.defaults["HTTP_AUTHORIZATION"] = f"Bearer {faker.uuid4()}"
+    def test_delete_with_invalid_token(self, faker):
+        """T600: Auth: Invalid token should be rejected with 403.
 
-        try:
-            response = api_client.delete("/api/v2/schedule/1")
-            if response.status_code == 200:
-                pytest.fail(
-                    "T600: Invalid token accepted - authentication bypass",
-                )
-            assert response.status_code == 403
-        finally:
-            api_client.defaults["HTTP_AUTHORIZATION"] = original
+        FIXED: Use credentials() to properly override auth.
+        defaults[] does NOT override credentials() set in api_client fixture.
+        """
+        from rest_framework.test import APIClient
+
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {faker.uuid4()}")
+
+        response = client.delete("/api/v2/schedule/1")
+        # When test methodology is correct, this should pass (403 returned)
+        assert response.status_code == 403, (
+            f"T600: Invalid token should return 403, got {response.status_code}"
+        )
 
     # ========================================================================
     # API6:2023 - Unsafe Business Flows

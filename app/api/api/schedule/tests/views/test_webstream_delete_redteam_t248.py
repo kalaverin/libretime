@@ -256,20 +256,22 @@ class TestWebstreamDeleteRedTeam:
         response = client.delete("/api/v2/webstreams/1")
         assert response.status_code == 403
 
-    @pytest.mark.xfail(reason="T560: Invalid auth token handling inconsistent")
-    def test_delete_with_invalid_token(self, api_client):
-        """Auth: DELETE with invalid token should return 403."""
-        original = api_client.defaults.get("HTTP_AUTHORIZATION", "")
-        api_client.defaults["HTTP_AUTHORIZATION"] = "Bearer invalid_token"
+    def test_delete_with_invalid_token(self):
+        """Auth: DELETE with invalid token should return 403.
 
-        try:
-            response = api_client.delete("/api/v2/webstreams/1")
-            # Should return 403, not 404
-            assert (
-                response.status_code == 403
-            ), f"BUG T560: Invalid token caused {response.status_code}"
-        finally:
-            api_client.defaults["HTTP_AUTHORIZATION"] = original
+        FIXED: Use credentials() to properly override auth.
+        defaults[] does NOT override credentials() set in api_client fixture.
+        """
+        from rest_framework.test import APIClient
+
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION="Bearer invalid_token")
+
+        response = client.delete("/api/v2/webstreams/1")
+        # Should return 403 when auth is properly overridden
+        assert response.status_code == 403, (
+            f"BUG T560: Invalid token should return 403, got {response.status_code}"
+        )
 
     # ========================================================================
     # Unicode and Encoding

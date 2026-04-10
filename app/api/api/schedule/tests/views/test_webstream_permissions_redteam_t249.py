@@ -168,31 +168,40 @@ class TestWebstreamPermissionsRedTeam:
                 f"T565: Auth bypass - invalid API key got {response.status_code}, expected 401/403",
             )
 
+    @pytest.mark.xfail(reason="BUG: Authorization header case sensitivity - Api-Key works but api-key/API-KEY fails")
     def test_auth_case_sensitivity(self, api_client):
-        """Broken Auth: Authorization header case sensitivity bypass."""
-        # Try different case variations of Authorization header
-        original_auth = api_client.defaults.get("HTTP_AUTHORIZATION", "")
+        """Broken Auth: Authorization header case sensitivity bypass.
+
+        RFC 7230 states header field names are case-insensitive.
+        'Api-Key', 'api-key', 'API-KEY' should all work identically.
+        """
+        # FIXED: Use credentials() instead of defaults[] for proper auth control
+        from rest_framework.test import APIClient
+
+        api_key = api_client._credentials.get("HTTP_AUTHORIZATION", "").replace(
+            "Api-Key ", ""
+        )
 
         variations = [
-            ("authorization", original_auth.replace("Bearer ", "bearer ")),
-            ("AUTHORIZATION", original_auth.replace("Bearer ", "BEARER ")),
-            ("Authorization", original_auth.lower()),
+            f"Api-Key {api_key}",  # Standard - works
+            f"api-key {api_key}",  # lowercase - BUG: returns 403
+            f"API-KEY {api_key}",  # UPPERCASE - BUG: returns 403
         ]
 
-        for header_name, auth_value in variations:
-            # Remove default auth
-            if "HTTP_AUTHORIZATION" in api_client.defaults:
-                del api_client.defaults["HTTP_AUTHORIZATION"]
+        results = []
+        for auth_value in variations:
+            client = APIClient()
+            client.credentials(HTTP_AUTHORIZATION=auth_value)
+            response = client.get("/api/v2/webstreams")
+            results.append((auth_value, response.status_code))
 
-            headers = {f"HTTP_{header_name.upper()}": auth_value}
-            response = api_client.get("/api/v2/webstreams", **headers)
-
-            # All variations should work or all should fail consistently
-            # Inconsistency indicates bypass possibility
-
-        # Restore original
-        if original_auth:
-            api_client.defaults["HTTP_AUTHORIZATION"] = original_auth
+        # All variations should work or all should fail consistently
+        # Inconsistency indicates bypass possibility (or case sensitivity bug)
+        status_codes = [r[1] for r in results]
+        # Either all succeed (200) or all fail (403), no mix
+        assert len(set(status_codes)) == 1, (
+            f"Inconsistent auth case handling: {results}"
+        )
 
     def test_auth_null_byte_injection(self, client):
         """Broken Auth: Null byte in auth header may cause bypass."""

@@ -146,6 +146,8 @@ These should then be added to `.agent/decisions.md` for long-term tracking.
 | 2026-04-09T11:51:00Z | Use `now_seconds()` helper in tests | model_bakery creates microsecond-precision datetimes; DRF serializes seconds only; zero microseconds for consistent assertions | ACTIVE | - |
 | 2026-04-09T14:41:24Z | Use `@pytest.mark.xfail` to document production bugs in tests | Tests should document current behavior including bugs; xfail with reason="BUG T<n>: description" creates regression test that passes when bug is fixed | ACTIVE | - |
 | 2026-04-09T14:41:24Z | Create T<n> bug entries in tasks.md for each documented bug | Centralized bug tracking with unique IDs (T316, T317, T318) enables cross-referencing in tests, decisions, and history | ACTIVE | - |
+| 2026-04-10T22:08:00Z | Use `credentials()` not `defaults[]` to override DRF APIClient auth | `credentials()` has priority over `defaults[]` in DRF APIClient; `defaults[auth]` does not override `credentials(auth)` | ACTIVE | - |
+| 2026-04-10T22:50:00Z | Document Authorization header case sensitivity as known bug | RFC 7230 violation but low impact; use `@pytest.mark.xfail` to track; fix when auth system refactored | ACTIVE | - |
 
 <!--
 Format:

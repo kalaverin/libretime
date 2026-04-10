@@ -437,23 +437,21 @@ class TestScheduleListRedTeam:
         response = client.get("/api/v2/schedule")
         assert response.status_code == 403
 
-    @pytest.mark.xfail(
-        reason="T575: Auth - Invalid token returns 200 instead of 403",
-    )
-    def test_list_with_invalid_token(self, api_client):
-        """Auth: Invalid token should be rejected."""
-        original = api_client.defaults.get("HTTP_AUTHORIZATION", "")
-        api_client.defaults["HTTP_AUTHORIZATION"] = "Bearer invalid_token"
+    def test_list_with_invalid_token(self):
+        """T575: Auth: Invalid token should be rejected with 403.
 
-        try:
-            response = api_client.get("/api/v2/schedule")
-            if response.status_code == 200:
-                pytest.fail(
-                    "T575: Invalid token accepted - authentication bypass",
-                )
-            assert response.status_code == 403
-        finally:
-            api_client.defaults["HTTP_AUTHORIZATION"] = original
+        FIXED: Use credentials() to properly override auth.
+        defaults[] does NOT override credentials() set in api_client fixture.
+        """
+        from rest_framework.test import APIClient
+
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION="Bearer invalid_token")
+
+        response = client.get("/api/v2/schedule")
+        assert response.status_code == 403, (
+            f"T575: Invalid token should return 403, got {response.status_code}"
+        )
 
     # ========================================================================
     # Input Validation

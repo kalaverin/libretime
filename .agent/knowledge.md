@@ -940,6 +940,21 @@ gotchas:
     description: Docker testing environment created — no local PHP 7.4 required
     impact: High — enables testing without legacy stack installation
     workarounds: Use ./test.sh script for all testing operations
+  - id: G9
+    description: ViewSet.get_queryset() must filter by ownership for security
+    impact: Critical — anonymous access if not implemented
+    workarounds: Override get_queryset() in all ViewSets with ownership filtering
+    refs: [app/api/api/schedule/views/show.py, app/api/api/schedule/views/webstream.py]
+  - id: G10
+    description: ModelViewSet performs_create() auto-assigns owner for CREATE
+    impact: Medium — anonymous CREATE may succeed if queryset filtering missing
+    workarounds: Check request.user.is_authenticated before auto-assigning
+    refs: [app/api/api/schedule/views/show.py::perform_create]
+  - id: G11
+    description: Authorization header case sensitive - only "Api-Key" works
+    impact: Low — clients using "api-key" or "API-KEY" will fail auth
+    workarounds: Always use "Api-Key" exact case in client code
+    refs: [app/api/api/permissions.py::check_authorization_header]
 ```
 
 # Insights & Patterns
@@ -995,6 +1010,37 @@ insights:
       - Critical path prioritizes ShowService, Schedule, UserService
       - 8-10 tasks/week pace for single developer
       - Foundation → Helpers → Services → Models → Forms → Controllers
+  - id: I9
+    category: testing-gotchas
+    description: DRF APIClient credentials() has priority over defaults[]
+    confidence: confirmed
+    refs: [app/api/api/tests/test_credentials_vs_defaults.py]
+    details:
+      - "client.credentials(HTTP_AUTHORIZATION='Api-Key X')" takes precedence
+      - "client.defaults['HTTP_AUTHORIZATION'] = 'Bearer Y'" does NOT override
+      - To override auth, use credentials() again, not defaults[]
+      - Critical for redteam auth bypass testing - false positives possible
+  - id: I10
+    category: security
+    description: IsSystemTokenOrUser permission correctly rejects invalid tokens
+    confidence: confirmed
+    refs: [app/api/api/permissions.py]
+    details:
+      - Invalid Bearer tokens correctly return 403
+      - Malformed Api-Key headers handled safely (no IndexError)
+      - Session auth and API-Key auth properly separated
+      - Previous "bypass" reports were test methodology bugs, not permission bugs
+  - id: I11
+    category: security-bug
+    description: Authorization header case sensitivity violates RFC 7230
+    confidence: confirmed
+    refs: [app/api/api/schedule/tests/views/test_webstream_permissions_redteam_t249.py]
+    details:
+      - "Api-Key token" works (200)
+      - "api-key token" fails (403)
+      - "API-KEY token" fails (403)
+      - RFC 7230 section 3.2: "Each header field consists of a case-insensitive field name"
+      - Bug in check_authorization_header() or DRF request.headers access
 ```
 
 # Investigation Log
@@ -1018,6 +1064,28 @@ investigation_log:
     conclusion: "Created 15-week, ~120 task roadmap for 80% coverage — see TESTING_PLAN.md"
     discovered: "2026-04-07T19:00:00Z"
     resolved: "2026-04-07T19:00:00Z"
+  - id: INV-004
+    topic: "T575-T600: Invalid token bypass vulnerability investigation"
+    status: resolved
+    conclusion: "NOT A BUG — test methodology error. DRF APIClient credentials() has priority over defaults[]"
+    discovered: "2026-04-10T21:30:00Z"
+    resolved: "2026-04-10T22:08:00Z"
+    details:
+      - Initial report: Schedule endpoints return 200 with invalid Bearer token
+  - id: INV-005
+    topic: "Authorization header case sensitivity"
+    status: open
+    conclusion: "RFC 7230 violation — header names should be case-insensitive but 'api-key' fails"
+    discovered: "2026-04-10T22:50:00Z"
+    details:
+      - Test test_auth_case_sensitivity discovered inconsistent behavior
+      - "Api-Key token" returns 200, "api-key token" returns 403
+      - RFC 7230 section 3.2: header field names are case-insensitive
+      - Likely in check_authorization_header() string comparison
+      - Root cause: Previous tests used defaults[] which doesn't override credentials()
+      - Verification: IsSystemTokenOrUser correctly rejects invalid tokens with 403
+      - Fix: Created proper test files using credentials() for auth override
+      - Result: All 12 invalid token tests pass (403 returned correctly)
 ```
 
 # Uncertainty Registry

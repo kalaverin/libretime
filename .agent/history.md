@@ -253,6 +253,39 @@ You MUST append a session entry after completing any work
 **Modified files:** <list of changed files>
 -->
 
+### [2026-04-10T22:08:00Z]
+**Completed:**
+- Fixed T354: Webstream anonymous access now returns 403 (ownership filtering in WebstreamViewSet)
+- Fixed T378, T382, T384, T387: Show anonymous access blocked (ownership filtering in ShowViewSet)
+- Verified T575, T584, T589, T597, T600: Invalid token bypass is NOT a bug in permissions
+  - Root cause: `credentials()` has priority over `defaults[]` in DRF APIClient
+  - Previous tests incorrectly used `defaults[]` to override auth, but real token was still sent
+- Created proper test files with correct auth override methodology
+
+**Discovered:**
+- DRF APIClient: `credentials()` overrides take precedence over `defaults[]`
+- `api_client.defaults['HTTP_AUTHORIZATION'] = 'Bearer invalid'` does NOT override `api_client.credentials(HTTP_AUTHORIZATION='Api-Key ...')`
+- Correct method: create fresh client with `client.credentials(HTTP_AUTHORIZATION='Bearer invalid')`
+- IsSystemTokenOrUser permission correctly rejects invalid tokens with 403
+- All Schedule endpoints (LIST/CREATE/RETRIEVE/UPDATE/DELETE) properly reject invalid Bearer tokens
+
+**Decisions:**
+- Document this DRF behavior in test files as lesson for future auth testing
+- Keep existing permission system unchanged - it works correctly
+- Create new test fixtures following correct auth override pattern
+
+**Open:**
+- None - all redteam tickets T354, T378, T382, T384, T387, T575, T584, T589, T597, T600 resolved
+
+**Modified files:**
+- `app/api/api/schedule/views/webstream.py` - added get_queryset() ownership filtering
+- `app/api/api/schedule/views/show.py` - added get_queryset() ownership filtering
+- `app/api/api/conftest.py` - added anonymous_client fixture
+- `app/api/api/tests/test_webstream_anonymous_redteam_t354.py` - new tests (9 tests, 1 xfail)
+- `app/api/api/tests/test_show_anonymous_redteam_t378_t382_t384_t387.py` - new tests (11 tests)
+- `app/api/api/tests/test_schedule_invalid_token_redteam_t575_t584_t589_t597_t600.py` - new tests (12 tests)
+- `app/api/api/tests/test_credentials_vs_defaults.py` - updated with correct methodology (7 tests)
+
 ### [2026-04-07T13:16:18Z]
 **Completed:**
 - Created comprehensive 15-week testing plan for legacy/ PHP application (~120 atomic tasks) in `legacy/TESTING_PLAN.md`
@@ -2116,3 +2149,43 @@ name = faker.name()     # Generate fake name
 - `.agent/tasks.md` — added T283, T803-T813
 
 **DEADBEEF:** T283 complete! Authentication test coverage (T279-T284) now 100%
+
+
+---
+
+### [2026-04-10T22:50:00Z]
+
+**Completed:** Fixed all redteam tests with incorrect auth override methodology
+
+**Summary:**
+| Task | Status | Tests | Result |
+|------|--------|-------|--------|
+| T354 | DONE | 9 | 8 passed, 1 xfail (created_at immutability) |
+| T378 | DONE | 11 | all passed |
+| T382 | DONE | - | part of T378 |
+| T384 | DONE | - | part of T378 |
+| T387 | DONE | - | part of T378 |
+| T575-T600 | NOT A BUG | 12 | all passed (test methodology fixed) |
+
+**Root Cause:**
+- DRF APIClient: `credentials()` has priority over `defaults[]`
+- `api_client.defaults['HTTP_AUTHORIZATION'] = 'Bearer X'` does NOT override credentials
+- Old tests falsely reported auth bypass because real Api-Key was still being sent
+
+**Files Fixed:**
+- `test_schedule_list_redteam_t250.py::test_list_with_invalid_token`
+- `test_schedule_create_redteam_t251.py::test_create_with_invalid_token`
+- `test_schedule_retrieve_redteam_t253.py::test_retrieve_with_invalid_token`
+- `test_schedule_update_redteam_t254.py::test_update_with_invalid_token`
+- `test_schedule_delete_redteam_t255.py::test_delete_with_invalid_token`
+- `test_smartblockcontent_create_redteam_t240.py::test_create_with_invalid_token`
+- `test_smartblockcriteria_delete_redteam_t244.py::test_delete_with_invalid_token`
+- `test_webstream_delete_redteam_t248.py::test_delete_with_invalid_token`
+- `test_webstream_permissions_redteam_t249.py::test_auth_case_sensitivity`
+
+**New Bug Discovered:**
+- Authorization header case sensitivity: `Api-Key` works, `api-key`/`API-KEY` fail
+- RFC 7230 violation: header names should be case-insensitive
+- Documented as xfail in test_auth_case_sensitivity
+
+**Total Results:** 46 passed, 2 xfailed

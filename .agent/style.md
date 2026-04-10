@@ -171,14 +171,18 @@ Observation:
 - Format: ISO 8601 with 'Z' suffix (UTC), seconds precision: `2026-03-26T12:14:56Z`
 Applies_to: `app/api/**/tests/**`
 
-## S1 — Short title
+## S6 — DRF APIClient auth override for security testing
 Status: ACTIVE
-Created: YYYY-MM-DDTHH:mm:ssZ
-Last touched: YYYY-MM-DDTHH:mm:ssZ
-Refs: `path/under/repo/file.ext`
+Created: 2026-04-10T22:08:00Z
+Last touched: 2026-04-10T22:08:00Z
+Refs: `app/api/api/tests/test_credentials_vs_defaults.py`, `app/api/api/tests/test_schedule_invalid_token_redteam_t575_t584_t589_t597_t600.py`
 Observation:
-- what to mimic (telegraphic EN)
-Applies_to: optional `path/prefix/` or glob
+- credentials() has priority over defaults[] — use credentials() for auth override
+- WRONG: client.defaults['HTTP_AUTHORIZATION'] = 'Bearer invalid' (doesn't override)
+- CORRECT: client.credentials(HTTP_AUTHORIZATION='Bearer invalid')
+- For fresh auth state, create new APIClient() instead of modifying existing
+- Critical for redteam tests — false positive if auth not actually overridden
+Applies_to: `app/api/**/tests/**`
 -->
 
 # Completed style notes

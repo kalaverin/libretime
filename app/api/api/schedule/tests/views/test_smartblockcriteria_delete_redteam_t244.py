@@ -338,23 +338,21 @@ class TestSmartBlockCriteriaDeleteRedTeam:
         response = client.delete("/api/v2/smart-block-criteria/1")
         assert response.status_code == 403
 
-    @pytest.mark.xfail(
-        reason="T517: Invalid auth token returns 404 instead of 403",
-    )
-    def test_delete_with_invalid_token(self, api_client):
-        """Auth: DELETE with invalid token should return 403."""
-        # Temporarily modify auth header
-        original = api_client.defaults.get("HTTP_AUTHORIZATION", "")
-        api_client.defaults["HTTP_AUTHORIZATION"] = "Bearer invalid_token"
+    def test_delete_with_invalid_token(self):
+        """Auth: DELETE with invalid token should return 403.
 
-        try:
-            response = api_client.delete("/api/v2/smart-block-criteria/1")
-            # BUG T517: Returns 404 instead of 403
-            assert (
-                response.status_code == 403
-            ), f"BUG T517: Invalid token caused {response.status_code}"
-        finally:
-            api_client.defaults["HTTP_AUTHORIZATION"] = original
+        FIXED: Use credentials() to properly override auth.
+        defaults[] does NOT override credentials() set in api_client fixture.
+        """
+        from rest_framework.test import APIClient
+
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION="Bearer invalid_token")
+
+        response = client.delete("/api/v2/smart-block-criteria/1")
+        assert response.status_code == 403, (
+            f"Invalid token should return 403, got {response.status_code}"
+        )
 
     # ========================================================================
     # Unicode and Encoding

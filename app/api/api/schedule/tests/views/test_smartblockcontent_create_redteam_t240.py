@@ -610,32 +610,31 @@ class TestSmartBlockContentCreateRedTeam:
         )
         assert response.status_code == 403
 
-    @pytest.mark.xfail(
-        reason="T484: Invalid auth tokens may be partially accepted",
-    )
-    def test_create_with_invalid_token(self, api_client):
-        """Auth: Invalid token format should fail."""
-        # Temporarily modify client to use invalid token
-        original_headers = api_client.defaults.get("HTTP_AUTHORIZATION", "")
-        api_client.defaults["HTTP_AUTHORIZATION"] = "Bearer invalid_token_here"
+    def test_create_with_invalid_token(self):
+        """Auth: Invalid token format should fail with 403.
 
-        try:
-            response = api_client.post(
-                "/api/v2/smart-block-contents",
-                json.dumps(
-                    {
-                        "block": 1,
-                        "file": 1,
-                        "position": 1,
-                    },
-                ),
-                content_type="application/json",
-            )
-            assert (
-                response.status_code == 403
-            ), f"Invalid token caused {response.status_code}"
-        finally:
-            api_client.defaults["HTTP_AUTHORIZATION"] = original_headers
+        FIXED: Use credentials() to properly override auth.
+        defaults[] does NOT override credentials() set in api_client fixture.
+        """
+        from rest_framework.test import APIClient
+
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION="Bearer invalid_token_here")
+
+        response = client.post(
+            "/api/v2/smart-block-contents",
+            json.dumps(
+                {
+                    "block": 1,
+                    "file": 1,
+                    "position": 1,
+                },
+            ),
+            content_type="application/json",
+        )
+        assert response.status_code == 403, (
+            f"Invalid token should return 403, got {response.status_code}"
+        )
 
     # ========================================================================
     # Content-Type Attacks
