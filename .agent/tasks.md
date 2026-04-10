@@ -2770,6 +2770,21 @@ Notes: |
 
   Red team test: test_create_without_auth fails - returns 201 instead of 403
 
+## [MEDIUM] bug T396 — ShowDays last_show_on removable via PATCH
+Status: OPEN
+Created: 2026-04-10T11:27:00Z
+Scope: api/schedule/serializers/show.py
+Next step: Add validation to prevent null last_show_on if required
+Notes: |
+  SECURITY ISSUE: PATCH with null last_show_on removes end date.
+
+  Attack scenario:
+  - User removes end date on scheduled show
+  - Creates infinite repeating show
+  - May cause resource exhaustion in scheduler
+
+  Red team test: test_remove_last_show_on_via_patch fails - null accepted
+
 ## [MEDIUM] bug T395 — ShowDays accepts negative duration via UPDATE
 Status: OPEN
 Created: 2026-04-10T11:25:00Z
