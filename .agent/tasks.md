@@ -2122,6 +2122,42 @@ Notes: |
   
   Red team test confirming: test_update_playlist_field returns 200 with transferred playlist
 
+## [CRITICAL] fix T360 — PlaylistContent anonymous filter access
+Status: NOT_STARTED
+Created: 2026-04-10T00:50:00Z
+Scope: api/schedule/views/playlist.py
+Next step: Add authentication check to get_queryset or ViewSet
+Notes: |
+  CRITICAL: Anonymous users can filter playlist contents.
+  
+  Attack scenario:
+  - GET /api/v2/playlist-contents?playlist=1 WITHOUT auth returns 200
+  - Should return 403 Forbidden
+  
+  This allows unauthenticated data enumeration.
+  
+  Fix needed: Ensure permission classes reject anonymous users.
+  
+  Red team test confirming: test_filter_without_auth returns 200 instead of 403
+
+## [HIGH] fix T361 — PlaylistContent accepts various invalid playlist_id formats
+Status: NOT_STARTED
+Created: 2026-04-10T00:50:00Z
+Scope: api/schedule/views/playlist.py
+Next step: Add proper input validation for playlist_id parameter
+Notes: |
+  Similar to T357 but broader scope - various input formats cause 500 errors:
+  
+  - ?playlist=1.5 (float) → ValueError
+  - ?playlist=0x1 (hex) → ValueError  
+  - ?playlist=invalid → ValueError
+  
+  All should return 400 Bad Request with clean error message.
+  
+  Root cause: No try/except around int() conversion in get_queryset().
+  
+  Fix needed: Validate and sanitize input before filtering.
+
 ## [CRITICAL] fix T354 — Webstream security issues (created_at mutable, owner transferable)
 Status: NOT_STARTED
 Created: 2026-04-10T09:40:00Z
