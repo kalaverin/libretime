@@ -5797,3 +5797,14 @@ Notes: |
   API5:2023 Broken Function Level Authorization. API key (service token) can
   access user-specific endpoints like /api/v2/users. Should be restricted.
   Ref: test_auth_apikey_redteam_t280.py::test_api_key_vs_user_permissions
+
+## [MEDIUM] fix T769 — No rate limiting on public endpoints
+Status: NOT_STARTED
+Created: 2026-04-10T16:55:00Z
+Last worked: 2026-04-10T16:55:00Z
+File: `app/api/api/views/info.py` and `app/api/api/views/version.py`
+Next step: Add Django Ratelimit or middleware for public endpoints
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. 100+ requests to /api/v2/info in under 5 seconds
+  allowed without throttling. Can be used for DoS and resource exhaustion attacks.
+  Ref: test_auth_public_redteam_t281.py::test_rapid_requests_no_rate_limit

@@ -1986,3 +1986,33 @@ name = faker.name()     # Generate fake name
 - `.agent/tasks.md` — added T749-T759
 
 **DEADBEEF:** T280 complete, ready for T281
+
+
+---
+
+## Session: 2026-04-10T16:55:00Z
+
+**Context:** T281 Public endpoints redteam tests
+
+**Task:** T281 — Public endpoints redteam security tests
+
+**Completed:**
+1. Created `test_auth_public_redteam_t281.py` with 22 tests:
+   - TestPublicEndpointsRedTeamInfoDisclosure: 4 tests (sensitive data, stack info, errors)
+   - TestPublicEndpointsRedTeamInjection: 4 tests (SQLi, XSS, command injection, path traversal)
+   - TestPublicEndpointsRedTeamDoS: 3 tests (ReDoS, rate limiting, response size)
+   - TestPublicEndpointsRedTeamFuzzing: 3 tests (query params, Accept header, Content-Type)
+   - TestPublicEndpointsRedTeamMethods: 4 tests (POST, PUT, DELETE, TRACE)
+   - TestPublicEndpointsRedTeamCachePoisoning: 2 tests (Host header, query params)
+   - TestPublicEndpointsRedTeamCORS: 2 tests (preflight, credentials)
+
+2. Bugs found (1 confirmed):
+   - T769: No rate limiting on public endpoints (100 req in <5s allowed)
+
+**Test Results:** 21 passed, 1 xfailed
+
+**Files:**
+- `app/api/api/tests/test_auth_public_redteam_t281.py` (new)
+- `.agent/tasks.md` — added T760-T779
+
+**DEADBEEF:** T281 complete, ready for T282
