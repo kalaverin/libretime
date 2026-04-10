@@ -7,7 +7,6 @@ from model_bakery import baker
 
 
 @pytest.mark.django_db
-@pytest.mark.xfail(reason="T340: owner field DB schema mismatch", strict=False)
 class TestPodcastViewSetRUD:
     """Test Podcast RUD endpoints."""
 

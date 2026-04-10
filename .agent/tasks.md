@@ -1849,13 +1849,22 @@ File: `app/api/api/history/serializers/played.py`
 Next step: Add validate() to PlayoutHistorySerializer checking ends > starts
 Notes: POST with ends before starts returns 201. Should return 400 with validation error. Found during T260.
 
-## [CRITICAL] fix T340 — Podcast model owner field DB schema mismatch
-Status: NOT_STARTED
+## [DONE] fix T340 — Podcast model owner field DB schema mismatch
+Status: DONE
 Created: 2026-04-09T17:05:00Z
-Last worked: 2026-04-09T17:05:00Z
-File: `app/api/api/podcasts/models/podcast.py:26-31`
-Next step: Add db_column to owner field or fix schema
-Notes: Django model expects 'owner_id' column but DB has different column name. All Podcast operations fail with 'column owner_id does not exist'. Blocks T268-T278.
+Last worked: 2026-04-10T01:00:00Z
+File: `app/api/api/podcasts/models/podcast.py:27-32`
+Notes: |
+  FIXED: Added db_column="owner" to the ForeignKey.
+  
+  Root cause: Django ForeignKey by default looks for "owner_id" column, but the
+  legacy database schema has the column named "owner" (not "owner_id").
+  
+  Changes:
+  - podcast.py: Added db_column="owner" to owner ForeignKey
+  - Removed xfail markers from all 38 podcast tests across 6 test files
+  
+  Result: All Podcast operations now work correctly. 42 tests pass (1 skipped).
 
 ## [CRITICAL] test T341 — Fix IndexError in check_authorization_header with empty Api-Key
 Status: NOT_STARTED

@@ -7,10 +7,6 @@ from model_bakery import baker
 
 
 @pytest.mark.django_db
-@pytest.mark.xfail(
-    reason="T340: Podcast owner field DB schema mismatch",
-    strict=False,
-)
 class TestImportedPodcastViewSet:
     """Test ImportedPodcast LIST/CREATE/RETRIEVE/UPDATE/DELETE."""
 

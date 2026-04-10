@@ -11,10 +11,6 @@ from sdk import now
 
 
 @pytest.mark.django_db
-@pytest.mark.xfail(
-    reason="T340: Podcast owner field DB schema mismatch",
-    strict=False,
-)
 class TestPodcastEpisodeViewSet:
     """Test PodcastEpisode LIST/CREATE/RETRIEVE/UPDATE/DELETE."""
 
