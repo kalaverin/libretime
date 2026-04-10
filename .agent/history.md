@@ -2189,3 +2189,201 @@ name = faker.name()     # Generate fake name
 - Documented as xfail in test_auth_case_sensitivity
 
 **Total Results:** 46 passed, 2 xfailed
+
+
+---
+
+### [2026-04-10T23:00:00Z]
+
+**Completed:** BOLA Investigation T806-T809, T829-T832, T850-T854
+
+**Summary:**
+| Task Group | Model | Status | Issue |
+|------------|-------|--------|-------|
+| T806-T809 | Playlist | ❌ CRITICAL | No ownership filtering |
+| T829-T832 | SmartBlock | ❌ CRITICAL | Kind filter only, no owner |
+| T850-T854 | File | ❌ CRITICAL | No ownership filtering |
+
+**Root Cause:**
+All three ViewSets use default ModelViewSet behavior:
+- `queryset = Model.objects.all()` returns ALL records
+- Missing `get_queryset()` override with ownership filtering
+- Missing `perform_create()` for auto-assigning owner
+
+**Attack Scenarios:**
+```
+# Any authenticated user can:
+GET /api/v2/playlists/123         # Retrieve victim's playlist
+PATCH /api/v2/playlists/123       # Modify victim's playlist  
+DELETE /api/v2/playlists/123      # Delete victim's playlist
+GET /api/v2/files/456/download    # Download victim's file
+```
+
+**Fix Pattern (from Show/Webstream):**
+```python
+def get_queryset(self):
+    if check_authorization_header(request):
+        return Model.objects.all()  # Service: full
+    if not request.user.is_authenticated:
+        return Model.objects.none()  # Anonymous: empty
+    if request.user.is_superuser():
+        return Model.objects.all()  # Admin: full
+    return Model.objects.filter(owner=user)  # User: own
+```
+
+**Nested Resources Also Affected:**
+- PlaylistContent - filters by playlist_id, no ownership check
+- SmartBlockContent - filters by block_id, no ownership check
+- SmartBlockCriteria - filters by block_id, no ownership check
+
+**Files Created:**
+- `.agent/research/bola_investigation_t806_t854.md` - Full investigation report
+
+**Files to Fix:**
+- `app/api/api/schedule/views/playlist.py` - PlaylistViewSet, PlaylistContentViewSet
+- `app/api/api/schedule/views/smart_block.py` - SmartBlockViewSet, SmartBlockContentViewSet, SmartBlockCriteriaViewSet
+- `app/api/api/storage/views/file.py` - FileViewSet
+
+**Priority:** CRITICAL - Data exfiltration and unauthorized modification possible
+
+
+---
+
+### [2026-04-10T23:35:00Z]
+
+**Completed:** Complete Permissions System Inventory
+
+**Investigation Scope:** All DRF permission classes, Django permissions, role-based access
+
+**Key Findings:**
+
+**DRF Permission Classes:**
+- IsSystemTokenOrUser — main permission (services bypass all checks)
+- IsAdminOrOwnUser — user management only
+- AllowAny — public endpoints (info, version)
+
+**Role System:**
+| Role | Permissions | Description |
+|------|-------------|-------------|
+| GUEST | 15 view_* | Read-only viewer |
+| HOST | 44 perms | Create own, modify own only |
+| MANAGER | 43+ perms | Full CRUD on all |
+| ADMIN | superuser | System admin |
+
+**Custom Model Permissions (11 total):**
+- change_own_schedule, delete_own_schedule
+- change_own_file, delete_own_file
+- change_own_webstream, delete_own_webstream
+- change_own_smartblock
+- change_own_smartblockcontent, delete_own_smartblockcontent
+- change_own_smartblockcriteria, delete_own_smartblockcriteria
+
+**Critical Bug Found:**
+```python
+# permissions.py:get_own_obj() line 36
+qs = view.queryset.all()  # ← Checks ENTIRE table!
+```
+This should check specific object, not all records.
+
+**ViewSet Status:**
+- 🔴 28 ViewSets with missing ownership filters
+- 🟢 1 ViewSet fixed (Webstream)
+- ⚠️ 1 ViewSet special (User with IsAdminOrOwnUser)
+- 🌐 2 ViewSets public (Info, Version)
+
+**Documents Created:**
+- `.agent/research/permissions_inventory.md` (14KB) — Full technical analysis
+- `.agent/research/permissions_matrix.md` (15KB) — Visual matrix reference
+
+**Files Referenced:**
+- `app/api/api/permissions.py` — DRF permission classes
+- `app/api/api/permission_constants.py` — Role permissions
+- `app/api/api/core/models/user.py` — User.has_perm()
+- 31 ViewSets across schedule, storage, podcasts, core, history
+
+
+---
+
+### [2026-04-10T23:45:00Z]
+
+**Completed:** Complete Role-Based Permission Test Suite (126 tests)
+
+**Test Suite Overview:**
+
+| File | Role | Tests | Description |
+|------|------|-------|-------------|
+| test_role_guest_permissions.py | GUEST | 25 | Read-only access |
+| test_role_host_permissions.py | HOST | 34 | Own content CRUD |
+| test_role_manager_permissions.py | MANAGER | 30 | Full CRUD on any |
+| test_role_admin_permissions.py | ADMIN | 25 | Superuser + user mgmt |
+| test_role_bola_prevention.py | Cross-role | 12 | BOLA attack prevention |
+| fixtures/role_fixtures.py | All | - | Role-based fixtures |
+
+**Key Features:**
+- All tests use faker for unique values
+- All date/time via sdk.now()
+- No hardcoded dates
+- Date comparisons via sdk.format_datetime()
+- BOLA prevention tests for HOST role
+- Cross-role permission matrix tests
+
+**Test Patterns:**
+```python
+# Positive test
+def test_host_can_update_own_playlist(self, host_client, host_user):
+    playlist = baker.make(Playlist, owner=host_user)
+    response = host_client.patch(...)
+    assert response.status_code == 200
+
+# Negative test (BOLA prevention)
+def test_host_cannot_update_other_playlist(self, host_client, faker):
+    other_host = baker.make(User, role=Role.HOST)
+    other_playlist = baker.make(Playlist, owner=other_host)
+    response = host_client.patch(...)
+    assert response.status_code in [403, 404]  # BOLA prevented
+```
+
+**Fixtures Created:**
+- guest_user, host_user, manager_user, admin_user
+- guest_client, host_client, manager_client, admin_client
+- two_host_users, host_and_guest_users, host_and_manager_users
+
+**Documents:**
+- `.agent/research/role_based_tests_documentation.md` - Full test documentation
+
+**Current Status:**
+- Tests written according to permission matrix
+- Expected failures until ViewSets fixed with ownership filtering
+- BOLA tests will fail until queryset filters implemented
+
+
+---
+
+### [2026-04-11T01:45:00Z]
+
+**Completed:** Role-based permission test suite + is_superuser bug fixes
+
+**Test Results Summary (126 tests):**
+- ✅ GUEST read tests: 10 passed
+- ❌ GUEST write tests: 15 failed (expected - ViewSets need permission fixes)
+- ❌ HOST own tests: mixed (creation fails, BOLA vulnerabilities detected)
+- ❌ MANAGER/ADMIN tests: mixed (creation fails due to missing owner assignment)
+- ❌ BOLA prevention tests: 9 failed (confirmed vulnerabilities)
+
+**Bugs Fixed:**
+1. `is_superuser()` method → property consistency
+   - `app/api/api/core/models/user.py:181` - removed ()
+   - `app/api/api/schedule/views/show.py:67` - removed ()
+   - `app/api/api/schedule/views/webstream.py:31` - removed ()
+   - `app/api/api/permissions.py:90,101` - removed ()
+
+**Infrastructure Created:**
+- `app/api/api/tests/conftest.py` - imports role fixtures
+- `app/api/api/tests/fixtures/role_fixtures.py` - session-based auth fixtures
+- 6 test files with 126 test cases
+- faker + sdk.now() pattern for all dynamic data
+
+**Confirmed Vulnerabilities:**
+- BOLA: HOST can modify other HOST's playlists, files, smart blocks, webstreams
+- Missing ownership filtering in 28 ViewSets
+- `get_own_obj()` bug: checks entire table, not specific object

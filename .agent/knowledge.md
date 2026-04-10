@@ -955,6 +955,26 @@ gotchas:
     impact: Low — clients using "api-key" or "API-KEY" will fail auth
     workarounds: Always use "Api-Key" exact case in client code
     refs: [app/api/api/permissions.py::check_authorization_header]
+  - id: G12
+    description: BOLA pattern - queryset.objects.all() without ownership filter
+    impact: Critical — any user can access all users' data
+    workarounds: Always add get_queryset() with owner filter; use check_authorization_header
+    refs: [.agent/research/bola_investigation_t806_t854.md]
+  - id: G13
+    description: Nested resources inherit parent ownership - filter via parent FK
+    impact: High — child resources may leak if parent ownership not checked
+    workarounds: Filter nested resources by parent__owner=user
+    refs: [app/api/api/schedule/views/playlist.py::PlaylistContentViewSet]
+  - id: G14
+    description: Permission check flow — complex multi-layer system
+    impact: Medium — hard to debug, easy to miss edge cases
+    workarounds: See .agent/research/permissions_inventory.md for full flow
+    refs: [.agent/research/permissions_inventory.md]
+  - id: G15
+    description: get_own_obj() bug — checks entire table, not specific object
+    impact: Critical — HOST role permissions may work incorrectly
+    workarounds: Don't rely on own_* for security; add explicit queryset filters
+    refs: [app/api/api/permissions.py::get_own_obj]
 ```
 
 # Insights & Patterns
@@ -1030,6 +1050,17 @@ insights:
       - Malformed Api-Key headers handled safely (no IndexError)
       - Session auth and API-Key auth properly separated
       - Previous "bypass" reports were test methodology bugs, not permission bugs
+  - id: I12
+    category: security-pattern
+    description: BOLA fix pattern - Three-tier ownership filtering
+    confidence: confirmed
+    refs: [.agent/research/bola_investigation_t806_t854.md, app/api/api/schedule/views/show.py]
+    details:
+      - Pattern: Service auth (API-Key) = full access
+      - Pattern: Anonymous = empty queryset (objects.none())
+      - Pattern: Superuser = full access
+      - Pattern: Regular user = filter by owner=user (or hosts__user for M2M)
+      - Critical: Must override get_queryset(), not just rely on queryset attr
   - id: I11
     category: security-bug
     description: Authorization header case sensitivity violates RFC 7230
@@ -1082,10 +1113,45 @@ investigation_log:
       - "Api-Key token" returns 200, "api-key token" returns 403
       - RFC 7230 section 3.2: header field names are case-insensitive
       - Likely in check_authorization_header() string comparison
-      - Root cause: Previous tests used defaults[] which doesn't override credentials()
-      - Verification: IsSystemTokenOrUser correctly rejects invalid tokens with 403
-      - Fix: Created proper test files using credentials() for auth override
-      - Result: All 12 invalid token tests pass (403 returned correctly)
+  - id: INV-006
+    topic: "BOLA vulnerabilities in Playlist/SmartBlock/File ViewSets"
+    status: in_progress
+    conclusion: "API1:2023 BOLA - Multiple ViewSets missing ownership filtering"
+    discovered: "2026-04-10T23:00:00Z"
+    details:
+      - Full investigation: .agent/research/bola_investigation_t806_t854.md
+      - Affected: PlaylistViewSet, SmartBlockViewSet, FileViewSet
+      - Pattern: Missing get_queryset() with owner filter
+      - Impact: Any user can CRUD any other user's data
+      - Fix pattern: Use Show/Webstream implementation as reference
+      - Nested resources also affected: PlaylistContent, SmartBlockContent, SmartBlockCriteria
+  - id: INV-007
+    topic: "Complete permissions system inventory"
+    status: completed
+    conclusion: "Full mapping of DRF permissions, Django permissions, role-based access"
+    discovered: "2026-04-10T23:30:00Z"
+    details:
+      - Documents: .agent/research/permissions_inventory.md
+      - Matrix: .agent/research/permissions_matrix.md
+      - 2 DRF permission classes: IsSystemTokenOrUser, IsAdminOrOwnUser
+      - 4 Roles: GUEST (15 perms), HOST (44 perms), MANAGER (43+ perms), ADMIN
+      - 11 custom model permissions for own_* access
+      - 31+ ViewSets, most using default IsSystemTokenOrUser
+      - Critical bug: get_own_obj() checks entire table, not specific object
+  - id: INV-008
+    topic: "Role-based permission test suite created"
+    status: completed
+    conclusion: "126 test cases covering all roles and BOLA prevention"
+    discovered: "2026-04-10T23:45:00Z"
+    details:
+      - 6 test files in app/api/api/tests/
+      - GUEST: 25 tests (read-only)
+      - HOST: 34 tests (own content)
+      - MANAGER: 30 tests (full CRUD)
+      - ADMIN: 25 tests (superuser)
+      - BOLA: 12 tests (cross-role prevention)
+      - Fixtures: role_fixtures.py with all role clients
+      - Documentation: role_based_tests_documentation.md
 ```
 
 # Uncertainty Registry

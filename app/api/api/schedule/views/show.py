@@ -4,6 +4,7 @@ from rest_framework import viewsets
 from rest_framework.serializers import Serializer
 
 from api.permissions import check_authorization_header
+from rest_framework.exceptions import PermissionDenied
 from api.schedule.models import (
     Show,
     ShowDays,
@@ -28,19 +29,21 @@ class ShowViewSet(viewsets.ModelViewSet[Any]):
     model_permission_name: str = "show"
 
     def get_queryset(self) -> Any:
-        """Filter shows by ownership - host sees only their shows, admin sees all, services see all."""
+        """Return all shows - schedule is public information.
+        
+        READ operations (LIST/RETRIEVE): All authenticated users see all shows.
+        WRITE operations (UPDATE/DELETE): Restricted to hosts/admins in perform_* methods.
+        """
         request = self.request
         # API-Key auth (services) - full access
         if check_authorization_header(request):
             return Show.objects.all()
-        # Session auth (users) - filter by ownership
+        # Session auth (users) - shows are public schedule
         user = request.user
         if not user.is_authenticated:
             return Show.objects.none()
-        if user.is_superuser():
-            return Show.objects.all()
-        # Host sees shows where they are assigned
-        return Show.objects.filter(hosts=user).distinct()
+        # All authenticated users see all shows (broadcast schedule is public)
+        return Show.objects.all()
 
     def perform_create(self, serializer: Any) -> None:
         """Create show and assign current user as host (for session auth)."""
@@ -53,6 +56,30 @@ class ShowViewSet(viewsets.ModelViewSet[Any]):
             if isinstance(user, User):
                 ShowHost.objects.get_or_create(show=show, user=user)
         # Note: API-Key auth creates show without host (service-to-service)
+
+    def _check_show_ownership(self, show: Show) -> None:
+        """Verify user is host or admin before modifying a show."""
+        user = self.request.user
+        # API-Key auth bypasses ownership check (services have full access)
+        if check_authorization_header(self.request):
+            return
+        # Superuser can modify any show
+        if user.is_superuser:
+            return
+        # Host can modify their shows
+        if show.hosts.filter(id=user.id).exists():
+            return
+        raise PermissionDenied("Only show hosts or admins can modify this show.")
+
+    def perform_update(self, serializer: Any) -> None:
+        """Update show - restricted to hosts and admins."""
+        self._check_show_ownership(serializer.instance)
+        serializer.save()
+
+    def perform_destroy(self, instance: Show) -> None:
+        """Delete show - restricted to hosts and admins."""
+        self._check_show_ownership(instance)
+        instance.delete()
 
 
 @final

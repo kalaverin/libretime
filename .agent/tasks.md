@@ -6429,6 +6429,50 @@ Notes: |
   Data exfiltration vulnerability.
   Ref: test_file_unique_redteam_t289.py::test_bola_download_other_users_file
 
+## [CRITICAL] meta T858 — BOLA Pattern: Ownership filtering missing across multiple ViewSets
+Status: IN_PROGRESS
+Created: 2026-04-10T23:00:00Z
+Last worked: 2026-04-10T23:00:00Z
+Scope: api/schedule/views/playlist.py, api/schedule/views/smart_block.py, api/storage/views/file.py
+Next step: Apply Show/Webstream fix pattern to all affected ViewSets
+Notes: |
+  INVESTIGATION RESULTS - See .agent/research/bola_investigation_t806_t854.md
+
+  ROOT CAUSE:
+    All three ViewSets share the same architectural flaw: missing get_queryset()
+    with ownership filtering. The default ModelViewSet behavior returns ALL records.
+
+  AFFECTED MODELS:
+    - Playlist (T806-T809): No get_queryset(), owner not auto-assigned
+    - SmartBlock (T829-T832): get_queryset() filters by kind, not owner
+    - File (T850-T854): No get_queryset(), perform_destroy without ownership check
+
+  AFFECTED NESTED RESOURCES:
+    - PlaylistContent: Filters by playlist_id, no ownership check
+    - SmartBlockContent: Filters by block_id, no ownership check
+    - SmartBlockCriteria: Filters by block_id, no ownership check
+
+  FIX PATTERN (from Show/Webstream):
+    1. Add get_queryset() with ownership filtering:
+       - API-Key auth: full access (services)
+       - Anonymous: empty queryset
+       - Superuser: full access
+       - Regular user: filter by owner=user
+
+    2. Add perform_create() to auto-assign owner:
+       - Session auth: set owner=request.user
+       - API-Key auth: accept owner from data
+
+  SECURITY IMPACT:
+    CRITICAL - Any authenticated user can CRUD any other user's data.
+    This is API1:2023 Broken Object Level Authorization.
+
+  RECOMMENDED PRIORITY:
+    1. File (highest - data exfiltration possible via download)
+    2. Playlist (high - content modification)
+    3. SmartBlock (high - content modification)
+    4. Nested resources (medium - content access)
+
 ## [CRITICAL] fix T855 — Path traversal in filepath field
 Status: NOT_STARTED
 Created: 2026-04-10T17:25:00Z

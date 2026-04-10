@@ -87,7 +87,7 @@ class IsAdminOrOwnUser(BasePermission):
     def has_permission(self, request: Request, view: Any) -> bool:
         if not request.user.is_authenticated:
             return False
-        return bool(request.user.is_superuser())
+        return bool(request.user.is_superuser)
 
     @override
     def has_object_permission(
@@ -98,7 +98,7 @@ class IsAdminOrOwnUser(BasePermission):
     ) -> bool:
         if not request.user.is_authenticated:
             return False
-        if request.user.is_superuser():
+        if request.user.is_superuser:
             return True
         return obj.username == request.user
 
