@@ -2052,6 +2052,76 @@ Notes: |
   
   Fix needed: Validate block_id is integer before filtering, return 400 on invalid.
 
+## [CRITICAL] fix T357 — PlaylistContent filter crashes on invalid playlist_id
+Status: NOT_STARTED
+Created: 2026-04-10T00:35:00Z
+Scope: api/schedule/views/playlist.py
+Next step: Add validation for playlist_id query parameter
+Notes: |
+  CRITICAL: Same vulnerability as T356 in PlaylistContentViewSet.
+  
+  Vulnerable code (views/playlist.py:37):
+  - playlist_id = self.request.query_params.get("playlist")
+  - queryset.filter(playlist_id=playlist_id)  # No validation!
+  
+  Attack scenarios:
+  - GET ?playlist=invalid → ValueError: Field 'id' expected a number but got 'invalid'
+  - GET ?playlist=1' OR '1'='1 → 500 error with traceback
+  
+  Impact: Information disclosure via error messages (database schema leak).
+  
+  Red team tests confirming: test_filter_by_invalid_playlist_id, test_filter_by_sql_injection
+
+## [CRITICAL] fix T358 — PlaylistContent ViewSet missing owner-based filtering (BOLA)
+Status: NOT_STARTED
+Created: 2026-04-10T00:35:00Z
+Scope: api/schedule/views/playlist.py
+Next step: Add get_queryset() filtering by playlist owner
+Notes: |
+  CRITICAL BOLA VULNERABILITY: PlaylistContentViewSet lacks owner-based filtering.
+  
+  Current behavior (BROKEN):
+  - PlaylistContentViewSet.queryset = PlaylistContent.objects.all() - returns ALL content
+  - get_queryset() filters by playlist_id but NOT by playlist owner
+  
+  Any authenticated user with 'view_playlistcontent' permission can:
+  - List ALL playlist contents across ALL users
+  - Access any content by ID (even in other users' playlists)
+  - Modify any content (PATCH returns 200)
+  - Delete any content (DELETE returns 204)
+  
+  This is Broken Object Level Authorization (BOLA/API1).
+  
+  Expected behavior:
+  - Regular users only see content from their own playlists
+  - Admins can see all content
+  
+  Red team tests confirming:
+  - test_list_shows_only_own_content: FAIL - user sees admin content
+  - test_access_other_user_content_directly: FAIL - 200 instead of 403
+  - test_update_other_user_content: FAIL - can modify other user's content
+  - test_delete_other_user_content: FAIL - can delete other user's content
+
+## [HIGH] fix T359 — PlaylistContent playlist field transferable via PATCH
+Status: NOT_STARTED
+Created: 2026-04-10T00:35:00Z
+Scope: api/schedule/serializers/playlist.py
+Next step: Add playlist to read_only_fields
+Notes: |
+  SECURITY ISSUE: Content can be transferred between playlists via PATCH.
+  
+  Attack scenario:
+  1. User A has playlist P1 with content C1
+  2. User B has playlist P2
+  3. User B calls PATCH /api/v2/playlist-contents/{C1}/ {"playlist": P2.id}
+  4. Content C1 now belongs to P2 (user B steals content from user A)
+  
+  This enables content theft between users.
+  
+  Fix needed: Make playlist field read-only after creation.
+  
+  Red team test confirming: test_update_playlist_field returns 200 with transferred playlist
+
 ## [CRITICAL] fix T354 — Webstream security issues (created_at mutable, owner transferable)
 Status: NOT_STARTED
 Created: 2026-04-10T09:40:00Z
