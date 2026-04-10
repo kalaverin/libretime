@@ -1842,3 +1842,38 @@ name = faker.name()     # Generate fake name
 - `.agent/tasks.md` — added T663-T684
 
 **DEADBEEF Protocol Progress:** 47 tests for Podcast LIST security
+
+
+---
+
+## Session: 2026-04-10T15:45:00Z
+
+**Context:** T269 Podcast CREATE redteam tests
+
+**Task:** T269 — Podcast CREATE redteam security tests
+
+**Completed:**
+1. Created `test_podcast_create_redteam_t269.py` with 26 tests:
+   - TestPodcastCreateRedTeamBOPLA: 5 tests (mass assignment, owner_id, IDOR)
+   - TestPodcastCreateRedTeamSSRF: 3 tests (internal URLs, credentials, redirectors)
+   - TestPodcastCreateRedTeamInjection: 5 tests (XSS, SQLi, command injection)
+   - TestPodcastCreateRedTeamResourceConsumption: 4 tests (rate limiting, long fields)
+   - TestPodcastCreateRedTeamAuthentication: 3 tests (no auth, guest, invalid token)
+   - TestPodcastCreateRedTeamFuzzing: 5 tests (naughty strings, null bytes, CRLF)
+   - TestPodcastCreateRedTeamRaceConditions: 1 test (duplicate creation)
+
+2. Bugs found (8 confirmed):
+   - T703: BOPLA - Extra fields silently ignored
+   - T706: URL credentials stored in plaintext
+   - T708-T710: Stored XSS in title/description/iTunes fields (HIGH)
+   - T713: No rate limiting on CREATE
+   - T721: JavaScript URL accepted (XSS vector)
+   - T722: Race condition - duplicate creation
+
+**Test Results:** 17 passed, 8 xfailed, 1 fixed
+
+**Files:**
+- `app/api/api/podcasts/tests/views/test_podcast_create_redteam_t269.py` (new)
+- `.agent/tasks.md` — added T701-T722
+
+**DEADBEEF:** T269 complete, moving to next commit

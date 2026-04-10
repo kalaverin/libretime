@@ -5500,3 +5500,89 @@ Notes: |
   API1:2023 Broken Object Level Authorization. EpisodeViewSet.queryset = PodcastEpisode.objects.all()
   without filtering by podcast__owner. Any user can see ALL episodes from ALL podcasts.
   Ref: test_podcast_list_redteam_t268.py::test_bola_episode_list_shows_all_episodes
+
+## [MEDIUM] fix T703 — BOPLA: Podcast CREATE silently ignores extra/unknown fields
+Status: NOT_STARTED
+Created: 2026-04-10T15:40:00Z
+Last worked: 2026-04-10T15:40:00Z
+File: `app/api/api/podcasts/serializers/podcast.py`
+Next step: Add strict field validation to reject unknown fields
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. CREATE accepts fields like
+  "is_admin", "role", "internal" and silently ignores them. Should reject with 400.
+  Ref: test_podcast_create_redteam_t269.py::test_bopla_extra_fields_ignored
+
+## [MEDIUM] fix T706 — Information Disclosure: URL credentials stored in plaintext
+Status: NOT_STARTED
+Created: 2026-04-10T15:40:00Z
+Last worked: 2026-04-10T15:40:00Z
+File: `app/api/api/podcasts/models/podcast.py:12`
+Next step: Strip credentials from URL or reject URLs with credentials
+Notes: |
+  API8:2023 Security Misconfiguration. URLs like http://admin:secret@host/ are stored
+  with credentials visible. Information disclosure risk if DB compromised.
+  Ref: test_podcast_create_redteam_t269.py::test_ssrf_url_with_credentials
+
+## [HIGH] fix T708 — Stored XSS: Script tags in podcast title not sanitized
+Status: NOT_STARTED
+Created: 2026-04-10T15:40:00Z
+Last worked: 2026-04-10T15:40:00Z
+File: `app/api/api/podcasts/serializers/podcast.py`
+Next step: Add HTML sanitization for all text fields
+Notes: |
+  API8:2023 Injection. <script>alert(1)</script> in title stored without sanitization.
+  Stored XSS vulnerability - executes when podcast displayed in admin UI.
+  Ref: test_podcast_create_redteam_t269.py::test_stored_xss_in_title
+
+## [HIGH] fix T709 — Stored XSS: Script tags in description not sanitized
+Status: NOT_STARTED
+Created: 2026-04-10T15:40:00Z
+Last worked: 2026-04-10T15:40:00Z
+File: `app/api/api/podcasts/serializers/podcast.py`
+Next step: Add HTML sanitization for description field
+Notes: |
+  API8:2023 Injection. Stored XSS in description field. Can steal cookies/session.
+  Ref: test_podcast_create_redteam_t269.py::test_stored_xss_in_description
+
+## [HIGH] fix T710 — Stored XSS: Script tags in iTunes metadata not sanitized
+Status: NOT_STARTED
+Created: 2026-04-10T15:40:00Z
+Last worked: 2026-04-10T15:40:00Z
+File: `app/api/api/podcasts/serializers/podcast.py`
+Next step: Add HTML sanitization for all iTunes fields
+Notes: |
+  API8:2023 Injection. Stored XSS in itunes_author, itunes_summary, itunes_subtitle.
+  Ref: test_podcast_create_redteam_t269.py::test_stored_xss_in_itunes_fields
+
+## [MEDIUM] fix T713 — No rate limiting on Podcast CREATE endpoint
+Status: NOT_STARTED
+Created: 2026-04-10T15:40:00Z
+Last worked: 2026-04-10T15:40:00Z
+File: `app/api/api/podcasts/views/podcast.py:21-26`
+Next step: Add Django Ratelimit or DRF throttling
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. 30+ CREATE requests per second allowed.
+  Can lead to DoS, database bloat, and resource exhaustion.
+  Ref: test_podcast_create_redteam_t269.py::test_rapid_create_requests
+
+## [MEDIUM] fix T721 — JavaScript URL scheme accepted (XSS vector)
+Status: NOT_STARTED
+Created: 2026-04-10T15:40:00Z
+Last worked: 2026-04-10T15:40:00Z
+File: `app/api/api/podcasts/serializers/podcast.py`
+Next step: Validate URL scheme - allow only http/https
+Notes: |
+  API8:2023 Injection. javascript:alert(1) accepted as valid podcast URL.
+  XSS vector - if URL is rendered as link, executes JavaScript.
+  Ref: test_podcast_create_redteam_t269.py::test_invalid_url_formats
+
+## [LOW] fix T722 — Race condition allows duplicate podcast creation
+Status: NOT_STARTED
+Created: 2026-04-10T15:40:00Z
+Last worked: 2026-04-10T15:40:00Z
+File: `app/api/api/podcasts/models/podcast.py:38-41`
+Next step: Add unique constraint on URL field or use get_or_create
+Notes: |
+  API6:2023 Unrestricted Access to Sensitive Business Flows. Concurrent requests
+  can create duplicate podcasts with same URL. No unique constraint in model.
+  Ref: test_podcast_create_redteam_t269.py::test_duplicate_creation_race
