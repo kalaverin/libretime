@@ -4994,3 +4994,70 @@ Notes: |
   Can mask attempted mass assignment attacks.
   Ref: test_playout_history_rud_redteam_t261.py::test_bopla_patch_extra_fields_ignored
 
+## [CRITICAL] fix T626 — BOLA: Metadata CREATE for other user's playout
+Status: NOT_STARTED
+Created: 2026-04-10T15:45:00Z
+Last worked: 2026-04-10T15:45:00Z
+File: `app/api/api/history/serializers/played.py:31-34`
+Next step: Add history ownership validation in metadata serializer
+Notes: |
+  API1:2023 Broken Object Level Authorization. CREATE metadata allows specifying
+  any history_id regardless of ownership. Attacker can add metadata to victim's playout.
+  No validation that requesting user owns the referenced playout history.
+  Ref: test_playout_history_metadata_redteam_t262.py::test_bola_create_metadata_for_other_users_playout
+
+## [MEDIUM] fix T627 — BOPLA: Metadata CREATE accepts extra fields
+Status: NOT_STARTED
+Created: 2026-04-10T15:45:00Z
+Last worked: 2026-04-10T15:45:00Z
+File: `app/api/api/history/serializers/played.py:31-34`
+Next step: Add strict validation to reject unknown fields
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. CREATE accepts extra fields
+  like "is_admin", "password" and silently ignores them instead of rejecting.
+  Ref: test_playout_history_metadata_redteam_t262.py::test_bopla_create_extra_fields_ignored
+
+## [MEDIUM] fix T628 — BOPLA: Metadata UPDATE accepts extra fields
+Status: NOT_STARTED
+Created: 2026-04-10T15:45:00Z
+Last worked: 2026-04-10T15:45:00Z
+File: `app/api/api/history/serializers/played.py:31-34`
+Next step: Add strict validation on UPDATE/PATCH for unknown fields
+Notes: |
+  API3:2023 Broken Object Property Level Authorization. PUT/PATCH accepts extra fields
+  and silently ignores them. Should reject with 400 for unknown fields.
+  Ref: test_playout_history_metadata_redteam_t262.py::test_bopla_update_extra_fields_ignored
+
+## [HIGH] fix T629 — XSS: Metadata key field stored unsanitized
+Status: NOT_STARTED
+Created: 2026-04-10T15:45:00Z
+Last worked: 2026-04-10T15:45:00Z
+File: `app/api/api/history/serializers/played.py:31-34`
+Next step: Add HTML sanitization for key field or validate against HTML tags
+Notes: |
+  XSS vulnerability. Script tags in key field are stored and returned without sanitization.
+  Potential reflected/stored XSS if rendered in frontend without escaping.
+  Ref: test_playout_history_metadata_redteam_t262.py::test_xss_in_key_field
+
+## [HIGH] fix T630 — XSS: Metadata value field stored unsanitized
+Status: NOT_STARTED
+Created: 2026-04-10T15:45:00Z
+Last worked: 2026-04-10T15:45:00Z
+File: `app/api/api/history/serializers/played.py:31-34`
+Next step: Add HTML sanitization for value field or validate against HTML tags
+Notes: |
+  XSS vulnerability. Script tags and event handlers in value field are stored
+  without sanitization. Can lead to stored XSS attacks.
+  Ref: test_playout_history_metadata_redteam_t262.py::test_xss_in_value_field
+
+## [MEDIUM] fix T631 — No rate limiting on metadata CREATE endpoint
+Status: NOT_STARTED
+Created: 2026-04-10T15:45:00Z
+Last worked: 2026-04-10T15:45:00Z
+File: `app/api/api/history/views/played.py:28-33`
+Next step: Add Django Ratelimit or DRF throttling
+Notes: |
+  API4:2023 Unrestricted Resource Consumption. Metadata CREATE has no rate limiting.
+  Rapid sequential requests (20) all succeed with 201. Can spam database.
+  Ref: test_playout_history_metadata_redteam_t262.py::test_rapid_metadata_creation
+
