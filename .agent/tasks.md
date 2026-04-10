@@ -1859,12 +1859,20 @@ Notes: |
   
   Result: Creating SmartBlockContent without file now returns 400 instead of 201.
 
-## [CRITICAL] fix T332 — SmartBlockCriteria filter by block not implemented
-Status: NOT_STARTED
+## [DONE] fix T332 — SmartBlockCriteria filter by block not implemented
+Status: DONE
 Created: 2026-04-09T18:20:00Z
+Last worked: 2026-04-10T03:45:00Z
 Scope: api/schedule/views/smart_block.py
-Next step: Add filterset_fields = ["block"] to SmartBlockCriteriaViewSet
-Notes: Query param ?block={id} is silently ignored.
+Notes: |
+  FIXED: Added filtering by block to SmartBlockCriteriaViewSet.
+  
+  Changes:
+  - smart_block.py view: Added filterset_fields=["block"], ordering_fields, ordering to SmartBlockCriteriaViewSet
+  - smart_block.py view: Added get_queryset() to filter by block_id query param
+  - test_smartblockcriteria_list.py: Removed xfail marker from test_list_filter_by_block
+  
+  Result: Query param ?block={id} now correctly filters smart block criteria.
 
 ## [DONE] fix T333 — Webstream serializer requires optional fields on CREATE
 Status: DONE

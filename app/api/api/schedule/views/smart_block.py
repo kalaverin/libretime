@@ -63,3 +63,15 @@ class SmartBlockCriteriaViewSet(viewsets.ModelViewSet[Any]):
     queryset = SmartBlockCriteria.objects.all()
     serializer_class: type[Serializer[Any]] = SmartBlockCriteriaSerializer
     model_permission_name: str = "smartblockcriteria"
+    filter_backends = [filters.OrderingFilter]
+    filterset_fields = ["block"]
+    ordering_fields = ["group", "criteria"]
+    ordering = ["group", "criteria"]
+
+    def get_queryset(self) -> Any:
+        """Filter by block if provided."""
+        queryset = super().get_queryset()
+        block_id = self.request.query_params.get("block")
+        if block_id:
+            queryset = queryset.filter(block_id=block_id)
+        return queryset

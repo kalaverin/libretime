@@ -79,7 +79,6 @@ class TestSmartBlockCriteriaViewSetList:
         assert response.status_code == 200
         assert len(response.json()) == 2
 
-    @pytest.mark.xfail(reason="T332: filter by block not implemented")
     def test_list_filter_by_block(self, api_client):
         """LIST should filter by block parameter."""
         user = baker.make(User, username="testsbcr_user")
