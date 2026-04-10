@@ -2770,6 +2770,21 @@ Notes: |
 
   Red team test: test_create_without_auth fails - returns 201 instead of 403
 
+## [LOW] bug T400 — ShowInstances 404 leaks query keyword
+Status: OPEN
+Created: 2026-04-10T11:28:00Z
+Scope: api/schedule/views/show.py
+Next step: Customize 404 error message in ShowInstanceViewSet
+Notes: |
+  SECURITY ISSUE: 404 response contains "matches the given query".
+
+  Attack scenario:
+  - Attacker learns this is a Django ORM-based API
+  - Minor information disclosure aids reconnaissance
+
+  Red team test: test_404_leakage fails - "query" in error message
+  Current message: "No ShowInstance matches the given query."
+
 ## [MEDIUM] bug T396 — ShowDays last_show_on removable via PATCH
 Status: OPEN
 Created: 2026-04-10T11:27:00Z
