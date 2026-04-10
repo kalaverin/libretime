@@ -1758,3 +1758,35 @@ name = faker.name()     # Generate fake name
 **Test Results:** 4 passed, 3 xfailed (T617-T619), 3 xpassed (defense working)
 
 **DEADBEEF Protocol Progress:** 33 bugs total across all endpoints
+
+
+---
+
+## Session: 2026-04-10T15:19:37Z
+
+**Context:** Continued API red-team testing. T268 was completed (Podcast LIST), moved to T267 per plan.
+
+**Task:** T267 — MountName LIST unit and redteam security tests
+
+**Completed:**
+1. Created `test_mount_name_list_redteam_t267.py` with 15 security tests:
+   - Authorization: requires specific 'mountname' permission (regular/guest get 403)
+   - SQL injection: ordering param, special chars in mount names
+   - Information disclosure: ID enumeration, error message leaks
+   - Resource consumption: rapid requests (50x), bulk creation (100x), large page_size
+   - Authentication: unauthenticated access, invalid tokens
+   - HTTP method tampering: TRACE disabled, OPTIONS allowed
+   - Edge cases: unicode mount names, very long names (500 chars)
+
+**Key findings:**
+- MountName LIST requires 'mountname' permission (admin only by default)
+- No rate limiting on endpoint (T666 candidate)
+- No pagination on LIST (T667 candidate)
+
+**Test Results:** 15 passed
+
+**Files modified:**
+- `app/api/api/history/tests/views/test_mount_name_list_redteam_t267.py` (new)
+- `.agent/tasks.md` — added T267 to Completed
+
+**DEADBEEF Protocol Progress:** Continuing API security test coverage

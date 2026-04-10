@@ -1738,3 +1738,31 @@ assert response.status_code == 404
 - api/storage/tests/views/test_library_create.py — cleanup order
 - api/storage/tests/views/test_file_delete_not_found.py — ID value
 - api/storage/tests/views/test_file_download_404.py — ID value
+
+
+## MountName Model (T267)
+
+**Location:** `app/api/api/history/models/listener.py`
+
+**Model:**
+```python
+class MountName(models.Model):
+    mount_name = models.CharField(max_length=1024)
+    
+    class Meta:
+        managed = False  # External table (Icecast)
+        db_table = "cc_mount_name"
+```
+
+**ViewSet:** `MountNameViewSet` in `app/api/api/history/views/listener.py`
+- `model_permission_name = "mountname"`
+- No owner field (system table for Icecast mount points)
+
+**Permissions:**
+- LIST requires 'view_mountname' permission (admin only by default)
+- Regular users and guests get 403
+
+**Security notes:**
+- No rate limiting observed (potential T666)
+- No pagination on LIST (potential T667)
+- No input validation on mount_name length beyond DB constraint

@@ -5401,3 +5401,15 @@ Notes: |
   Rapid sequential updates (20) all succeed with 200. Can cause update storms.
   Ref: test_live_log_redteam_t266.py::test_rapid_updates
 
+
+# Completed Tasks
+
+## [DONE] test T267 — MountName LIST unit and redteam security tests
+Completed: 2026-04-10T15:19:37Z
+Summary: |
+  Created 15 redteam security tests for MountName LIST endpoint.
+  Tests cover: authorization (requires 'mountname' permission), SQL injection,
+  information disclosure (ID enumeration), resource consumption (rate limiting, bulk),
+  authentication bypass, HTTP method tampering, unicode/edge cases.
+  All tests pass (15 passed).
+  Files: `app/api/api/history/tests/views/test_mount_name_list_redteam_t267.py`
