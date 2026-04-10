@@ -2253,6 +2253,35 @@ Notes: |
   - test_anonymous_cannot_list_podcasts: FAIL - 200 instead of 403
   - test_anonymous_cannot_create_podcast: FAIL - 201 instead of 403
 
+## [CRITICAL] fix T364 — Schedule anonymous filter access
+Status: NOT_STARTED
+Created: 2026-04-10T01:05:00Z
+Scope: api/schedule/views/schedule.py
+Next step: Add authentication requirement to ScheduleViewSet
+Notes: |
+  CRITICAL: Anonymous users can filter schedules.
+  
+  Attack scenario:
+  - GET /api/v2/schedule?instance=1 WITHOUT auth returns 200
+  - Should return 403 Forbidden
+  
+  Red team test: test_filter_without_auth returns 200 instead of 403
+
+## [CRITICAL] fix T365 — Schedule list shows all schedules (BOLA)
+Status: NOT_STARTED
+Created: 2026-04-10T01:05:00Z
+Scope: api/schedule/views/schedule.py
+Next step: Add owner-based filtering to get_queryset
+Notes: |
+  CRITICAL BOLA: Schedule list returns ALL schedules, not just user's.
+  
+  Current behavior:
+  - User B can see User A's schedules in LIST response
+  
+  Expected: User B should only see schedules they own
+  
+  Red team test: test_list_shows_only_own_schedules fails - shows admin schedule
+
 ## [HIGH] fix T352 — Fix Schedule.ends_at not saving via API
 Status: NOT_STARTED
 Created: 2026-04-10T00:55:00Z
