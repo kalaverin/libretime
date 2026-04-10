@@ -19,14 +19,9 @@ class TestWebstreamViewSetCreate:
         Webstream.objects.all().delete()
         User.objects.filter(username__startswith="testws").delete()
 
-    @pytest.mark.xfail(
-        reason="T333: serializer requires created_at, updated_at, length which should be optional",
-    )
-    def test_create_webstream_success(self, api_client):
+    def test_create_webstream_success(self, authenticated_client):
         """CREATE webstream should return 201."""
-        user = baker.make(User, username="testws_user")
-
-        response = api_client.post(
+        response = authenticated_client.post(
             "/api/v2/webstreams",
             json.dumps(
                 {
@@ -43,19 +38,15 @@ class TestWebstreamViewSetCreate:
         assert data["url"] == "http://example.com/stream.mp3"
         assert data["description"] == "Test description"
 
-    @pytest.mark.xfail(
-        reason="T333: serializer requires created_at, updated_at, length which should be optional",
-    )
-    def test_create_with_mime_type(self, api_client):
+    def test_create_with_mime_type(self, authenticated_client):
         """CREATE with mime type should succeed."""
-        user = baker.make(User, username="testws_user")
-
-        response = api_client.post(
+        response = authenticated_client.post(
             "/api/v2/webstreams",
             json.dumps(
                 {
                     "name": "Test Stream",
                     "url": "http://example.com/stream.mp3",
+                    "description": "Test description",
                     "mime": "audio/mpeg",
                 },
             ),
@@ -110,14 +101,9 @@ class TestWebstreamViewSetCreate:
         )
         assert response.status_code == 400
 
-    @pytest.mark.xfail(
-        reason="T333: serializer requires created_at, updated_at, length which should be optional",
-    )
-    def test_create_unicode_values(self, api_client):
+    def test_create_unicode_values(self, authenticated_client):
         """CREATE with unicode should succeed."""
-        user = baker.make(User, username="testws_user")
-
-        response = api_client.post(
+        response = authenticated_client.post(
             "/api/v2/webstreams",
             json.dumps(
                 {

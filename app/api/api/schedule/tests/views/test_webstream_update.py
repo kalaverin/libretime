@@ -112,9 +112,6 @@ class TestWebstreamViewSetUpdate:
         assert "updated_at" in data
         assert reformat_datetime(data["updated_at"]) is not None
 
-    @pytest.mark.xfail(
-        reason="T334: PUT requires created_at, updated_at, length which should be optional",
-    )
     def test_put_full_update_success(self, api_client):
         """PUT should update all fields."""
         user = baker.make(User, username="testws_user")

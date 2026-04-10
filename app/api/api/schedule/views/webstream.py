@@ -17,6 +17,13 @@ class WebstreamViewSet(viewsets.ModelViewSet[Any]):
     serializer_class: type[Serializer[Any]] = WebstreamSerializer
     model_permission_name: str = "webstream"
 
+    def perform_create(self, serializer: WebstreamSerializer) -> None:
+        """Create webstream with current user as owner (if authenticated)."""
+        if self.request.user.is_authenticated:
+            serializer.save(owner=self.request.user)
+        else:
+            serializer.save()
+
 
 @final
 class WebstreamMetadataViewSet(viewsets.ModelViewSet[Any]):

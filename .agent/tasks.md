@@ -1795,19 +1795,34 @@ Scope: api/schedule/views/smart_block.py
 Next step: Add filterset_fields = ["block"] to SmartBlockCriteriaViewSet
 Notes: Query param ?block={id} is silently ignored.
 
-## [CRITICAL] fix T333 — Webstream serializer requires optional fields on CREATE
-Status: NOT_STARTED
+## [DONE] fix T333 — Webstream serializer requires optional fields on CREATE
+Status: DONE
 Created: 2026-04-09T19:10:00Z
-Scope: api/schedule/serializers/webstream.py
-Next step: Make created_at, updated_at, length optional with defaults
-Notes: Serializer rejects requests without created_at, updated_at, length which should be auto-populated.
+Last worked: 2026-04-10T02:15:00Z
+Scope: api/schedule/serializers/webstream.py, api/schedule/views/webstream.py
+Notes: |
+  FIXED: Made created_at, updated_at, length optional in serializer with auto-populated defaults.
+  
+  Changes:
+  - webstream.py serializer: Added extra_kwargs with required=False for optional fields
+  - webstream.py serializer: Added create() method with defaults (now() for timestamps, timedelta(0) for length)
+  - webstream.py view: Added perform_create() to set owner from request.user
+  - test_webstream_create.py: Changed tests to use authenticated_client fixture
+  - Removed xfail markers from 3 tests
 
-## [CRITICAL] fix T334 — Webstream PUT requires optional fields
-Status: NOT_STARTED
+## [DONE] fix T334 — Webstream PUT requires optional fields
+Status: DONE
 Created: 2026-04-09T19:20:00Z
+Last worked: 2026-04-10T02:15:00Z
 Scope: api/schedule/serializers/webstream.py
-Next step: Make created_at, updated_at, length optional for PUT
-Notes: PUT full update fails without optional fields.
+Notes: |
+  FIXED: Same fix as T333 - fields are now optional in serializer.
+  
+  Changes:
+  - webstream.py serializer: Added update() method with auto-updated updated_at
+  - test_webstream_update.py: Removed xfail marker from test_put_full_update_success
+  
+  Result: PUT full update now works without sending created_at, updated_at, length.
 
 ## [MEDIUM] fix T335 — Schedule filter by instance not implemented
 Status: NOT_STARTED
