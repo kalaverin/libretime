@@ -2007,6 +2007,28 @@ Notes: |
   
   Result: Empty Api-Key header now returns 403 instead of crashing with IndexError.
 
+## [CRITICAL] fix T354 — Webstream security issues (created_at mutable, owner transferable)
+Status: NOT_STARTED
+Created: 2026-04-10T09:40:00Z
+Scope: api/schedule/serializers/webstream.py, api/schedule/views/webstream.py
+Next step: Add read_only_fields to serializer, fix delete permission
+Notes: |
+  RED TEAM FINDINGS from T333/T334 tests:
+  
+  1. CREATED_AT MUTABLE (SECURITY):
+     - PATCH {"created_at": "2019-01-01..."} successfully changes timestamp
+     - created_at should be read-only after creation
+     
+  2. OWNER TRANSFERABLE (BOLA):
+     - PATCH {"owner": other_user_id} transfers ownership
+     - Owner should be immutable after creation
+     
+  3. ANONYMOUS DELETE (CRITICAL):
+     - DELETE /api/v2/webstreams/{id} without auth returns 204
+     - Anyone can delete webstreams!
+     
+  Red team tests: test_webstream_redteam_t333.py
+
 ## [CRITICAL] fix T353 — Podcast ViewSets missing owner-based queryset filtering (BOLA)
 Status: NOT_STARTED
 Created: 2026-04-10T09:35:00Z
