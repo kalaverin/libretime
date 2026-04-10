@@ -3040,3 +3040,26 @@ Notes: |
   - Rate limiting per user/IP after N requests
   - Return 429 Too Many Requests
 
+
+## [CRITICAL] fix T425 — SmartBlock ViewSets missing owner-based queryset filtering (BOLA)
+Status: NOT_STARTED
+Created: 2026-04-10T12:30:00Z
+Scope: api/schedule/views/smart_block.py
+Next step: Add get_queryset() filtering by owner to all SmartBlock ViewSets
+Notes: |
+  CRITICAL BOLA VULNERABILITY: All SmartBlock ViewSets lack owner-based filtering.
+  
+  Current behavior (BROKEN):
+  - SmartBlockViewSet.queryset = SmartBlock.objects.all() - returns ALL blocks
+  - SmartBlockContentViewSet.queryset = SmartBlockContent.objects.all()
+  - SmartBlockCriteriaViewSet.queryset = SmartBlockCriteria.objects.all()
+  
+  Any authenticated user with 'view_smartblock' permission can:
+  - List all smart blocks (including other users' private blocks)
+  - Access any block by ID
+  - Access any content/criteria
+  
+  Same pattern as T420 (Playlists BOLA).
+  
+  Red team tests confirming bug: test_smartblock_redteam_t234.py
+
