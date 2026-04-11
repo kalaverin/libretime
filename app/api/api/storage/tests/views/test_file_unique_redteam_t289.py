@@ -210,7 +210,7 @@ class TestFileUniquePathTraversal:
     """Path traversal vulnerability tests."""
 
     @pytest.mark.django_db
-    @pytest.mark.xfail(reason="T855: Path traversal in filepath accepted")
+    # FIXED: T855 - Path traversal now rejected by validate_filepath
     def test_path_traversal_in_filepath_create(
         self, api_client, admin_user, faker,
     ):
@@ -242,9 +242,7 @@ class TestFileUniquePathTraversal:
             ), f"T855: Path traversal accepted: {payload}"
 
     @pytest.mark.django_db
-    @pytest.mark.xfail(
-        reason="T856: Path traversal in filepath UPDATE accepted",
-    )
+    # FIXED: T856 - Path traversal in UPDATE now rejected
     def test_path_traversal_in_filepath_update(
         self, api_client, admin_user, faker,
     ):
@@ -274,7 +272,7 @@ class TestFileUniquePathTraversal:
         ), "T856: Path traversal in UPDATE accepted"
 
     @pytest.mark.django_db
-    @pytest.mark.xfail(reason="T857: Absolute path accepted in filepath")
+    # FIXED: T857 - Absolute paths now rejected
     def test_filepath_absolute_path_blocked(
         self, api_client, admin_user, faker,
     ):
@@ -331,7 +329,7 @@ class TestFileUniqueBOPLA:
                 {
                     "id": 999999,
                     "name": "file_with_custom_id.mp3",
-                    "filepath": "/test/file.mp3",
+                    "filepath": "test/file.mp3",
                     "mime": "audio/mp3",
                     "library": library.id,
                     "owner": admin_user.id,
@@ -365,7 +363,7 @@ class TestFileUniqueBOPLA:
             json.dumps(
                 {
                     "name": "file_with_custom_timestamp.mp3",
-                    "filepath": "/test/file.mp3",
+                    "filepath": "test/file.mp3",
                     "mime": "audio/mp3",
                     "library": library.id,
                     "owner": admin_user.id,
@@ -427,7 +425,7 @@ class TestFileUniqueBOPLA:
             json.dumps(
                 {
                     "name": "file_with_extra.mp3",
-                    "filepath": "/test/file.mp3",
+                    "filepath": "test/file.mp3",
                     "mime": "audio/mp3",
                     "library": library.id,
                     "owner": admin_user.id,
@@ -466,7 +464,7 @@ class TestFileUniqueDuplicateAbuse:
                 json.dumps(
                     {
                         "name": f"duplicate_{i}.mp3",
-                        "filepath": "/same/path/file.mp3",
+                        "filepath": "same/path/file.mp3",
                         "mime": "audio/mp3",
                         "library": library.id,
                         "owner": admin_user.id,
@@ -497,7 +495,7 @@ class TestFileUniqueDuplicateAbuse:
                 json.dumps(
                     {
                         "name": "spam_file.mp3",
-                        "filepath": f"/spam/file{i}.mp3",
+                        "filepath": f"spam/file{i}.mp3",
                         "mime": "audio/mp3",
                         "library": library.id,
                         "owner": admin_user.id,
@@ -524,7 +522,7 @@ class TestFileUniqueDuplicateAbuse:
                 json.dumps(
                     {
                         "name": f"rapid_{i}.mp3",
-                        "filepath": f"/rapid/file{i}.mp3",
+                        "filepath": f"rapid/file{i}.mp3",
                         "mime": "audio/mp3",
                         "library": library.id,
                         "owner": admin_user.id,
@@ -591,7 +589,7 @@ class TestFileUniqueInjection:
                 json.dumps(
                     {
                         "name": "xss_test.mp3",
-                        "filepath": "/test/file.mp3",
+                        "filepath": "test/file.mp3",
                         "mime": "audio/mp3",
                         "library": library.id,
                         "owner": admin_user.id,
@@ -830,7 +828,7 @@ class TestFileUniqueDoS:
             json.dumps(
                 {
                     "name": "long_metadata.mp3",
-                    "filepath": "/test/file.mp3",
+                    "filepath": "test/file.mp3",
                     "mime": "audio/mp3",
                     "library": library.id,
                     "owner": admin_user.id,

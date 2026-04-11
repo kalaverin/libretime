@@ -229,14 +229,14 @@
 
 | ID | Поле | Компонент | Описание |
 |----|------|-----------|----------|
-| T7 | filepath | FileViewSet download | Path traversal |
-| T8 | filepath | FileViewSet destroy | Path traversal |
-| T479 | cue_in/out | SmartBlockContent | Path patterns |
-| T855 | filepath | File CREATE | Traversal patterns |
-| T856 | filepath | File UPDATE | Traversal via PATCH |
-| T886 | filepath | File | Traversal accepted |
-| T890 | filepath | File | Absolute paths |
-| T857 | filepath | File | Absolute path accepted |
+    | T7 | filepath | FileViewSet download | Path traversal |
+    | T8 | filepath | FileViewSet destroy | Path traversal |
+    | T479 | cue_in/out | SmartBlockContent | Path patterns |
+    | T855 | filepath | File CREATE | Traversal patterns |
+    | T856 | filepath | File UPDATE | Traversal via PATCH |
+    | T886 | filepath | File | Traversal accepted |
+    | T890 | filepath | File | Absolute paths |
+    | T857 | filepath | File | Absolute path accepted |
 
 ---
 

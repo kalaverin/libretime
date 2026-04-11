@@ -1,6 +1,7 @@
 import os
-
+import re
 from os import remove
+from pathlib import Path
 from typing import Any, final
 
 from django.conf import settings
@@ -62,6 +63,63 @@ class FileViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
         response["X-Accel-Redirect"] = redirect_uri
         return response
 
+    def _resolve_and_validate_path(self, filepath: str) -> Path:
+        """
+        Resolve filepath to absolute path using pathlib and validate it's within storage.
+        
+        Args:
+            filepath: The relative filepath from the File instance
+            
+        Returns:
+            Path: Resolved absolute Path object
+            
+        Raises:
+            APIException: If path escapes storage directory or is invalid
+        """
+        try:
+            storage_root = Path(settings.CONFIG.storage.path).resolve()
+            
+            # Join storage root with filepath and resolve
+            # resolve() removes .., ., and symlinks
+            full_path = (storage_root / filepath).resolve()
+            
+            # Security check: ensure resolved path is within storage
+            # Using Path.is_relative_to() or manual check
+            try:
+                # Python 3.9+ has is_relative_to()
+                is_within = full_path.is_relative_to(storage_root)
+            except AttributeError:
+                # Fallback for older Python: check if path starts with storage root
+                try:
+                    full_path.relative_to(storage_root)
+                    is_within = True
+                except ValueError:
+                    is_within = False
+            
+            if not is_within:
+                logger.error(
+                    "file path escapes storage directory: %s resolves to %s, "
+                    "which is outside storage root %s",
+                    filepath,
+                    full_path,
+                    storage_root,
+                )
+                raise APIException(
+                    "filepath escapes storage directory",
+                )
+            
+            return full_path
+            
+        except (OSError, ValueError) as exc:
+            logger.error(
+                "error resolving filepath %s: %s",
+                filepath,
+                str(exc),
+            )
+            raise APIException(
+                "invalid filepath",
+            ) from exc
+
     @override
     def perform_destroy(self, instance: File) -> None:
 
@@ -76,19 +134,21 @@ class FileViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
                 )
                 return
 
-            path = os.path.join(
-                settings.CONFIG.storage.path,
-                instance.filepath,
-            )
+            # Use pathlib to resolve and validate path (T8)
+            resolved_path = self._resolve_and_validate_path(instance.filepath)
+            
+            # Convert to string for os.path.isfile check
+            path_str = str(resolved_path)
 
-            if not os.path.isfile(path):
+            if not os.path.isfile(path_str):
                 logger.warning(
-                    "file does not exist in storage: %d",
+                    "file does not exist in storage: %d (resolved to %s)",
                     instance.id,
+                    path_str,
                 )
                 return
 
-            remove(path)
+            remove(path_str)
 
         except OSError as exception:
             raise APIException(

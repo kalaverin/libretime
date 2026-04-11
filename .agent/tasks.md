@@ -343,13 +343,12 @@ File: `app/api/api/storage/views/file.py:49`
 Next step: Validate instance.filepath against path traversal before using in os.path.join
 Notes: Path traversal vulnerability. `../../../etc/passwd` possible.
 
-## [CRITICAL] fix T8 — Add path validation in FileViewSet perform_destroy
-Status: NOT_STARTED
-Created: 2026-04-06T16:53:26Z
-Last worked: 2026-04-06T16:53:26Z
-File: `app/api/api/storage/views/file.py:68-70`
-Next step: Validate instance.filepath before os.path.join with settings.CONFIG.storage.path
-Notes: Path traversal allows deletion of arbitrary files.
+## [DONE] fix T8 — Add path validation in FileViewSet perform_destroy
+Completed: 2026-04-11T01:27:28Z
+Summary: |
+  Implemented pathlib-based path resolution in perform_destroy() with _resolve_and_validate_path().
+  Uses Path.resolve() to normalize paths and is_relative_to() to verify path stays within storage root.
+  Added comprehensive tests for path traversal detection in destroy action.
 
 ## [CRITICAL] fix T9 — Close file descriptor in podcast upload
 Status: NOT_STARTED
@@ -716,16 +715,11 @@ Notes: |
   Could mask typos or attempts at mass assignment.
   Ref: test_smartblockcontent_create_redteam_t240.py::test_bopla_extra_fields_rejected
 
-## [LOW] fix T479 — Path traversal in cue_in/cue_out fields not validated
-Status: NOT_STARTED
-Created: 2026-04-10T13:35:00Z
-Last worked: 2026-04-10T13:35:00Z
-File: `app/api/api/schedule/serializers/smart_block.py:22-30`
-Next step: Add path traversal pattern validation for cue fields
-Notes: |
-  Fields cue_in and cue_out accept path traversal patterns like "../../../etc/passwd".
-  While likely not exploitable directly, should be rejected as invalid input.
-  Ref: test_smartblockcontent_create_redteam_t240.py::test_path_traversal_in_cue_fields
+## [DONE] fix T479 — Path traversal in cue_in/cue_out fields not validated
+Completed: 2026-04-11T01:27:28Z
+Summary: |
+  Added validate_no_path_patterns() validator to cue_in and cue_out fields in SmartBlockContentSerializer.
+  Rejects any value containing path separators (/ or \\). Added tests to verify rejection.
 
 ## [MEDIUM] fix T480 — Duplicate position values allowed in same SmartBlock
 Status: NOT_STARTED
@@ -3552,17 +3546,12 @@ Notes: |
 
   Red team test: test_file_metadata_redteam_t294.py::test_mass_assignment_created_at_blocked
 
-## [CRITICAL] fix T886 — Path traversal in filepath field accepted
-Status: NOT_STARTED
-Created: 2026-04-10T18:25:00Z
-Last worked: 2026-04-10T18:25:00Z
-File: `app/api/api/storage/serializers/file.py`
-Next step: Add path traversal validation to filepath field
-Notes: |
-  Path traversal patterns like ../../../etc/passwd are accepted in filepath.
-  Could allow access to arbitrary filesystem locations.
-
-  Red team test: test_file_metadata_redteam_t294.py::test_path_traversal_in_filepath_blocked
+## [DONE] fix T886 — Path traversal in filepath field accepted
+Completed: 2026-04-11T01:27:28Z
+Summary: |
+  Implemented validate_filepath() in validators.py with PATH_TRAVERSAL_PATTERN.
+  Detects ../, ..\, URL-encoded variants (%2e%2e%2f, ..%2f, etc.).
+  Added to FileSerializer extra_kwargs for filepath field validation on CREATE/UPDATE.
 
 ## [CRITICAL] fix T887 — BOPLA: Mass assignment allows changing import_status (workflow bypass)
 Status: NOT_STARTED
@@ -3600,17 +3589,12 @@ Notes: |
 
   Red team test: test_file_silence_redteam_t296.py::test_filter_by_import_status_shows_only_own_files
 
-## [CRITICAL] fix T890 — Path traversal in filepath field accepted (absolute paths)
-Status: NOT_STARTED
-Created: 2026-04-10T18:35:00Z
-Last worked: 2026-04-10T18:35:00Z
-File: `app/api/api/storage/serializers/file.py`
-Next step: Validate filepath against allowed storage paths only
-Notes: |
-  Absolute paths like /etc/passwd and /etc/shadow are accepted in filepath field.
-  Critical filesystem access vulnerability.
-
-  Red team test: test_file_silence_redteam_t296.py::test_path_traversal_in_filepath_blocked
+## [DONE] fix T890 — Path traversal in filepath field accepted (absolute paths)
+Completed: 2026-04-11T01:27:28Z
+Summary: |
+  Added ABSOLUTE_PATH_PATTERN to detect Unix (/), Windows (C:\\), and UNC (\\\\) absolute paths.
+  Integrated in validate_filepath() - all absolute paths rejected with 400 error.
+  Tests added for /etc/passwd, C:\\Windows, and UNC paths.
 
 ## [HIGH] fix T891 — Workflow bypass: PENDING/FAILED to SUCCESS via PATCH
 Status: NOT_STARTED
@@ -6453,36 +6437,24 @@ Notes: |
     3. SmartBlock (high - content modification)
     4. Nested resources (medium - content access)
 
-## [CRITICAL] fix T855 — Path traversal in filepath field
-Status: NOT_STARTED
-Created: 2026-04-10T17:25:00Z
-Last worked: 2026-04-10T17:25:00Z
-File: `app/api/api/storage/serializers/file.py`
-Next step: Add path traversal validation for filepath field
-Notes: |
-  Path traversal patterns like "../../../etc/passwd" accepted in filepath.
-  Can lead to LFI or unauthorized file access.
-  Ref: test_file_unique_redteam_t289.py::test_path_traversal_in_filepath_create
+## [DONE] fix T855 — Path traversal in filepath field
+Completed: 2026-04-11T01:27:28Z
+Summary: |
+  Added validate_filepath() validator to FileSerializer filepath field.
+  Detects and blocks path traversal patterns (../, ..\\, URL-encoded variants).
+  All CREATE operations now validate filepath before saving.
 
-## [CRITICAL] fix T856 — Path traversal in filepath UPDATE
-Status: NOT_STARTED
-Created: 2026-04-10T17:25:00Z
-Last worked: 2026-04-10T17:25:00Z
-File: `app/api/api/storage/serializers/file.py`
-Next step: Add path traversal validation for filepath on update
-Notes: |
-  Path traversal accepted via PATCH/PUT update operations.
-  Ref: test_file_unique_redteam_t289.py::test_path_traversal_in_filepath_update
+## [DONE] fix T856 — Path traversal in filepath UPDATE
+Completed: 2026-04-11T01:27:28Z
+Summary: |
+  Same validator as T855 applies to UPDATE operations via FileSerializer.
+  PATCH/PUT with traversal patterns in filepath now rejected with 400 error.
 
-## [HIGH] fix T857 — Absolute path accepted in filepath
-Status: NOT_STARTED
-Created: 2026-04-10T17:25:00Z
-Last worked: 2026-04-10T17:25:00Z
-File: `app/api/api/storage/serializers/file.py`
-Next step: Validate filepath is relative and within storage path
-Notes: |
-  Absolute paths like "/etc/passwd" accepted in filepath field.
-  Should enforce relative paths within allowed storage directory.
+## [DONE] fix T857 — Absolute path accepted in filepath
+Completed: 2026-04-11T01:27:28Z
+Summary: |
+  Added ABSOLUTE_PATH_PATTERN to detect and block absolute paths (/etc/passwd, C:\\Windows, UNC paths).
+  Validated in validate_filepath() and applied to FileSerializer filepath field.
   Ref: test_file_unique_redteam_t289.py::test_filepath_absolute_path_blocked
 
 ## [HIGH] fix T858 — BOPLA: File CREATE allows mass assignment of id field
