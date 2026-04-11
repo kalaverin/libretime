@@ -3,6 +3,7 @@
 from typing import Any
 
 from django.db.models import Model
+from rest_framework.serializers import ValidationError
 from typing_extensions import final
 
 from api.schedule.models import (
@@ -13,6 +14,11 @@ from api.schedule.models import (
     ShowRebroadcast,
 )
 from api.serializers import SecureModelSerializer, StrictSerializer
+from api.validators.fields import (
+    validate_hex_color,
+    validate_non_negative_int,
+    validate_not_null,
+)
 from api.validators.xss import validate_no_xss
 
 
@@ -59,6 +65,14 @@ class ShowSerializer(SecureModelSerializer):
             validate_no_xss(value)
         return value
 
+    def validate_background_color(self, value: str) -> str:
+        """Validate background color is valid hex (T381)."""
+        return validate_hex_color(value, "background_color")
+
+    def validate_foreground_color(self, value: str) -> str:
+        """Validate foreground color is valid hex (T381)."""
+        return validate_hex_color(value, "foreground_color")
+
 
 @final
 class ShowDaysSerializer(StrictSerializer):
@@ -67,6 +81,26 @@ class ShowDaysSerializer(StrictSerializer):
     class Meta:
         model: type[Model] = ShowDays
         fields: str = "__all__"
+
+    def validate_duration(self, value: Any) -> Any:
+        """Validate duration is non-negative (T395)."""
+        return validate_non_negative_int(value, "duration")
+
+    def validate_last_show(self, value: Any) -> Any:
+        """Validate last_show is not null when provided (T396)."""
+        # Only validate if key is present in input data
+        return value
+
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Validate last_show is not null if provided (T396)."""
+        # Check if last_show is explicitly set to None in initial data
+        if hasattr(self, "initial_data") and "last_show" in self.initial_data:
+            if self.initial_data["last_show"] is None:
+                raise ValidationError(
+                    {"last_show": "last_show cannot be null."},
+                    code="last_show_null",
+                )
+        return super().validate(data)
 
 
 @final

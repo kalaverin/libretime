@@ -321,12 +321,12 @@
 
 | ID | Параметр | Компонент | Описание |
 |----|----------|-----------|----------|
-| T490 | block filter | SmartBlockCriteria | SQLi в block_id |
-| T356 | block_id | SmartBlockContent | Invalid ID → 500 |
-| T357 | playlist_id | PlaylistContent | Invalid ID → 500 |
-| T367 | block_id | SmartBlockCriteria | Filter crash |
-| T613 | overbooked | Schedule | SQLi в фильтре |
-| T814 | length | Playlist | SQLi в length field |
+    | T490 | block filter | SmartBlockCriteria | SQLi в block_id |
+    | T356 | block_id | SmartBlockContent | Invalid ID → 500 |
+    | T357 | playlist_id | PlaylistContent | Invalid ID → 500 |
+    | T367 | block_id | SmartBlockCriteria | Filter crash |
+    | T613 | overbooked | Schedule | SQLi в фильтре |
+    | T814 | length | Playlist | SQLi в length field |
 
 ---
 
@@ -354,32 +354,32 @@
 
 | ID | Проблема | Компонент | Описание |
 |----|----------|-----------|----------|
-| T481 | Negative offset | SmartBlockContent | Отрицательный offset |
-| T500 | Negative group | SmartBlockCriteria | Отрицательный group |
-| T648 | Negative count | ListenerCount | Отрицательный count |
-| T644 | Negative position | TemplateField | Отрицательная позиция |
-| T900 | Negative channels | File | Отрицательные каналы |
-| T482 | Time order | SmartBlockContent | cue_out < cue_in |
-| T483 | Time format | SmartBlockContent | Невалидный формат |
-| T817 | Time format | Playlist | Невалидный length |
-| T381 | Color format | Show | Невалидный hex |
-| T522 | Length overflow | Webstream | URL length |
-| T536 | Length overflow | Webstream | Name length |
-| T818 | Length overflow | Playlist | Length value |
-| T499 | Length overflow | SmartBlockCriteria | Value length |
-| T502 | Invalid choices | SmartBlockCriteria | Невалидный criteria |
-| T503 | Invalid condition | SmartBlockCriteria | Невалидный condition |
-| T837 | Invalid kind | SmartBlock | Невалидный kind |
-| T441 | Invalid kind | SmartBlock PATCH | Invalid values |
-| T581 | Schedule overlap | Schedule | Пересечение |
-| T595 | Schedule overlap | Schedule UPDATE | Overlap via update |
-| T582 | Time boundaries | Schedule | Вне границ шоу |
-| T656 | Time range | LiveLog | end < start |
-| T657 | Future time | LiveLog | Future start_time |
-| T651 | Future timestamp | ListenerCount | Future timestamp |
-| T443 | Null required | SmartBlock | Null for required |
-| T396 | Null last_show | ShowDays | Null removal |
-| T395 | Negative duration | ShowDays | Отрицательная длительность |
+    | T481 | Negative offset | SmartBlockContent | Отрицательный offset |
+    | T500 | Negative group | SmartBlockCriteria | Отрицательный group |
+    | T648 | Negative count | ListenerCount | Отрицательный count |
+    | T644 | Negative position | TemplateField | Отрицательная позиция |
+    | T900 | Negative channels | File | Отрицательные каналы |
+    | T482 | Time order | SmartBlockContent | cue_out < cue_in |
+    | T483 | Time format | SmartBlockContent | Невалидный формат |
+    | T817 | Time format | Playlist | Невалидный length |
+    | T381 | Color format | Show | Невалидный hex |
+    | T522 | Length overflow | Webstream | URL length |
+    | T536 | Length overflow | Webstream | Name length |
+    | T818 | Length overflow | Playlist | Length value |
+    | T499 | Length overflow | SmartBlockCriteria | Value length |
+    | T502 | Invalid choices | SmartBlockCriteria | Невалидный criteria |
+    | T503 | Invalid condition | SmartBlockCriteria | Невалидный condition |
+    | T837 | Invalid kind | SmartBlock | Невалидный kind |
+    | T441 | Invalid kind | SmartBlock PATCH | Invalid values |
+    | T581 | Schedule overlap | Schedule | Пересечение |
+    | T595 | Schedule overlap | Schedule UPDATE | Overlap via update |
+    | T582 | Time boundaries | Schedule | Вне границ шоу |
+    | T656 | Time range | LiveLog | end < start |
+    | T657 | Future time | LiveLog | Future start_time |
+    | T651 | Future timestamp | ListenerCount | Future timestamp |
+    | T443 | Null required | SmartBlock | Null for required |
+    | T396 | Null last_show | ShowDays | Null removal |
+    | T395 | Negative duration | ShowDays | Отрицательная длительность |
 
 ---
 

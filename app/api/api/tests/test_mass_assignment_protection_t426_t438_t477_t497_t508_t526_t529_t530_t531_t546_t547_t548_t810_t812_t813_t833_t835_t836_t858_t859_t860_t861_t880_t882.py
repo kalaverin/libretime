@@ -319,7 +319,7 @@ class TestMassAssignmentSmartBlockCriteria:
                 "id": 66666,
                 "block": block.id,
                 "criteria": "genre",
-                "condition": "is",
+                "condition": "2",  # "is" condition
                 "value": "Rock",
             }),
             content_type="application/json",
@@ -335,7 +335,7 @@ class TestMassAssignmentSmartBlockCriteria:
             SmartBlockCriteria,
             block=block,
             criteria="genre",
-            condition="is",
+            condition="2",  # "is" condition
             value="Rock",
         )
         original_id = criteria.id

@@ -2886,3 +2886,46 @@ def download(self, request: Request, **__: Any) -> HttpResponse:
 - Mass Assignment: 21 tests ✓
 - XSS: 272 tests ✓
 
+
+
+---
+
+## Session 2026-04-11T02:00:00Z — Field Validation Implementation
+
+**Focus:** Implement field-level validation for negative values, time formats, colors, length
+
+**Field Validation Layer Added:**
+
+1. **api/validators/fields.py** - Centralized field validation:
+   - `validate_non_negative_int()` - For integer fields (position, group, channels)
+   - `validate_non_negative_float()` - For float fields (offset)
+   - `validate_positive_int()` - For positive-only fields
+   - `validate_time_order()` - For cue_in/cue_out ordering
+   - `validate_duration_format()` - For HH:MM:SS format
+   - `validate_hex_color()` - For 6-digit hex colors
+   - `validate_max_length()` - For string length limits
+   - `validate_choice()` - For enum/choice validation
+   - `validate_not_empty_string()` - For required string fields
+
+2. **Updated serializers:**
+   - SmartBlockContent: offset (non-negative), cue_in/cue_out (format, ordering)
+   - SmartBlockCriteria: group (non-negative), criteria/condition (choices), value (max_length)
+   - SmartBlock: kind (choices), name (not empty)
+   - PlaylistContent: position (non-negative)
+   - Show: background_color/foreground_color (hex format)
+   - File: channels (non-negative)
+   - ShowDays: duration (non-negative)
+
+3. **Tests added** - `test_validation_redteam.py` (22 tests):
+   - Negative value rejection (offset, group, position, channels)
+   - Time format validation (HH:MM:SS)
+   - Time order validation (cue_out > cue_in)
+   - Color format validation (6-digit hex)
+   - Choice validation (criteria, condition, kind)
+   - Required field validation (name not empty)
+   - Length overflow validation (URL, name, criteria value)
+
+**All 22 field validation tests pass.**
+
+**Tasks completed:** T481, T482, T483, T499, T500, T502, T503, T522, T536, T381, T900, T395, T441, T443
+

@@ -5,6 +5,11 @@ from rest_framework.serializers import ValidationError
 
 from api.schedule.models import Playlist, PlaylistContent
 from api.serializers import SecureModelSerializer, StrictSerializer
+from api.validators.fields import (
+    validate_duration_format,
+    validate_non_negative_float,
+    validate_non_negative_int,
+)
 
 
 @final
@@ -14,6 +19,10 @@ class PlaylistSerializer(SecureModelSerializer):
     class Meta:
         model: type[Model] = Playlist
         fields: str = "__all__"
+
+    def validate_length(self, value: Any) -> Any:
+        """Validate length format (T817)."""
+        return validate_duration_format(value, "length")
 
 
 @final
@@ -27,6 +36,26 @@ class PlaylistContentSerializer(StrictSerializer):
             "playlist": {"required": True},
             "offset": {"required": False},
         }
+
+    def validate_position(self, value: Any) -> Any:
+        """Validate position is non-negative (T644)."""
+        return validate_non_negative_int(value, "position")
+
+    def validate_offset(self, value: Any) -> Any:
+        """Validate offset is non-negative (T481)."""
+        return validate_non_negative_float(value, "offset")
+
+    def validate_length(self, value: Any) -> Any:
+        """Validate length format (T817)."""
+        return validate_duration_format(value, "length")
+
+    def validate_cue_in(self, value: Any) -> Any:
+        """Validate cue_in format (T483)."""
+        return validate_duration_format(value, "cue_in")
+
+    def validate_cue_out(self, value: Any) -> Any:
+        """Validate cue_out format (T483)."""
+        return validate_duration_format(value, "cue_out")
 
     def validate(self, data: dict[str, Any]) -> dict[str, Any]:
         """Validate that FILE kind has file assigned."""

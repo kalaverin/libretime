@@ -6,6 +6,7 @@ from typing_extensions import final
 from api.serializers import SecureModelSerializer
 from api.storage.models import File
 from api.storage.validators import validate_filepath
+from api.validators.fields import validate_non_negative_int
 from api.validators.xss import validate_no_xss
 
 
@@ -27,3 +28,7 @@ class FileSerializer(SecureModelSerializer):
         if value:
             validate_no_xss(value)
         return value
+
+    def validate_channels(self, value: Any) -> Any:
+        """Validate channels is non-negative (T900)."""
+        return validate_non_negative_int(value, "channels")

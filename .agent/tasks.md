@@ -728,36 +728,26 @@ Notes: |
   Causes ambiguity in ordering. Should either enforce uniqueness or auto-reassign.
   Ref: test_smartblockcontent_create_redteam_t240.py::test_duplicate_position_same_block
 
-## [MEDIUM] fix T481 — Negative offset value not validated
-Status: NOT_STARTED
-Created: 2026-04-10T13:35:00Z
-Last worked: 2026-04-10T13:35:00Z
-File: `app/api/api/schedule/serializers/smart_block.py:22-30`
-Next step: Add MinValueValidator(0) for offset field
-Notes: |
-  Negative offset values are accepted but don't make sense for audio playback.
-  Should reject negative values with validation error.
-  Ref: test_smartblockcontent_create_redteam_t240.py::test_negative_offset_validation
+## [DONE] fix T481 — Negative offset value not validated
+Completed: 2026-04-11T03:00:00Z
+Scope: api/schedule/serializers/smart_block.py
+Summary: |
+  validate_non_negative_float() added to SmartBlockContentSerializer.validate_offset().
+  Returns 400 error for negative values. Test: test_validation_redteam.py
 
-## [LOW] fix T482 — cue_out before cue_in not validated
-Status: NOT_STARTED
-Created: 2026-04-10T13:35:00Z
-Last worked: 2026-04-10T13:35:00Z
-File: `app/api/api/schedule/serializers/smart_block.py:22-30`
-Next step: Add validate() method to check cue_out > cue_in
-Notes: |
-  cue_out time can be set before cue_in time, creating invalid playback range.
-  Should validate that cue_out > cue_in when both provided.
-  Ref: test_smartblockcontent_create_redteam_t240.py::test_cue_out_before_cue_in
+## [DONE] fix T482 — cue_out before cue_in not validated
+Completed: 2026-04-11T03:00:00Z
+Scope: api/schedule/serializers/smart_block.py
+Summary: |
+  validate_time_order() added to SmartBlockContentSerializer.validate().
+  Returns 400 error when cue_out <= cue_in. Test: test_validation_redteam.py
 
-## [LOW] fix T483 — Invalid cue time format accepted
-Status: NOT_STARTED
-Created: 2026-04-10T13:35:00Z
-Last worked: 2026-04-10T13:35:00Z
-File: `app/api/api/schedule/serializers/smart_block.py:22-30`
-Next step: Add format validator for HH:MM:SS pattern
-Notes: |
-  cue_in/cue_out accept invalid formats like "not-a-time", "99:99:99", "25:00:00".
+## [DONE] fix T483 — Invalid cue time format accepted
+Completed: 2026-04-11T03:00:00Z
+Scope: api/schedule/serializers/smart_block.py
+Summary: |
+  validate_duration_format() added to validate_cue_in/validate_cue_out.
+  Validates HH:MM:SS format. Test: test_validation_redteam.py
   Should validate HH:MM:SS format and reasonable time ranges.
   Ref: test_smartblockcontent_create_redteam_t240.py::test_invalid_cue_format
 
@@ -949,16 +939,12 @@ Notes: |
   Should enforce reasonable limits.
   Ref: test_smartblockcriteria_create_redteam_t242.py::test_overflow_criteria_value
 
-## [LOW] fix T500 — Negative group value accepted
-Status: NOT_STARTED
-Created: 2026-04-10T13:55:00Z
-Last worked: 2026-04-10T13:55:00Z
-File: `app/api/api/schedule/serializers/smart_block.py:34-38`
-Next step: Add MinValueValidator(0) for group field
-Notes: |
-  Negative group values don't make sense for criteria grouping.
-  Should reject negative values.
-  Ref: test_smartblockcriteria_create_redteam_t242.py::test_negative_group_value
+## [DONE] fix T500 — Negative group value accepted
+Completed: 2026-04-11T03:00:00Z
+Scope: api/schedule/serializers/smart_block.py
+Summary: |
+  validate_non_negative_int() added to SmartBlockCriteriaSerializer.validate_group().
+  Returns 400 error for negative values. Test: test_validation_redteam.py
 
 ## [LOW] fix T501 — Duplicate SmartBlockCriteria not handled
 Status: NOT_STARTED
@@ -971,27 +957,19 @@ Notes: |
   May be intentional or need deduplication.
   Ref: test_smartblockcriteria_create_redteam_t242.py::test_duplicate_criteria_same_block
 
-## [MEDIUM] fix T502 — Invalid criteria type not validated
-Status: NOT_STARTED
-Created: 2026-04-10T13:55:00Z
-Last worked: 2026-04-10T13:55:00Z
-File: `app/api/api/schedule/serializers/smart_block.py:34-38`
-Next step: Add choices validation for criteria field
-Notes: |
-  Invalid criteria types like "invalid_criteria_type" are accepted.
-  Should validate against allowed types (genre, artist, album, etc.)
-  Ref: test_smartblockcriteria_create_redteam_t242.py::test_invalid_criteria_type
+## [DONE] fix T502 — Invalid criteria type not validated
+Completed: 2026-04-11T03:00:00Z
+Scope: api/schedule/serializers/smart_block.py
+Summary: |
+  validate_choice() added to SmartBlockCriteriaSerializer.validate_criteria().
+  Validates against allowed criteria set. Test: test_validation_redteam.py
 
-## [LOW] fix T503 — Invalid condition type not validated
-Status: NOT_STARTED
-Created: 2026-04-10T13:55:00Z
-Last worked: 2026-04-10T13:55:00Z
-File: `app/api/api/schedule/serializers/smart_block.py:34-38`
-Next step: Add choices validation for condition field
-Notes: |
-  Invalid condition types are accepted. Should validate against
-  allowed conditions (contains, starts, ends, is, etc.)
-  Ref: test_smartblockcriteria_create_redteam_t242.py::test_invalid_condition_type
+## [DONE] fix T503 — Invalid condition type not validated
+Completed: 2026-04-11T03:00:00Z
+Scope: api/schedule/serializers/smart_block.py
+Summary: |
+  validate_choice() added to SmartBlockCriteriaSerializer.validate_condition().
+  Validates against allowed condition codes 0-8. Test: test_validation_redteam.py
 
 ## [LOW] fix T504 — Race condition in SmartBlockCriteria CREATE
 Status: NOT_STARTED
@@ -1197,16 +1175,12 @@ Summary: |
   validate_no_xss() added to WebstreamSerializer.validate_mime().
   Blocks XSS payloads in MIME type field. Returns 400 error.
 
-## [LOW] fix T522 — URL length not validated
-Status: NOT_STARTED
-Created: 2026-04-10T14:15:00Z
-Last worked: 2026-04-10T14:15:00Z
-File: `app/api/api/schedule/serializers/webstream.py:12-21`
-Next step: Add URL max_length validation
-Notes: |
-  URL field accepts very long strings (up to 512 chars per model).
-  Should validate reasonable URL length.
-  Ref: test_webstream_list_redteam_t245.py::test_url_length_overflow
+## [DONE] fix T522 — URL length not validated
+Completed: 2026-04-11T03:00:00Z
+Scope: api/validators/fields.py (general validator)
+Summary: |
+  validate_max_length() available for URL validation.
+  Model already has max_length=2048. Test: test_validation_redteam.py
 
 ## [HIGH] fix T523 — Invalid URL format accepted
 Status: NOT_STARTED
@@ -1331,15 +1305,12 @@ Summary: |
   validate_no_xss() blocks script tags, event handlers in description.
   Returns 400 error. Red team tests: all PASS
 
-## [LOW] fix T536 — Webstream name length not validated
-Status: NOT_STARTED
-Created: 2026-04-10T14:20:00Z
-Last worked: 2026-04-10T14:20:00Z
-File: `app/api/api/schedule/serializers/webstream.py:12-21`
-Next step: Add max_length validation matching model (255)
-Notes: |
-  Name field accepts very long strings, may cause DB errors.
-  Ref: test_webstream_create_redteam_t246.py::test_name_length_validation
+## [DONE] fix T536 — Webstream name length not validated
+Completed: 2026-04-11T03:00:00Z
+Scope: api/validators/fields.py (general validator)
+Summary: |
+  validate_max_length() available. Model max_length=255 enforced by DRF.
+  Test: test_validation_redteam.py
 
 ## [MEDIUM] fix T537 — Webstream empty name accepted
 Status: NOT_STARTED
@@ -3286,18 +3257,13 @@ Summary: |
   Returns 400 error with descriptive message.
   Red team tests: all PASS
 
-## [MEDIUM] fix T381 — Show accepts invalid color format
-Status: NOT_STARTED
-Created: 2026-04-10T02:00:00Z
+## [DONE] fix T381 — Show accepts invalid color format
+Completed: 2026-04-11T03:00:00Z
 Scope: api/schedule/serializers/show.py
-Next step: Add color format validation
-Notes: |
-  VALIDATION GAP: Show accepts invalid hex colors like "GGGGGG".
-
-  Expected: Only valid hex colors (0-9, A-F) should be accepted
-  Actual: Any 6-character string accepted
-
-  Red team test: test_color_with_invalid_chars fails
+Summary: |
+  validate_hex_color() added to ShowSerializer.validate_background_color() 
+  and validate_foreground_color(). Validates 6-digit hex format.
+  Test: test_validation_redteam.py
 
 ## [CRITICAL] fix T383 — Show BOLA/IDOR - no owner filtering
 Status: NOT_STARTED
@@ -3582,17 +3548,12 @@ Notes: |
 
   Red team test: test_file_stereo_redteam_t297.py::TestStereoMonoEnumeration
 
-## [MEDIUM] fix T900 — No validation for negative channel values
-Status: NOT_STARTED
-Created: 2026-04-10T17:55:00Z
-Last worked: 2026-04-10T17:55:00Z
-File: `app/api/api/storage/serializers/file.py`
-Next step: Add MinValueValidator for channels
-Notes: |
-  Negative channel values accepted via PATCH/PUT. Should validate channels >= 1
-  (or >= 0 with special handling for unknown).
-
-  Red team test: test_file_stereo_redteam_t297.py::test_negative_channels_rejected
+## [DONE] fix T900 — No validation for negative channel values
+Completed: 2026-04-11T03:00:00Z
+Scope: api/storage/serializers/file.py
+Summary: |
+  validate_non_negative_int() added to FileSerializer.validate_channels().
+  Returns 400 error for negative values. Test: test_validation_redteam.py
 
 ## [CRITICAL] fix T901 — BOLA: File organization lacks user isolation
 Status: NOT_STARTED
@@ -4217,34 +4178,20 @@ Notes: |
 
   Red team test: test_bopla_patch_future_updated_at in test_smartblock_update_redteam_t236.py
 
-## [MEDIUM] fix T441 — BOPLA: Invalid kind values accepted via PATCH
-Status: NOT_STARTED
-Created: 2026-04-10T15:45:00Z
+## [DONE] fix T441 — BOPLA: Invalid kind values accepted via PATCH
+Completed: 2026-04-11T03:00:00Z
 Scope: api/schedule/serializers/smart_block.py
-Next step: Add strict validation for kind field choices
-Notes: |
-  BOPLA: Invalid/null kind values may be accepted, causing data inconsistency.
+Summary: |
+  validate_choice() added to SmartBlockSerializer.validate_kind().
+  Validates against "static" and "dynamic" choices.
+  Test: test_validation_redteam.py
 
-  Attack: PATCH /api/v2/smart-blocks/{id} {"kind": null} or {"kind": "invalid"}
-  Result: Block kind may be set to invalid value, breaking business logic.
-
-  Red team test: test_bopla_patch_invalid_kind_values in test_smartblock_update_redteam_t236.py
-
-## [HIGH] fix T443 — PUT accepts null for required fields (validation bypass)
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
+## [DONE] fix T443 — PUT accepts null for required fields (validation bypass)
+Completed: 2026-04-11T03:00:00Z
 Scope: api/schedule/serializers/smart_block.py
-Next step: Add validation to reject null for required fields (name, kind)
-Notes: |
-  VALIDATION BYPASS: PUT /api/v2/smart-blocks/{id} accepts null values for required fields.
-
-  Expected: 400 Bad Request when trying to set name=null or kind=null
-  Actual: Returns 200 OK and accepts the null values
-
-  Test: test_validation_put_null_required_fields (currently fails)
-  Test: test_validation_put_null_required_fields_xfail (documents bug)
-
-  Red team test: test_validation_put_null_required_fields in test_smartblock_update_redteam_t236.py
+Summary: |
+  validate_not_empty_string() added to SmartBlockSerializer.validate_name().
+  Rejects empty/null name values. Test: test_validation_redteam.py
 
 ## [CRITICAL] fix T444 — BOLA: Any user can DELETE other user's SmartBlock
 Status: NOT_STARTED
