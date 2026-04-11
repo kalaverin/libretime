@@ -2,6 +2,7 @@
 
 import re
 
+from datetime import timedelta
 from typing import Any
 
 from django.core.validators import ValidationError
@@ -34,6 +35,9 @@ _SQL_INJECTION_PATTERNS = [
 ]
 
 _SQLI_REGEX = re.compile("|".join(_SQL_INJECTION_PATTERNS), re.IGNORECASE)
+
+TIME_PATTERN = r"^\d{1,2}:\d{2}:\d{2}(\.\d+)?$"
+TIME_ISO_PATTERN = r"^P(\d+D)?(T(\d+H)?(\d+M)?(\d+(\.\d+)?S)?)?$"
 
 
 def validate_no_sql_injection(value: Any, field_name: str = "value") -> Any:
@@ -221,23 +225,16 @@ def validate_time_order(cue_in: Any, cue_out: Any) -> None:
 
 def validate_duration_format(value: Any, field_name: str = "duration") -> Any:
     """Validate duration format (HH:MM:SS or ISO 8601)."""
-    if value is None:
-        return value
-
-    from datetime import timedelta
-
-    if isinstance(value, timedelta):
+    if value is None or isinstance(value, timedelta):
         return value
 
     if isinstance(value, str):
         # Allow HH:MM:SS.ms format
-        pattern = r"^\d{1,2}:\d{2}:\d{2}(\.\d+)?$"
-        if re.match(pattern, value):
+        if re.match(TIME_PATTERN, value):
             return value
 
         # Allow ISO 8601 duration format
-        iso_pattern = r"^P(\d+D)?(T(\d+H)?(\d+M)?(\d+(\.\d+)?S)?)?$"
-        if re.match(iso_pattern, value, re.IGNORECASE):
+        if re.match(TIME_ISO_PATTERN, value, re.IGNORECASE):
             return value
 
     raise ValidationError(

@@ -15,6 +15,7 @@ from api.schedule.models import (
 )
 from api.serializers import SecureModelSerializer, StrictSerializer
 from api.validators.fields import (
+    validate_duration_format,
     validate_hex_color,
     validate_non_negative_int,
 )
@@ -82,8 +83,8 @@ class ShowDaysSerializer(StrictSerializer):
         fields: str = "__all__"
 
     def validate_duration(self, value: Any) -> Any:
-        """Validate duration is non-negative (T395)."""
-        return validate_non_negative_int(value, "duration")
+        """Validate duration format [HH:]MM:SS[.ms] (T395)."""
+        return validate_duration_format(value, "duration")
 
     def validate_last_show(self, value: Any) -> Any:
         """Validate last_show is not null when provided (T396)."""

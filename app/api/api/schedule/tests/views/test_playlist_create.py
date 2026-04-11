@@ -24,8 +24,7 @@ class TestPlaylistViewSetCreate:
         user = baker.make(User, username="testplaylist_user")
         data = {
             "name": "My Playlist",
-            "owner": user.id,
-        }
+                    }
         response = api_client.post(
             "/api/v2/playlists",
             json.dumps(data),
@@ -33,7 +32,6 @@ class TestPlaylistViewSetCreate:
         )
         assert response.status_code == 201
         assert response.json()["name"] == "My Playlist"
-        assert response.json()["owner"] == user.id
 
     def test_create_playlist_with_description(self, api_client):
         """CREATE playlist with description should succeed."""
@@ -41,8 +39,7 @@ class TestPlaylistViewSetCreate:
         data = {
             "name": "My Playlist",
             "description": "Test description",
-            "owner": user.id,
-        }
+                    }
         response = api_client.post(
             "/api/v2/playlists",
             json.dumps(data),
@@ -55,8 +52,7 @@ class TestPlaylistViewSetCreate:
         """CREATE without name should fail."""
         user = baker.make(User, username="testplaylist_user")
         data = {
-            "owner": user.id,
-        }
+                    }
         response = api_client.post(
             "/api/v2/playlists",
             json.dumps(data),
@@ -97,8 +93,7 @@ class TestPlaylistViewSetCreate:
         user = baker.make(User, username="testplaylist_user")
         data = {
             "name": "",
-            "owner": user.id,
-        }
+                    }
         response = api_client.post(
             "/api/v2/playlists",
             json.dumps(data),
@@ -112,8 +107,7 @@ class TestPlaylistViewSetCreate:
         data = {
             "name": "日本語プレイリスト",
             "description": "日本語の説明",
-            "owner": user.id,
-        }
+                    }
         response = api_client.post(
             "/api/v2/playlists",
             json.dumps(data),
@@ -129,8 +123,7 @@ class TestPlaylistViewSetCreate:
         user = baker.make(User, username="testplaylist_user")
         data = {
             "name": "My Playlist",
-            "owner": user.id,
-        }
+                    }
         response = api_client.post(
             "/api/v2/playlists",
             json.dumps(data),
@@ -155,8 +148,7 @@ class TestPlaylistViewSetCreate:
         # First playlist
         data = {
             "name": "Duplicate Name",
-            "owner": user.id,
-        }
+                    }
         api_client.post(
             "/api/v2/playlists",
             json.dumps(data),

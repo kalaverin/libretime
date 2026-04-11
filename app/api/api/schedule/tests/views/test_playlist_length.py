@@ -65,7 +65,6 @@ class TestPlaylistLengthField:
             json.dumps(
                 {
                     "name": "New Playlist",
-                    "owner": user.id,
                     "length": "00:45:00",
                 },
             ),

@@ -7,6 +7,7 @@ Tests for BOLA, BFLA, injection, and other API vulnerabilities.
 from datetime import timedelta
 
 import pytest
+from rest_framework.test import APIClient
 
 from model_bakery import baker
 
@@ -23,7 +24,6 @@ class TestPlayoutHistoryListRedTeamBOLA:
 
     def test_bfla_regular_user_cannot_list(
         self,
-        api_client,
         regular_user,
         faker,
     ):
@@ -33,8 +33,9 @@ class TestPlayoutHistoryListRedTeamBOLA:
         This is expected behavior - regular users should not list playout history.
         Only admins/managers should have this permission.
         """
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get("/api/v2/playout-history")
+        client = APIClient()
+        client.force_authenticate(user=regular_user)
+        response = client.get("/api/v2/playout-history")
 
         # Should be forbidden for regular users
         assert response.status_code == 403

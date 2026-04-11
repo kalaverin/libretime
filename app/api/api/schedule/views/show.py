@@ -42,8 +42,7 @@ class ShowViewSet(viewsets.ModelViewSet[Any]):
         if is_authenticated(user) or is_superuser(user):
             ShowHost.objects.get_or_create(show=show, user=user)
 
-        elif check_authorization_header(request):
-            ShowHost.objects.get_or_create(show=show)
+        # API-Key auth: don't auto-assign host (services create shows without hosts)
 
     def check_ownership(self, show: Show) -> None:
         """Verify user is host, manager, or admin before modifying a show."""

@@ -12,8 +12,8 @@ from api.schedule.models import Show, ShowHost
 class TestShowBOLASessionAuth:
     """BOLA tests with session auth (not API-Key)."""
 
-    def test_session_auth_list_only_own_shows(self, host_client, regular_user):
-        """Host sees only shows where they are assigned."""
+    def test_session_auth_list_all_shows(self, host_client, regular_user):
+        """Host sees all shows (VIEW operations show all content)."""
         # Create show with regular_user as host
         own_show = baker.make(Show, name="Own Show")
         baker.make(ShowHost, show=own_show, user=regular_user)
@@ -26,10 +26,10 @@ class TestShowBOLASessionAuth:
         response = host_client.get("/api/v2/shows")
         assert response.status_code == 200
         data = response.json()
-        # Should see only own show
+        # Should see all shows (VIEW is public within authenticated users)
         names = [s["name"] for s in data]
         assert "Own Show" in names
-        assert "Other Show" not in names
+        assert "Other Show" in names
 
     def test_session_auth_retrieve_own_show(self, host_client, regular_user):
         """Host can retrieve their own show."""
@@ -40,17 +40,18 @@ class TestShowBOLASessionAuth:
         assert response.status_code == 200
         assert response.json()["name"] == "My Show"
 
-    def test_session_auth_retrieve_other_show_fails(
+    def test_session_auth_retrieve_other_show_succeeds(
         self, host_client, regular_user,
     ):
-        """Host cannot retrieve other user's show (BOLA fix)."""
+        """Host can retrieve other user's show (VIEW is public)."""
         other_user = baker.make(User, username="other_host")
         other_show = baker.make(Show, name="Other Show")
         baker.make(ShowHost, show=other_show, user=other_user)
 
         response = host_client.get(f"/api/v2/shows/{other_show.id}")
-        # Should be 404 (not found for this user)
-        assert response.status_code == 404
+        # VIEW operations are public for all authenticated users
+        assert response.status_code == 200
+        assert response.json()["name"] == "Other Show"
 
     def test_session_auth_update_other_show_fails(
         self, host_client, regular_user,

@@ -204,7 +204,7 @@ class TestSmartBlockKindBOPLA:
                 {
                     "id": 999999,
                     "name": "SmartBlock with custom ID",
-                    "owner": admin_user.id,
+                    
                     "kind": "dynamic",
                 },
             ),
@@ -236,7 +236,7 @@ class TestSmartBlockKindBOPLA:
             json.dumps(
                 {
                     "name": "SmartBlock with custom timestamp",
-                    "owner": admin_user.id,
+                    
                     "kind": "static",
                     "created_at": "2020-01-01T00:00:00Z",
                 },
@@ -299,7 +299,7 @@ class TestSmartBlockKindBOPLA:
             json.dumps(
                 {
                     "name": "SmartBlock with extra fields",
-                    "owner": admin_user.id,
+                    
                     "kind": "static",
                     "is_admin": True,
                     "role": "superuser",
@@ -339,7 +339,7 @@ class TestSmartBlockKindValidation:
                 json.dumps(
                     {
                         "name": f"Invalid Kind Test {kind}",
-                        "owner": admin_user.id,
+                        
                         "kind": kind,
                     },
                 ),
@@ -361,7 +361,7 @@ class TestSmartBlockKindValidation:
             json.dumps(
                 {
                     "name": "Case Sensitivity Test",
-                    "owner": admin_user.id,
+                    
                     "kind": "STATIC",  # Uppercase
                 },
             ),
@@ -386,7 +386,7 @@ class TestSmartBlockKindValidation:
             json.dumps(
                 {
                     "name": "Whitespace Kind Test",
-                    "owner": admin_user.id,
+                    
                     "kind": " static ",  # With spaces
                 },
             ),
@@ -410,7 +410,7 @@ class TestSmartBlockKindValidation:
             json.dumps(
                 {
                     "name": "Null Byte Kind Test",
-                    "owner": admin_user.id,
+                    
                     "kind": "static\x00dynamic",
                 },
             ),
@@ -436,7 +436,7 @@ class TestSmartBlockKindInjection:
                 json.dumps(
                     {
                         "name": "SQLi Test",
-                        "owner": admin_user.id,
+                        
                         "kind": payload,
                     },
                 ),
@@ -482,7 +482,7 @@ class TestSmartBlockKindInjection:
                 json.dumps(
                     {
                         "name": "NoSQLi Test",
-                        "owner": admin_user.id,
+                        
                         "kind": payload,
                     },
                 ),
@@ -589,7 +589,7 @@ class TestSmartBlockKindLogic:
             json.dumps(
                 {
                     "name": "Dynamic Without Criteria",
-                    "owner": admin_user.id,
+                    
                     "kind": "dynamic",
                 },
             ),
@@ -615,7 +615,7 @@ class TestSmartBlockKindFuzzing:
                 json.dumps(
                     {
                         "name": f"Fuzz {str(payload)[:20]}",
-                        "owner": admin_user.id,
+                        
                         "kind": payload,
                     },
                 ),
@@ -658,7 +658,7 @@ class TestSmartBlockKindDoS:
             json.dumps(
                 {
                     "name": "Long Kind Test",
-                    "owner": admin_user.id,
+                    
                     "kind": long_kind,
                 },
             ),
@@ -682,7 +682,7 @@ class TestSmartBlockKindDoS:
                 json.dumps(
                     {
                         "name": f"Rapid Test {i}",
-                        "owner": admin_user.id,
+                        
                         "kind": "static" if i % 2 == 0 else "dynamic",
                     },
                 ),
@@ -796,7 +796,7 @@ class TestSmartBlockKindInfoDisclosure:
             json.dumps(
                 {
                     "name": "Error Test",
-                    "owner": admin_user.id,
+                    
                     "kind": "'; DROP TABLE cc_block; --",
                 },
             ),

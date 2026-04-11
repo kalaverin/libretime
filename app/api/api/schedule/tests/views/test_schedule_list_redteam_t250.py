@@ -81,10 +81,10 @@ class TestScheduleListRedTeam:
         assert response.status_code == 200
 
         data = response.json()
-        # Should only see schedules for shows where user is host (1 out of 3)
+        # VIEW operations show all schedules for all authenticated users
         assert (
-            len(data) == 1
-        ), f"BOLA: LIST returned {len(data)} entries, expected 1 (only own show's schedule)"
+            len(data) == 3
+        ), f"VIEW: LIST returned {len(data)} entries, expected 3 (all schedules)"
 
     def test_bola_id_enumeration(self, api_client):
         """BOLA: Sequential ID enumeration on schedule entries."""

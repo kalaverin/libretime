@@ -1,5 +1,6 @@
 from typing import Any, final
 
+from django_filters import rest_framework as django_filters
 from rest_framework import filters, viewsets
 from rest_framework.serializers import Serializer
 
@@ -23,7 +24,7 @@ class SmartBlockViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
     queryset = SmartBlock.objects.all()
     serializer_class: type[Serializer[Any]] = SmartBlockSerializer
     model_permission_name: str = "smartblock"
-    filter_backends = [filters.OrderingFilter]
+    filter_backends = [django_filters.DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ["kind"]
     ordering_fields = ["name", "created_at"]
     ordering = ["name"]

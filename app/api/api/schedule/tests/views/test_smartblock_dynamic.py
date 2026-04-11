@@ -86,7 +86,7 @@ class TestSmartBlockDynamicQuery:
             json.dumps(
                 {
                     "name": "New Dynamic Block",
-                    "owner": test_user.id,
+                    
                     "kind": "dynamic",
                     "description": "Auto-generated from criteria",
                 },
@@ -107,7 +107,7 @@ class TestSmartBlockDynamicQuery:
             json.dumps(
                 {
                     "name": "New Static Block",
-                    "owner": test_user.id,
+                    
                     "kind": "static",
                     "description": "Manually curated",
                 },

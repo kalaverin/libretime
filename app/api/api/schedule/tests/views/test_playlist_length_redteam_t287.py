@@ -227,7 +227,7 @@ class TestPlaylistLengthBOPLA:
                 {
                     "id": 999999,
                     "name": "Playlist with custom ID",
-                    "owner": admin_user.id,
+                    
                     "length": "01:00:00",
                 },
             ),
@@ -260,7 +260,7 @@ class TestPlaylistLengthBOPLA:
             json.dumps(
                 {
                     "name": "Playlist with custom timestamp",
-                    "owner": admin_user.id,
+                    
                     "length": "01:00:00",
                     "created_at": "2020-01-01T00:00:00Z",
                 },
@@ -323,7 +323,7 @@ class TestPlaylistLengthBOPLA:
             json.dumps(
                 {
                     "name": "Playlist with extra fields",
-                    "owner": admin_user.id,
+                    
                     "length": "01:00:00",
                     "is_admin": True,
                     "role": "superuser",
@@ -354,7 +354,7 @@ class TestPlaylistLengthInjection:
                 json.dumps(
                     {
                         "name": "SQLi Test",
-                        "owner": admin_user.id,
+                        
                         "length": payload,
                     },
                 ),
@@ -422,7 +422,7 @@ class TestPlaylistLengthInjection:
                 json.dumps(
                     {
                         "name": "NoSQLi Test",
-                        "owner": admin_user.id,
+                        
                         "length": payload,
                     },
                 ),
@@ -459,7 +459,7 @@ class TestPlaylistLengthValidation:
                 json.dumps(
                     {
                         "name": "Invalid Time Test",
-                        "owner": admin_user.id,
+                        
                         "length": fmt,
                     },
                 ),
@@ -490,7 +490,7 @@ class TestPlaylistLengthValidation:
                 json.dumps(
                     {
                         "name": "Overflow Test",
-                        "owner": admin_user.id,
+                        
                         "length": val,
                     },
                 ),
@@ -512,7 +512,7 @@ class TestPlaylistLengthValidation:
             json.dumps(
                 {
                     "name": "Null Byte Test",
-                    "owner": admin_user.id,
+                    
                     "length": "01:00:00\x00",
                 },
             ),
@@ -538,7 +538,7 @@ class TestPlaylistLengthFuzzing:
                 json.dumps(
                     {
                         "name": f"Fuzz {payload[:20]}",
-                        "owner": admin_user.id,
+                        
                         "length": payload,
                     },
                 ),
@@ -563,7 +563,7 @@ class TestPlaylistLengthFuzzing:
                 json.dumps(
                     {
                         "name": payload,
-                        "owner": admin_user.id,
+                        
                         "length": "01:00:00",
                     },
                 ),
@@ -590,7 +590,7 @@ class TestPlaylistLengthDoS:
             json.dumps(
                 {
                     "name": "Long Length Test",
-                    "owner": admin_user.id,
+                    
                     "length": long_string,
                 },
             ),
@@ -614,7 +614,7 @@ class TestPlaylistLengthDoS:
                 json.dumps(
                     {
                         "name": f"Rapid Test {i}",
-                        "owner": admin_user.id,
+                        
                         "length": "01:00:00",
                     },
                 ),
@@ -646,7 +646,7 @@ class TestPlaylistLengthEdgeCases:
             json.dumps(
                 {
                     "name": "Zero Length",
-                    "owner": admin_user.id,
+                    
                     "length": "00:00:00",
                 },
             ),
@@ -668,7 +668,7 @@ class TestPlaylistLengthEdgeCases:
             json.dumps(
                 {
                     "name": "Max Length",
-                    "owner": admin_user.id,
+                    
                     "length": "99:59:59",
                 },
             ),
@@ -692,7 +692,7 @@ class TestPlaylistLengthEdgeCases:
             json.dumps(
                 {
                     "name": "Whitespace Length",
-                    "owner": admin_user.id,
+                    
                     "length": " 01:00:00 ",
                 },
             ),
@@ -729,7 +729,7 @@ class TestPlaylistLengthMethodBypass:
             json.dumps(
                 {
                     "name": "Updated Name",
-                    "owner": admin_user.id,
+                    
                     "length": "02:00:00",
                 },
             ),
@@ -785,7 +785,7 @@ class TestPlaylistLengthInfoDisclosure:
             json.dumps(
                 {
                     "name": "Error Test",
-                    "owner": admin_user.id,
+                    
                     "length": "'; DROP TABLE cc_playlist; --",
                 },
             ),
@@ -821,7 +821,7 @@ class TestPlaylistLengthInfoDisclosure:
             json.dumps(
                 {
                     "name": "Stack Trace Test",
-                    "owner": admin_user.id,
+                    
                     "length": {"invalid": "structure"},
                 },
             ),

@@ -5,6 +5,7 @@ and authentication bypass vulnerabilities in MountName LIST endpoint.
 """
 
 import pytest
+from rest_framework.test import APIClient
 
 from api.history.models import MountName
 
@@ -15,7 +16,6 @@ class TestMountNameListRedTeamAuthorization:
 
     def test_list_requires_specific_permission(
         self,
-        api_client,
         admin_user,
         regular_user,
     ):
@@ -29,27 +29,30 @@ class TestMountNameListRedTeamAuthorization:
         MountName.objects.create(mount_name="/live")
 
         # Regular user without permission gets 403
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get("/api/v2/mount-names")
+        client = APIClient()
+        client.force_authenticate(user=regular_user)
+        response = client.get("/api/v2/mount-names")
         assert response.status_code == 403
 
         # Admin user with permission gets 200
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.get("/api/v2/mount-names")
+        client = APIClient()
+        client.force_authenticate(user=admin_user)
+        response = client.get("/api/v2/mount-names")
         assert response.status_code == 200
         data = response.json()
         mount_names = [m.get("mount_name") for m in data]
         assert "/main" in mount_names
         assert "/live" in mount_names
 
-    def test_guest_user_cannot_list_mounts(self, api_client, guest_user):
+    def test_guest_user_cannot_list_mounts(self, guest_user):
         """
         Guest user cannot list mount names without permission.
         """
         MountName.objects.create(mount_name="/stream")
 
-        api_client.force_authenticate(user=guest_user)
-        response = api_client.get("/api/v2/mount-names")
+        client = APIClient()
+        client.force_authenticate(user=guest_user)
+        response = client.get("/api/v2/mount-names")
 
         # Guest gets 403 - no mountname permission
         assert response.status_code == 403
