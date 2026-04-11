@@ -2578,3 +2578,54 @@ GROUPS = {
 - `app/api/api/schedule/views/webstream.py` — Removed owner filter for VIEW
 
 **Next Steps:** UPDATE and DELETE permission matrices
+
+---
+
+### [2026-04-11T02:40:00Z]
+
+**Fixed:** HOST role can now update own objects
+
+---
+
+### [2026-04-11T02:40:00Z]
+
+**Fixed:** HOST role can now update own objects
+
+**Root Causes:**
+1. `get_own_obj()` returned "own_" for POST — HOST had `add_playlist` but permission was `add_own_playlist`
+2. Custom `own_*` permissions not created in DB — Django only creates standard CRUD permissions
+3. Test fixtures shared `session_client` — `force_authenticate` overwrote user for all clients
+
+**Changes in `api/permissions.py`:**
+```python
+def get_own_obj(request: Request, view: "APIView") -> str:
+    # POST (create) doesn't use own_* - creator becomes owner automatically
+    if request.method in ("GET", "HEAD", "OPTIONS", "POST"):
+        return ""
+    # HOST gets own_* prefix for update/delete operations
+    return "own_"
+```
+
+**Changes in `api/tests/fixtures/role_fixtures.py`:**
+- Added `ensure_custom_permissions_exist()` — creates `change_own_*`, `delete_own_*` in DB
+- Fixed client fixtures — each role gets separate `APIClient()` instance
+
+**New Permission Matrix Tests (239 passed):**
+- `test_role_anonymous_denied.py` — 162 tests (Anonymous 403 on all endpoints)
+- `test_role_view_matrix.py` — 17 tests (all roles see same public content)
+- `test_role_detail_matrix.py` — 21 tests (GET single object permissions)
+- `test_role_create_matrix.py` — 12 tests (CREATE permissions + owner assignment)
+- `test_role_update_matrix.py` — 25 tests (UPDATE/PATCH permissions)
+
+**UPDATE Matrix Results:**
+| Role | Own Object | Other's Object |
+|------|-----------|----------------|
+| HOST | 200 | 403 |
+| MANAGER | 200 | 200 |
+| ADMIN | 200 | 200 |
+
+**Known Issue:**
+- Show update blocked for MANAGER/ADMIN by `ShowViewSet.perform_update` (1 xfail)
+
+All HOST can now: create own, update own, delete own, view all
+

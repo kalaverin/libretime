@@ -6705,3 +6705,15 @@ Summary: |
   Part of T378 fix. Added ownership filtering to ShowViewSet.
   Anonymous users receive 403 for UPDATE (PATCH/PUT) and DELETE endpoints.
   Tests: test_show_anonymous_redteam_t378_t382_t384_t387.py::TestShowAnonymousUpdate, TestShowAnonymousDelete
+
+## [DONE] fix T922 — Fix HOST role own_* permissions
+Status: DONE
+Completed: 2026-04-11T02:40:00Z
+Scope: api/permissions.py, api/tests/fixtures/role_fixtures.py
+Summary: |
+  Fixed get_own_obj() to not return "own_" for POST (creator becomes owner automatically).
+  Added ensure_custom_permissions_exist() to create change_own_* and delete_own_* permissions in DB.
+  Fixed test fixtures to use separate APIClient instances per role.
+  Created comprehensive permission matrix tests: 239 passed, 1 xfailed, 1 xpassed.
+  HOST can now: create own, update own, delete own, view all content.
+
