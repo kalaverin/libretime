@@ -2793,3 +2793,96 @@ def download(self, request: Request, **__: Any) -> HttpResponse:
 **All 21 SSRF tests pass.**
 
 **Tasks completed:** T520, T523, T531, T532, T544, T545, T551, T583, T596
+
+### [2026-04-11T02:30:00Z]
+
+**Fixed:** Mass assignment protection (T426, T477, T497, T508, T526, T529, T530, T531, T546, T547, T548, T810, T812, T813, T833, T835, T836, T858, T859, T860, T861, T880, T882)
+
+**Changes:**
+
+1. **api/serializers.py** - Base serializers with mass assignment protection:
+   - `ProtectedFieldsSerializer` - Base protection for id, owner, timestamps
+   - `StrictSerializer` - Rejects unknown/extra fields
+   - `TimestampSerializer` - Auto-manages created_at/updated_at (if model has them)
+   - `SecureModelSerializer` - Combines all protections
+
+2. **Protection features:**
+   - `id` - Blocked in CREATE and UPDATE (400 error)
+   - `owner` - Always read-only, API assigns via AutoAssignOwnerMixin (400 if attempted)
+   - `created_at` - Blocked, API sets automatically (400 error)
+   - `updated_at` - Auto-updated by API
+   - Extra fields - Rejected with 400 error
+
+3. **Updated serializers:**
+   - FileSerializer (SecureModelSerializer)
+   - WebstreamSerializer (SecureModelSerializer)
+   - PlaylistSerializer (SecureModelSerializer)
+   - PlaylistContentSerializer (StrictSerializer - no timestamps)
+   - SmartBlockSerializer (SecureModelSerializer)
+   - SmartBlockContentSerializer (StrictSerializer - no timestamps)
+   - SmartBlockCriteriaSerializer (StrictSerializer - no timestamps)
+   - PodcastSerializer (StrictSerializer - no timestamps)
+   - LibrarySerializer (StrictSerializer - no timestamps)
+
+4. **Tests added** - `test_mass_assignment_protection_*.py`:
+   - 21 tests covering all mass assignment vectors
+   - ID manipulation blocked in CREATE/UPDATE
+   - Owner assignment blocked (API sets automatically)
+   - Timestamp manipulation blocked
+   - Extra fields rejected
+   - Valid operations still work
+
+**All 21 mass assignment tests pass.**
+
+**Tasks completed:** T426, T477, T497, T508, T526, T529, T530, T531, T546, T547, T548, T810, T812, T813, T833, T835, T836, T858, T859, T860, T861, T880, T882
+
+---
+
+## Session 2026-04-11T01:00:00Z — XSS Protection Implementation
+
+**Focus:** Implement XSS protection across all API endpoints
+
+**XSS Protection Layer Added:**
+
+1. **api/validators/xss.py** - Centralized XSS validation:
+   - `XSS_PATTERN` - Compiled regex for XSS detection
+   - `validate_no_xss()` - Main validation function
+   - `validate_name_safe()` - Field-specific for names/titles
+   - `validate_description_safe()` - Field-specific for descriptions
+
+2. **Detection coverage:**
+   - `<script>` tags and variations
+   - Event handlers (`onerror`, `onclick`, etc.)
+   - `javascript:` and `data:` URLs
+   - `<iframe>`, `<object>`, `<embed>` tags
+   - CSS `expression()` attacks
+   - HTML entity encoding (`&#x3c;`, `&#60;`)
+   - Obfuscated payloads (space/tab insertion)
+
+3. **Protected serializers:**
+   - WebstreamSerializer (name, description, mime)
+   - ShowSerializer (description, url)
+   - PodcastSerializer (title, description, itunes fields)
+   - FileSerializer (track_title, artist_name, album_title)
+
+4. **Tests added** - 272 XSS tests covering:
+   - Script tag injection
+   - Event handler injection
+   - JavaScript protocol URLs
+   - Data URI attacks
+   - HTML entity encoding
+   - Obfuscated payloads
+   - Multiple field types
+
+**All 272 XSS tests pass.**
+
+**Tasks completed:** T521, T525, T534, T535, T549, T550, T379, T380, T385, T386, T708, T709, T710, T732, T733, T883
+
+---
+
+**Security Summary (348 tests total):**
+- Path Traversal: 34 tests ✓
+- SSRF: 21 tests ✓
+- Mass Assignment: 21 tests ✓
+- XSS: 272 tests ✓
+

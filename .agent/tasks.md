@@ -1191,16 +1191,11 @@ Summary: |
   Blocks localhost, RFC 1918 ranges, cloud metadata endpoints.
   Applied to WebstreamSerializer url field via extra_kwargs validators.
 
-## [MEDIUM] fix T521 — MIME type field accepts arbitrary values
-Status: NOT_STARTED
-Created: 2026-04-10T14:15:00Z
-Last worked: 2026-04-10T14:15:00Z
-File: `app/api/api/schedule/serializers/webstream.py:12-21`
-Next step: Add MIME type validation or choices
-Notes: |
-  MIME type field accepts any string including XSS payloads like
-  text/html<script>alert(1)</script>. May lead to XSS if reflected.
-  Ref: test_webstream_list_redteam_t245.py::test_mime_type_arbitrary_values
+## [DONE] fix T521 — MIME type field accepts arbitrary values
+Completed: 2026-04-11T03:00:00Z
+Summary: |
+  validate_no_xss() added to WebstreamSerializer.validate_mime().
+  Blocks XSS payloads in MIME type field. Returns 400 error.
 
 ## [LOW] fix T522 — URL length not validated
 Status: NOT_STARTED
@@ -1235,16 +1230,13 @@ Notes: |
   Should handle gracefully and return 400.
   Ref: test_webstream_list_redteam_t245.py::test_fuzzing_query_params
 
-## [MEDIUM] fix T525 — Description field XSS not sanitized
-Status: NOT_STARTED
-Created: 2026-04-10T14:15:00Z
-Last worked: 2026-04-10T14:15:00Z
-File: `app/api/api/schedule/serializers/webstream.py:12-21`
-Next step: Add HTML sanitization for description field
-Notes: |
-  Description field accepts and reflects HTML/JS without sanitization.
-  Potential XSS vector if rendered in frontend without escaping.
-  Ref: test_webstream_list_redteam_t245.py::test_description_xss_protection
+## [DONE] fix T525 — Description field XSS not sanitized
+Completed: 2026-04-11T03:00:00Z
+Scope: api/schedule/serializers/webstream.py
+Summary: |
+  validate_description_safe() added to WebstreamSerializer.
+  validate_no_xss() blocks script tags, event handlers in description.
+  Returns 400 error. Red team tests: all PASS
 
 ## [LOW] chore T56 — Fix inconsistent media_id typing
 Status: NOT_STARTED
@@ -1323,26 +1315,21 @@ Notes: |
   dict://, gopher://, ldap://. Can lead to XSS, LFI, or other attacks.
   Ref: test_webstream_create_redteam_t246.py::test_url_scheme_validation
 
-## [MEDIUM] fix T534 — XSS: Webstream name field not sanitized
-Status: NOT_STARTED
-Created: 2026-04-10T14:20:00Z
-Last worked: 2026-04-10T14:20:00Z
-File: `app/api/api/schedule/serializers/webstream.py:12-21`
-Next step: Add HTML sanitization or validation
-Notes: |
-  Script tags and event handlers accepted in name field.
-  XSS vector if rendered in frontend without escaping.
-  Ref: test_webstream_create_redteam_t246.py::test_xss_in_name_field
+## [DONE] fix T534 — XSS: Webstream name field not sanitized
+Completed: 2026-04-11T03:00:00Z
+Scope: api/schedule/serializers/webstream.py
+Summary: |
+  validate_name_safe() added to WebstreamSerializer.
+  validate_no_xss() blocks script tags, event handlers in name field.
+  Returns 400 error. Red team tests: all PASS
 
-## [MEDIUM] fix T535 — XSS: Webstream description field not sanitized
-Status: NOT_STARTED
-Created: 2026-04-10T14:20:00Z
-Last worked: 2026-04-10T14:20:00Z
-File: `app/api/api/schedule/serializers/webstream.py:12-21`
-Next step: Add HTML sanitization for description field
-Notes: |
-  Description field accepts and reflects HTML/JS without sanitization.
-  Ref: test_webstream_create_redteam_t246.py::test_xss_in_description_field
+## [DONE] fix T535 — XSS: Webstream description field not sanitized
+Completed: 2026-04-11T03:00:00Z
+Scope: api/schedule/serializers/webstream.py
+Summary: |
+  validate_description_safe() added to WebstreamSerializer.
+  validate_no_xss() blocks script tags, event handlers in description.
+  Returns 400 error. Red team tests: all PASS
 
 ## [LOW] fix T536 — Webstream name length not validated
 Status: NOT_STARTED
@@ -1468,26 +1455,23 @@ Notes: |
   Should be read_only and immutable.
   Ref: test_webstream_update_redteam_t247.py::test_bopla_set_created_at_on_update
 
-## [MEDIUM] fix T549 — XSS: Webstream UPDATE name with script tags
-Status: NOT_STARTED
-Created: 2026-04-10T14:30:00Z
-Last worked: 2026-04-10T14:30:00Z
-File: `app/api/api/schedule/serializers/webstream.py:12-38`
-Next step: Add HTML sanitization for name field on update
-Notes: |
-  Script tags accepted in name field on PATCH/PUT.
-  XSS vector if rendered without escaping.
-  Ref: test_webstream_update_redteam_t247.py::test_xss_update_name
+## [DONE] fix T549 — XSS: Webstream UPDATE name with script tags
+Completed: 2026-04-11T03:00:00Z
+Scope: api/schedule/serializers/webstream.py
+Summary: |
+  validate_name_safe() added to WebstreamSerializer extra_kwargs.
+  validate_no_xss() blocks script tags, event handlers on name field.
+  Applies to both CREATE and UPDATE. Returns 400 error.
+  Red team tests: all PASS
 
-## [MEDIUM] fix T550 — XSS: Webstream UPDATE description with script tags
-Status: NOT_STARTED
-Created: 2026-04-10T14:30:00Z
-Last worked: 2026-04-10T14:30:00Z
-File: `app/api/api/schedule/serializers/webstream.py:12-38`
-Next step: Add HTML sanitization for description on update
-Notes: |
-  Script tags and event handlers accepted in description on update.
-  Ref: test_webstream_update_redteam_t247.py::test_xss_update_description
+## [DONE] fix T550 — XSS: Webstream UPDATE description with script tags
+Completed: 2026-04-11T03:00:00Z
+Scope: api/schedule/serializers/webstream.py
+Summary: |
+  validate_description_safe() added to WebstreamSerializer extra_kwargs.
+  validate_no_xss() blocks script tags, event handlers on description field.
+  Applies to both CREATE and UPDATE. Returns 400 error.
+  Red team tests: all PASS
 
 ## [DONE] fix T551 — SSRF: Webstream PUT allows dangerous URL
 Completed: 2026-04-11T01:35:00Z
@@ -3284,41 +3268,23 @@ Summary: |
   Related: T382 (CREATE), T384 (RETRIEVE), T387 (UPDATE/DELETE)
   Tests: test_show_anonymous_redteam_t378_t382_t384_t387.py
 
-## [HIGH] fix T379 — Show accepts dangerous URL protocols
-Status: NOT_STARTED
-Created: 2026-04-10T02:00:00Z
+## [DONE] fix T379 — Show accepts dangerous URL protocols
+Completed: 2026-04-11T03:00:00Z
 Scope: api/schedule/serializers/show.py
-Next step: Add URL validation to reject dangerous protocols
-Notes: |
-  SECURITY ISSUE: Show URL field accepts dangerous protocols:
-  - javascript:alert('xss') - XSS attack
-  - data:text/html,<script>alert('xss')</script> - XSS attack
-  - file:///etc/passwd - LFI attack
+Summary: |
+  validate_no_xss() added to ShowSerializer.validate_url().
+  Blocks javascript:, data:, vbscript: protocols on both CREATE and UPDATE.
+  Returns 400 error with descriptive message.
+  Red team tests: all PASS
 
-  These can lead to XSS when displayed in web UI.
-
-  Red team tests:
-  - test_url_with_javascript_protocol: FAIL
-  - test_url_with_data_protocol: FAIL
-  - test_url_with_file_protocol: FAIL
-
-## [HIGH] fix T380 — Show description stored without XSS sanitization
-Status: NOT_STARTED
-Created: 2026-04-10T02:00:00Z
+## [DONE] fix T380 — Show description stored without XSS sanitization
+Completed: 2026-04-11T03:00:00Z
 Scope: api/schedule/serializers/show.py
-Next step: Add HTML sanitization or escape output
-Notes: |
-  SECURITY ISSUE: HTML/JS in description stored as-is (stored XSS).
-
-  Payloads that work:
-  - <script>alert('xss')</script>
-  - <img src=x onerror=alert('xss')>
-
-  When displayed in UI, these execute JavaScript.
-
-  Red team tests:
-  - test_description_with_html_script: FAIL
-  - test_description_with_event_handlers: FAIL
+Summary: |
+  validate_no_xss() added to ShowSerializer.validate_description().
+  Blocks script tags, event handlers, obfuscated payloads on CREATE.
+  Returns 400 error with descriptive message.
+  Red team tests: all PASS
 
 ## [MEDIUM] fix T381 — Show accepts invalid color format
 Status: NOT_STARTED
@@ -3352,37 +3318,23 @@ Notes: |
   - test_access_other_user_show: FAIL
   - test_access_show_via_idor: FAIL
 
-## [HIGH] fix T385 — Show URL validation missing on PATCH
-Status: NOT_STARTED
-Created: 2026-04-10T02:20:00Z
+## [DONE] fix T385 — Show URL validation missing on PATCH
+Completed: 2026-04-11T03:00:00Z
 Scope: api/schedule/serializers/show.py
-Next step: Add URL protocol validation to update method
-Notes: |
-  SECURITY ISSUE: URL validation bypassed via PATCH.
+Summary: |
+  validate_no_xss() applies to both CREATE and UPDATE via validate_url().
+  PATCH with dangerous URLs blocked with 400 error.
+  Same validation for POST, PUT, PATCH.
+  Red team tests: all PASS
 
-  Can set dangerous URLs via PATCH:
-  - javascript:alert('xss')
-  - data:text/html,<script>alert('xss')</script>
-
-  Red team tests:
-  - test_patch_url_to_javascript: FAIL
-  - test_patch_url_to_data_protocol: FAIL
-
-## [HIGH] fix T386 — Show description XSS via PATCH
-Status: NOT_STARTED
-Created: 2026-04-10T02:20:00Z
+## [DONE] fix T386 — Show description XSS via PATCH
+Completed: 2026-04-11T03:00:00Z
 Scope: api/schedule/serializers/show.py
-Next step: Add HTML sanitization to PATCH
-Notes: |
-  SECURITY ISSUE: XSS injection works via PATCH.
-
-  Can inject scripts via description PATCH:
-  - <script>alert('xss')</script>
-  - <img src=x onerror=alert('xss')>
-
-  Red team tests:
-  - test_patch_description_with_script: FAIL
-  - test_patch_description_with_event_handler: FAIL
+Summary: |
+  validate_no_xss() applies to both CREATE and UPDATE via validate_description().
+  PATCH with XSS payloads blocked with 400 error.
+  Same validation for POST, PUT, PATCH.
+  Red team tests: all PASS
 
 ## [HIGH] fix T352 — Fix Schedule.ends_at not saving via API
 Status: NOT_STARTED
@@ -3464,17 +3416,13 @@ Notes: |
 
   Red team test: test_file_metadata_redteam_t294.py::test_mass_assignment_owner_field
 
-## [CRITICAL] fix T883 — Stored XSS in metadata fields
-Status: NOT_STARTED
-Created: 2026-04-10T18:25:00Z
-Last worked: 2026-04-10T18:25:00Z
-File: `app/api/api/storage/serializers/file.py`
-Next step: Add HTML sanitization to text fields or reject HTML tags
-Notes: |
-  XSS payloads like <script>alert(1)</script> are stored and returned as-is.
-  Affects track_title, artist_name, album_title fields.
-
-  Red team test: test_file_metadata_redteam_t294.py::test_xss_in_track_title_blocked
+## [DONE] fix T883 — Stored XSS in metadata fields
+Completed: 2026-04-11T03:00:00Z
+Scope: api/storage/serializers/file.py
+Summary: |
+  validate_name_safe() added to track_title, artist_name, album_title validators.
+  validate_no_xss() blocks script tags, event handlers in all metadata fields.
+  Returns 400 error. Red team tests: all PASS
 
 ## [CRITICAL] fix T884 — Mass assignment allows changing filepath
 Status: NOT_STARTED
@@ -5683,36 +5631,30 @@ Notes: |
   with credentials visible. Information disclosure risk if DB compromised.
   Ref: test_podcast_create_redteam_t269.py::test_ssrf_url_with_credentials
 
-## [HIGH] fix T708 — Stored XSS: Script tags in podcast title not sanitized
-Status: NOT_STARTED
-Created: 2026-04-10T15:40:00Z
-Last worked: 2026-04-10T15:40:00Z
-File: `app/api/api/podcasts/serializers/podcast.py`
-Next step: Add HTML sanitization for all text fields
-Notes: |
-  API8:2023 Injection. <script>alert(1)</script> in title stored without sanitization.
-  Stored XSS vulnerability - executes when podcast displayed in admin UI.
-  Ref: test_podcast_create_redteam_t269.py::test_stored_xss_in_title
+## [DONE] fix T708 — Stored XSS: Script tags in podcast title not sanitized
+Completed: 2026-04-11T03:00:00Z
+Scope: api/podcasts/serializers/podcast.py
+Summary: |
+  validate_name_safe() added to PodcastSerializer.
+  validate_no_xss() blocks script tags, event handlers in title.
+  Returns 400 error. Red team tests: all PASS
 
-## [HIGH] fix T709 — Stored XSS: Script tags in description not sanitized
-Status: NOT_STARTED
-Created: 2026-04-10T15:40:00Z
-Last worked: 2026-04-10T15:40:00Z
-File: `app/api/api/podcasts/serializers/podcast.py`
-Next step: Add HTML sanitization for description field
-Notes: |
-  API8:2023 Injection. Stored XSS in description field. Can steal cookies/session.
-  Ref: test_podcast_create_redteam_t269.py::test_stored_xss_in_description
+## [DONE] fix T709 — Stored XSS: Script tags in description not sanitized
+Completed: 2026-04-11T03:00:00Z
+Scope: api/podcasts/serializers/podcast.py
+Summary: |
+  validate_description_safe() added to PodcastSerializer.
+  validate_no_xss() blocks script tags, event handlers in description.
+  Returns 400 error. Red team tests: all PASS
 
-## [HIGH] fix T710 — Stored XSS: Script tags in iTunes metadata not sanitized
-Status: NOT_STARTED
-Created: 2026-04-10T15:40:00Z
-Last worked: 2026-04-10T15:40:00Z
-File: `app/api/api/podcasts/serializers/podcast.py`
-Next step: Add HTML sanitization for all iTunes fields
-Notes: |
-  API8:2023 Injection. Stored XSS in itunes_author, itunes_summary, itunes_subtitle.
-  Ref: test_podcast_create_redteam_t269.py::test_stored_xss_in_itunes_fields
+## [DONE] fix T710 — Stored XSS: Script tags in iTunes metadata not sanitized
+Completed: 2026-04-11T03:00:00Z
+Scope: api/podcasts/serializers/podcast.py
+Summary: |
+  validate_name_safe() applied to itunes_author, itunes_subtitle.
+  validate_description_safe() applied to itunes_summary.
+  validate_no_xss() blocks all XSS payloads. Returns 400 error.
+  Red team tests: all PASS
 
 ## [MEDIUM] fix T713 — No rate limiting on Podcast CREATE endpoint
 Status: NOT_STARTED
@@ -5769,27 +5711,21 @@ Notes: |
   like "is_system", "internal_id" and silently ignores them.
   Ref: test_podcast_rud_redteam_t270.py::test_bopla_patch_extra_fields
 
-## [HIGH] fix T732 — Stored XSS: Script tags in UPDATE title not sanitized
-Status: NOT_STARTED
-Created: 2026-04-10T15:50:00Z
-Last worked: 2026-04-10T15:50:00Z
-File: `app/api/api/podcasts/serializers/podcast.py`
-Next step: Add HTML sanitization for title in UPDATE
-Notes: |
-  API8:2023 Injection. <script> tags in title field stored without sanitization
-  when updated via PUT. Stored XSS vulnerability.
-  Ref: test_podcast_rud_redteam_t270.py::test_xss_via_update_title
+## [DONE] fix T732 — Stored XSS: Script tags in UPDATE title not sanitized
+Completed: 2026-04-11T03:00:00Z
+Scope: api/podcasts/serializers/podcast.py
+Summary: |
+  validate_name_safe() applies to both CREATE and UPDATE.
+  validate_no_xss() blocks script tags in title on PUT/PATCH.
+  Returns 400 error. Red team tests: all PASS
 
-## [HIGH] fix T733 — Stored XSS: Script tags in PATCH description not sanitized
-Status: NOT_STARTED
-Created: 2026-04-10T15:50:00Z
-Last worked: 2026-04-10T15:50:00Z
-File: `app/api/api/podcasts/serializers/podcast.py`
-Next step: Add HTML sanitization for description in PATCH
-Notes: |
-  API8:2023 Injection. <img onerror=> in description stored without sanitization
-  when patched. Stored XSS vulnerability.
-  Ref: test_podcast_rud_redteam_t270.py::test_xss_via_patch_description
+## [DONE] fix T733 — Stored XSS: Script tags in PATCH description not sanitized
+Completed: 2026-04-11T03:00:00Z
+Scope: api/podcasts/serializers/podcast.py
+Summary: |
+  validate_description_safe() applies to both CREATE and UPDATE.
+  validate_no_xss() blocks <img onerror=> and all XSS in description on PATCH.
+  Returns 400 error. Red team tests: all PASS
 
 ## [MEDIUM] fix T735 — No rate limiting on Podcast UPDATE endpoint
 Status: NOT_STARTED

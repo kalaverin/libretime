@@ -6,6 +6,7 @@ from django.db.models import Model
 from api.schedule.models import Webstream, WebstreamMetadata
 from api.serializers import SecureModelSerializer
 from api.validators.url import validate_url_not_internal
+from api.validators.xss import validate_no_xss
 
 
 @final
@@ -26,6 +27,24 @@ class WebstreamSerializer(SecureModelSerializer):
 
         # SecureModelSerializer handles created_at/updated_at
         return super().create(validated_data)
+
+    def validate_name(self, value: str) -> str:
+        """Validate name field for XSS."""
+        if value:
+            validate_no_xss(value)
+        return value
+
+    def validate_description(self, value: str) -> str:
+        """Validate description field for XSS."""
+        if value:
+            validate_no_xss(value)
+        return value
+
+    def validate_mime(self, value: str) -> str:
+        """Validate MIME type field for XSS."""
+        if value:
+            validate_no_xss(value)
+        return value
 
 
 @final

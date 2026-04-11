@@ -199,3 +199,45 @@ Refs: `...`
 Observation:
 - ...
 -->
+
+
+## S7 — Security validators pattern
+Status: ACTIVE
+Created: 2026-04-11T03:00:00Z
+Last touched: 2026-04-11T03:00:00Z
+Refs: `app/api/api/validators/`, `app/api/api/schedule/serializers/webstream.py`
+Observation:
+- Centralize security validators in `api/validators/` directory
+- Each validator module focuses on one attack class: path.py, url.py, xss.py
+- Validators raise ValidationError with descriptive message
+- Use in serializers via extra_kwargs: `{"field": {"validators": [func]}}`
+- Or override validate_field() for custom logic
+- Pattern: `validate_<field>(self, value) -> validated_value`
+Applies_to: `app/api/**/serializers/**`
+
+## S8 — XSS validation patterns
+Status: ACTIVE
+Created: 2026-04-11T03:00:00Z
+Last touched: 2026-04-11T03:00:00Z
+Refs: `app/api/api/validators/xss.py`, `app/api/api/schedule/serializers/show.py`
+Observation:
+- Use regex-based detection for XSS patterns (script tags, event handlers)
+- Block at API boundary (serializer validation), not template layer
+- Two validator functions: validate_name_safe() for titles, validate_description_safe() for descriptions
+- Pattern covers: <script>, onerror=, javascript:, data:text/html, entities
+- Returns 400 error immediately on detection
+Applies_to: `app/api/**/serializers/**`
+
+## S9 — SecureModelSerializer inheritance
+Status: ACTIVE
+Created: 2026-04-11T03:00:00Z
+Last touched: 2026-04-11T03:00:00Z
+Refs: `app/api/api/serializers.py`, `app/api/api/storage/serializers/file.py`
+Observation:
+- Use SecureModelSerializer as base for all model serializers
+- Provides mass assignment protection out of box
+- Blocks: id manipulation, owner assignment, timestamp manipulation
+- Rejects extra/unknown fields
+- Apply field-specific validators in Meta.extra_kwargs
+Applies_to: `app/api/**/serializers/**`
+

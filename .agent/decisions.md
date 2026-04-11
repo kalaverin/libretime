@@ -150,6 +150,9 @@ These should then be added to `.agent/decisions.md` for long-term tracking.
 | 2026-04-10T22:50:00Z | Document Authorization header case sensitivity as known bug | RFC 7230 violation but low impact; use `@pytest.mark.xfail` to track; fix when auth system refactored | ACTIVE | - |
 | 2026-04-10T23:00:00Z | Standardize BOLA fix pattern across all ViewSets | Show/Webstream pattern (check_authorization_header + ownership filter) is the reference implementation; apply to Playlist, SmartBlock, File | ACTIVE | - |
 | 2026-04-10T23:35:00Z | Document complete permissions system | Full inventory in .agent/research/permissions_inventory.md and permissions_matrix.md; use as reference for all permission-related work | ACTIVE | - |
+| 2026-04-11T03:00:00Z | Centralize security validators in `api/validators/` | Single location for path traversal, SSRF, XSS validation; promotes reuse and consistent security posture | ACTIVE | - |
+| 2026-04-11T03:00:00Z | Use regex-based XSS detection at API boundary | Block XSS payloads in serializers, not template layer; fail-fast with 400 error | ACTIVE | - |
+| 2026-04-11T03:00:00Z | Use SecureModelSerializer as base for all model serializers | Built-in mass assignment protection (id, owner, timestamps blocked); consistent security across API | ACTIVE | - |
 
 <!--
 Format:

@@ -1900,3 +1900,120 @@ class MountName(models.Model):
 - No rate limiting observed (potential T666)
 - No pagination on LIST (potential T667)
 - No input validation on mount_name length beyond DB constraint
+
+
+---
+
+## Security Validators Architecture
+
+**Location:** `app/api/api/validators/`
+
+Centralized security validation for API inputs.
+
+### Path Traversal (`validators/path.py`)
+
+**Functions:**
+- `validate_filepath(value)` — Blocks path traversal attempts
+
+**Detection:**
+- `..` sequences in paths
+- Absolute paths (starting with `/`)
+- Null bytes (`\x00`)
+- Non-printable characters
+- Path resolution validation (resolved path must be within base)
+
+**Usage:**
+```python
+from api.validators.path import validate_filepath
+
+class FileSerializer(SecureModelSerializer):
+    def validate_filepath(self, value):
+        validate_filepath(value)
+        return value
+```
+
+### SSRF Prevention (`validators/url.py`)
+
+**Functions:**
+- `validate_url_not_internal(value)` — Blocks internal URLs
+
+**Detection:**
+- Private IP ranges: 10.x.x.x, 172.16-31.x.x, 192.168.x.x
+- Loopback: 127.x.x.x, ::1
+- Link-local: 169.254.x.x (cloud metadata)
+- Localhost variants: localhost, localhost.localdomain
+- Dangerous schemes: file://, ftp://, gopher://, dict://, ldap://
+
+**Usage:**
+```python
+from api.validators.url import validate_url_not_internal
+
+class WebstreamSerializer(SecureModelSerializer):
+    class Meta:
+        extra_kwargs = {
+            "url": {"validators": [validate_url_not_internal]},
+        }
+```
+
+### XSS Prevention (`validators/xss.py`)
+
+**Functions:**
+- `validate_no_xss(value)` — Main XSS detection
+- `validate_name_safe(value)` — For name/title fields
+- `validate_description_safe(value)` — For description fields
+
+**Detection:**
+- `<script>` tags and variations
+- Event handlers: `onerror`, `onclick`, `onload`, etc.
+- JavaScript URLs: `javascript:alert(1)`
+- Data URIs: `data:text/html,<script>`
+- Iframe/Object/Embed tags
+- CSS expressions: `expression()`
+- HTML entity encoding: `&#x3c;`, `&#60;`
+- Obfuscation: `<scr ipt>`, `<img src=x onerror=>`
+
+**Usage:**
+```python
+from api.validators.xss import validate_name_safe, validate_description_safe
+
+class ShowSerializer(SecureModelSerializer):
+    class Meta:
+        extra_kwargs = {
+            "name": {"validators": [validate_name_safe]},
+            "description": {"validators": [validate_description_safe]},
+        }
+```
+
+### Mass Assignment Protection (`api/serializers.py`)
+
+**Classes:**
+- `ProtectedFieldsSerializer` — Blocks id, owner, timestamps
+- `StrictSerializer` — Rejects unknown/extra fields
+- `TimestampSerializer` — Auto-manages created_at/updated_at
+- `SecureModelSerializer` — Combines all protections
+
+**Protected fields:**
+- `id` — Blocked in CREATE/UPDATE (400 error)
+- `owner` — Read-only, API assigns automatically
+- `created_at` — Blocked, API sets automatically
+- `updated_at` — Auto-updated by API
+- Extra fields — Rejected with 400 error
+
+**Usage:**
+```python
+from api.serializers import SecureModelSerializer
+
+class MyModelSerializer(SecureModelSerializer):
+    class Meta:
+        model = MyModel
+        fields = "__all__"
+```
+
+---
+
+**Total security tests: 348**
+- Path Traversal: 34 tests
+- SSRF: 21 tests
+- Mass Assignment: 21 tests
+- XSS: 272 tests
+

@@ -1,7 +1,8 @@
+"""Show serializers with XSS protection."""
+
 from typing import Any
 
 from django.db.models import Model
-from rest_framework.serializers import ModelSerializer
 from typing_extensions import final
 
 from api.schedule.models import (
@@ -11,10 +12,13 @@ from api.schedule.models import (
     ShowInstance,
     ShowRebroadcast,
 )
+from api.serializers import SecureModelSerializer, StrictSerializer
+from api.validators.xss import validate_no_xss
 
 
 @final
-class ShowSerializer(ModelSerializer[Any]):
+class ShowSerializer(SecureModelSerializer):
+    """Show serializer with XSS protection."""
 
     class Meta:
         model: type[Model] = Show
@@ -43,9 +47,22 @@ class ShowSerializer(ModelSerializer[Any]):
             "override_outro_playlist",
         )
 
+    def validate_description(self, value: str) -> str:
+        """Validate description field for XSS."""
+        if value:
+            validate_no_xss(value)
+        return value
+
+    def validate_url(self, value: str) -> str:
+        """Validate URL field for XSS."""
+        if value:
+            validate_no_xss(value)
+        return value
+
 
 @final
-class ShowDaysSerializer(ModelSerializer[Any]):
+class ShowDaysSerializer(StrictSerializer):
+    """ShowDays serializer with strict validation."""
 
     class Meta:
         model: type[Model] = ShowDays
@@ -53,7 +70,8 @@ class ShowDaysSerializer(ModelSerializer[Any]):
 
 
 @final
-class ShowHostSerializer(ModelSerializer[Any]):
+class ShowHostSerializer(StrictSerializer):
+    """ShowHost serializer with strict validation."""
 
     class Meta:
         model: type[Model] = ShowHost
@@ -61,7 +79,8 @@ class ShowHostSerializer(ModelSerializer[Any]):
 
 
 @final
-class ShowInstanceSerializer(ModelSerializer[Any]):
+class ShowInstanceSerializer(StrictSerializer):
+    """ShowInstance serializer with strict validation."""
 
     class Meta:
         model: type[Model] = ShowInstance
@@ -69,7 +88,8 @@ class ShowInstanceSerializer(ModelSerializer[Any]):
 
 
 @final
-class ShowRebroadcastSerializer(ModelSerializer[Any]):
+class ShowRebroadcastSerializer(StrictSerializer):
+    """ShowRebroadcast serializer with strict validation."""
 
     class Meta:
         model: type[Model] = ShowRebroadcast

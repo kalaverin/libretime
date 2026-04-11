@@ -1,4 +1,4 @@
-"""Podcast serializers with mass assignment protection."""
+"""Podcast serializers with XSS protection."""
 
 from typing import Any
 
@@ -11,18 +11,37 @@ from api.podcasts.models import (
     StationPodcast,
 )
 from api.serializers import StrictSerializer
+from api.validators.xss import validate_no_xss
 
 
 class PodcastSerializer(StrictSerializer):
-    """Podcast serializer (no timestamp fields on model)."""
+    """Podcast serializer with XSS protection."""
 
     class Meta:
         model: type[Model] = Podcast
         fields: str = "__all__"
 
+    def validate_title(self, value: str) -> str:
+        """Validate title field for XSS."""
+        if value:
+            validate_no_xss(value)
+        return value
+
+    def validate_description(self, value: str) -> str:
+        """Validate description field for XSS."""
+        if value:
+            validate_no_xss(value)
+        return value
+
+    def validate_itunes_title(self, value: str) -> str:
+        """Validate itunes_title field for XSS."""
+        if value:
+            validate_no_xss(value)
+        return value
+
 
 class PodcastEpisodeSerializer(StrictSerializer):
-    """PodcastEpisode serializer (no timestamp fields on model)."""
+    """PodcastEpisode serializer with strict validation."""
 
     class Meta:
         model: type[Model] = PodcastEpisode
@@ -30,7 +49,7 @@ class PodcastEpisodeSerializer(StrictSerializer):
 
 
 class StationPodcastSerializer(StrictSerializer):
-    """StationPodcast serializer (no timestamp fields on model)."""
+    """StationPodcast serializer with strict validation."""
 
     class Meta:
         model: type[Model] = StationPodcast
@@ -38,7 +57,7 @@ class StationPodcastSerializer(StrictSerializer):
 
 
 class ImportedPodcastSerializer(StrictSerializer):
-    """ImportedPodcast serializer (no timestamp fields on model)."""
+    """ImportedPodcast serializer with strict validation."""
 
     class Meta:
         model: type[Model] = ImportedPodcast

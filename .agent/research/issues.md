@@ -183,32 +183,32 @@
 
 | ID | Поле | Компонент | Тип |
 |----|------|-----------|-----|
-| T521 | MIME type | Webstream | Stored |
-| T525 | description | Webstream | Stored |
-| T534 | name | Webstream | Stored |
-| T535 | description | Webstream | Stored |
-| T549 | name | Webstream UPDATE | Stored |
-| T550 | description | Webstream UPDATE | Stored |
-| T402 | description | ShowInstances | Stored |
-| T379 | url | Show | Reflected |
-| T380 | description | Show | Stored |
-| T385 | url | Show PATCH | Reflected |
-| T386 | description | Show PATCH | Stored |
-| T629 | key | PlayoutHistory metadata | Stored |
-| T630 | value | PlayoutHistory metadata | Stored |
-| T635 | name | Template | Stored |
-| T636 | type | Template | Stored |
-| T642 | name | TemplateField | Stored |
-| T643 | label | TemplateField | Stored |
-| T659 | state | LiveLog | Stored |
-| T708 | title | Podcast | Stored |
-| T709 | description | Podcast | Stored |
-| T710 | itunes_* | Podcast | Stored |
-| T732 | title | Podcast UPDATE | Stored |
-| T733 | description | Podcast PATCH | Stored |
-| T883 | track_title | File metadata | Stored |
-| T534 | name | Webstream | Stored |
-| T535 | description | Webstream | Stored |
+    | T521 | MIME type | Webstream | Stored |
+    | T525 | description | Webstream | Stored |
+    | T534 | name | Webstream | Stored |
+    | T535 | description | Webstream | Stored |
+    | T549 | name | Webstream UPDATE | Stored |
+    | T550 | description | Webstream UPDATE | Stored |
+    | T402 | description | ShowInstances | Stored |
+    | T379 | url | Show | Reflected |
+    | T380 | description | Show | Stored |
+    | T385 | url | Show PATCH | Reflected |
+    | T386 | description | Show PATCH | Stored |
+    | T629 | key | PlayoutHistory metadata | Stored |
+    | T630 | value | PlayoutHistory metadata | Stored |
+    | T635 | name | Template | Stored |
+    | T636 | type | Template | Stored |
+    | T642 | name | TemplateField | Stored |
+    | T643 | label | TemplateField | Stored |
+    | T659 | state | LiveLog | Stored |
+    | T708 | title | Podcast | Stored |
+    | T709 | description | Podcast | Stored |
+    | T710 | itunes_* | Podcast | Stored |
+    | T732 | title | Podcast UPDATE | Stored |
+    | T733 | description | Podcast PATCH | Stored |
+    | T883 | track_title | File metadata | Stored |
+    | T534 | name | Webstream | Stored |
+    | T535 | description | Webstream | Stored |
 
 ---
 
