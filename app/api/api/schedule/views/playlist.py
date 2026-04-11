@@ -5,6 +5,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.serializers import Serializer
 
 from api.mixins import AutoAssignOwnerMixin
+from api.permissions import check_authorization_header
 from api.schedule.models import Playlist, PlaylistContent
 from api.schedule.serializers import (
     PlaylistContentSerializer,
@@ -21,11 +22,20 @@ class PlaylistViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
     model_permission_name: str = "playlist"
 
     def get_queryset(self) -> Any:
-        """Filter by owner for BOLA prevention (T808, T809)."""
+        """Filter by owner for BOLA prevention (T808, T809).
+
+        API-Key auth bypasses filtering (services have full access).
+        """
         queryset = super().get_queryset()
+
+        # API-Key auth (services) - full access
+        if check_authorization_header(self.request):
+            return queryset
+
         user = self.request.user
         if not user.is_authenticated:
             return queryset.none()
+
         # Admin and Manager can see all, Host can only see own
         if user.role not in [user.role.ADMIN, user.role.MANAGER]:
             return queryset.filter(owner=user)

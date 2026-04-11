@@ -39,12 +39,14 @@ class TestScheduleListRedTeam:
     # API1:2023 - BOLA (Broken Object Level Authorization)
     # ========================================================================
 
-    @pytest.mark.xfail(
-        reason="T568: BOLA - LIST shows all users' schedule entries",
-    )
-    def test_bola_list_shows_all_users_schedule(self, api_client):
-        """BOLA: LIST endpoint returns schedule entries from all users without filtering."""
-        # Create schedule entries for multiple users
+    def test_bola_list_shows_only_own_schedule(self, api_client):
+        """BOLA FIX: LIST endpoint only returns schedule entries for shows user hosts."""
+        from api.schedule.models import ShowHost
+
+        # Create a user who will be a host
+        host_user = baker.make(User, username="testred_host")
+        
+        # Create shows and schedules for multiple users
         for i in range(3):
             user = baker.make(User, username=f"testred_user{i}")
             show = baker.make(Show, name=f"Show {i}")
@@ -64,15 +66,22 @@ class TestScheduleListRedTeam:
                 position=1,
                 broadcasted=1,
             )
+            
+            # Only add host_user as host to the first show
+            if i == 0:
+                baker.make(ShowHost, show=show, user=host_user)
 
+        # Authenticate as host_user
+        api_client.force_authenticate(user=host_user)
+        
         response = api_client.get("/api/v2/schedule")
         assert response.status_code == 200
 
         data = response.json()
-        # Should only see own entries, not all
+        # Should only see schedules for shows where user is host (1 out of 3)
         assert (
-            len(data) <= 1
-        ), f"BOLA: LIST returned {len(data)} entries from different users"
+            len(data) == 1
+        ), f"BOLA: LIST returned {len(data)} entries, expected 1 (only own show's schedule)"
 
     def test_bola_id_enumeration(self, api_client):
         """BOLA: Sequential ID enumeration on schedule entries."""

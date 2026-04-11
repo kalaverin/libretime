@@ -3702,20 +3702,6 @@ Notes: |
 
   Red team test: test_list_without_auth fails - returns 200 instead of 403
 
-## [CRITICAL] bug T412 — Playlists BOLA: no owner filtering
-Status: OPEN
-Created: 2026-04-10T11:40:00Z
-Scope: api/schedule/views/playlist.py
-Next step: Add owner filtering to PlaylistViewSet.get_queryset
-Notes: |
-  CRITICAL BOLA: Playlists list returns ALL playlists regardless of owner.
-
-  Attack scenario:
-  - User A can see User B's private playlists
-  - Complete information disclosure
-
-  Red team test: test_list_shows_only_own_playlists fails - shows other users' data
-
 ## [CRITICAL] bug T413 — Playlists BOLA via owner filter
 Status: OPEN
 Created: 2026-04-10T11:40:00Z
@@ -3743,21 +3729,6 @@ Notes: |
   - Information disclosure of station personnel
 
   Red team test: test_list_without_auth fails - returns 200 instead of 403
-
-## [CRITICAL] bug T408 — ShowHosts BOLA: no owner filtering
-Status: OPEN
-Created: 2026-04-10T11:35:00Z
-Scope: api/schedule/views/show.py
-Next step: Add owner filtering to ShowHostViewSet.get_queryset
-Notes: |
-  CRITICAL BOLA: ShowHosts list returns ALL assignments regardless of owner.
-
-  Attack scenario:
-  - User A can see User B's show assignments
-  - User enumeration via user filter
-  - Complete information disclosure
-
-  Red team test: test_list_shows_only_own_hosts fails - shows other users' data
 
 ## [HIGH] bug T402 — ShowInstances description XSS vulnerability
 Status: OPEN
@@ -4536,17 +4507,6 @@ Notes: |
   entries from all users without ownership filtering.
   Ref: test_schedule_list_redteam_t250.py::test_bola_list_shows_all_users_schedule
 
-## [CRITICAL] fix T569 — BOLA: Can access other user's schedule by ID
-Status: NOT_STARTED
-Created: 2026-04-10T14:35:00Z
-Last worked: 2026-04-10T14:35:00Z
-File: `app/api/api/schedule/views/schedule.py:38-45`
-Next step: Add ownership check in retrieve operation
-Notes: |
-  Attacker can retrieve victim's schedule entry by knowing the ID.
-  No object-level permission validation on individual resource access.
-  Ref: test_schedule_list_redteam_t250.py::test_bola_access_other_users_schedule_by_id
-
 ## [MEDIUM] fix T573 — Info Leak: Error message reveals schedule existence
 Status: NOT_STARTED
 Created: 2026-04-10T14:35:00Z
@@ -4667,17 +4627,6 @@ Notes: |
   Ref: test_schedule_create_redteam_t251.py::test_race_condition_concurrent_create
 
 
-## [CRITICAL] fix T587 — BOLA: Can retrieve other user's schedule
-Status: NOT_STARTED
-Created: 2026-04-10T15:00:00Z
-Last worked: 2026-04-10T15:00:00Z
-File: `app/api/api/schedule/views/schedule.py:38-45`
-Next step: Add ownership check in retrieve operation
-Notes: |
-  API1:2023 Broken Object Level Authorization. Attacker can retrieve victim's
-  schedule entry by knowing the ID. No object-level permission validation.
-  Ref: test_schedule_retrieve_redteam_t253.py::test_bola_retrieve_other_users_schedule
-
 ## [DONE] fix T589 — Auth: RETRIEVE with invalid token returns 403 correctly (NOT A BUG)
 Completed: 2026-04-10T22:08:00Z
 File: `app/api/api/permissions.py:85-95`
@@ -4698,17 +4647,6 @@ Notes: |
   Different error codes for existing (permission denied) vs non-existing
   schedule entries allow ID enumeration attacks.
   Ref: test_schedule_retrieve_redteam_t253.py::test_error_message_leaks_existence_retrieve
-
-## [CRITICAL] fix T592 — BOLA: Can update other user's schedule
-Status: NOT_STARTED
-Created: 2026-04-10T15:00:00Z
-Last worked: 2026-04-10T15:00:00Z
-File: `app/api/api/schedule/views/schedule.py:38-45`
-Next step: Add ownership check in update operation
-Notes: |
-  API1:2023 Broken Object Level Authorization. Attacker can UPDATE victim's
-  schedule entry by knowing the ID. No ownership validation.
-  Ref: test_schedule_update_redteam_t254.py::test_bola_update_other_users_schedule
 
 ## [CRITICAL] fix T593 — BOLA: Can change schedule to other user's file
 Status: NOT_STARTED
@@ -4760,17 +4698,6 @@ Summary: |
   Tests: test_schedule_invalid_token_redteam_t575_t584_t589_t597_t600.py
   Verified: UPDATE (PATCH/PUT) with invalid Bearer token returns 403
 
-
-## [CRITICAL] fix T598 — BOLA: Can delete other user's schedule
-Status: NOT_STARTED
-Created: 2026-04-10T16:15:00Z
-Last worked: 2026-04-10T16:15:00Z
-File: `app/api/api/schedule/views/schedule.py:38-45`
-Next step: Add ownership check in destroy operation
-Notes: |
-  API1:2023 Broken Object Level Authorization. Attacker can DELETE victim's
-  schedule entry by knowing the ID. No object-level permission validation.
-  Ref: test_schedule_delete_redteam_t255.py::test_bola_delete_other_users_schedule
 
 ## [HIGH] fix T599 — BOLA: DELETE returns wrong status for other's schedule
 Status: NOT_STARTED
@@ -5402,6 +5329,57 @@ Summary: |
   Added get_queryset() filter by owner for HOST users.
   Admin and Manager can see all podcasts.
   Test: test_bola_podcast_file.py
+
+## [DONE] bug T408 — ShowHosts BOLA: no owner filtering
+Completed: 2026-04-11T04:27:28Z
+Scope: api/schedule/views/show.py
+Summary: |
+  Added get_queryset() with user filtering for HOST users.
+  HOST can only see own assignments, ADMIN/MANAGER see all.
+  Added API-Key auth bypass for services.
+  Test: test_anonymous_access.py, test_showhost_list_redteam_t220.py
+
+## [DONE] bug T412 — Playlists BOLA: no owner filtering
+Completed: 2026-04-11T04:27:28Z
+Scope: api/schedule/views/playlist.py
+Summary: |
+  Added get_queryset() with owner filtering for HOST users.
+  HOST can only see own playlists, ADMIN/MANAGER see all.
+  Added API-Key auth bypass for services.
+  Test: test_anonymous_access.py, test_playlist_list_redteam_t223.py
+
+## [DONE] fix T569 — BOLA: Can access other user's schedule by ID
+Completed: 2026-04-11T04:27:28Z
+Scope: api/schedule/views/schedule.py
+Summary: |
+  Added get_queryset() filtering by show host ownership for non-admin users.
+  Schedule -> ShowInstance -> Show -> ShowHost (user) relationship used.
+  HOST can only see schedules for shows they host.
+  Test: test_anonymous_access.py, test_schedule_list_redteam_t250.py
+
+## [DONE] fix T587 — BOLA: Can retrieve other user's schedule
+Completed: 2026-04-11T04:27:28Z
+Scope: api/schedule/views/schedule.py
+Summary: |
+  Fixed by T569 - get_queryset() filtering prevents retrieving other user's schedule.
+  HOST can only see schedules for shows they host.
+  Test: test_schedule_retrieve_redteam_t253.py
+
+## [DONE] fix T592 — BOLA: Can update other user's schedule
+Completed: 2026-04-11T04:27:28Z
+Scope: api/schedule/views/schedule.py
+Summary: |
+  Fixed by T569 - get_queryset() filtering prevents updating other user's schedule.
+  Update operations use filtered queryset (404 for non-owned schedules).
+  Test: test_schedule_update_redteam_t254.py
+
+## [DONE] fix T598 — BOLA: Can delete other user's schedule
+Completed: 2026-04-11T04:27:28Z
+Scope: api/schedule/views/schedule.py
+Summary: |
+  Fixed by T569 - get_queryset() filtering prevents deleting other user's schedule.
+  Delete operations use filtered queryset (404 for non-owned schedules).
+  Test: test_schedule_delete_redteam_t255.py
 
 ## [HIGH] fix T664 — BFLA: Guest user can access podcast LIST endpoint
 Status: NOT_STARTED

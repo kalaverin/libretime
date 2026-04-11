@@ -34,16 +34,16 @@ class TestShowHostListAuthentication:
 class TestShowHostListBOLA:
     """LIST BOLA tests."""
 
-    @pytest.mark.xfail(reason="T408: No owner filtering on ShowHost")
     def test_list_shows_only_own_hosts(
         self, api_client, admin_user, regular_user,
     ):
-        """Verify list returns only user's own show hosts."""
+        """BOLA FIX: List returns only user's own show host assignments."""
         show1 = baker.make(Show, name="Admin Show")
         show2 = baker.make(Show, name="User Show")
 
-        host1 = baker.make(ShowHost, show=show1)
-        host2 = baker.make(ShowHost, show=show2)
+        # Create host assignments - regular_user is only host of show2
+        baker.make(ShowHost, show=show1, user=admin_user)
+        host2 = baker.make(ShowHost, show=show2, user=regular_user)
 
         api_client.force_authenticate(user=regular_user)
         response = api_client.get("/api/v2/show-hosts")
@@ -52,30 +52,33 @@ class TestShowHostListBOLA:
         data = response.json()
         host_ids = [d["id"] for d in data]
 
-        assert (
-            host1.id not in host_ids
-        ), "List shows other users' show hosts (BOLA)"
+        # Should only see own assignment (host2), not admin's
+        assert len(host_ids) == 1, f"Expected 1 assignment, got {len(host_ids)}"
+        assert host2.id in host_ids, "Own assignment not found"
 
 
 @pytest.mark.django_db(transaction=True)
 class TestShowHostListUserEnumeration:
     """User enumeration via filter tests."""
 
-    @pytest.mark.xfail(reason="T408: No owner filtering")
-    def test_filter_by_other_user_id(
+    def test_filter_by_other_user_id_returns_only_own(
         self, api_client, regular_user, admin_user,
     ):
-        """Try to filter by another user's ID to enumerate their shows."""
-        # Create show host for admin
-        show = baker.make(Show, name="Admin Show")
-        host = baker.make(ShowHost, show=show)
+        """BOLA FIX: Filter by other user ID only returns own assignments."""
+        # Create show host assignments
+        admin_show = baker.make(Show, name="Admin Show")
+        user_show = baker.make(Show, name="User Show")
+        baker.make(ShowHost, show=admin_show, user=admin_user)
+        baker.make(ShowHost, show=user_show, user=regular_user)
 
         api_client.force_authenticate(user=regular_user)
+        # Try to filter by admin's user ID - should only see own assignments
         response = api_client.get(f"/api/v2/show-hosts?user={admin_user.id}")
 
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 0, "Can enumerate other user's shows via filter"
+        # Even with filter for admin, only sees own assignments
+        assert len(data) == 1, "Can enumerate other user's shows via filter (BOLA)"
 
     def test_filter_by_invalid_user_id(self, api_client, admin_user):
         """Try filter by invalid user_id."""

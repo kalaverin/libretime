@@ -34,11 +34,10 @@ class TestPlaylistListAuthentication:
 class TestPlaylistListBOLA:
     """LIST BOLA tests."""
 
-    @pytest.mark.xfail(reason="T412: No owner filtering on Playlist")
     def test_list_shows_only_own_playlists(
         self, api_client, admin_user, regular_user,
     ):
-        """Verify list returns only user's own playlists."""
+        """BOLA FIX: List returns only user's own playlists (T412)."""
         playlist1 = baker.make(
             Playlist, name="Admin Playlist", owner=admin_user,
         )
@@ -57,9 +56,8 @@ class TestPlaylistListBOLA:
             playlist1.id not in playlist_ids
         ), "List shows other users' playlists (BOLA)"
 
-    @pytest.mark.xfail(reason="T413: BOLA via owner filter")
-    def test_filter_by_other_owner(self, api_client, admin_user, regular_user):
-        """Try to filter by another user's owner ID."""
+    def test_filter_by_other_owner_returns_only_own(self, api_client, admin_user, regular_user):
+        """BOLA FIX: Filter by other owner only returns own playlists (T413)."""
         playlist = baker.make(
             Playlist, name="Admin Playlist", owner=admin_user,
         )

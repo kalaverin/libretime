@@ -3,6 +3,7 @@ from typing import Any, final
 from rest_framework import viewsets
 from rest_framework.serializers import Serializer
 
+from api.core.models.role import Role
 from api.permissions import check_authorization_header
 from rest_framework.exceptions import PermissionDenied
 from api.schedule.models import (
@@ -104,6 +105,29 @@ class ShowHostViewSet(viewsets.ModelViewSet[Any]):
     queryset = ShowHost.objects.all()
     serializer_class: type[Serializer[Any]] = ShowHostSerializer
     model_permission_name: str = "showhost"
+
+    def get_queryset(self) -> Any:
+        """Filter show host assignments by user for non-admin users.
+
+        ADMIN and MANAGER can see all show host assignments.
+        HOST can only see their own assignments.
+        """
+        queryset = super().get_queryset()
+        user = self.request.user
+
+        # API-Key auth (services) - full access
+        if check_authorization_header(self.request):
+            return queryset
+
+        if not user.is_authenticated:
+            return queryset.none()
+
+        # ADMIN and MANAGER can see all assignments
+        if user.role == Role.ADMIN or user.role == Role.MANAGER:
+            return queryset
+
+        # HOST can only see their own assignments
+        return queryset.filter(user=user)
 
 
 @final

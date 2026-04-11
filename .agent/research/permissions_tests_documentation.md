@@ -1,6 +1,6 @@
 # Role-Based Permission Tests Documentation
 
-**Date:** 2026-04-10T23:45:00Z  
+**Date:** 2026-04-10T23:45:00Z
 **Scope:** Complete test suite for LibreTime role-based access control
 
 ---
@@ -311,7 +311,8 @@ app/api/api/tests/
 3. Use faker for all unique values
 4. Use sdk.now() for all dates
 5. Compare dates as strings via sdk.format_datetime()
-6. Add BOLA prevention test in `test_role_bola_prevention.py`
+6. Parse string with datetime only via sdk.reformat_datetime() first, it's official validator to properly formatter string.
+7. Add BOLA prevention test in `test_role_bola_prevention.py`
 
 ### Modifying Permissions
 
