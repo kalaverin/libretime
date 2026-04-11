@@ -38,15 +38,11 @@ class TestScheduleViewSetPermissions:
             owner=admin_user,
         )
 
-    def test_list_allows_anonymous(self, api_client, guest_user):
-        client = api_client
-        client.force_authenticate(user=guest_user)
-        response = client.get("/api/v2/schedule")
+    def test_list_allows_anonymous(self, guest_client):
+        response = guest_client.get("/api/v2/schedule")
         assert response.status_code == 200
 
-    def test_create_requires_auth(self, api_client, guest_user):
-        client = api_client
-        client.force_authenticate(user=guest_user)
+    def test_create_requires_auth(self, guest_client):
         start_time = now()
         data = {
             "instance": self.show_instance.id,
@@ -58,7 +54,7 @@ class TestScheduleViewSetPermissions:
             "position": 1,
             "broadcasted": 1,
         }
-        response = client.post("/api/v2/schedule", data, format="json")
+        response = guest_client.post("/api/v2/schedule", data, format="json")
         assert response.status_code == 403
 
     def test_admin_can_create_schedule(self):
