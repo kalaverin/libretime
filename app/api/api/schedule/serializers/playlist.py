@@ -1,13 +1,15 @@
 from typing import Any, final
 
 from django.db.models import Model
-from rest_framework.serializers import ModelSerializer, ValidationError
+from rest_framework.serializers import ValidationError
 
 from api.schedule.models import Playlist, PlaylistContent
+from api.serializers import SecureModelSerializer, StrictSerializer
 
 
 @final
-class PlaylistSerializer(ModelSerializer[Any]):
+class PlaylistSerializer(SecureModelSerializer):
+    """Playlist with full protection (has created_at/updated_at)."""
 
     class Meta:
         model: type[Model] = Playlist
@@ -15,7 +17,8 @@ class PlaylistSerializer(ModelSerializer[Any]):
 
 
 @final
-class PlaylistContentSerializer(ModelSerializer[Any]):
+class PlaylistContentSerializer(StrictSerializer):
+    """PlaylistContent with strict validation (no timestamp fields)."""
 
     class Meta:
         model: type[Model] = PlaylistContent
@@ -35,4 +38,4 @@ class PlaylistContentSerializer(ModelSerializer[Any]):
                 {"file": "File is required when kind is FILE."},
             )
 
-        return data
+        return super().validate(data)

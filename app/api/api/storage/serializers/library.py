@@ -1,14 +1,17 @@
+"""Library serializer with mass assignment protection."""
+
 from typing import Any
 
 from django.db import models
-from rest_framework import serializers
 from typing_extensions import final
 
+from api.serializers import StrictSerializer
 from api.storage.models import Library
 
 
 @final
-class LibrarySerializer(serializers.ModelSerializer[Any]):
+class LibrarySerializer(StrictSerializer):
+    """Library serializer (no timestamp fields on model)."""
 
     class Meta:
         model: type[models.Model] = Library

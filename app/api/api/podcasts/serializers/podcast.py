@@ -1,7 +1,8 @@
+"""Podcast serializers with mass assignment protection."""
+
 from typing import Any
 
 from django.db.models import Model
-from rest_framework.serializers import ModelSerializer
 
 from api.podcasts.models import (
     ImportedPodcast,
@@ -9,30 +10,35 @@ from api.podcasts.models import (
     PodcastEpisode,
     StationPodcast,
 )
+from api.serializers import StrictSerializer
 
 
-class PodcastSerializer(ModelSerializer[Any]):
+class PodcastSerializer(StrictSerializer):
+    """Podcast serializer (no timestamp fields on model)."""
 
     class Meta:
         model: type[Model] = Podcast
         fields: str = "__all__"
 
 
-class PodcastEpisodeSerializer(ModelSerializer[Any]):
+class PodcastEpisodeSerializer(StrictSerializer):
+    """PodcastEpisode serializer (no timestamp fields on model)."""
 
     class Meta:
         model: type[Model] = PodcastEpisode
         fields: str = "__all__"
 
 
-class StationPodcastSerializer(ModelSerializer[Any]):
+class StationPodcastSerializer(StrictSerializer):
+    """StationPodcast serializer (no timestamp fields on model)."""
 
     class Meta:
         model: type[Model] = StationPodcast
         fields: str = "__all__"
 
 
-class ImportedPodcastSerializer(ModelSerializer[Any]):
+class ImportedPodcastSerializer(StrictSerializer):
+    """ImportedPodcast serializer (no timestamp fields on model)."""
 
     class Meta:
         model: type[Model] = ImportedPodcast

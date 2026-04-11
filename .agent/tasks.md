@@ -693,16 +693,12 @@ Notes: |
   File existence is checked but ownership is not validated.
   Ref: test_smartblockcontent_create_redteam_t240.py::test_bola_create_with_other_users_file
 
-## [HIGH] fix T477 — BOPLA: SmartBlockContent CREATE allows mass assignment of id field
-Status: NOT_STARTED
-Created: 2026-04-10T13:35:00Z
-Last worked: 2026-04-10T13:35:00Z
-File: `app/api/api/schedule/serializers/smart_block.py:22-30`
-Next step: Add read_only=True for id field in SmartBlockContentSerializer
-Notes: |
-  API3:2023 Broken Object Property Level Authorization. Client can specify id field
-  in CREATE request which could lead to ID collision or overwrite existing records.
-  Ref: test_smartblockcontent_create_redteam_t240.py::test_bopla_mass_assignment_id_field
+## [DONE] fix T477 — BOPLA: SmartBlockContent CREATE allows mass assignment of id field
+Completed: 2026-04-11T02:30:00Z
+Summary: |
+  SecureModelSerializer blocks id field in CREATE via validate() check.
+  Returns 400 error with "Field 'id' cannot be set directly."
+  Applied to SmartBlockContentSerializer via StrictSerializer.
 
 ## [MEDIUM] fix T478 — BOPLA: SmartBlockContent CREATE accepts extra/unknown fields silently
 Status: NOT_STARTED
@@ -1257,16 +1253,11 @@ Last worked: 2026-04-06T16:53:26Z
 Files: `app/api-client/api_client/v1.py:118-128`, `app/api-client/api_client/v2.py:249-262`
 Notes: str vs int inconsistency.
 
-## [MEDIUM] fix T526 — BOPLA: Webstream create with other user as owner
-Status: NOT_STARTED
-Created: 2026-04-10T14:20:00Z
-Last worked: 2026-04-10T14:20:00Z
-File: `app/api/api/schedule/views/webstream.py:20-25`
-Next step: Remove owner from serializer fields or validate in perform_create
-Notes: |
-  Attacker can specify owner field to create webstream with victim as owner.
-  perform_create only sets owner if not already provided.
-  Ref: test_webstream_create_redteam_t246.py::test_bopla_create_with_other_user_owner
+## [DONE] fix T526 — BOPLA: Webstream create with other user as owner
+Completed: 2026-04-11T02:30:00Z
+Summary: |
+  SecureModelSerializer blocks owner field. owner is read-only, assigned by API.
+  Returns 400 error with "Field 'owner' cannot be set directly."
 
 ## [HIGH] fix T527 — Webstream perform_create allows unauthenticated create
 Status: NOT_STARTED
@@ -1291,16 +1282,11 @@ Notes: |
   Should be read_only to prevent ID manipulation.
   Ref: test_webstream_create_redteam_t246.py::test_bopla_mass_assignment_id
 
-## [MEDIUM] fix T529 — BOPLA: Webstream timestamps mass assignment
-Status: NOT_STARTED
-Created: 2026-04-10T14:20:00Z
-Last worked: 2026-04-10T14:20:00Z
-File: `app/api/api/schedule/serializers/webstream.py:12-21`
-Next step: Add read_only=True for created_at/updated_at
-Notes: |
-  Client can set created_at/updated_at fields manually.
-  Should be auto-generated and read_only.
-  Ref: test_webstream_create_redteam_t246.py::test_bopla_mass_assignment_timestamps
+## [DONE] fix T529 — BOPLA: Webstream timestamps mass assignment
+Completed: 2026-04-11T02:30:00Z
+Summary: |
+  SecureModelSerializer blocks created_at. updated_at auto-managed by API.
+  Returns 400 error with "Field 'created_at' cannot be set directly."
 
 ## [LOW] fix T530 — BOPLA: Webstream extra fields not rejected
 Status: NOT_STARTED
@@ -1458,27 +1444,18 @@ Summary: |
   PATCH/PUT with 169.254.169.254 blocked with cloud metadata error.
   Test: test_put_webstream_to_metadata_blocked
 
-## [HIGH] fix T546 — BOPLA: Webstream change owner on update
-Status: NOT_STARTED
-Created: 2026-04-10T14:30:00Z
-Last worked: 2026-04-10T14:30:00Z
-File: `app/api/api/schedule/serializers/webstream.py:12-38`
-Next step: Add read_only=True for owner field
-Notes: |
-  Client can change owner field via PATCH/PUT to transfer ownership.
-  Should be read_only.
-  Ref: test_webstream_update_redteam_t247.py::test_bopla_change_owner_on_update
+## [DONE] fix T546 — BOPLA: Webstream change owner on update
+Completed: 2026-04-11T02:30:00Z
+Summary: |
+  SecureModelSerializer blocks owner field in UPDATE. owner is read-only.
+  Returns 400 error with "Field 'owner' cannot be set directly."
 
-## [MEDIUM] fix T547 — BOPLA: Webstream modify id on update
-Status: NOT_STARTED
-Created: 2026-04-10T14:30:00Z
-Last worked: 2026-04-10T14:30:00Z
-File: `app/api/api/schedule/serializers/webstream.py:12-38`
-Next step: Ensure id field is read_only
-Notes: |
-  Client can attempt to modify id field on update.
-  Should be read_only to prevent ID manipulation.
-  Ref: test_webstream_update_redteam_t247.py::test_bopla_modify_id_on_update
+## [DONE] fix T547 — BOPLA: Webstream modify id on update
+Completed: 2026-04-11T02:30:00Z
+Summary: |
+  SecureModelSerializer blocks id field in UPDATE via validate() check.
+  Returns 400 error with "Field 'id' cannot be set directly."
+  Applied to WebstreamSerializer.
 
 ## [MEDIUM] fix T548 — BOPLA: Webstream set created_at on update
 Status: NOT_STARTED
@@ -4148,17 +4125,12 @@ Notes: |
 
   Red team tests confirming bug: test_smartblock_redteam_t234.py
 
-## [HIGH] fix T426 — SmartBlock CREATE accepts custom id (mass assignment)
-Status: NOT_STARTED
-Created: 2026-04-10T12:35:00Z
-Scope: api/schedule/serializers/smart_block.py
-Next step: Remove 'id' from writable fields in SmartBlockSerializer
-Notes: |
-  BOPLA VULNERABILITY: SmartBlockSerializer uses fields = "__all__" which allows
-  setting custom id during CREATE.
-
-  Attack: POST /api/v2/smart-blocks {"id": 99999, "name": "Test"}
-  Result: Block created with attacker-controlled ID, potentially overwriting existing
+## [DONE] fix T426 — SmartBlock CREATE accepts custom id (mass assignment)
+Completed: 2026-04-11T02:30:00Z
+Summary: |
+  SecureModelSerializer blocks id field in CREATE via validate() check.
+  Returns 400 error with "Field 'id' cannot be set directly."
+  Applied to SmartBlockSerializer.
   records or creating collisions.
 
   Red team test: test_bopla_mass_assignment_id in test_smartblock_create_redteam_t235.py
@@ -6157,16 +6129,11 @@ Notes: |
   Owner field should be read_only after creation.
   Ref: test_playlist_length_redteam_t287.py::test_bopla_change_owner_via_update
 
-## [MEDIUM] fix T813 — BOPLA: Playlist CREATE accepts extra fields silently
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
-Last worked: 2026-04-10T16:00:00Z
-File: `app/api/api/schedule/serializers/playlist.py:14`
-Next step: Add strict validation or use explicit fields list
-Notes: |
-  Extra fields like "is_admin", "role", "password" are silently ignored
-  instead of rejected with 400 error. Could mask typo or mass assignment attempts.
-  Ref: test_playlist_length_redteam_t287.py::test_bopla_extra_fields_not_rejected
+## [DONE] fix T813 — BOPLA: Playlist CREATE accepts extra fields silently
+Completed: 2026-04-11T02:30:00Z
+Summary: |
+  StrictSerializer rejects unknown fields with 400 error.
+  Returns "Unknown fields not allowed: field1, field2".
 
 ## [MEDIUM] fix T814 — SQL injection in length field CREATE
 Status: NOT_STARTED

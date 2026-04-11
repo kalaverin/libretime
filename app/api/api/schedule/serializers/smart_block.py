@@ -1,14 +1,17 @@
+"""SmartBlock serializers with mass assignment protection."""
+
 import re
 from typing import Any, final
 
 from django.db.models import Model
-from rest_framework.serializers import ModelSerializer, ValidationError
+from rest_framework.serializers import ValidationError
 
 from api.schedule.models import (
     SmartBlock,
     SmartBlockContent,
     SmartBlockCriteria,
 )
+from api.serializers import SecureModelSerializer, StrictSerializer
 
 # Pattern to detect path-like strings (T479)
 _PATH_LIKE_PATTERN = re.compile(
@@ -31,7 +34,8 @@ def validate_no_path_patterns(value: str, field_name: str) -> str:
 
 
 @final
-class SmartBlockSerializer(ModelSerializer[Any]):
+class SmartBlockSerializer(SecureModelSerializer):
+    """SmartBlock with full protection (has created_at/updated_at)."""
 
     class Meta:
         model: type[Model] = SmartBlock
@@ -39,7 +43,8 @@ class SmartBlockSerializer(ModelSerializer[Any]):
 
 
 @final
-class SmartBlockContentSerializer(ModelSerializer[Any]):
+class SmartBlockContentSerializer(StrictSerializer):
+    """SmartBlockContent with strict validation (no timestamp fields)."""
 
     class Meta:
         model: type[Model] = SmartBlockContent
@@ -63,7 +68,8 @@ class SmartBlockContentSerializer(ModelSerializer[Any]):
 
 
 @final
-class SmartBlockCriteriaSerializer(ModelSerializer[Any]):
+class SmartBlockCriteriaSerializer(StrictSerializer):
+    """SmartBlockCriteria with strict validation (no timestamp fields)."""
 
     class Meta:
         model: type[Model] = SmartBlockCriteria

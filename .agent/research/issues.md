@@ -108,42 +108,46 @@
 
 | ID | Поле | Компонент | Описание |
 |----|------|-----------|----------|
-| T477 | id | SmartBlockContent | Массовое присвоение ID |
-| T497 | id | SmartBlockCriteria | ID в CREATE |
-| T508 | id | SmartBlockCriteria | ID в UPDATE |
-| T547 | id | Webstream | ID манипуляции |
-| T810 | id | Playlist | ID присвоение |
-| T833 | id | SmartBlock | ID присвоение |
-| T858 | id | File | ID присвоение |
-| T426 | id | SmartBlock CREATE | Mass assignment |
-| T526 | owner | Webstream CREATE | Чужой владелец |
-| T546 | owner | Webstream UPDATE | Смена владельца |
-| T567 | owner | Webstream UPDATE | Передача владения |
-| T812 | owner | Playlist | Смена владельца |
-| T835 | owner | SmartBlock | Смена владельца |
-| T860 | owner | File | Смена владельца |
-| T880 | owner | Playlist | Mass assignment |
-| T882 | owner | File metadata | Mass assignment |
-| T904 | library | File | Библиотечный хайджекинг |
-| T428 | owner | SmartBlock CREATE | BOLA vector |
-| T438 | owner | SmartBlock PATCH | Block hijacking |
-| T529 | created_at | Webstream | Манипуляция timestamp |
-| T548 | created_at | Webstream UPDATE | Установка времени |
-| T811 | created_at | Playlist | Присвоение времени |
-| T834 | created_at | SmartBlock | Присвоение времени |
-| T859 | created_at | File | Присвоение времени |
-| T427 | created_at | SmartBlock | Backdating |
-| T439 | created_at | SmartBlock PATCH | Backdating |
-| T431 | updated_at | SmartBlock | Future timestamp |
-| T440 | updated_at | SmartBlock PATCH | Future time |
-| T478 | extra fields | SmartBlockContent | Приём лишних полей |
-| T498 | extra fields | SmartBlockCriteria | Приём лишних |
-| T530 | extra fields | Webstream | Приём лишних |
-| T813 | extra fields | Playlist | Приём лишних |
-| T836 | extra fields | SmartBlock | Приём лишних |
-| T861 | extra fields | File | Приём лишних |
-| T703 | extra fields | Podcast | Приём лишних |
-| T730 | extra fields | Podcast PATCH | Приём лишних |
+    | T477 | id | SmartBlockContent | Массовое присвоение ID |
+    | T497 | id | SmartBlockCriteria | ID в CREATE |
+    | T508 | id | SmartBlockCriteria | ID в UPDATE |
+    | T547 | id | Webstream | ID манипуляции |
+    | T810 | id | Playlist | ID присвоение |
+    | T833 | id | SmartBlock | ID присвоение |
+    | T858 | id | File | ID присвоение |
+    | T426 | id | SmartBlock CREATE | Mass assignment |
+    | T526 | owner | Webstream CREATE | Чужой владелец |
+    | T546 | owner | Webstream UPDATE | Смена владельца |
+    | T567 | owner | Webstream UPDATE | Передача владения |
+    | T812 | owner | Playlist | Смена владельца |
+    | T835 | owner | SmartBlock | Смена владельца |
+    | T860 | owner | File | Смена владельца |
+    | T880 | owner | Playlist | Mass assignment |
+    | T882 | owner | File metadata | Mass assignment |
+    | T904 | library | File | Библиотечный хайджекинг |
+    | T428 | owner | SmartBlock CREATE | BOLA vector |
+    | T438 | owner | SmartBlock PATCH | Block hijacking |
+    | T529 | created_at | Webstream | Манипуляция timestamp |
+    | T548 | created_at | Webstream UPDATE | Установка времени |
+    | T811 | created_at | Playlist | Присвоение времени |
+    | T834 | created_at | SmartBlock | Присвоение времени |
+    | T859 | created_at | File | Присвоение времени |
+    | T427 | created_at | SmartBlock | Backdating |
+    | T439 | created_at | SmartBlock PATCH | Backdating |
+    | T431 | updated_at | SmartBlock | Future timestamp |
+    | T440 | updated_at | SmartBlock PATCH | Future time |
+    | T478 | extra fields | SmartBlockContent | Приём лишних полей |
+    | T498 | extra fields | SmartBlockCriteria | Приём лишних |
+    | T530 | extra fields | Webstream | Приём лишних |
+    | T813 | extra fields | Playlist | Приём лишних |
+    | T836 | extra fields | SmartBlock | Приём лишних |
+    | T861 | extra fields | File | Приём лишних |
+    | T703 | extra fields | Podcast | Приём лишних |
+    | T730 | extra fields | Podcast PATCH | Приём лишних |
+    | T888 | channels | File | Экстремальные значения |
+    | T894 | channels | File | Validation missing |
+    | T900 | channels | File | Negative values |
+    | T893 | channels | File | Mass assignment |
 | T373 | token | UserToken | Мутация токена |
 | T374 | attempts | LoginAttempt | Манипуляция счётчиком |
 | T655 | end_time | LiveLog | Фальсификация времени |
