@@ -42,7 +42,10 @@ class TestShowDaysRetrieveBOLA:
 
     @pytest.mark.xfail(reason="T389: No owner filtering on ShowDays")
     def test_retrieve_other_user_show_days(
-        self, api_client, regular_user, admin_user,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
     ):
         """Retrieve another user's show days."""
         show = baker.make(Show, name="Admin Show")
@@ -108,7 +111,10 @@ class TestShowDaysUpdateBOLA:
 
     @pytest.mark.xfail(reason="T389: No owner filtering")
     def test_update_other_user_show_days(
-        self, api_client, regular_user, admin_user,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
     ):
         """Update another user's show days."""
         show = baker.make(Show, name="Admin Show")
@@ -128,7 +134,10 @@ class TestShowDaysUpdateBOLA:
 
     @pytest.mark.xfail(reason="T389: No owner filtering")
     def test_put_other_user_show_days(
-        self, api_client, regular_user, admin_user,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
     ):
         """PUT another user's show days."""
         show = baker.make(Show, name="Admin Show")
@@ -335,7 +344,9 @@ class TestShowDaysUpdateRepeatAbuse:
         """Try to set invalid repeat_kind."""
         show = baker.make(Show, name="Test Show")
         show_days = baker.make(
-            ShowDays, show=show, repeat_kind=ShowDays.RepeatKind.WEEKLY,
+            ShowDays,
+            show=show,
+            repeat_kind=ShowDays.RepeatKind.WEEKLY,
         )
         api_client.force_authenticate(user=baker.make("core.User"))
 
@@ -373,7 +384,10 @@ class TestShowDaysDeleteBOLA:
 
     @pytest.mark.xfail(reason="T389: No owner filtering")
     def test_delete_other_user_show_days(
-        self, api_client, regular_user, admin_user,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
     ):
         """Delete another user's show days."""
         show = baker.make(Show, name="Admin Show")

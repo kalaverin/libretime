@@ -45,14 +45,17 @@ class TestScheduleListRedTeam:
 
         # Create a user who will be a host
         host_user = baker.make(User, username="testred_host")
-        
+
         # Create shows and schedules for multiple users
         for i in range(3):
             user = baker.make(User, username=f"testred_user{i}")
             show = baker.make(Show, name=f"Show {i}")
             instance = baker.make(ShowInstance, show=show)
             file_obj = baker.make(
-                File, name=f"file{i}.mp3", mime="audio/mp3", owner=user,
+                File,
+                name=f"file{i}.mp3",
+                mime="audio/mp3",
+                owner=user,
             )
 
             baker.make(
@@ -66,14 +69,14 @@ class TestScheduleListRedTeam:
                 position=1,
                 broadcasted=1,
             )
-            
+
             # Only add host_user as host to the first show
             if i == 0:
                 baker.make(ShowHost, show=show, user=host_user)
 
         # Authenticate as host_user
         api_client.force_authenticate(user=host_user)
-        
+
         response = api_client.get("/api/v2/schedule")
         assert response.status_code == 200
 
@@ -89,7 +92,10 @@ class TestScheduleListRedTeam:
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         schedules = []
@@ -128,7 +134,10 @@ class TestScheduleListRedTeam:
         show = baker.make(Show, name="Victim Show")
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name="victim.mp3", mime="audio/mp3", owner=victim,
+            File,
+            name="victim.mp3",
+            mime="audio/mp3",
+            owner=victim,
         )
 
         victim_schedule = baker.make(
@@ -224,7 +233,10 @@ class TestScheduleListRedTeam:
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         # Create many schedule entries
@@ -254,7 +266,10 @@ class TestScheduleListRedTeam:
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         baker.make(
@@ -367,7 +382,10 @@ class TestScheduleListRedTeam:
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         baker.make(
@@ -409,7 +427,10 @@ class TestScheduleListRedTeam:
         show = baker.make(Show, name="Victim Show")
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name="victim.mp3", mime="audio/mp3", owner=victim,
+            File,
+            name="victim.mp3",
+            mime="audio/mp3",
+            owner=victim,
         )
 
         victim_schedule = baker.make(
@@ -458,9 +479,9 @@ class TestScheduleListRedTeam:
         client.credentials(HTTP_AUTHORIZATION="Bearer invalid_token")
 
         response = client.get("/api/v2/schedule")
-        assert response.status_code == 403, (
-            f"T575: Invalid token should return 403, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 403
+        ), f"T575: Invalid token should return 403, got {response.status_code}"
 
     # ========================================================================
     # Input Validation
@@ -577,7 +598,10 @@ class TestScheduleListRedTeam:
         show = baker.make(Show, name="Victim Show")
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name="victim.mp3", mime="audio/mp3", owner=victim,
+            File,
+            name="victim.mp3",
+            mime="audio/mp3",
+            owner=victim,
         )
 
         victim_schedule = baker.make(

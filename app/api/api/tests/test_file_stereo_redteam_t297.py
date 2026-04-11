@@ -262,7 +262,9 @@ class TestStereoMonoSQLInjection:
         ],
     )
     def test_sqli_in_channel_filter_no_crash(
-        self, api_client: APIClient, filter_payload: str,
+        self,
+        api_client: APIClient,
+        filter_payload: str,
     ):
         """
         SQLi payloads in channel filters should not cause crashes.
@@ -442,7 +444,8 @@ class TestStereoMonoBusinessLogic:
         reason="Business logic: Can fake channel detection - T898",
     )
     def test_cannot_fake_channel_detection_on_create(
-        self, api_client: APIClient,
+        self,
+        api_client: APIClient,
     ):
         """
         Creating a file with fake channels should be prevented or corrected.

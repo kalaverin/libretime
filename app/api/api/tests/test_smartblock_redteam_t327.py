@@ -79,7 +79,10 @@ class TestSmartBlockBOLA:
     """Broken Object Level Authorization attacks."""
 
     def test_list_shows_only_own_blocks(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Verify list returns only user's own smart blocks."""
         # Create blocks for both users
@@ -112,7 +115,10 @@ class TestSmartBlockBOLA:
             )
 
     def test_access_other_user_block_directly(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to access another user's block by ID."""
         admin_block = baker.make(
@@ -132,7 +138,10 @@ class TestSmartBlockBOLA:
             )
 
     def test_update_other_user_block(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to update another user's block."""
         admin_block = baker.make(
@@ -156,7 +165,10 @@ class TestSmartBlockBOLA:
             )
 
     def test_delete_other_user_block(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to delete another user's block."""
         admin_block = baker.make(
@@ -176,7 +188,10 @@ class TestSmartBlockBOLA:
             )
 
     def test_filter_shows_only_own_by_kind(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Verify filter by kind returns only user's own blocks."""
         # Create blocks for both users with same kind

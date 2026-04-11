@@ -39,7 +39,11 @@ class TestScheduleCreateRedTeam:
         User.objects.filter(username__startswith="testred").delete()
 
     def _get_schedule_data(
-        self, instance, file_obj=None, stream=None, **overrides,
+        self,
+        instance,
+        file_obj=None,
+        stream=None,
+        **overrides,
     ):
         """Helper to generate valid schedule data with proper datetime formatting."""
         base_time = now()
@@ -74,7 +78,8 @@ class TestScheduleCreateRedTeam:
     def test_bola_create_schedule_for_other_user_show(self, api_client, faker):
         """BOLA: Can create schedule entry in another user's show instance."""
         victim = baker.make(
-            User, username=f"testred_victim_{faker.user_name()}",
+            User,
+            username=f"testred_victim_{faker.user_name()}",
         )
         attacker_file = baker.make(
             File,
@@ -103,11 +108,14 @@ class TestScheduleCreateRedTeam:
         reason="T577: BOLA - Can create schedule using other user's file",
     )
     def test_bola_create_schedule_with_other_user_file(
-        self, api_client, faker,
+        self,
+        api_client,
+        faker,
     ):
         """BOLA: Can create schedule using another user's file without permission."""
         victim = baker.make(
-            User, username=f"testred_victim_{faker.user_name()}",
+            User,
+            username=f"testred_victim_{faker.user_name()}",
         )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
@@ -136,11 +144,14 @@ class TestScheduleCreateRedTeam:
         reason="T578: BOLA - Can create schedule using other user's stream",
     )
     def test_bola_create_schedule_with_other_user_stream(
-        self, api_client, faker,
+        self,
+        api_client,
+        faker,
     ):
         """BOLA: Can create schedule using another user's webstream."""
         victim = baker.make(
-            User, username=f"testred_victim_{faker.user_name()}",
+            User,
+            username=f"testred_victim_{faker.user_name()}",
         )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
@@ -175,7 +186,10 @@ class TestScheduleCreateRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         fake_id = faker.random_int(min=100000, max=999999)
@@ -200,7 +214,10 @@ class TestScheduleCreateRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         data = self._get_schedule_data(
@@ -233,7 +250,10 @@ class TestScheduleCreateRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now() + timedelta(hours=1)
@@ -289,7 +309,10 @@ class TestScheduleCreateRedTeam:
         )
 
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         # Try to create schedule outside show time
@@ -318,7 +341,9 @@ class TestScheduleCreateRedTeam:
         reason="T583: SSRF - Schedule created with internal stream URL",
     )
     def test_ssrf_create_schedule_with_internal_stream(
-        self, api_client, faker,
+        self,
+        api_client,
+        faker,
     ):
         """SSRF: Can create schedule with internal stream URL."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
@@ -373,9 +398,9 @@ class TestScheduleCreateRedTeam:
             content_type="application/json",
         )
         # When test methodology is correct, this should pass (403 returned)
-        assert response.status_code == 403, (
-            f"T584: Invalid token should return 403, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 403
+        ), f"T584: Invalid token should return 403, got {response.status_code}"
 
     # ========================================================================
     # Injection Attacks
@@ -387,7 +412,10 @@ class TestScheduleCreateRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         sqli_payloads = [
@@ -397,7 +425,9 @@ class TestScheduleCreateRedTeam:
 
         for payload in sqli_payloads:
             data = self._get_schedule_data(
-                instance, file_obj=file_obj, cue_in=payload,
+                instance,
+                file_obj=file_obj,
+                cue_in=payload,
             )
             response = api_client.post(
                 "/api/v2/schedule",
@@ -446,11 +476,16 @@ class TestScheduleCreateRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         data = self._get_schedule_data(
-            instance, file_obj=file_obj, cue_in="日本語",
+            instance,
+            file_obj=file_obj,
+            cue_in="日本語",
         )
         response = api_client.post(
             "/api/v2/schedule",
@@ -470,11 +505,16 @@ class TestScheduleCreateRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         data = self._get_schedule_data(
-            instance, file_obj=file_obj, position=-999,
+            instance,
+            file_obj=file_obj,
+            position=-999,
         )
         response = api_client.post(
             "/api/v2/schedule",
@@ -493,7 +533,10 @@ class TestScheduleCreateRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         invalid_dates = [
@@ -561,7 +604,10 @@ class TestScheduleCreateRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         def create_schedule():

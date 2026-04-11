@@ -22,7 +22,10 @@ class TestPlayoutHistoryCreateRedTeamBOPLA:
     """API3:2023 Broken Object Property Level Authorization - CREATE mass assignment."""
 
     def test_bopla_mass_assignment_id_field(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         BOPLA: Client can specify 'id' field during CREATE.
@@ -41,7 +44,9 @@ class TestPlayoutHistoryCreateRedTeamBOPLA:
         }
 
         response = api_client.post(
-            "/api/v2/playout-history", data, format="json",
+            "/api/v2/playout-history",
+            data,
+            format="json",
         )
 
         if response.status_code == 201:
@@ -50,7 +55,10 @@ class TestPlayoutHistoryCreateRedTeamBOPLA:
                 pytest.xfail("T621: BOPLA - id field mass assignment works")
 
     def test_bopla_extra_fields_not_rejected(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         BOPLA: Extra/unknown fields are silently ignored.
@@ -71,7 +79,9 @@ class TestPlayoutHistoryCreateRedTeamBOPLA:
         }
 
         response = api_client.post(
-            "/api/v2/playout-history", data, format="json",
+            "/api/v2/playout-history",
+            data,
+            format="json",
         )
 
         if response.status_code == 201:
@@ -81,7 +91,10 @@ class TestPlayoutHistoryCreateRedTeamBOPLA:
             )
 
     def test_bopla_mass_assignment_via_content_type(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         BOPLA: Different content types may bypass validation.
@@ -115,7 +128,10 @@ class TestPlayoutHistoryCreateRedTeamBOLA:
     """API1:2023 Broken Object Level Authorization - CREATE with other user's resources."""
 
     def test_bola_create_with_other_users_file(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         BOLA: CREATE playout with another user's file.
@@ -125,7 +141,10 @@ class TestPlayoutHistoryCreateRedTeamBOLA:
         # Create victim user with private file
         victim = baker.make(User, role=Role.HOST, username=faker.user_name())
         victim_file = baker.make(
-            File, mime="audio/mp3", owner=victim, name="victim_private.mp3",
+            File,
+            mime="audio/mp3",
+            owner=victim,
+            name="victim_private.mp3",
         )
 
         # Admin creates playout referencing victim's file
@@ -136,7 +155,9 @@ class TestPlayoutHistoryCreateRedTeamBOLA:
         }
 
         response = api_client.post(
-            "/api/v2/playout-history", data, format="json",
+            "/api/v2/playout-history",
+            data,
+            format="json",
         )
 
         if response.status_code == 201:
@@ -145,7 +166,10 @@ class TestPlayoutHistoryCreateRedTeamBOLA:
             pass
 
     def test_bola_create_with_other_users_instance(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         BOLA: CREATE playout linked to another user's show instance.
@@ -172,7 +196,9 @@ class TestPlayoutHistoryCreateRedTeamBOLA:
         }
 
         response = api_client.post(
-            "/api/v2/playout-history", data, format="json",
+            "/api/v2/playout-history",
+            data,
+            format="json",
         )
 
         if response.status_code == 201:
@@ -194,7 +220,9 @@ class TestPlayoutHistoryCreateRedTeamBOLA:
         }
 
         response = api_client.post(
-            "/api/v2/playout-history", data, format="json",
+            "/api/v2/playout-history",
+            data,
+            format="json",
         )
 
         assert response.status_code == 400
@@ -206,7 +234,10 @@ class TestPlayoutHistoryCreateRedTeamBOLA:
         )
 
     def test_bola_create_with_nonexistent_instance(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         BOLA/Validation: CREATE with non-existent instance ID.
@@ -223,7 +254,9 @@ class TestPlayoutHistoryCreateRedTeamBOLA:
         }
 
         response = api_client.post(
-            "/api/v2/playout-history", data, format="json",
+            "/api/v2/playout-history",
+            data,
+            format="json",
         )
 
         assert response.status_code == 400
@@ -252,7 +285,9 @@ class TestPlayoutHistoryCreateRedTeamInjection:
             }
 
             response = api_client.post(
-                "/api/v2/playout-history", data, format="json",
+                "/api/v2/playout-history",
+                data,
+                format="json",
             )
 
             # Check for SQL errors
@@ -284,7 +319,9 @@ class TestPlayoutHistoryCreateRedTeamInjection:
             }
 
             response = api_client.post(
-                "/api/v2/playout-history", data, format="json",
+                "/api/v2/playout-history",
+                data,
+                format="json",
             )
 
             if response.status_code == 500:
@@ -313,7 +350,9 @@ class TestPlayoutHistoryCreateRedTeamInjection:
             }
 
             response = api_client.post(
-                "/api/v2/playout-history", data, format="json",
+                "/api/v2/playout-history",
+                data,
+                format="json",
             )
             # Just document - no XSS vector in this model
             assert response.status_code in [201, 400]
@@ -338,7 +377,9 @@ class TestPlayoutHistoryCreateRedTeamValidationBypass:
         }
 
         response = api_client.post(
-            "/api/v2/playout-history", data, format="json",
+            "/api/v2/playout-history",
+            data,
+            format="json",
         )
 
         if response.status_code == 201:
@@ -364,7 +405,9 @@ class TestPlayoutHistoryCreateRedTeamValidationBypass:
         }
 
         response = api_client.post(
-            "/api/v2/playout-history", data, format="json",
+            "/api/v2/playout-history",
+            data,
+            format="json",
         )
 
         if response.status_code == 201:
@@ -385,7 +428,9 @@ class TestPlayoutHistoryCreateRedTeamValidationBypass:
         }
 
         response = api_client.post(
-            "/api/v2/playout-history", data, format="json",
+            "/api/v2/playout-history",
+            data,
+            format="json",
         )
 
         if response.status_code == 201:
@@ -394,7 +439,10 @@ class TestPlayoutHistoryCreateRedTeamValidationBypass:
             )
 
     def test_create_invalid_datetime_format(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         Validation: Invalid datetime formats should be rejected.
@@ -416,7 +464,9 @@ class TestPlayoutHistoryCreateRedTeamValidationBypass:
             }
 
             response = api_client.post(
-                "/api/v2/playout-history", data, format="json",
+                "/api/v2/playout-history",
+                data,
+                format="json",
             )
 
             if response.status_code == 201:
@@ -437,7 +487,9 @@ class TestPlayoutHistoryCreateRedTeamValidationBypass:
         }
 
         response = api_client.post(
-            "/api/v2/playout-history", data, format="json",
+            "/api/v2/playout-history",
+            data,
+            format="json",
         )
 
         # Document behavior - far future dates may be valid for scheduling
@@ -456,7 +508,9 @@ class TestPlayoutHistoryCreateRedTeamValidationBypass:
         }
 
         response = api_client.post(
-            "/api/v2/playout-history", data, format="json",
+            "/api/v2/playout-history",
+            data,
+            format="json",
         )
 
         # Document behavior - far past dates may be rejected
@@ -482,7 +536,9 @@ class TestPlayoutHistoryCreateRedTeamResourceConsumption:
                 "starts": format_datetime(now() + timedelta(seconds=i)),
             }
             response = api_client.post(
-                "/api/v2/playout-history", data, format="json",
+                "/api/v2/playout-history",
+                data,
+                format="json",
             )
             if response.status_code == 201:
                 success_count += 1
@@ -502,7 +558,9 @@ class TestPlayoutHistoryCreateRedTeamResourceConsumption:
         }
 
         response = api_client.post(
-            "/api/v2/playout-history", data, format="json",
+            "/api/v2/playout-history",
+            data,
+            format="json",
         )
 
         # May be valid (e.g., system event) or may require validation
@@ -526,7 +584,9 @@ class TestPlayoutHistoryCreateRedTeamAuthentication:
         }
 
         response = api_client.post(
-            "/api/v2/playout-history", data, format="json",
+            "/api/v2/playout-history",
+            data,
+            format="json",
         )
         assert response.status_code == 403
 
@@ -547,7 +607,9 @@ class TestPlayoutHistoryCreateRedTeamAuthentication:
         }
 
         response = api_client.post(
-            "/api/v2/playout-history", data, format="json",
+            "/api/v2/playout-history",
+            data,
+            format="json",
         )
 
         if response.status_code == 201:
@@ -573,7 +635,9 @@ class TestPlayoutHistoryCreateRedTeamAuthentication:
         }
 
         response = api_client.post(
-            "/api/v2/playout-history", data, format="json",
+            "/api/v2/playout-history",
+            data,
+            format="json",
         )
 
         if response.status_code == 201:
@@ -606,7 +670,9 @@ class TestPlayoutHistoryCreateRedTeamFuzzing:
         errors_500 = 0
         for data in fuzz_cases:
             response = api_client.post(
-                "/api/v2/playout-history", data, format="json",
+                "/api/v2/playout-history",
+                data,
+                format="json",
             )
             if response.status_code == 500:
                 errors_500 += 1
@@ -636,7 +702,9 @@ class TestPlayoutHistoryCreateRedTeamFuzzing:
             }
 
             response = api_client.post(
-                "/api/v2/playout-history", data, format="json",
+                "/api/v2/playout-history",
+                data,
+                format="json",
             )
 
             if response.status_code == 500:

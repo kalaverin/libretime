@@ -200,7 +200,10 @@ class TestSmartBlockContentIDORWithFilter:
     """IDOR attacks combined with filtering."""
 
     def test_filter_shows_only_own_content(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Verify filter returns only user's own content."""
         from model_bakery import baker
@@ -241,7 +244,10 @@ class TestSmartBlockContentIDORWithFilter:
             pytest.xfail("BOLA: Filter returns other users' content")
 
     def test_filter_by_other_user_block(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to filter by another user's block_id."""
         from model_bakery import baker
@@ -308,7 +314,10 @@ class TestSmartBlockContentMassOrdering:
     """Mass ordering extraction attacks."""
 
     def test_extract_all_content_via_ordering(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to extract all content via ordering manipulation.
 

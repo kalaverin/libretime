@@ -185,7 +185,10 @@ class TestPlayoutHistoryBOLA:
     """Broken Object Level Authorization attacks."""
 
     def test_list_shows_only_own_history(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Verify list returns only user's own history."""
         file1 = baker.make("storage.File", owner=admin_user)
@@ -217,7 +220,10 @@ class TestPlayoutHistoryBOLA:
             pytest.fail("CRITICAL BUG: List shows other users' history (BOLA)")
 
     def test_access_other_user_history(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to access another user's history by ID."""
         file_obj = baker.make("storage.File", owner=admin_user)
@@ -235,7 +241,10 @@ class TestPlayoutHistoryBOLA:
             pytest.fail("CRITICAL BUG: Can access other user's history (BOLA)")
 
     def test_delete_other_user_history(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to delete another user's history."""
         file_obj = baker.make("storage.File", owner=admin_user)

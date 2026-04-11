@@ -127,7 +127,7 @@ def check_authorization_header(request: Request) -> bool:
     # Reject headers with non-ASCII characters (T376, T749, T793)
     # This prevents UnicodeEncodeError in subsequent processing
     try:
-        auth_header.encode('ascii')
+        auth_header.encode("ascii")
     except UnicodeEncodeError:
         return False
 
@@ -165,7 +165,7 @@ def check_authorization_header(request: Request) -> bool:
 
     # Reject non-ASCII tokens (T376, T749)
     try:
-        token.encode('ascii')
+        token.encode("ascii")
     except UnicodeEncodeError:
         return False
 
@@ -191,22 +191,16 @@ def is_superuser(user: AnonymousUser | User) -> bool:
     """Check if user is authenticated and has admin or manager role."""
 
     return (
-        isinstance(user, User) and
-        user.is_authenticated and
-        (
-            user.is_superuser
-            or user.role in (Role.ADMIN, Role.MANAGER)
-        )
+        isinstance(user, User)
+        and user.is_authenticated
+        and (user.is_superuser or user.role in (Role.ADMIN, Role.MANAGER))
     )
 
 
 def request_superauthorized(request: Request) -> bool:
     """Check if request is from a superuser (admin/manager) or has valid API-Key."""
 
-    return (
-        is_superuser(request.user) or
-        check_authorization_header(request)
-    )
+    return is_superuser(request.user) or check_authorization_header(request)
 
 
 class IsAdminOrOwnUser(BasePermission):
@@ -231,8 +225,7 @@ class IsAdminOrOwnUser(BasePermission):
     ) -> bool:
         user = request.user
         return user.is_authenticated and (
-            is_superuser(user) or
-            obj.username == user
+            is_superuser(user) or obj.username == user
         )
 
 
@@ -269,10 +262,7 @@ class IsSystemTokenOrUser(BasePermission):
 
         # Special handling for Show: allow HOST to reach has_object_permission
         # where we check if they are assigned as host (Show uses hosts, not owner)
-        if (
-            perm and "own_show" in perm and
-            request.user.role == Role.HOST
-        ):
+        if perm and "own_show" in perm and request.user.role == Role.HOST:
             return True
 
         return request.user.has_perm(perm)
@@ -300,9 +290,9 @@ class IsSystemTokenOrUser(BasePermission):
                 if isinstance(obj, Show):
                     return obj.hosts.filter(id=request.user.id).exists()
                 # Check ownership
-                if hasattr(obj, 'owner'):
+                if hasattr(obj, "owner"):
                     return obj.owner == request.user
-                elif hasattr(obj, 'get_owner'):
+                if hasattr(obj, "get_owner"):
                     return obj.get_owner() == request.user
                 # No ownership info - deny
                 return False
@@ -314,6 +304,7 @@ class IsSystemTokenOrUser(BasePermission):
                     if is_superuser(request.user):
                         return True
                     from api.core.models.role import Role
+
                     if request.user.role == Role.MANAGER:
                         return True
                     # Host can modify if they are assigned to the show

@@ -213,7 +213,8 @@ class TestFileOrganizationMassAssignment:
         reason="BOPLA: Can move file to another user's library - T904",
     )
     def test_mass_assignment_library_change_blocked(
-        self, api_client: APIClient,
+        self,
+        api_client: APIClient,
     ):
         """
         Attempt to change file's library assignment.
@@ -224,7 +225,8 @@ class TestFileOrganizationMassAssignment:
 
         victim_library = make_library(code="VICTIM", name="Victim Library")
         attacker_library = make_library(
-            code="ATTACKER", name="Attacker Library",
+            code="ATTACKER",
+            name="Attacker Library",
         )
 
         file_obj = baker.make(
@@ -252,7 +254,8 @@ class TestFileOrganizationMassAssignment:
         reason="BOPLA: Mass assignment allows changing import_status - T905",
     )
     def test_mass_assignment_import_status_blocked(
-        self, api_client: APIClient,
+        self,
+        api_client: APIClient,
     ):
         """
         Attempt to modify import_status via PATCH.
@@ -321,14 +324,16 @@ class TestFileOrganizationPathTraversal:
             if response.status_code == 201:
                 data = response.json()
                 assert ".." not in data.get(
-                    "filepath", "",
+                    "filepath",
+                    "",
                 ), f"Path traversal not sanitized: {path}"
 
     @pytest.mark.xfail(
         reason="Path traversal: Absolute path outside storage allowed - T906",
     )
     def test_absolute_path_outside_storage_blocked(
-        self, api_client: APIClient,
+        self,
+        api_client: APIClient,
     ):
         """
         Attempt to use absolute path outside storage directory.
@@ -365,7 +370,8 @@ class TestFileOrganizationPathTraversal:
                 ), f"System path accepted: {path}"
 
     @pytest.mark.xfail(
-        reason="Flaky: Encoding attacks handling varies", strict=False,
+        reason="Flaky: Encoding attacks handling varies",
+        strict=False,
     )
     def test_filepath_encoding_attacks(self, api_client: APIClient):
         """Test various filepath encoding attacks."""
@@ -415,7 +421,9 @@ class TestFileOrganizationSQLInjection:
         ],
     )
     def test_sqli_in_organization_filter_no_crash(
-        self, api_client: APIClient, filter_payload: str,
+        self,
+        api_client: APIClient,
+        filter_payload: str,
     ):
         """
         SQLi payloads in organization filters should not cause crashes.
@@ -536,7 +544,8 @@ class TestFileOrganizationBusinessLogic:
         ], "Zero file size should be rejected"
 
     @pytest.mark.xfail(
-        reason="Flaky: Negative size validation varies", strict=False,
+        reason="Flaky: Negative size validation varies",
+        strict=False,
     )
     def test_negative_file_size_rejected(self, api_client: APIClient):
         """Negative file size should be rejected."""
@@ -788,7 +797,8 @@ class TestFileOrganizationWorkflowBypass:
         user = baker.make(User, username="workflow_hacker")
         pending_lib = make_library(code="PENDING", name="Pending Library")
         processed_lib = make_library(
-            code="PROCESSED", name="Processed Library",
+            code="PROCESSED",
+            name="Processed Library",
         )
 
         file_obj = baker.make(

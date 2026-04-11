@@ -5,7 +5,6 @@ Full coverage for PreferenceViewSet with all edge cases.
 Preferences are key-value pairs for site and user settings.
 """
 
-
 from django.conf import settings
 from model_bakery import baker
 from rest_framework import status

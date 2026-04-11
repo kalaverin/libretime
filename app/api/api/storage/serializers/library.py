@@ -1,6 +1,5 @@
 """Library serializer with mass assignment protection."""
 
-from typing import Any
 
 from django.db import models
 from typing_extensions import final

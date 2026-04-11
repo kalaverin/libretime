@@ -9,6 +9,7 @@ Tests for:
 """
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -31,7 +32,9 @@ class TestBolaPodcastPrevention:
         response = anonymous_client.post("/api/v2/podcasts", {})
         assert response.status_code == 403
 
-    def test_bola_list_podcasts_only_shows_own(self, host_client, host_user, faker, fake_url):
+    def test_bola_list_podcasts_only_shows_own(
+        self, host_client, host_user, faker, fake_url,
+    ):
         """BOLA T663: HOST LIST should only show own podcasts."""
         # Create victim user with private podcast
         victim = baker.make(
@@ -47,7 +50,7 @@ class TestBolaPodcastPrevention:
             description=faker.sentence(),
             owner=victim,
         )
-        
+
         # Create own podcast
         own_podcast = baker.make(
             Podcast,
@@ -64,18 +67,20 @@ class TestBolaPodcastPrevention:
             results = data
         else:
             results = data.get("results", data)
-        
+
         result_ids = [p["id"] for p in results]
-        
+
         # Should see own podcast
         assert own_podcast.id in result_ids, "HOST should see own podcast"
-        
-        # Should NOT see victim's podcast
-        assert victim_podcast.id not in result_ids, (
-            f"BOLA T663: HOST can see victim's podcast in LIST!"
-        )
 
-    def test_bola_retrieve_other_host_podcast(self, host_client, host_user, faker, fake_url):
+        # Should NOT see victim's podcast
+        assert (
+            victim_podcast.id not in result_ids
+        ), "BOLA T663: HOST can see victim's podcast in LIST!"
+
+    def test_bola_retrieve_other_host_podcast(
+        self, host_client, host_user, faker, fake_url,
+    ):
         """BOLA T727: HOST cannot RETRIEVE another HOST's podcast."""
         victim = baker.make(
             User,
@@ -92,10 +97,11 @@ class TestBolaPodcastPrevention:
         )
 
         response = host_client.get(f"/api/v2/podcasts/{victim_podcast.id}")
-        
-        assert response.status_code in [403, 404], (
-            f"BOLA T727: HOST retrieved victim's podcast, got {response.status_code}"
-        )
+
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA T727: HOST retrieved victim's podcast, got {response.status_code}"
 
 
 @pytest.mark.django_db
@@ -112,7 +118,9 @@ class TestBolaFilePrevention:
         response = anonymous_client.post("/api/v2/files", {})
         assert response.status_code == 403
 
-    def test_bola_retrieve_other_host_file(self, host_client, host_user, faker):
+    def test_bola_retrieve_other_host_file(
+        self, host_client, host_user, faker,
+    ):
         """BOLA T850: HOST cannot RETRIEVE another HOST's file."""
         victim = baker.make(
             User,
@@ -120,7 +128,11 @@ class TestBolaFilePrevention:
             email=f"victim_{faker.uuid4()[:8]}@test.com",
             role=Role.HOST,
         )
-        library = baker.make(Library, name=f"Lib {faker.uuid4()[:8]}", description=faker.sentence())
+        library = baker.make(
+            Library,
+            name=f"Lib {faker.uuid4()[:8]}",
+            description=faker.sentence(),
+        )
         victim_file = baker.make(
             File,
             name=f"victim_file_{faker.uuid4()[:8]}.mp3",
@@ -130,10 +142,11 @@ class TestBolaFilePrevention:
         )
 
         response = host_client.get(f"/api/v2/files/{victim_file.id}")
-        
-        assert response.status_code in [403, 404], (
-            f"BOLA T850: HOST retrieved victim's file, got {response.status_code}"
-        )
+
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA T850: HOST retrieved victim's file, got {response.status_code}"
 
     def test_bola_delete_other_host_file(self, host_client, host_user, faker):
         """BOLA T853: HOST cannot DELETE another HOST's file."""
@@ -143,7 +156,11 @@ class TestBolaFilePrevention:
             email=f"victim_{faker.uuid4()[:8]}@test.com",
             role=Role.HOST,
         )
-        library = baker.make(Library, name=f"Lib {faker.uuid4()[:8]}", description=faker.sentence())
+        library = baker.make(
+            Library,
+            name=f"Lib {faker.uuid4()[:8]}",
+            description=faker.sentence(),
+        )
         victim_file = baker.make(
             File,
             name=f"victim_file_{faker.uuid4()[:8]}.mp3",
@@ -154,15 +171,18 @@ class TestBolaFilePrevention:
         victim_file_id = victim_file.id
 
         response = host_client.delete(f"/api/v2/files/{victim_file_id}")
-        
-        assert response.status_code in [403, 404], (
-            f"BOLA T853: HOST deleted victim's file, got {response.status_code}"
-        )
-        
+
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA T853: HOST deleted victim's file, got {response.status_code}"
+
         # Verify still exists
         assert File.objects.filter(id=victim_file_id).exists()
 
-    def test_bola_list_files_only_shows_own(self, host_client, host_user, faker):
+    def test_bola_list_files_only_shows_own(
+        self, host_client, host_user, faker,
+    ):
         """BOLA: HOST LIST should only show own files."""
         # Create victim user with private file
         victim = baker.make(
@@ -171,7 +191,11 @@ class TestBolaFilePrevention:
             email=f"victim_{faker.uuid4()[:8]}@test.com",
             role=Role.HOST,
         )
-        library = baker.make(Library, name=f"Lib {faker.uuid4()[:8]}", description=faker.sentence())
+        library = baker.make(
+            Library,
+            name=f"Lib {faker.uuid4()[:8]}",
+            description=faker.sentence(),
+        )
         victim_file = baker.make(
             File,
             name=f"victim_file_{faker.uuid4()[:8]}.mp3",
@@ -179,7 +203,7 @@ class TestBolaFilePrevention:
             library=library,
             owner=victim,
         )
-        
+
         # Create own file
         own_file = baker.make(
             File,
@@ -197,13 +221,13 @@ class TestBolaFilePrevention:
             results = data
         else:
             results = data.get("results", data)
-        
+
         result_ids = [f["id"] for f in results]
-        
+
         # Should see own file
         assert own_file.id in result_ids, "HOST should see own file"
-        
+
         # Should NOT see victim's file
-        assert victim_file.id not in result_ids, (
-            f"BOLA: HOST can see victim's file in LIST!"
-        )
+        assert (
+            victim_file.id not in result_ids
+        ), "BOLA: HOST can see victim's file in LIST!"

@@ -47,6 +47,7 @@ class PlaylistContentSerializer(StrictSerializer):
     def validate_file(self, value: Any) -> Any:
         """Validate file ID is valid integer."""
         from api.storage.models import File
+
         if isinstance(value, File):
             return value
         return validate_foreign_key_id(value, "file")

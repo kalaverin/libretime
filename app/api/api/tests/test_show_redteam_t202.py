@@ -433,9 +433,9 @@ class TestShowCreateBusinessLogic:
         )
 
         # Fixed: Should return 403 Forbidden for anonymous
-        assert response.status_code == 403, (
-            f"Expected 403, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 403
+        ), f"Expected 403, got {response.status_code}"
 
     def test_create_with_empty_name(self, api_client, admin_user):
         """Try to create show with empty name."""

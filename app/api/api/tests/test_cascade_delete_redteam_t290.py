@@ -57,7 +57,9 @@ class TestCascadeDeleteBOLA:
         reason="T864: BOLA - attacker can delete victim's playlist (flaky: state-dependent)",
     )
     def test_bola_delete_playlist_cascades_to_contents(
-        self, api_client, faker,
+        self,
+        api_client,
+        faker,
     ):
         """Attacker deleting victim's playlist is blocked."""
         victim = baker.make(User, username=f"victim_{faker.user_name()}")
@@ -87,7 +89,9 @@ class TestCascadeDeleteBOLA:
         reason="T865: BOLA - attacker can delete victim's smartblock (state-dependent)",
     )
     def test_bola_delete_smartblock_cascades_to_contents(
-        self, api_client, faker,
+        self,
+        api_client,
+        faker,
     ):
         """Attacker deleting victim's smartblock cascades to contents."""
         victim = baker.make(User, username=f"victim_{faker.user_name()}")
@@ -163,7 +167,10 @@ class TestCascadeDeleteDoS:
 
     @pytest.mark.django_db
     def test_mass_cascade_delete_show_instances(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Deleting show with thousands of instances."""
         show = baker.make(Show, name="Show with Many Instances")
@@ -185,11 +192,16 @@ class TestCascadeDeleteDoS:
 
     @pytest.mark.django_db
     def test_mass_cascade_delete_playlist_contents(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Deleting playlist with thousands of contents."""
         playlist = baker.make(
-            Playlist, name="Playlist with Many Contents", owner=admin_user,
+            Playlist,
+            name="Playlist with Many Contents",
+            owner=admin_user,
         )
 
         # Create many contents
@@ -212,7 +224,10 @@ class TestCascadeDeleteDoS:
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T869: No rate limiting on cascade delete")
     def test_rapid_cascade_delete_requests(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Rapid cascade delete requests should be rate limited."""
         client = APIClient()
@@ -242,7 +257,10 @@ class TestCascadeDeleteRaceCondition:
         reason="T870: Race condition - concurrent delete of same show",
     )
     def test_race_condition_concurrent_show_delete(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Concurrent delete attempts on same show."""
         show = baker.make(Show, name="Race Show")
@@ -279,7 +297,10 @@ class TestCascadeDeleteRaceCondition:
 
     @pytest.mark.django_db
     def test_race_condition_delete_while_adding_content_safe(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Delete playlist while adding contents to it."""
         playlist = baker.make(Playlist, name="Race Playlist", owner=admin_user)
@@ -335,11 +356,17 @@ class TestCascadeDeleteFKConstraintBypass:
         reason="T872: FK constraint bypass - nullify FK before delete",
     )
     def test_fk_bypass_nullify_before_delete(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Try to nullify FK references before cascade delete."""
         library = baker.make(
-            Library, code="TESTLIB", name="Test Library", description="Test",
+            Library,
+            code="TESTLIB",
+            name="Test Library",
+            description="Test",
         )
         file_obj = baker.make(
             File,
@@ -375,11 +402,17 @@ class TestCascadeDeleteFKConstraintBypass:
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T873: FK constraint violation causes 500 error")
     def test_delete_with_active_references_blocked(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Delete parent with active child references should fail gracefully."""
         library = baker.make(
-            Library, code="REFLIB", name="Ref Library", description="Test",
+            Library,
+            code="REFLIB",
+            name="Ref Library",
+            description="Test",
         )
         file_obj = baker.make(
             File,
@@ -408,7 +441,10 @@ class TestCascadeDeleteInjection:
 
     @pytest.mark.django_db
     def test_sqli_in_delete_cascade_trigger(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """SQL injection via specially crafted entity names during delete."""
         # Create show with SQLi in name
@@ -470,7 +506,10 @@ class TestCascadeDeleteDataLeakage:
 
     @pytest.mark.django_db
     def test_error_message_leaks_child_count(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Error messages might leak number of child entities."""
         show = baker.make(Show, name="Error Leak Show")
@@ -501,7 +540,10 @@ class TestCascadeDeleteOrphanedData:
 
     @pytest.mark.django_db
     def test_interrupted_cascade_no_orphans(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Interrupted cascade delete might leave orphaned data."""
         # This tests database transaction integrity
@@ -526,7 +568,10 @@ class TestCascadeDeleteOrphanedData:
 
     @pytest.mark.django_db
     def test_cascade_vs_manual_delete_consistency(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Cascade delete should be consistent with manual deletion."""
         show1 = baker.make(Show, name="Cascade Show")
@@ -582,12 +627,17 @@ class TestCascadeDeleteAPIPermissions:
 
     @pytest.mark.django_db
     def test_cascade_deletes_children_with_parent_permission(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Cascade delete might bypass permission checks on children."""
         # Create playlist where user has delete permission
         playlist = baker.make(
-            Playlist, name="Parent Playlist", owner=admin_user,
+            Playlist,
+            name="Parent Playlist",
+            owner=admin_user,
         )
 
         # Create contents that user might not have direct permission to delete

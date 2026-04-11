@@ -14,7 +14,10 @@ class TestMountNameListRedTeamAuthorization:
     """Authorization tests for MountName LIST."""
 
     def test_list_requires_specific_permission(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """
         MountName LIST requires specific 'mountname' permission.
@@ -121,7 +124,8 @@ class TestMountNameListRedTeamInformationDisclosure:
         api_client.force_authenticate(user=admin_user)
 
         response = api_client.get(
-            "/api/v2/mount-names", {"invalid_param": "test"},
+            "/api/v2/mount-names",
+            {"invalid_param": "test"},
         )
 
         # Should not expose internal details

@@ -95,7 +95,9 @@ class TestPlaylistLengthBOLA:
         reason="T806: BOLA - no ownership check in PlaylistViewSet",
     )
     def test_bola_retrieve_other_users_playlist_length(
-        self, api_client, faker,
+        self,
+        api_client,
+        faker,
     ):
         """Attacker can retrieve victim's playlist including length field."""
         victim = baker.make(User, username=f"victim_{faker.user_name()}")
@@ -210,7 +212,10 @@ class TestPlaylistLengthBOPLA:
 
     @pytest.mark.django_db
     def test_bopla_mass_assignment_id_field(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Try to set id field during CREATE (mass assignment)."""
         client = APIClient()
@@ -241,7 +246,10 @@ class TestPlaylistLengthBOPLA:
         reason="T811: BOPLA - mass assignment of created_at allowed",
     )
     def test_bopla_mass_assignment_created_at(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Try to set created_at during CREATE."""
         client = APIClient()
@@ -269,7 +277,11 @@ class TestPlaylistLengthBOPLA:
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T812: BOPLA - owner change via PATCH allowed")
     def test_bopla_change_owner_via_update(
-        self, api_client, admin_user, regular_user, faker,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        faker,
     ):
         """Try to change playlist owner via PATCH."""
         playlist = baker.make(
@@ -297,7 +309,10 @@ class TestPlaylistLengthBOPLA:
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T813: BOPLA - extra fields silently accepted")
     def test_bopla_extra_fields_not_rejected(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Extra fields should be rejected, not silently ignored."""
         client = APIClient()

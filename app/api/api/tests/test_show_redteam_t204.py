@@ -135,7 +135,9 @@ class TestShowRetrievePathTraversal:
 class TestShowRetrieveBOLA:
     """Broken Object Level Authorization."""
 
-    def test_access_other_user_show(self, host_client, admin_user, regular_user):
+    def test_access_other_user_show(
+        self, host_client, admin_user, regular_user,
+    ):
         """Try to access another user's show - should be blocked (BOLA fix)."""
         from api.schedule.models import ShowHost
 
@@ -147,9 +149,10 @@ class TestShowRetrieveBOLA:
         response = host_client.get(f"/api/v2/shows/{show.id}")
 
         # Fixed: Should be 404 (not found for this user) or 403 (forbidden)
-        assert response.status_code in [403, 404], (
-            f"BOLA: Got {response.status_code}, expected 403/404"
-        )
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA: Got {response.status_code}, expected 403/404"
 
     def test_access_show_via_idor(self, host_client, admin_user, regular_user):
         """Try IDOR by guessing sequential IDs - should be blocked."""
@@ -163,9 +166,10 @@ class TestShowRetrieveBOLA:
         response = host_client.get(f"/api/v2/shows/{show.id}")
 
         # Fixed: Should be 404 (not found) or 403 (forbidden)
-        assert response.status_code in [403, 404], (
-            f"IDOR: Got {response.status_code}, expected 403/404"
-        )
+        assert response.status_code in [
+            403,
+            404,
+        ], f"IDOR: Got {response.status_code}, expected 403/404"
 
 
 @pytest.mark.django_db
@@ -256,9 +260,9 @@ class TestShowRetrieveBusinessLogic:
         response = anonymous_client.get(f"/api/v2/shows/{show.id}")
 
         # Fixed: Should return 403 Forbidden for anonymous
-        assert response.status_code == 403, (
-            f"Expected 403, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 403
+        ), f"Expected 403, got {response.status_code}"
 
     def test_retrieve_deleted_show(self, api_client, admin_user):
         """Try to retrieve deleted show."""

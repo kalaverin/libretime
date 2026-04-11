@@ -69,7 +69,10 @@ class TestShowLiveAuthExposure:
             )
 
     def test_other_user_password_not_visible(
-        self, host_client, admin_user, regular_user,
+        self,
+        host_client,
+        admin_user,
+        regular_user,
     ):
         """Verify other users can't access show or see password (BOLA fix)."""
         from api.schedule.models import ShowHost
@@ -89,9 +92,10 @@ class TestShowLiveAuthExposure:
         response = host_client.get(f"/api/v2/shows/{show.id}")
 
         # Fixed: BOLA protection should block access (404 or 403)
-        assert response.status_code in [403, 404], (
-            f"Expected 403/404, got {response.status_code}"
-        )
+        assert response.status_code in [
+            403,
+            404,
+        ], f"Expected 403/404, got {response.status_code}"
 
 
 @pytest.mark.django_db
@@ -99,7 +103,10 @@ class TestShowLiveAuthModification:
     """Unauthorized live auth modification attacks."""
 
     def test_other_user_can_modify_live_auth(
-        self, host_client, admin_user, regular_user,
+        self,
+        host_client,
+        admin_user,
+        regular_user,
     ):
         """Try to modify live auth settings on another user's show - should be blocked."""
         from api.schedule.models import ShowHost
@@ -125,12 +132,16 @@ class TestShowLiveAuthModification:
         )
 
         # Fixed: BOLA protection should block modification
-        assert response.status_code in [403, 404], (
-            f"Expected 403/404, got {response.status_code}"
-        )
+        assert response.status_code in [
+            403,
+            404,
+        ], f"Expected 403/404, got {response.status_code}"
 
     def test_disable_live_auth_on_other_show(
-        self, host_client, admin_user, regular_user,
+        self,
+        host_client,
+        admin_user,
+        regular_user,
     ):
         """Try to disable live auth on another user's show - should be blocked."""
         from api.schedule.models import ShowHost
@@ -154,9 +165,10 @@ class TestShowLiveAuthModification:
         )
 
         # Fixed: BOLA protection should block modification
-        assert response.status_code in [403, 404], (
-            f"Expected 403/404, got {response.status_code}"
-        )
+        assert response.status_code in [
+            403,
+            404,
+        ], f"Expected 403/404, got {response.status_code}"
 
 
 @pytest.mark.django_db
@@ -193,9 +205,13 @@ class TestShowLiveAuthBOLA:
         # User should see only their show
         assert "User Show" in show_names
         # Should NOT see admin's show
-        assert "Admin Show" not in show_names, "BOLA: User can see admin's show"
+        assert (
+            "Admin Show" not in show_names
+        ), "BOLA: User can see admin's show"
 
-    def test_access_other_user_show(self, host_client, admin_user, regular_user):
+    def test_access_other_user_show(
+        self, host_client, admin_user, regular_user,
+    ):
         """Try to access another user's show - should be blocked (BOLA fix)."""
         from api.schedule.models import ShowHost
 
@@ -211,11 +227,14 @@ class TestShowLiveAuthBOLA:
         response = host_client.get(f"/api/v2/shows/{show.id}")
 
         # Fixed: BOLA protection should block access
-        assert response.status_code in [403, 404], (
-            f"Expected 403/404, got {response.status_code}"
-        )
+        assert response.status_code in [
+            403,
+            404,
+        ], f"Expected 403/404, got {response.status_code}"
 
-    def test_delete_other_user_show(self, host_client, admin_user, regular_user):
+    def test_delete_other_user_show(
+        self, host_client, admin_user, regular_user,
+    ):
         """Try to delete another user's show - should be blocked (BOLA fix)."""
         from api.schedule.models import ShowHost
 
@@ -231,9 +250,10 @@ class TestShowLiveAuthBOLA:
         response = host_client.delete(f"/api/v2/shows/{show.id}")
 
         # Fixed: BOLA protection should block delete
-        assert response.status_code in [403, 404], (
-            f"Expected 403/404, got {response.status_code}"
-        )
+        assert response.status_code in [
+            403,
+            404,
+        ], f"Expected 403/404, got {response.status_code}"
 
 
 @pytest.mark.django_db
@@ -241,7 +261,9 @@ class TestShowLiveAuthValidation:
     """Live auth validation bypass attacks."""
 
     def test_create_with_live_auth_but_no_password(
-        self, api_client, admin_user,
+        self,
+        api_client,
+        admin_user,
     ):
         """Try to create show with live_auth_custom=True but no password."""
         api_client.force_authenticate(user=admin_user)
@@ -325,9 +347,9 @@ class TestShowLiveAuthBusinessLogic:
         )
 
         # Fixed: Should return 403 Forbidden for anonymous
-        assert response.status_code == 403, (
-            f"Expected 403, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 403
+        ), f"Expected 403, got {response.status_code}"
 
     def test_create_duplicate_name(self, api_client, admin_user):
         """Try to create show with duplicate name."""

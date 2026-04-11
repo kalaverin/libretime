@@ -36,7 +36,10 @@ class TestShowInstanceListBOLA:
 
     @pytest.mark.xfail(reason="T398: No owner filtering on ShowInstance")
     def test_list_shows_only_own_instances(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Verify list returns only user's own show instances."""
         show1 = baker.make(Show, name="Admin Show")
@@ -58,7 +61,10 @@ class TestShowInstanceListBOLA:
 
     @pytest.mark.xfail(reason="T399: BOLA via show filter")
     def test_filter_by_other_user_show(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to filter by another user's show."""
         show = baker.make(Show, name="Admin Show")

@@ -4,7 +4,6 @@ Red Team security tests for session-based authentication.
 Tests for session fixation, hijacking, brute force, and permission bypasses.
 """
 
-
 import pytest
 
 from django.contrib.auth import get_user_model
@@ -128,7 +127,8 @@ class TestSessionAuthRedTeamBruteForce:
         for i in range(20):
             # Try incorrect passwords
             logged_in = client.login(
-                username="brute_force_target", password=f"wrong_password_{i}",
+                username="brute_force_target",
+                password=f"wrong_password_{i}",
             )
             if logged_in:
                 success_count += 1
@@ -162,7 +162,8 @@ class TestSessionAuthRedTeamBruteForce:
 
         # Try correct password
         logged_in = client.login(
-            username="lockout_test", password="real_password_123",
+            username="lockout_test",
+            password="real_password_123",
         )
 
         # If login succeeds after 10 failures, no lockout mechanism
@@ -377,7 +378,8 @@ class TestSessionAuthRedTeamSecurityConfig:
 
         # Try login with non-existent user
         response_nonexistent = client.login(
-            username="definitely_does_not_exist_12345", password="wrong",
+            username="definitely_does_not_exist_12345",
+            password="wrong",
         )
 
         # Try login with wrong password (if user exists)
@@ -489,7 +491,8 @@ class TestSessionAuthRedTeamHijacking:
         for _ in range(10):
             client = APIClient()
             logged_in = client.login(
-                username="concurrent_test", password="testpassword123",
+                username="concurrent_test",
+                password="testpassword123",
             )
             if logged_in:
                 clients.append(client)
@@ -541,7 +544,9 @@ class TestSessionAuthRedTeamPrivilegeEscalation:
         # If it doesn't exist, the test passes by default
         try:
             response = client.patch(
-                f"/api/v2/users/{host.id}", data, format="json",
+                f"/api/v2/users/{host.id}",
+                data,
+                format="json",
             )
             if response.status_code == 200:
                 result = response.json()
@@ -570,7 +575,8 @@ class TestSessionAuthRedTeamPrivilegeEscalation:
 
         client = APIClient()
         client.login(
-            username="session_random_test", password="testpassword123",
+            username="session_random_test",
+            password="testpassword123",
         )
 
         # Session key should be random (not sequential, not timestamp-based)

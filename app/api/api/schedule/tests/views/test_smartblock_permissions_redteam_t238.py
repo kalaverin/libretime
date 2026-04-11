@@ -348,7 +348,9 @@ class TestSmartBlockPermissionsRedTeam:
                 response = api_client.get(url)
             elif method == "PATCH":
                 response = api_client.patch(
-                    url, json.dumps({}), content_type="application/json",
+                    url,
+                    json.dumps({}),
+                    content_type="application/json",
                 )
             else:
                 response = api_client.delete(url)

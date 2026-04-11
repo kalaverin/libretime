@@ -17,6 +17,7 @@ Tests for:
 import json
 
 import pytest
+
 from rest_framework.test import APIClient
 
 
@@ -28,32 +29,39 @@ class TestWebstreamSSRFBlocked:
         """file:///etc/passwd should be blocked."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Evil Stream",
-                "description": "SSRF attempt",
-                "url": "file:///etc/passwd",
-            }),
+            json.dumps(
+                {
+                    "name": "Evil Stream",
+                    "description": "SSRF attempt",
+                    "url": "file:///etc/passwd",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 400
-        assert "scheme" in str(response.content).lower() or "url" in str(response.content).lower()
+        assert (
+            "scheme" in str(response.content).lower()
+            or "url" in str(response.content).lower()
+        )
 
     @pytest.mark.django_db
     def test_create_webstream_with_ftp_url_blocked(self, admin_user):
         """ftp://internal.server should be blocked."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Evil Stream",
-                "description": "SSRF attempt",
-                "url": "ftp://internal.server/file",
-            }),
+            json.dumps(
+                {
+                    "name": "Evil Stream",
+                    "description": "SSRF attempt",
+                    "url": "ftp://internal.server/file",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 400
@@ -63,14 +71,16 @@ class TestWebstreamSSRFBlocked:
         """http://localhost:8080/admin should be blocked."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Evil Stream",
-                "description": "SSRF attempt",
-                "url": "http://localhost:8080/admin",
-            }),
+            json.dumps(
+                {
+                    "name": "Evil Stream",
+                    "description": "SSRF attempt",
+                    "url": "http://localhost:8080/admin",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 400
@@ -81,14 +91,16 @@ class TestWebstreamSSRFBlocked:
         """http://127.0.0.1:8080 should be blocked."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Evil Stream",
-                "description": "SSRF attempt",
-                "url": "http://127.0.0.1:8080",
-            }),
+            json.dumps(
+                {
+                    "name": "Evil Stream",
+                    "description": "SSRF attempt",
+                    "url": "http://127.0.0.1:8080",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 400
@@ -99,14 +111,16 @@ class TestWebstreamSSRFBlocked:
         """http://10.0.0.1 should be blocked (RFC 1918)."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Evil Stream",
-                "description": "SSRF attempt",
-                "url": "http://10.0.0.1",
-            }),
+            json.dumps(
+                {
+                    "name": "Evil Stream",
+                    "description": "SSRF attempt",
+                    "url": "http://10.0.0.1",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 400
@@ -117,14 +131,16 @@ class TestWebstreamSSRFBlocked:
         """http://192.168.1.1 should be blocked (RFC 1918)."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Evil Stream",
-                "description": "SSRF attempt",
-                "url": "http://192.168.1.1",
-            }),
+            json.dumps(
+                {
+                    "name": "Evil Stream",
+                    "description": "SSRF attempt",
+                    "url": "http://192.168.1.1",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 400
@@ -135,14 +151,16 @@ class TestWebstreamSSRFBlocked:
         """http://172.16.0.1 should be blocked (RFC 1918)."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Evil Stream",
-                "description": "SSRF attempt",
-                "url": "http://172.16.0.1",
-            }),
+            json.dumps(
+                {
+                    "name": "Evil Stream",
+                    "description": "SSRF attempt",
+                    "url": "http://172.16.0.1",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 400
@@ -153,14 +171,16 @@ class TestWebstreamSSRFBlocked:
         """http://172.31.255.255 should be blocked (RFC 1918)."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Evil Stream",
-                "description": "SSRF attempt",
-                "url": "http://172.31.255.255",
-            }),
+            json.dumps(
+                {
+                    "name": "Evil Stream",
+                    "description": "SSRF attempt",
+                    "url": "http://172.31.255.255",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 400
@@ -171,32 +191,40 @@ class TestWebstreamSSRFBlocked:
         """http://169.254.169.254 should be blocked (AWS/GCP metadata)."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Evil Stream",
-                "description": "SSRF attempt",
-                "url": "http://169.254.169.254/latest/meta-data/",
-            }),
+            json.dumps(
+                {
+                    "name": "Evil Stream",
+                    "description": "SSRF attempt",
+                    "url": "http://169.254.169.254/latest/meta-data/",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 400
-        assert "cloud" in str(response.content).lower() or "metadata" in str(response.content).lower() or "internal" in str(response.content).lower()
+        assert (
+            "cloud" in str(response.content).lower()
+            or "metadata" in str(response.content).lower()
+            or "internal" in str(response.content).lower()
+        )
 
     @pytest.mark.django_db
     def test_create_webstream_with_link_local_blocked(self, admin_user):
         """http://169.254.0.1 should be blocked (link-local)."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Evil Stream",
-                "description": "SSRF attempt",
-                "url": "http://169.254.0.1",
-            }),
+            json.dumps(
+                {
+                    "name": "Evil Stream",
+                    "description": "SSRF attempt",
+                    "url": "http://169.254.0.1",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 400
@@ -206,18 +234,22 @@ class TestWebstreamURLVariants:
     """Test URL variants and encoding bypass attempts."""
 
     @pytest.mark.django_db
-    def test_create_webstream_with_url_encoded_localhost_blocked(self, admin_user):
+    def test_create_webstream_with_url_encoded_localhost_blocked(
+        self, admin_user,
+    ):
         """http://%6c%6f%63%61%6c%68%6f%73%74 should be blocked."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Evil Stream",
-                "description": "SSRF with encoding",
-                "url": "http://%6c%6f%63%61%6c%68%6f%73%74",
-            }),
+            json.dumps(
+                {
+                    "name": "Evil Stream",
+                    "description": "SSRF with encoding",
+                    "url": "http://%6c%6f%63%61%6c%68%6f%73%74",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 400
@@ -227,14 +259,16 @@ class TestWebstreamURLVariants:
         """http://example.com\x00.internal.com should be blocked."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Evil Stream",
-                "description": "SSRF with null",
-                "url": "http://example.com\x00.internal.com",
-            }),
+            json.dumps(
+                {
+                    "name": "Evil Stream",
+                    "description": "SSRF with null",
+                    "url": "http://example.com\x00.internal.com",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 400
@@ -244,14 +278,16 @@ class TestWebstreamURLVariants:
         """example.com/stream should be blocked (no scheme)."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Invalid Stream",
-                "description": "No scheme",
-                "url": "example.com/stream",
-            }),
+            json.dumps(
+                {
+                    "name": "Invalid Stream",
+                    "description": "No scheme",
+                    "url": "example.com/stream",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 400
@@ -261,14 +297,16 @@ class TestWebstreamURLVariants:
         """Empty URL should be blocked."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Invalid Stream",
-                "description": "Empty URL",
-                "url": "",
-            }),
+            json.dumps(
+                {
+                    "name": "Invalid Stream",
+                    "description": "Empty URL",
+                    "url": "",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 400
@@ -280,9 +318,10 @@ class TestWebstreamUpdateSSRFBlocked:
     @pytest.mark.django_db
     def test_update_webstream_to_internal_blocked(self, admin_user):
         """PATCH webstream url to internal should be blocked."""
-        from api.schedule.models import Webstream
         from model_bakery import baker
-        
+
+        from api.schedule.models import Webstream
+
         # Create valid webstream
         webstream = baker.make(
             Webstream,
@@ -291,15 +330,17 @@ class TestWebstreamUpdateSSRFBlocked:
             url="http://example.com/stream",
             owner=admin_user,
         )
-        
+
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.patch(
             f"/api/v2/webstreams/{webstream.id}",
-            json.dumps({
-                "url": "http://127.0.0.1/internal",
-            }),
+            json.dumps(
+                {
+                    "url": "http://127.0.0.1/internal",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 400
@@ -308,9 +349,10 @@ class TestWebstreamUpdateSSRFBlocked:
     @pytest.mark.django_db
     def test_put_webstream_to_metadata_blocked(self, admin_user):
         """PUT webstream with metadata URL should be blocked."""
-        from api.schedule.models import Webstream
         from model_bakery import baker
-        
+
+        from api.schedule.models import Webstream
+
         webstream = baker.make(
             Webstream,
             name="Valid Stream",
@@ -318,17 +360,19 @@ class TestWebstreamUpdateSSRFBlocked:
             url="http://example.com/stream",
             owner=admin_user,
         )
-        
+
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.put(
             f"/api/v2/webstreams/{webstream.id}",
-            json.dumps({
-                "name": "Evil Stream",
-                "description": "Metadata URL",
-                "url": "http://169.254.169.254/metadata",
-            }),
+            json.dumps(
+                {
+                    "name": "Evil Stream",
+                    "description": "Metadata URL",
+                    "url": "http://169.254.169.254/metadata",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 400
@@ -342,14 +386,16 @@ class TestWebstreamValidURLs:
         """http://example.com/stream should work."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Valid Stream",
-                "description": "External HTTP",
-                "url": "http://example.com/stream",
-            }),
+            json.dumps(
+                {
+                    "name": "Valid Stream",
+                    "description": "External HTTP",
+                    "url": "http://example.com/stream",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 201
@@ -359,14 +405,16 @@ class TestWebstreamValidURLs:
         """https://radio.example.com:8000/stream should work."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Valid Stream",
-                "description": "External HTTPS",
-                "url": "https://radio.example.com:8000/stream",
-            }),
+            json.dumps(
+                {
+                    "name": "Valid Stream",
+                    "description": "External HTTPS",
+                    "url": "https://radio.example.com:8000/stream",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 201
@@ -376,14 +424,16 @@ class TestWebstreamValidURLs:
         """http://radio.com/stream?mount=/mp3 should work."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/webstreams",
-            json.dumps({
-                "name": "Valid Stream",
-                "description": "With params",
-                "url": "http://radio.com/stream?mount=/mp3&codec=mp3",
-            }),
+            json.dumps(
+                {
+                    "name": "Valid Stream",
+                    "description": "With params",
+                    "url": "http://radio.com/stream?mount=/mp3&codec=mp3",
+                },
+            ),
             content_type="application/json",
         )
         assert response.status_code == 201
@@ -395,10 +445,12 @@ class TestScheduleWithWebstreamSSRF:
     @pytest.mark.django_db
     def test_create_schedule_with_internal_webstream_blocked(self, admin_user):
         """Creating schedule with internal webstream should fail."""
-        from api.schedule.models import Show, ShowInstance
-        from model_bakery import baker
         from datetime import datetime, timedelta
-        
+
+        from model_bakery import baker
+
+        from api.schedule.models import Show, ShowInstance
+
         show = baker.make(Show, name="Test Show")
         instance = baker.make(
             ShowInstance,
@@ -406,39 +458,48 @@ class TestScheduleWithWebstreamSSRF:
             starts_at=datetime.now(),
             ends_at=datetime.now() + timedelta(hours=1),
         )
-        
+
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         # Try to create schedule with internal URL in stream
         response = client.post(
             "/api/v2/schedule",
-            json.dumps({
-                "starts_at": datetime.now().isoformat(),
-                "ends_at": (datetime.now() + timedelta(minutes=30)).isoformat(),
-                "instance": instance.id,
-                "cue_in": "00:00:00",
-                "cue_out": "00:30:00",
-                "stream": {
-                    "name": "Internal Stream",
-                    "description": "SSRF",
-                    "url": "http://127.0.0.1:8080",
+            json.dumps(
+                {
+                    "starts_at": datetime.now().isoformat(),
+                    "ends_at": (
+                        datetime.now() + timedelta(minutes=30)
+                    ).isoformat(),
+                    "instance": instance.id,
+                    "cue_in": "00:00:00",
+                    "cue_out": "00:30:00",
+                    "stream": {
+                        "name": "Internal Stream",
+                        "description": "SSRF",
+                        "url": "http://127.0.0.1:8080",
+                    },
+                    "position": 1,
+                    "broadcasted": 0,
                 },
-                "position": 1,
-                "broadcasted": 0,
-            }),
+            ),
             content_type="application/json",
         )
         # Should fail because stream URL is internal
-        assert response.status_code in [400, 404]  # 400 if validated, 404 if stream not found
+        assert response.status_code in [
+            400,
+            404,
+        ]  # 400 if validated, 404 if stream not found
 
     @pytest.mark.django_db
     def test_create_schedule_with_valid_webstream_works(self, admin_user):
         """Creating schedule with valid external webstream should work."""
-        from api.schedule.models import Show, ShowInstance, Webstream
-        from model_bakery import baker
         from datetime import datetime, timedelta
-        
+
+        from model_bakery import baker
+
+        from api.schedule.models import Show, ShowInstance, Webstream
+
         show = baker.make(Show, name="Test Show")
         instance = baker.make(
             ShowInstance,
@@ -446,7 +507,7 @@ class TestScheduleWithWebstreamSSRF:
             starts_at=datetime.now(),
             ends_at=datetime.now() + timedelta(hours=1),
         )
-        
+
         # Create valid webstream first
         webstream = baker.make(
             Webstream,
@@ -455,22 +516,26 @@ class TestScheduleWithWebstreamSSRF:
             url="http://example.com/radio",
             owner=admin_user,
         )
-        
+
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         response = client.post(
             "/api/v2/schedule",
-            json.dumps({
-                "starts_at": datetime.now().isoformat(),
-                "ends_at": (datetime.now() + timedelta(minutes=30)).isoformat(),
-                "instance": instance.id,
-                "cue_in": "00:00:00",
-                "cue_out": "00:30:00",
-                "stream": webstream.id,
-                "position": 1,
-                "broadcasted": 0,
-            }),
+            json.dumps(
+                {
+                    "starts_at": datetime.now().isoformat(),
+                    "ends_at": (
+                        datetime.now() + timedelta(minutes=30)
+                    ).isoformat(),
+                    "instance": instance.id,
+                    "cue_in": "00:00:00",
+                    "cue_out": "00:30:00",
+                    "stream": webstream.id,
+                    "position": 1,
+                    "broadcasted": 0,
+                },
+            ),
             content_type="application/json",
         )
         # Should succeed (or 404 if endpoint different)

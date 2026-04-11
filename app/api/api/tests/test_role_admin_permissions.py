@@ -6,13 +6,13 @@ They have all permissions including user management.
 """
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
 from api.core.models.role import Role
-from api.schedule.models import Playlist, Show, SmartBlock, Webstream
+from api.schedule.models import Playlist, Show, SmartBlock
 from api.storage.models import File
-
 from sdk import now
 
 
@@ -33,7 +33,11 @@ class TestAdminPlaylistPermissions:
             email=f"other_{faker.uuid4()[:8]}@test.com",
             role=Role.HOST,
         )
-        playlist = baker.make(Playlist, name=f"Other Playlist {faker.uuid4()[:8]}", owner=other_host)
+        playlist = baker.make(
+            Playlist,
+            name=f"Other Playlist {faker.uuid4()[:8]}",
+            owner=other_host,
+        )
 
         response = admin_client.get(f"/api/v2/playlists/{playlist.id}")
         assert response.status_code == 200
@@ -91,7 +95,9 @@ class TestAdminPlaylistPermissions:
         )
         other_playlist_id = other_playlist.id
 
-        response = admin_client.delete(f"/api/v2/playlists/{other_playlist_id}")
+        response = admin_client.delete(
+            f"/api/v2/playlists/{other_playlist_id}",
+        )
         assert response.status_code == 204
 
         assert not Playlist.objects.filter(id=other_playlist_id).exists()
@@ -212,13 +218,17 @@ class TestAdminSmartBlockPermissions:
         response = admin_client.get(f"/api/v2/smart-blocks/{block.id}")
         assert response.status_code == 200
 
-    def test_admin_can_create_smartblock(self, admin_client, admin_user, faker):
+    def test_admin_can_create_smartblock(
+        self, admin_client, admin_user, faker,
+    ):
         """ADMIN can CREATE smart block."""
         data = {
             "name": f"Admin Block {faker.uuid4()[:8]}",
             "kind": "dynamic",
         }
-        response = admin_client.post("/api/v2/smart-blocks", data, format="json")
+        response = admin_client.post(
+            "/api/v2/smart-blocks", data, format="json",
+        )
         assert response.status_code == 201
 
     def test_admin_can_update_any_smartblock(self, admin_client, faker):
@@ -263,7 +273,9 @@ class TestAdminSmartBlockPermissions:
         )
         other_block_id = other_block.id
 
-        response = admin_client.delete(f"/api/v2/smart-blocks/{other_block_id}")
+        response = admin_client.delete(
+            f"/api/v2/smart-blocks/{other_block_id}",
+        )
         assert response.status_code == 204
 
         assert not SmartBlock.objects.filter(id=other_block_id).exists()
@@ -308,6 +320,7 @@ class TestAdminShowPermissions:
             role=Role.HOST,
         )
         from api.schedule.models import ShowHost
+
         show = baker.make(Show, name=f"Other Show {faker.uuid4()[:8]}")
         ShowHost.objects.create(show=show, user=other_host)
 
@@ -332,6 +345,7 @@ class TestAdminShowPermissions:
             role=Role.HOST,
         )
         from api.schedule.models import ShowHost
+
         show = baker.make(Show, name=f"Other Show {faker.uuid4()[:8]}")
         ShowHost.objects.create(show=show, user=other_host)
         show_id = show.id

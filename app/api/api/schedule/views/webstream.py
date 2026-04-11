@@ -4,7 +4,6 @@ from rest_framework import viewsets
 from rest_framework.serializers import Serializer
 
 from api.mixins import AutoAssignOwnerMixin
-from api.permissions import check_authorization_header
 from api.schedule.models import Webstream, WebstreamMetadata
 from api.schedule.serializers import (
     WebstreamMetadataSerializer,

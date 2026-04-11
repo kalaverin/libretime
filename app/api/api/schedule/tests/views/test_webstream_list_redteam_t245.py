@@ -30,13 +30,15 @@ class TestWebstreamListRedTeam:
     # API1:2023 - BOLA (Broken Object Level Authorization)
     # ========================================================================
 
-    def test_bola_list_shows_all_users_webstreams(self, host_client, host_user, faker, fake_url):
+    def test_bola_list_shows_all_users_webstreams(
+        self, host_client, host_user, faker, fake_url,
+    ):
         """BOLA T518: LIST should only show webstreams from user's own account."""
         from api.core.models.role import Role
-        
+
         # Create victim user with private webstream
         victim = baker.make(
-            User, 
+            User,
             username=f"victim_{faker.uuid4()[:8]}",
             email=f"victim_{faker.uuid4()[:8]}@test.com",
             role=Role.HOST,
@@ -48,7 +50,7 @@ class TestWebstreamListRedTeam:
             description=faker.sentence(),
             owner=victim,
         )
-        
+
         # Create attacker's own stream
         own_stream = baker.make(
             Webstream,
@@ -67,16 +69,16 @@ class TestWebstreamListRedTeam:
             results = data
         else:
             results = data.get("results", data)
-        
+
         result_ids = [s["id"] for s in results]
-        
+
         # Should see own stream
         assert own_stream.id in result_ids, "HOST should see own webstream"
-        
+
         # Should NOT see victim's stream
-        assert victim_stream.id not in result_ids, (
-            f"BOLA T518: HOST can see victim's webstream in LIST!"
-        )
+        assert (
+            victim_stream.id not in result_ids
+        ), "BOLA T518: HOST can see victim's webstream in LIST!"
 
     def test_stream_id_enumeration_mitigated(self, api_client):
         """Security: Stream ID enumeration mitigated by owner filtering."""
@@ -265,7 +267,10 @@ class TestWebstreamListRedTeam:
         """Injection: SQLi in ordering parameter."""
         user = baker.make(User, username="testred_user")
         baker.make(
-            Webstream, name="Stream", url="http://example.com", owner=user,
+            Webstream,
+            name="Stream",
+            url="http://example.com",
+            owner=user,
         )
 
         malicious_orderings = [
@@ -303,7 +308,10 @@ class TestWebstreamListRedTeam:
         """Security: Required security headers present."""
         user = baker.make(User, username="testred_user")
         baker.make(
-            Webstream, name="Stream", url="http://example.com", owner=user,
+            Webstream,
+            name="Stream",
+            url="http://example.com",
+            owner=user,
         )
 
         response = api_client.get("/api/v2/webstreams")

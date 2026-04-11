@@ -12,7 +12,6 @@ from typing import Any, final
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-
 # Fields that should never be mass-assigned
 PROTECTED_FIELDS = frozenset(
     [
@@ -20,7 +19,7 @@ PROTECTED_FIELDS = frozenset(
         "owner",
         "created_at",
         "updated_at",
-    ]
+    ],
 )
 
 # Fields that should be read-only by default (can be customized per serializer)
@@ -29,7 +28,7 @@ DEFAULT_READ_ONLY_FIELDS = frozenset(
         "id",
         "created_at",
         "updated_at",
-    ]
+    ],
 )
 
 
@@ -50,7 +49,9 @@ class ExtraFieldsError(ValidationError):
 
     def __init__(self, fields: list[str]) -> None:
         super().__init__(
-            {"extra_fields": f"Unknown fields not allowed: {', '.join(fields)}"},
+            {
+                "extra_fields": f"Unknown fields not allowed: {', '.join(fields)}",
+            },
             code="extra_fields_prohibited",
         )
 
@@ -58,12 +59,12 @@ class ExtraFieldsError(ValidationError):
 class ProtectedFieldsSerializer(serializers.ModelSerializer):
     """
     Serializer that protects against mass assignment attacks.
-    
+
     Features:
     - Blocks direct setting of 'id', 'owner' in CREATE
     - Blocks modification of 'id', 'created_at' in UPDATE
     - Allows customization via Meta.read_only_fields and Meta.protected_fields
-    
+
     Usage:
         class MySerializer(ProtectedFieldsSerializer):
             class Meta:
@@ -85,10 +86,10 @@ class ProtectedFieldsSerializer(serializers.ModelSerializer):
 
         # Get custom configuration
         read_only = set(getattr(meta, "read_only_fields", []))
-        
+
         # Ensure defaults are included
         read_only |= DEFAULT_READ_ONLY_FIELDS
-        
+
         # owner is always read-only - assigned by API only
         if "owner" in self.fields:
             self.fields["owner"].read_only = True
@@ -101,18 +102,18 @@ class ProtectedFieldsSerializer(serializers.ModelSerializer):
     def validate(self, data: dict[str, Any]) -> dict[str, Any]:
         """Validate data against mass assignment rules."""
         data = super().validate(data)
-        
+
         # Check initial_data before DRF removes read_only fields
         initial = getattr(self, "initial_data", {}) or {}
-        
+
         # API sets created_at itself - never accept from outside (400)
         if "created_at" in initial:
             raise MassAssignmentError("created_at")
-        
+
         # owner is assigned by API only - never accept from outside (400)
         if "owner" in initial:
             raise MassAssignmentError("owner")
-        
+
         # Block id in both CREATE and UPDATE
         if "id" in initial:
             raise MassAssignmentError("id")
@@ -123,10 +124,10 @@ class ProtectedFieldsSerializer(serializers.ModelSerializer):
 class StrictSerializer(ProtectedFieldsSerializer):
     """
     Strict serializer that rejects unknown/extra fields.
-    
+
     Prevents mass assignment via typos or unknown field names
     that might be silently ignored by DRF.
-    
+
     Usage:
         class MySerializer(StrictSerializer):
             class Meta:
@@ -137,7 +138,7 @@ class StrictSerializer(ProtectedFieldsSerializer):
     def validate(self, data: dict[str, Any]) -> dict[str, Any]:
         """Validate and reject extra fields."""
         data = super().validate(data)
-        
+
         # Check for extra fields in initial data (not cleaned data)
         if hasattr(self, "initial_data"):
             unknown = set(self.initial_data.keys()) - set(self.fields.keys())
@@ -150,12 +151,12 @@ class StrictSerializer(ProtectedFieldsSerializer):
 class TimestampSerializer(ProtectedFieldsSerializer):
     """
     Serializer that auto-manages timestamp fields.
-    
+
     - created_at: set automatically on CREATE, read-only after
     - updated_at: set automatically on CREATE and UPDATE
-    
+
     Only sets timestamps if fields exist on the model.
-    
+
     Usage:
         class MySerializer(TimestampSerializer):
             class Meta:
@@ -176,7 +177,7 @@ class TimestampSerializer(ProtectedFieldsSerializer):
         from sdk import now
 
         current_time = now()
-        
+
         # Set timestamps only if fields exist on model
         if self._has_field("created_at"):
             validated_data.setdefault("created_at", current_time)
@@ -199,18 +200,18 @@ class TimestampSerializer(ProtectedFieldsSerializer):
 class SecureModelSerializer(TimestampSerializer, StrictSerializer):
     """
     Most secure serializer combining all protections.
-    
+
     Features:
     - Blocks mass assignment of id, owner, created_at, updated_at
     - Rejects unknown/extra fields
     - Auto-manages timestamps (if fields exist on model)
-    
+
     Recommended as default serializer for all models.
-    
+
     Usage:
         class MySerializer(SecureModelSerializer):
             class Meta:
                 model = MyModel
                 fields = "__all__"
     """
-    pass
+

@@ -51,7 +51,10 @@ class TestSmartBlockContentCreateRedTeam:
             owner=victim,
         )
         attacker_file = baker.make(
-            File, name="attacker.mp3", mime="audio/mp3", owner=attacker,
+            File,
+            name="attacker.mp3",
+            mime="audio/mp3",
+            owner=attacker,
         )
 
         # Attacker tries to create content in victim's block
@@ -87,7 +90,10 @@ class TestSmartBlockContentCreateRedTeam:
             owner=attacker,
         )
         victim_file = baker.make(
-            File, name="victim_secret.mp3", mime="audio/mp3", owner=victim,
+            File,
+            name="victim_secret.mp3",
+            mime="audio/mp3",
+            owner=victim,
         )
 
         # Attacker tries to use victim's file
@@ -119,10 +125,16 @@ class TestSmartBlockContentCreateRedTeam:
         """BOPLA: Setting id field should be ignored or rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         # Try to set own ID (could overwrite existing record)
@@ -153,10 +165,16 @@ class TestSmartBlockContentCreateRedTeam:
         """BOPLA: Extra/unknown fields should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         response = api_client.post(
@@ -186,10 +204,16 @@ class TestSmartBlockContentCreateRedTeam:
         """Injection: SQLi attempts in position field."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         sqli_payloads = [
@@ -221,10 +245,16 @@ class TestSmartBlockContentCreateRedTeam:
         """Injection: SQLi in cue_in/cue_out fields."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         sqli_payloads = [
@@ -257,7 +287,10 @@ class TestSmartBlockContentCreateRedTeam:
         """Injection: NoSQL operators in block field."""
         user = baker.make(User, username="testred_user")
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         # Try MongoDB-style operators
@@ -295,10 +328,16 @@ class TestSmartBlockContentCreateRedTeam:
         """Validation: Path traversal in cue fields should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         path_traversal_payloads = [
@@ -329,10 +368,16 @@ class TestSmartBlockContentCreateRedTeam:
         """Validation: Very large position values."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         overflow_values = [
@@ -363,10 +408,16 @@ class TestSmartBlockContentCreateRedTeam:
         """Fuzzing: Naughty strings in position field."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         naughty_strings = [
@@ -406,10 +457,16 @@ class TestSmartBlockContentCreateRedTeam:
         """Validation: Unicode and special chars in cue fields."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         unicode_payloads = [
@@ -453,13 +510,22 @@ class TestSmartBlockContentCreateRedTeam:
         """Logic: Duplicate positions in same block should be handled."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file1 = baker.make(
-            File, name="song1.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="song1.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
         file2 = baker.make(
-            File, name="song2.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="song2.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         # First content at position 1
@@ -500,10 +566,16 @@ class TestSmartBlockContentCreateRedTeam:
         """Logic: Negative offset should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         response = api_client.post(
@@ -528,10 +600,16 @@ class TestSmartBlockContentCreateRedTeam:
         """Logic: cue_out before cue_in should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         response = api_client.post(
@@ -557,10 +635,16 @@ class TestSmartBlockContentCreateRedTeam:
         """Validation: Invalid cue time format should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         invalid_formats = [
@@ -632,9 +716,9 @@ class TestSmartBlockContentCreateRedTeam:
             ),
             content_type="application/json",
         )
-        assert response.status_code == 403, (
-            f"Invalid token should return 403, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 403
+        ), f"Invalid token should return 403, got {response.status_code}"
 
     # ========================================================================
     # Content-Type Attacks
@@ -645,10 +729,16 @@ class TestSmartBlockContentCreateRedTeam:
         """Validation: Wrong Content-Type should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         response = api_client.post(
@@ -675,10 +765,16 @@ class TestSmartBlockContentCreateRedTeam:
 
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         results = []
@@ -718,7 +814,10 @@ class TestSmartBlockContentCreateRedTeam:
         """Info Leak: Error messages shouldn't reveal which IDs exist."""
         user = baker.make(User, username="testred_user")
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         # Try with non-existent block
@@ -744,7 +843,10 @@ class TestSmartBlockContentCreateRedTeam:
         """Info Leak: Error messages shouldn't reveal which file IDs exist."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
 
         # Try with non-existent file
@@ -777,10 +879,16 @@ class TestSmartBlockContentCreateRedTeam:
         """BOPLA: JSON Merge Patch for partial update on create."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         response = api_client.post(

@@ -9,7 +9,6 @@ Attack vectors:
 - Query param injection in filter
 """
 
-
 import pytest
 
 from model_bakery import baker
@@ -195,7 +194,9 @@ class TestPlaylistContentStreamKindValidation:
             )
 
     def test_create_stream_kind_with_file_instead(
-        self, api_client, admin_user,
+        self,
+        api_client,
+        admin_user,
     ):
         """Try to create STREAM kind but provide file instead of stream."""
         playlist = baker.make("schedule.Playlist", owner=admin_user)
@@ -226,7 +227,10 @@ class TestPlaylistContentBOLA:
     """Broken Object Level Authorization attacks."""
 
     def test_list_shows_only_own_content(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Verify list returns only user's own content."""
         # Create playlists and content for both users
@@ -267,7 +271,10 @@ class TestPlaylistContentBOLA:
             pytest.fail("CRITICAL BUG: List shows other users' content (BOLA)")
 
     def test_access_other_user_content_directly(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to access another user's content by ID."""
         admin_playlist = baker.make("schedule.Playlist", owner=admin_user)
@@ -293,7 +300,10 @@ class TestPlaylistContentBOLA:
             )
 
     def test_update_other_user_content(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to update another user's content."""
         admin_playlist = baker.make("schedule.Playlist", owner=admin_user)
@@ -319,7 +329,10 @@ class TestPlaylistContentBOLA:
             pytest.fail("CRITICAL BUG: Can update other user's content (BOLA)")
 
     def test_delete_other_user_content(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to delete another user's content."""
         admin_playlist = baker.make("schedule.Playlist", owner=admin_user)
@@ -343,7 +356,10 @@ class TestPlaylistContentBOLA:
             pytest.fail("CRITICAL BUG: Can delete other user's content (BOLA)")
 
     def test_create_content_for_other_user_playlist(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to create content in another user's playlist."""
         admin_playlist = baker.make("schedule.Playlist", owner=admin_user)

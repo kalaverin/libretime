@@ -339,10 +339,16 @@ class TestSmartBlockDeleteRedTeam:
         # Create many contents
         for i in range(100):
             file_obj = baker.make(
-                File, name=f"song{i}.mp3", mime="audio/mp3", owner=user,
+                File,
+                name=f"song{i}.mp3",
+                mime="audio/mp3",
+                owner=user,
             )
             baker.make(
-                SmartBlockContent, block=block, file=file_obj, position=i,
+                SmartBlockContent,
+                block=block,
+                file=file_obj,
+                position=i,
             )
 
         response = api_client.delete(f"/api/v2/smart-blocks/{block.id}")

@@ -97,7 +97,10 @@ class TestShowDeleteBOLA:
     """Broken Object Level Authorization on DELETE."""
 
     def test_delete_other_user_show(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to DELETE another user's show."""
         show = baker.make("schedule.Show", name="Admin Show")
@@ -167,9 +170,9 @@ class TestShowDeleteBusinessLogic:
         response = anonymous_client.delete(f"/api/v2/shows/{show.id}")
 
         # Fixed: Should return 403 Forbidden for anonymous
-        assert response.status_code == 403, (
-            f"Expected 403, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 403
+        ), f"Expected 403, got {response.status_code}"
 
     def test_delete_nonexistent_show(self, api_client, admin_user):
         """Try to DELETE non-existent show."""

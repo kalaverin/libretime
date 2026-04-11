@@ -46,7 +46,10 @@ class TestShowHostCreateBOLA:
 
     @pytest.mark.xfail(reason="T408: No owner filtering")
     def test_create_for_other_user_show(
-        self, api_client, regular_user, admin_user,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
     ):
         """Create host for another user's show."""
         show = baker.make(Show, name="Admin Show")
@@ -65,7 +68,10 @@ class TestShowHostCreateBOLA:
 
     @pytest.mark.xfail(reason="T408: No owner filtering")
     def test_assign_other_user_as_host(
-        self, api_client, regular_user, admin_user,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
     ):
         """Assign another user as host without their consent."""
         show = baker.make(Show, name="User Show")

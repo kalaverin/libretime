@@ -168,7 +168,9 @@ class TestWebstreamPermissionsRedTeam:
                 f"T565: Auth bypass - invalid API key got {response.status_code}, expected 401/403",
             )
 
-    @pytest.mark.xfail(reason="BUG: Authorization header case sensitivity - Api-Key works but api-key/API-KEY fails")
+    @pytest.mark.xfail(
+        reason="BUG: Authorization header case sensitivity - Api-Key works but api-key/API-KEY fails",
+    )
     def test_auth_case_sensitivity(self, api_client):
         """Broken Auth: Authorization header case sensitivity bypass.
 
@@ -178,9 +180,9 @@ class TestWebstreamPermissionsRedTeam:
         # FIXED: Use credentials() instead of defaults[] for proper auth control
         from rest_framework.test import APIClient
 
-        api_key = api_client._credentials.get("HTTP_AUTHORIZATION", "").replace(
-            "Api-Key ", ""
-        )
+        api_key = api_client._credentials.get(
+            "HTTP_AUTHORIZATION", "",
+        ).replace("Api-Key ", "")
 
         variations = [
             f"Api-Key {api_key}",  # Standard - works
@@ -199,9 +201,9 @@ class TestWebstreamPermissionsRedTeam:
         # Inconsistency indicates bypass possibility (or case sensitivity bug)
         status_codes = [r[1] for r in results]
         # Either all succeed (200) or all fail (403), no mix
-        assert len(set(status_codes)) == 1, (
-            f"Inconsistent auth case handling: {results}"
-        )
+        assert (
+            len(set(status_codes)) == 1
+        ), f"Inconsistent auth case handling: {results}"
 
     def test_auth_null_byte_injection(self, client):
         """Broken Auth: Null byte in auth header may cause bypass."""
@@ -640,7 +642,8 @@ class TestWebstreamPermissionsRedTeam:
         # Times should be similar (within 2x factor)
         if avg_existing > 0:
             ratio = max(avg_existing, avg_nonexistent) / min(
-                avg_existing, avg_nonexistent,
+                avg_existing,
+                avg_nonexistent,
             )
             if ratio > 2:
                 pytest.fail(

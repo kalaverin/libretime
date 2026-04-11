@@ -236,7 +236,10 @@ class TestPreferenceBOLA:
     """Broken Object Level Authorization on preferences."""
 
     def test_list_shows_only_own_preferences(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Verify list returns only user's own preferences."""
         # Create preferences for both users
@@ -268,7 +271,10 @@ class TestPreferenceBOLA:
             )
 
     def test_access_other_user_preference(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to access another user's preference by ID."""
         pref = baker.make(
@@ -287,7 +293,10 @@ class TestPreferenceBOLA:
             )
 
     def test_update_other_user_preference(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to update another user's preference."""
         pref = baker.make(
@@ -310,7 +319,10 @@ class TestPreferenceBOLA:
             )
 
     def test_delete_other_user_preference(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to delete another user's preference."""
         pref = baker.make(

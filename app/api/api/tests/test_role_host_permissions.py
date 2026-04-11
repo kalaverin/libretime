@@ -13,13 +13,13 @@ HOST users CANNOT:
 """
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
 from api.core.models.role import Role
 from api.schedule.models import Playlist, Show, SmartBlock, Webstream
 from api.storage.models import File
-
 from sdk import now
 
 
@@ -40,7 +40,11 @@ class TestHostPlaylistPermissions:
             email=f"other_{faker.uuid4()[:8]}@test.com",
             role=Role.HOST,
         )
-        playlist = baker.make(Playlist, name=f"Other Playlist {faker.uuid4()[:8]}", owner=other_host)
+        playlist = baker.make(
+            Playlist,
+            name=f"Other Playlist {faker.uuid4()[:8]}",
+            owner=other_host,
+        )
 
         response = host_client.get(f"/api/v2/playlists/{playlist.id}")
         assert response.status_code == 200
@@ -304,13 +308,17 @@ class TestHostSmartBlockPermissions:
         assert response.status_code == 200
         assert response.data["name"] == block.name
 
-    def test_host_can_create_own_smartblock(self, host_client, host_user, faker):
+    def test_host_can_create_own_smartblock(
+        self, host_client, host_user, faker,
+    ):
         """HOST can CREATE smart block (add_smartblock permission)."""
         data = {
             "name": f"My Block {faker.uuid4()[:8]}",
             "kind": "dynamic",
         }
-        response = host_client.post("/api/v2/smart-blocks", data, format="json")
+        response = host_client.post(
+            "/api/v2/smart-blocks", data, format="json",
+        )
         assert response.status_code == 201
 
         # Verify block was created with host as owner
@@ -318,7 +326,9 @@ class TestHostSmartBlockPermissions:
         block = SmartBlock.objects.get(id=block_id)
         assert block.owner == host_user
 
-    def test_host_can_update_own_smartblock(self, host_client, host_user, faker):
+    def test_host_can_update_own_smartblock(
+        self, host_client, host_user, faker,
+    ):
         """HOST can UPDATE own smart block (change_own_smartblock permission)."""
         block = baker.make(
             SmartBlock,
@@ -366,7 +376,9 @@ class TestHostSmartBlockPermissions:
         other_block.refresh_from_db()
         assert other_block.name == original_name
 
-    def test_host_can_delete_own_smartblock(self, host_client, host_user, faker):
+    def test_host_can_delete_own_smartblock(
+        self, host_client, host_user, faker,
+    ):
         """HOST can DELETE own smart block (delete_own_smartblock via model permission)."""
         block = baker.make(
             SmartBlock,
@@ -454,6 +466,7 @@ class TestHostShowPermissions:
             role=Role.HOST,
         )
         from api.schedule.models import ShowHost
+
         show = baker.make(Show, name=f"Other Show {faker.uuid4()[:8]}")
         ShowHost.objects.create(show=show, user=other_host)
 
@@ -471,9 +484,12 @@ class TestHostShowPermissions:
         show.refresh_from_db()
         assert show.name == original_name
 
-    def test_host_can_update_show_if_assigned_host(self, host_client, host_user, faker):
+    def test_host_can_update_show_if_assigned_host(
+        self, host_client, host_user, faker,
+    ):
         """HOST can UPDATE show if they are assigned as host."""
         from api.schedule.models import ShowHost
+
         show = baker.make(Show, name=f"My Show {faker.uuid4()[:8]}")
         ShowHost.objects.create(show=show, user=host_user)
 
@@ -500,6 +516,7 @@ class TestHostShowPermissions:
             role=Role.HOST,
         )
         from api.schedule.models import ShowHost
+
         show = baker.make(Show, name=f"Other Show {faker.uuid4()[:8]}")
         ShowHost.objects.create(show=show, user=other_host)
         show_id = show.id
@@ -539,7 +556,9 @@ class TestHostWebstreamPermissions:
         assert response.status_code == 200
         assert response.data["name"] == stream.name
 
-    def test_host_can_create_own_webstream(self, host_client, host_user, faker):
+    def test_host_can_create_own_webstream(
+        self, host_client, host_user, faker,
+    ):
         """HOST can CREATE webstream (add_webstream permission)."""
         data = {
             "name": f"My Stream {faker.uuid4()[:8]}",
@@ -554,7 +573,9 @@ class TestHostWebstreamPermissions:
         stream = Webstream.objects.get(id=stream_id)
         assert stream.owner == host_user
 
-    def test_host_can_update_own_webstream(self, host_client, host_user, faker):
+    def test_host_can_update_own_webstream(
+        self, host_client, host_user, faker,
+    ):
         """HOST can UPDATE own webstream (change_own_webstream permission)."""
         stream = baker.make(
             Webstream,
@@ -602,7 +623,9 @@ class TestHostWebstreamPermissions:
         other_stream.refresh_from_db()
         assert other_stream.name == original_name
 
-    def test_host_can_delete_own_webstream(self, host_client, host_user, faker):
+    def test_host_can_delete_own_webstream(
+        self, host_client, host_user, faker,
+    ):
         """HOST can DELETE own webstream (delete_own_webstream permission)."""
         stream = baker.make(
             Webstream,

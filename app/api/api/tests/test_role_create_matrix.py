@@ -13,24 +13,18 @@ Usage:
 from typing import Any
 
 import pytest
-from model_bakery import baker
+
 from rest_framework.test import APIClient
 
 from api.core.models import User
 from api.core.models.role import Role
-from api.podcasts.models import Podcast, PodcastEpisode
+from api.podcasts.models import Podcast
 from api.schedule.models import (
     Playlist,
-    Show,
-    ShowDays,
-    ShowHost,
-    ShowInstance,
-    ShowRebroadcast,
     SmartBlock,
     Webstream,
 )
 from api.storage.models import File
-
 
 # =============================================================================
 # Expected Permission Matrix
@@ -90,6 +84,7 @@ ENDPOINTS = {
 # Test Data Generators
 # =============================================================================
 
+
 def get_create_data(entity: str, faker) -> dict[str, Any]:
     """Generate valid creation data for each entity type."""
     data_map = {
@@ -121,10 +116,10 @@ def get_create_data(entity: str, faker) -> dict[str, Any]:
             "override_outro_playlist": False,
         },
     }
-    
+
     if entity in data_map:
         return data_map[entity]()
-    
+
     # For entities that require parent objects, return minimal data
     # Tests will create parents as needed
     return {"name": f"Test {entity} {faker.uuid4()[:8]}"}
@@ -134,11 +129,12 @@ def get_create_data(entity: str, faker) -> dict[str, Any]:
 # Base Test Class
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestCreatePermissionMatrix:
     """
     Test matrix: CREATE operations for all roles × all entities.
-    
+
     Verifies:
     - Status codes match expected permissions
     - Owner is correctly assigned when creation succeeds
@@ -155,17 +151,17 @@ class TestCreatePermissionMatrix:
     ) -> None:
         """Helper: test creation and verify owner assignment."""
         response = client.post(endpoint, data, format="json")
-        
+
         user_role = Role(user.role)
         is_allowed = user_role in allowed_roles
-        
+
         if is_allowed:
             # Should succeed
             assert response.status_code == 201, (
                 f"{entity}: {user_role.name} should be able to create, "
                 f"got {response.status_code}"
             )
-            
+
             # Verify owner assignment for entities with owner field
             if entity in ENTITIES_WITH_OWNER:
                 obj_id = response.data.get("id")
@@ -187,20 +183,29 @@ class TestCreatePermissionMatrix:
     # GUEST Role Tests
     # ==========================================================================
 
-    def test_guest_cannot_create_any_entity(self, guest_client, guest_user, faker):
+    def test_guest_cannot_create_any_entity(
+        self, guest_client, guest_user, faker,
+    ):
         """GUEST role has no add_* permissions - all creations should fail."""
         for entity, endpoint in ENDPOINTS.items():
             data = get_create_data(entity, faker)
-            
+
             # Skip entities requiring complex parent setup for now
-            if entity in ["showdays", "showhost", "showinstance", "showrebroadcast", 
-                         "playlistcontent", "smartblockcontent", "smartblockcriteria"]:
+            if entity in [
+                "showdays",
+                "showhost",
+                "showinstance",
+                "showrebroadcast",
+                "playlistcontent",
+                "smartblockcontent",
+                "smartblockcriteria",
+            ]:
                 continue
-                
+
             response = guest_client.post(endpoint, data, format="json")
-            assert response.status_code == 403, (
-                f"GUEST should not create {entity}, got {response.status_code}"
-            )
+            assert (
+                response.status_code == 403
+            ), f"GUEST should not create {entity}, got {response.status_code}"
 
     # ==========================================================================
     # HOST Role Tests - Own Entities
@@ -209,128 +214,157 @@ class TestCreatePermissionMatrix:
     def test_host_can_create_own_entities(self, host_client, host_user, faker):
         """HOST can create entities with owner assignment."""
         own_entities = ["playlist", "smartblock", "webstream", "podcast"]
-        
+
         for entity in own_entities:
             if entity not in ENDPOINTS:
                 continue
-                
+
             endpoint = ENDPOINTS[entity]
             data = get_create_data(entity, faker)
-            
+
             self._create_entity_test(
-                host_client, host_user, entity, endpoint, data,
-                [Role.HOST, Role.MANAGER]
+                host_client,
+                host_user,
+                entity,
+                endpoint,
+                data,
+                [Role.HOST, Role.MANAGER],
             )
 
     # ==========================================================================
     # MANAGER Role Tests - All Entities
     # ==========================================================================
 
-    def test_manager_can_create_schedule_entities(self, manager_client, manager_user, faker):
+    def test_manager_can_create_schedule_entities(
+        self, manager_client, manager_user, faker,
+    ):
         """MANAGER can create schedule-related entities (shows, etc.)."""
         schedule_entities = ["show"]
-        
+
         for entity in schedule_entities:
             endpoint = ENDPOINTS[entity]
             data = get_create_data(entity, faker)
-            
+
             self._create_entity_test(
-                manager_client, manager_user, entity, endpoint, data,
-                [Role.MANAGER]
+                manager_client,
+                manager_user,
+                entity,
+                endpoint,
+                data,
+                [Role.MANAGER],
             )
 
-    def test_manager_can_create_own_entities(self, manager_client, manager_user, faker):
+    def test_manager_can_create_own_entities(
+        self, manager_client, manager_user, faker,
+    ):
         """MANAGER can create all own-able entities."""
         own_entities = ["playlist", "smartblock", "webstream", "podcast"]
-        
+
         for entity in own_entities:
             endpoint = ENDPOINTS[entity]
             data = get_create_data(entity, faker)
-            
+
             response = manager_client.post(endpoint, data, format="json")
-            assert response.status_code == 201, (
-                f"MANAGER should create {entity}, got {response.status_code}"
-            )
-            
+            assert (
+                response.status_code == 201
+            ), f"MANAGER should create {entity}, got {response.status_code}"
+
             # Verify owner is assigned to manager
             if entity in ENTITIES_WITH_OWNER:
                 obj_id = response.data.get("id")
                 if obj_id:
                     model_class = ENTITIES_WITH_OWNER[entity]
                     obj = model_class.objects.get(id=obj_id)
-                    assert obj.owner == manager_user, (
-                        f"{entity}: owner should be manager, got {obj.owner}"
-                    )
+                    assert (
+                        obj.owner == manager_user
+                    ), f"{entity}: owner should be manager, got {obj.owner}"
 
     # ==========================================================================
     # ADMIN Role Tests - Can Create All
     # ==========================================================================
 
-    def test_admin_can_create_all_entities(self, admin_client, admin_user, faker):
+    def test_admin_can_create_all_entities(
+        self, admin_client, admin_user, faker,
+    ):
         """ADMIN has all permissions - can create any entity."""
-        entities_to_test = ["playlist", "smartblock", "webstream", "podcast", "show"]
-        
+        entities_to_test = [
+            "playlist",
+            "smartblock",
+            "webstream",
+            "podcast",
+            "show",
+        ]
+
         for entity in entities_to_test:
             endpoint = ENDPOINTS[entity]
             data = get_create_data(entity, faker)
-            
+
             response = admin_client.post(endpoint, data, format="json")
-            assert response.status_code == 201, (
-                f"ADMIN should create {entity}, got {response.status_code}"
-            )
-            
+            assert (
+                response.status_code == 201
+            ), f"ADMIN should create {entity}, got {response.status_code}"
+
             # Verify owner is assigned to admin for owner-based entities
             if entity in ENTITIES_WITH_OWNER:
                 obj_id = response.data.get("id")
                 if obj_id:
                     model_class = ENTITIES_WITH_OWNER[entity]
                     obj = model_class.objects.get(id=obj_id)
-                    assert obj.owner == admin_user, (
-                        f"{entity}: owner should be admin, got {obj.owner}"
-                    )
+                    assert (
+                        obj.owner == admin_user
+                    ), f"{entity}: owner should be admin, got {obj.owner}"
 
 
 # =============================================================================
 # Specific Owner Assignment Tests
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestAutoAssignOwnerMixin:
     """
     Detailed tests for AutoAssignOwnerMixin behavior.
-    
+
     Verifies that:
     - Authenticated users get owner assigned
     - API-Key auth does NOT auto-assign (services bypass)
     - Anonymous requests are rejected
     """
 
-    def test_playlist_owner_assigned_to_creator(self, host_client, host_user, faker):
+    def test_playlist_owner_assigned_to_creator(
+        self, host_client, host_user, faker,
+    ):
         """Creating playlist assigns owner to the creator."""
         data = {"name": f"Owner Test {faker.uuid4()[:8]}"}
         response = host_client.post("/api/v2/playlists", data, format="json")
-        
+
         assert response.status_code == 201
         playlist_id = response.data["id"]
-        
+
         playlist = Playlist.objects.get(id=playlist_id)
         assert playlist.owner == host_user
 
-    def test_smartblock_owner_assigned_to_creator(self, host_client, host_user, faker):
+    def test_smartblock_owner_assigned_to_creator(
+        self, host_client, host_user, faker,
+    ):
         """Creating smartblock assigns owner to the creator."""
         data = {
             "name": f"Block Owner Test {faker.uuid4()[:8]}",
             "kind": "static",
         }
-        response = host_client.post("/api/v2/smart-blocks", data, format="json")
-        
+        response = host_client.post(
+            "/api/v2/smart-blocks", data, format="json",
+        )
+
         assert response.status_code == 201
         block_id = response.data["id"]
-        
+
         block = SmartBlock.objects.get(id=block_id)
         assert block.owner == host_user
 
-    def test_webstream_owner_assigned_to_creator(self, host_client, host_user, faker):
+    def test_webstream_owner_assigned_to_creator(
+        self, host_client, host_user, faker,
+    ):
         """Creating webstream assigns owner to the creator."""
         data = {
             "name": f"Stream Owner Test {faker.uuid4()[:8]}",
@@ -338,41 +372,43 @@ class TestAutoAssignOwnerMixin:
             "description": "Test",
         }
         response = host_client.post("/api/v2/webstreams", data, format="json")
-        
+
         assert response.status_code == 201
         stream_id = response.data["id"]
-        
+
         stream = Webstream.objects.get(id=stream_id)
         assert stream.owner == host_user
 
-    def test_different_users_get_different_owners(self, host_client, two_host_users, faker):
+    def test_different_users_get_different_owners(
+        self, host_client, two_host_users, faker,
+    ):
         """Each user owns their own created entities."""
         host1, host2 = two_host_users
-        
+
         # Host1 creates playlist
         host_client.force_authenticate(user=host1)
         response1 = host_client.post(
             "/api/v2/playlists",
             {"name": f"Host1 Playlist {faker.uuid4()[:8]}"},
-            format="json"
+            format="json",
         )
         assert response1.status_code == 201
         playlist1_id = response1.data["id"]
-        
+
         # Host2 creates playlist
         host_client.force_authenticate(user=host2)
         response2 = host_client.post(
             "/api/v2/playlists",
             {"name": f"Host2 Playlist {faker.uuid4()[:8]}"},
-            format="json"
+            format="json",
         )
         assert response2.status_code == 201
         playlist2_id = response2.data["id"]
-        
+
         # Verify owners
         playlist1 = Playlist.objects.get(id=playlist1_id)
         playlist2 = Playlist.objects.get(id=playlist2_id)
-        
+
         assert playlist1.owner == host1
         assert playlist2.owner == host2
         assert playlist1.owner != playlist2.owner
@@ -382,33 +418,36 @@ class TestAutoAssignOwnerMixin:
 # Permission Edge Cases
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestCreatePermissionEdgeCases:
     """Edge cases and boundary conditions for create permissions."""
 
     def test_manager_creates_playlist_has_manager_as_owner(
-        self, manager_client, manager_user, faker
+        self, manager_client, manager_user, faker,
     ):
         """MANAGER creating playlist is the owner (not HOST)."""
         data = {"name": f"Manager Playlist {faker.uuid4()[:8]}"}
-        response = manager_client.post("/api/v2/playlists", data, format="json")
-        
+        response = manager_client.post(
+            "/api/v2/playlists", data, format="json",
+        )
+
         assert response.status_code == 201
         playlist_id = response.data["id"]
-        
+
         playlist = Playlist.objects.get(id=playlist_id)
         assert playlist.owner == manager_user
 
     def test_admin_creates_playlist_has_admin_as_owner(
-        self, admin_client, admin_user, faker
+        self, admin_client, admin_user, faker,
     ):
         """ADMIN creating playlist is the owner."""
         data = {"name": f"Admin Playlist {faker.uuid4()[:8]}"}
         response = admin_client.post("/api/v2/playlists", data, format="json")
-        
+
         assert response.status_code == 201
         playlist_id = response.data["id"]
-        
+
         playlist = Playlist.objects.get(id=playlist_id)
         assert playlist.owner == admin_user
 
@@ -417,10 +456,11 @@ class TestCreatePermissionEdgeCases:
         response = host_client.post(
             "/api/v2/playlists",
             {"name": ""},  # Empty name - validation error
-            format="json"
+            format="json",
         )
         # Should be 400 (bad request), not 403 (forbidden)
         # Current implementation may vary
-        assert response.status_code in [201, 400], (
-            f"Expected 201 (created) or 400 (validation error), got {response.status_code}"
-        )
+        assert response.status_code in [
+            201,
+            400,
+        ], f"Expected 201 (created) or 400 (validation error), got {response.status_code}"

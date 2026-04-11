@@ -35,14 +35,21 @@ class TestPlaylistListBOLA:
     """LIST BOLA tests."""
 
     def test_list_shows_only_own_playlists(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """BOLA FIX: List returns only user's own playlists (T412)."""
         playlist1 = baker.make(
-            Playlist, name="Admin Playlist", owner=admin_user,
+            Playlist,
+            name="Admin Playlist",
+            owner=admin_user,
         )
         playlist2 = baker.make(
-            Playlist, name="User Playlist", owner=regular_user,
+            Playlist,
+            name="User Playlist",
+            owner=regular_user,
         )
 
         api_client.force_authenticate(user=regular_user)
@@ -56,10 +63,14 @@ class TestPlaylistListBOLA:
             playlist1.id not in playlist_ids
         ), "List shows other users' playlists (BOLA)"
 
-    def test_filter_by_other_owner_returns_only_own(self, api_client, admin_user, regular_user):
+    def test_filter_by_other_owner_returns_only_own(
+        self, api_client, admin_user, regular_user,
+    ):
         """BOLA FIX: Filter by other owner only returns own playlists (T413)."""
         playlist = baker.make(
-            Playlist, name="Admin Playlist", owner=admin_user,
+            Playlist,
+            name="Admin Playlist",
+            owner=admin_user,
         )
 
         api_client.force_authenticate(user=regular_user)

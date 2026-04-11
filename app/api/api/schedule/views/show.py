@@ -1,11 +1,15 @@
 from typing import Any, final
 
 from rest_framework import viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.serializers import Serializer
 
-from api.core.models.role import Role
-from api.permissions import check_authorization_header
-from rest_framework.exceptions import PermissionDenied
+from api.permissions import (
+    check_authorization_header,
+    is_authenticated,
+    is_superuser,
+    request_superauthorized,
+)
 from api.schedule.models import (
     Show,
     ShowDays,
@@ -20,8 +24,6 @@ from api.schedule.serializers import (
     ShowRebroadcastSerializer,
     ShowSerializer,
 )
-from api.core.models import User
-from api.permissions import request_superauthorized, is_authenticated, is_superuser
 
 
 @final
@@ -48,12 +50,11 @@ class ShowViewSet(viewsets.ModelViewSet[Any]):
 
         request = self.request
         if not (
-            request_superauthorized(request) or
-            show.hosts.filter(id=request.user.id).exists()
+            request_superauthorized(request)
+            or show.hosts.filter(id=request.user.id).exists()
         ):
             raise PermissionDenied(
-                "Only show hosts, managers, or "
-                "admins can modify this show."
+                "Only show hosts, managers, or admins can modify this show.",
             )
 
     def perform_update(self, serializer: Any) -> None:

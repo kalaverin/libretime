@@ -41,5 +41,7 @@ class PreferenceViewSet(viewsets.ModelViewSet[Any]):
 
         headers = self.get_success_headers(serializer.data)
         return Response(
-            serializer.data, status=HTTP_201_CREATED, headers=headers,
+            serializer.data,
+            status=HTTP_201_CREATED,
+            headers=headers,
         )

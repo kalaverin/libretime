@@ -49,7 +49,9 @@ class TestApiKeyHeaderInjection:
     def test_api_key_case_variations(self, api_client, admin_user):
         """Test Api-Key header case variations."""
         token = baker.make(
-            "core.UserToken", user=admin_user, token="valid_token_123",
+            "core.UserToken",
+            user=admin_user,
+            token="valid_token_123",
         )
 
         case_variations = [
@@ -140,7 +142,9 @@ class TestApiKeyAuthorizationBypass:
     def test_bearer_instead_of_api_key(self, api_client, admin_user):
         """Test using Bearer scheme with API token."""
         token = baker.make(
-            "core.UserToken", user=admin_user, token="api_token_123",
+            "core.UserToken",
+            user=admin_user,
+            token="api_token_123",
         )
 
         api_client.credentials(HTTP_AUTHORIZATION="Bearer api_token_123")
@@ -152,7 +156,9 @@ class TestApiKeyAuthorizationBypass:
     def test_token_without_scheme(self, api_client, admin_user):
         """Test token without Api-Key scheme."""
         token = baker.make(
-            "core.UserToken", user=admin_user, token="api_token_123",
+            "core.UserToken",
+            user=admin_user,
+            token="api_token_123",
         )
 
         api_client.credentials(HTTP_AUTHORIZATION="api_token_123")
@@ -162,12 +168,17 @@ class TestApiKeyAuthorizationBypass:
         assert response.status_code in [403, 401]
 
     def test_valid_token_wrong_user(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Test using valid token but accessing wrong user's data."""
         # Create token for admin
         token = baker.make(
-            "core.UserToken", user=admin_user, token="admin_token",
+            "core.UserToken",
+            user=admin_user,
+            token="admin_token",
         )
 
         # Create preference for regular user
@@ -199,7 +210,9 @@ class TestApiKeyTimingAttack:
 
         # Create valid token
         token = baker.make(
-            "core.UserToken", user=admin_user, token="valid_timing_token",
+            "core.UserToken",
+            user=admin_user,
+            token="valid_timing_token",
         )
 
         # Request with valid token
@@ -275,7 +288,9 @@ class TestApiKeySessionHandling:
     def test_token_revocation(self, api_client, admin_user):
         """Test if deleted token is immediately revoked."""
         token = baker.make(
-            "core.UserToken", user=admin_user, token="revoke_token",
+            "core.UserToken",
+            user=admin_user,
+            token="revoke_token",
         )
 
         # Verify token works
@@ -309,7 +324,9 @@ class TestApiKeySessionHandling:
     def test_token_case_sensitivity(self, api_client, admin_user):
         """Test if token is case-sensitive."""
         token = baker.make(
-            "core.UserToken", user=admin_user, token="CaseSensitiveToken",
+            "core.UserToken",
+            user=admin_user,
+            token="CaseSensitiveToken",
         )
 
         # Correct case

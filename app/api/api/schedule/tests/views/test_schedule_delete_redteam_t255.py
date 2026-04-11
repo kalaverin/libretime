@@ -42,12 +42,16 @@ class TestScheduleDeleteRedTeam:
     def test_bola_delete_other_users_schedule(self, api_client, faker):
         """BOLA: Can delete another user's schedule entry."""
         victim = baker.make(
-            User, username=f"testred_victim_{faker.user_name()}",
+            User,
+            username=f"testred_victim_{faker.user_name()}",
         )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=victim,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=victim,
         )
 
         base_time = now()
@@ -74,12 +78,16 @@ class TestScheduleDeleteRedTeam:
     def test_bola_delete_other_users_schedule_status(self, api_client, faker):
         """BOLA: DELETE of other's schedule returns wrong status code."""
         victim = baker.make(
-            User, username=f"testred_victim_{faker.user_name()}",
+            User,
+            username=f"testred_victim_{faker.user_name()}",
         )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=victim,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=victim,
         )
 
         base_time = now()
@@ -111,7 +119,10 @@ class TestScheduleDeleteRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -161,9 +172,9 @@ class TestScheduleDeleteRedTeam:
 
         response = client.delete("/api/v2/schedule/1")
         # When test methodology is correct, this should pass (403 returned)
-        assert response.status_code == 403, (
-            f"T600: Invalid token should return 403, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 403
+        ), f"T600: Invalid token should return 403, got {response.status_code}"
 
     # ========================================================================
     # API6:2023 - Unsafe Business Flows
@@ -178,7 +189,10 @@ class TestScheduleDeleteRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -226,7 +240,10 @@ class TestScheduleDeleteRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -268,7 +285,10 @@ class TestScheduleDeleteRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -356,12 +376,16 @@ class TestScheduleDeleteRedTeam:
     def test_error_message_leaks_existence_delete(self, api_client, faker):
         """Info Leak: Error messages reveal if schedule exists."""
         victim = baker.make(
-            User, username=f"testred_victim_{faker.user_name()}",
+            User,
+            username=f"testred_victim_{faker.user_name()}",
         )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=victim,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=victim,
         )
 
         base_time = now()
@@ -400,7 +424,10 @@ class TestScheduleDeleteRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -426,7 +453,8 @@ class TestScheduleDeleteRedTeam:
 
         if time_existing > 0:
             ratio = max(time_existing, time_nonexistent) / min(
-                time_existing, time_nonexistent,
+                time_existing,
+                time_nonexistent,
             )
             if ratio > 3:
                 pytest.skip(f"Timing leak: ratio {ratio:.1f}")
@@ -441,7 +469,10 @@ class TestScheduleDeleteRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()

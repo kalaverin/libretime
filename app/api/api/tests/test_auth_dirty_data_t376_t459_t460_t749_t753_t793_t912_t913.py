@@ -13,6 +13,7 @@ Fixes and tests for:
 """
 
 import pytest
+
 from django.conf import settings
 from rest_framework.test import APIClient
 
@@ -25,7 +26,7 @@ class TestDirtyDataAuthorizationHeader:
         """Valid Api-Key should still authenticate successfully."""
         client = APIClient()
         client.credentials(
-            HTTP_AUTHORIZATION=f"Api-Key {settings.CONFIG.general.api_key}"
+            HTTP_AUTHORIZATION=f"Api-Key {settings.CONFIG.general.api_key}",
         )
         response = client.get("/api/v2/playlists")
         assert response.status_code == 200
@@ -49,9 +50,10 @@ class TestDirtyDataAuthorizationHeader:
             client.credentials(HTTP_AUTHORIZATION=header)
             response = client.get("/api/v2/playlists")
             # Should return 403, not 500
-            assert response.status_code in [403, 401], (
-                f"Header {repr(header)}: expected 403/401, got {response.status_code}"
-            )
+            assert response.status_code in [
+                403,
+                401,
+            ], f"Header {repr(header)}: expected 403/401, got {response.status_code}"
 
     @pytest.mark.django_db
     def test_t749_unicode_in_api_key_value(self):
@@ -79,16 +81,17 @@ class TestDirtyDataAuthorizationHeader:
         for header in case_variations:
             client.credentials(HTTP_AUTHORIZATION=header)
             response = client.get("/api/v2/playlists")
-            assert response.status_code in [403, 401], (
-                f"Header {repr(header)}: expected 403/401, got {response.status_code}"
-            )
+            assert response.status_code in [
+                403,
+                401,
+            ], f"Header {repr(header)}: expected 403/401, got {response.status_code}"
 
     @pytest.mark.django_db
     def test_t459_exact_api_key_prefix_works(self):
         """Exact 'Api-Key' prefix should work with valid key."""
         client = APIClient()
         client.credentials(
-            HTTP_AUTHORIZATION=f"Api-Key {settings.CONFIG.general.api_key}"
+            HTTP_AUTHORIZATION=f"Api-Key {settings.CONFIG.general.api_key}",
         )
         response = client.get("/api/v2/playlists")
         assert response.status_code == 200
@@ -137,9 +140,10 @@ class TestDirtyDataAuthorizationHeader:
         for header in injection_attempts:
             client.credentials(HTTP_AUTHORIZATION=header)
             response = client.get("/api/v2/playlists")
-            assert response.status_code in [403, 401], (
-                f"Header {repr(header)}: expected 403/401, got {response.status_code}"
-            )
+            assert response.status_code in [
+                403,
+                401,
+            ], f"Header {repr(header)}: expected 403/401, got {response.status_code}"
 
     @pytest.mark.django_db
     def test_t913_carriage_return_injection_rejected(self):
@@ -153,9 +157,10 @@ class TestDirtyDataAuthorizationHeader:
         for header in injection_attempts:
             client.credentials(HTTP_AUTHORIZATION=header)
             response = client.get("/api/v2/playlists")
-            assert response.status_code in [403, 401], (
-                f"Header {repr(header)}: expected 403/401, got {response.status_code}"
-            )
+            assert response.status_code in [
+                403,
+                401,
+            ], f"Header {repr(header)}: expected 403/401, got {response.status_code}"
 
     # ==================================================================
     # Additional edge cases
@@ -174,7 +179,7 @@ class TestDirtyDataAuthorizationHeader:
         """Multiple tokens separated by spaces should be rejected."""
         client = APIClient()
         client.credentials(
-            HTTP_AUTHORIZATION=f"Api-Key {settings.CONFIG.general.api_key} extra"
+            HTTP_AUTHORIZATION=f"Api-Key {settings.CONFIG.general.api_key} extra",
         )
         response = client.get("/api/v2/playlists")
         assert response.status_code in [403, 401]
@@ -184,7 +189,7 @@ class TestDirtyDataAuthorizationHeader:
         """Token with leading/trailing whitespace should be rejected."""
         client = APIClient()
         client.credentials(
-            HTTP_AUTHORIZATION=f"Api-Key  {settings.CONFIG.general.api_key} "
+            HTTP_AUTHORIZATION=f"Api-Key  {settings.CONFIG.general.api_key} ",
         )
         response = client.get("/api/v2/playlists")
         assert response.status_code in [403, 401]
@@ -201,9 +206,10 @@ class TestDirtyDataAuthorizationHeader:
         for header in control_chars:
             client.credentials(HTTP_AUTHORIZATION=header)
             response = client.get("/api/v2/playlists")
-            assert response.status_code in [403, 401], (
-                f"Control char header: expected 403/401, got {response.status_code}"
-            )
+            assert response.status_code in [
+                403,
+                401,
+            ], f"Control char header: expected 403/401, got {response.status_code}"
 
     @pytest.mark.django_db
     def test_null_byte_rejected(self):
@@ -219,8 +225,9 @@ class TestDirtyDataDirectFunction:
 
     def test_direct_unicode_handling(self):
         """Function should handle unicode without crashing."""
-        from api.permissions import check_authorization_header
         from unittest.mock import MagicMock
+
+        from api.permissions import check_authorization_header
 
         request = MagicMock()
         request.headers = {"authorization": "Api-Key тест"}
@@ -229,8 +236,9 @@ class TestDirtyDataDirectFunction:
 
     def test_direct_newline_rejection(self):
         """Function should reject newlines."""
-        from api.permissions import check_authorization_header
         from unittest.mock import MagicMock
+
+        from api.permissions import check_authorization_header
 
         request = MagicMock()
         request.headers = {"authorization": "Api-Key token\ninjection"}
@@ -239,8 +247,9 @@ class TestDirtyDataDirectFunction:
 
     def test_direct_cr_rejection(self):
         """Function should reject carriage returns."""
-        from api.permissions import check_authorization_header
         from unittest.mock import MagicMock
+
+        from api.permissions import check_authorization_header
 
         request = MagicMock()
         request.headers = {"authorization": "Api-Key token\rinjection"}
@@ -249,25 +258,32 @@ class TestDirtyDataDirectFunction:
 
     def test_direct_case_sensitivity(self):
         """Function should be case-sensitive."""
-        from api.permissions import check_authorization_header
         from unittest.mock import MagicMock
+
         from django.conf import settings
+
+        from api.permissions import check_authorization_header
 
         request = MagicMock()
         # Wrong case should fail
-        request.headers = {"authorization": f"api-key {settings.CONFIG.general.api_key}"}
+        request.headers = {
+            "authorization": f"api-key {settings.CONFIG.general.api_key}",
+        }
         result = check_authorization_header(request)
         assert result is False
 
         # Correct case should succeed
-        request.headers = {"authorization": f"Api-Key {settings.CONFIG.general.api_key}"}
+        request.headers = {
+            "authorization": f"Api-Key {settings.CONFIG.general.api_key}",
+        }
         result = check_authorization_header(request)
         assert result is True
 
     def test_direct_empty_token(self):
         """Function should handle empty token."""
-        from api.permissions import check_authorization_header
         from unittest.mock import MagicMock
+
+        from api.permissions import check_authorization_header
 
         request = MagicMock()
         request.headers = {"authorization": "Api-Key "}
@@ -276,8 +292,9 @@ class TestDirtyDataDirectFunction:
 
     def test_direct_no_space(self):
         """Function should reject 'Api-Key' without space."""
-        from api.permissions import check_authorization_header
         from unittest.mock import MagicMock
+
+        from api.permissions import check_authorization_header
 
         request = MagicMock()
         request.headers = {"authorization": "Api-Key"}

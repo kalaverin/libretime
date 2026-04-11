@@ -4,7 +4,6 @@ Red Team security tests for PlayoutHistory LIST endpoint.
 Tests for BOLA, BFLA, injection, and other API vulnerabilities.
 """
 
-
 from datetime import timedelta
 
 import pytest
@@ -23,7 +22,10 @@ class TestPlayoutHistoryListRedTeamBOLA:
     """API1:2023 Broken Object Level Authorization - LIST BOLA tests."""
 
     def test_bfla_regular_user_cannot_list(
-        self, api_client, regular_user, faker,
+        self,
+        api_client,
+        regular_user,
+        faker,
     ):
         """
         BFLA: Regular user cannot access LIST endpoint.
@@ -38,7 +40,11 @@ class TestPlayoutHistoryListRedTeamBOLA:
         assert response.status_code == 403
 
     def test_bola_admin_can_see_all_playout(
-        self, api_client, admin_user, manager_user, faker,
+        self,
+        api_client,
+        admin_user,
+        manager_user,
+        faker,
     ):
         """
         BOLA: Admin/Manager sees ALL playout history (no owner filtering).
@@ -82,7 +88,10 @@ class TestPlayoutHistoryListRedTeamBOLA:
                 )
 
     def test_bola_list_with_no_owner_field_in_model(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         BOLA: PlayoutHistory model has no owner field for filtering.
@@ -106,7 +115,10 @@ class TestPlayoutHistoryListRedTeamBOLA:
         assert "instance" in fields
 
     def test_bola_list_returns_all_data_no_filtering(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         BOLA: LIST endpoint has no owner-based filtering in queryset.
@@ -117,7 +129,9 @@ class TestPlayoutHistoryListRedTeamBOLA:
         # Create multiple users with files/playouts
         users = [
             baker.make(
-                User, role=Role.HOST, username=f"user_{i}_{faker.user_name()}",
+                User,
+                role=Role.HOST,
+                username=f"user_{i}_{faker.user_name()}",
             )
             for i in range(3)
         ]
@@ -526,7 +540,10 @@ class TestPlayoutHistoryListRedTeamMassAssignment:
     """API3:2023 Broken Object Property Level Authorization - via LIST context."""
 
     def test_list_response_includes_all_fields(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         BOPLA: LIST response includes all model fields.
@@ -598,7 +615,9 @@ class TestPlayoutHistoryListRedTeamIDEnumeration:
         f = baker.make(File, mime="audio/mp3", owner=admin_user)
         playouts = [
             baker.make(
-                PlayoutHistory, file=f, starts=now() + timedelta(minutes=i),
+                PlayoutHistory,
+                file=f,
+                starts=now() + timedelta(minutes=i),
             )
             for i in range(5)
         ]
@@ -629,7 +648,9 @@ class TestPlayoutHistoryListRedTeamIDEnumeration:
         p1.delete()
 
         p2 = baker.make(
-            PlayoutHistory, file=f, starts=now() + timedelta(minutes=10),
+            PlayoutHistory,
+            file=f,
+            starts=now() + timedelta(minutes=10),
         )
         p2_id = p2.id
 

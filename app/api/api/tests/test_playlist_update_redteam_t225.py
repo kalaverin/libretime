@@ -64,11 +64,16 @@ class TestPlaylistUpdateBOLA:
 
     @pytest.mark.xfail(reason="T412: No owner filtering")
     def test_update_other_user_playlist(
-        self, api_client, regular_user, admin_user,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
     ):
         """Update another user's playlist."""
         playlist = baker.make(
-            Playlist, name="Admin Playlist", owner=admin_user,
+            Playlist,
+            name="Admin Playlist",
+            owner=admin_user,
         )
 
         api_client.force_authenticate(user=regular_user)
@@ -132,7 +137,10 @@ class TestPlaylistUpdateOwnershipTransfer:
 
     @pytest.mark.xfail(reason="T418: Ownership transfer allowed")
     def test_transfer_ownership_via_patch(
-        self, api_client, regular_user, admin_user,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
     ):
         """Try to transfer ownership via PATCH."""
         playlist = baker.make(Playlist, name="Test", owner=regular_user)
@@ -153,7 +161,10 @@ class TestPlaylistUpdateOwnershipTransfer:
 
     @pytest.mark.xfail(reason="T418: Ownership transfer allowed")
     def test_transfer_ownership_via_put(
-        self, api_client, regular_user, admin_user,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
     ):
         """Try to transfer ownership via PUT."""
         playlist = baker.make(Playlist, name="Test", owner=regular_user)

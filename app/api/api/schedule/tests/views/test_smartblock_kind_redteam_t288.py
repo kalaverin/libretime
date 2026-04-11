@@ -189,7 +189,10 @@ class TestSmartBlockKindBOPLA:
 
     @pytest.mark.django_db
     def test_bopla_mass_assignment_id_field(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Try to set id field during CREATE."""
         client = APIClient()
@@ -219,7 +222,10 @@ class TestSmartBlockKindBOPLA:
         reason="T834: BOPLA - mass assignment of created_at allowed",
     )
     def test_bopla_mass_assignment_created_at(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Try to set created_at during CREATE."""
         client = APIClient()
@@ -247,7 +253,11 @@ class TestSmartBlockKindBOPLA:
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T835: BOPLA - owner change via PATCH allowed")
     def test_bopla_change_owner_via_update(
-        self, api_client, admin_user, regular_user, faker,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        faker,
     ):
         """Try to change smart block owner via PATCH."""
         block = baker.make(
@@ -275,7 +285,10 @@ class TestSmartBlockKindBOPLA:
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T836: BOPLA - extra fields silently accepted")
     def test_bopla_extra_fields_not_rejected(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Extra fields should be rejected, not silently ignored."""
         client = APIClient()
@@ -487,7 +500,10 @@ class TestSmartBlockKindLogic:
 
     @pytest.mark.django_db
     def test_change_kind_with_criteria_static_to_dynamic(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Changing kind from static to dynamic when criteria exist."""
         block = baker.make(
@@ -520,7 +536,10 @@ class TestSmartBlockKindLogic:
 
     @pytest.mark.django_db
     def test_change_kind_dynamic_to_static_with_criteria(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Changing kind from dynamic to static when criteria exist."""
         block = baker.make(
@@ -556,7 +575,10 @@ class TestSmartBlockKindLogic:
 
     @pytest.mark.django_db
     def test_create_dynamic_without_criteria(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Dynamic block without criteria should be handled."""
         client = APIClient()

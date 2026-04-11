@@ -72,7 +72,10 @@ class TestScheduleOverbookedFilterRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -120,7 +123,10 @@ class TestScheduleOverbookedFilterRedTeam:
         )
 
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         schedule = baker.make(
@@ -153,12 +159,16 @@ class TestScheduleOverbookedFilterRedTeam:
     def test_overbooked_bola_info_leak(self, api_client, faker):
         """BOLA: overbooked filter reveals other users' schedules."""
         victim = baker.make(
-            User, username=f"testred_victim_{faker.user_name()}",
+            User,
+            username=f"testred_victim_{faker.user_name()}",
         )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=victim,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=victim,
         )
 
         base_time = now()
@@ -195,7 +205,10 @@ class TestScheduleOverbookedFilterRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -221,12 +234,16 @@ class TestScheduleOverbookedFilterRedTeam:
     def test_overbooked_instance_bypass(self, api_client, faker):
         """Filter: Using instance filter to bypass overbooked."""
         victim = baker.make(
-            User, username=f"testred_victim_{faker.user_name()}",
+            User,
+            username=f"testred_victim_{faker.user_name()}",
         )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=victim,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=victim,
         )
 
         base_time = now()
@@ -299,7 +316,10 @@ class TestScheduleOverbookedFilterRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -335,7 +355,10 @@ class TestScheduleOverbookedFilterRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()

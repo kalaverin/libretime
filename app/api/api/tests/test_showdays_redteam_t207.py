@@ -55,7 +55,10 @@ class TestShowDaysBOLA:
     """Broken Object Level Authorization attacks."""
 
     def test_list_shows_only_own_days(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Verify list returns only user's own show days."""
         show1 = baker.make("schedule.Show", name="Admin Show")
@@ -79,7 +82,10 @@ class TestShowDaysBOLA:
             )
 
     def test_filter_by_other_user_show(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to filter by another user's show."""
         show = baker.make("schedule.Show", name="Admin Show")
@@ -192,7 +198,10 @@ class TestShowDaysBusinessLogic:
             pytest.fail("CRITICAL BUG: Anonymous can create show days")
 
     def test_create_for_other_user_show(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to create show day for another user's show."""
         show = baker.make("schedule.Show", name="Admin Show")

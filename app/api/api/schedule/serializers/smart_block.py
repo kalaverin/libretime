@@ -1,6 +1,7 @@
 """SmartBlock serializers with mass assignment protection."""
 
 import re
+
 from typing import Any, final
 
 from django.db.models import Model
@@ -16,27 +17,26 @@ from api.validators.fields import (
     validate_choice,
     validate_duration_format,
     validate_foreign_key_id,
-    validate_hex_color,
     validate_max_length,
     validate_non_negative_float,
     validate_non_negative_int,
     validate_not_empty_string,
-    validate_not_null,
     validate_time_order,
 )
-from api.validators.race_conditions import validate_duplicate_combination, validate_duplicate_name
+from api.validators.race_conditions import (
+    validate_duplicate_combination,
+    validate_duplicate_name,
+)
 
 # Pattern to detect path-like strings (T479)
-_PATH_LIKE_PATTERN = re.compile(
-    r"(?:\.\.)|(?:/)|(?:\\)"
-)
+_PATH_LIKE_PATTERN = re.compile(r"(?:\.\.)|(?:/)|(?:\\)")
 
 
 def validate_no_path_patterns(value: str, field_name: str) -> str:
     """Validate that duration string doesn't contain path patterns."""
     if not isinstance(value, str):
         return value
-    
+
     # Check for path traversal patterns (T479)
     if _PATH_LIKE_PATTERN.search(value):
         raise ValidationError(
@@ -69,7 +69,7 @@ class SmartBlockSerializer(SecureModelSerializer):
         """Validate duplicate name per owner (T433)."""
         name = data.get("name")
         owner = data.get("owner")
-        
+
         # Get owner ID from instance or context for updates
         if self.instance:
             owner_id = owner.id if owner else self.instance.owner_id
@@ -80,7 +80,7 @@ class SmartBlockSerializer(SecureModelSerializer):
                 owner_id = request.user.id
             else:
                 owner_id = None
-        
+
         if name and owner_id:
             validate_duplicate_name(
                 SmartBlock,
@@ -88,7 +88,7 @@ class SmartBlockSerializer(SecureModelSerializer):
                 owner_id,
                 exclude_id=self.instance.id if self.instance else None,
             )
-        
+
         return super().validate(data)
 
 
@@ -110,7 +110,7 @@ class SmartBlockContentSerializer(StrictSerializer):
             block_id = value.id
         else:
             block_id = validate_foreign_key_id(value, "block")
-        
+
         # T475: Verify block ownership
         request = self.context.get("request")
         if request and request.user.is_authenticated:
@@ -128,17 +128,18 @@ class SmartBlockContentSerializer(StrictSerializer):
                         "Block not found.",
                         code="block_not_found",
                     )
-        
+
         return value
 
     def validate_file(self, value: Any) -> Any:
         """Validate file ID is valid integer and owned by current user (T476)."""
         from api.storage.models import File
+
         if isinstance(value, File):
             file_id = value.id
         else:
             file_id = validate_foreign_key_id(value, "file")
-        
+
         # T476: Verify file ownership
         request = self.context.get("request")
         if request and request.user.is_authenticated:
@@ -156,7 +157,7 @@ class SmartBlockContentSerializer(StrictSerializer):
                         "File not found.",
                         code="file_not_found",
                     )
-        
+
         return value
 
     def validate_offset(self, value: Any) -> Any:
@@ -180,16 +181,16 @@ class SmartBlockContentSerializer(StrictSerializer):
         cue_in = data.get("cue_in")
         cue_out = data.get("cue_out")
         validate_time_order(cue_in, cue_out)
-        
+
         # T486: Check for duplicate content in same block
         block = data.get("block")
         file_obj = data.get("file")
         position = data.get("position")
-        
+
         if block and file_obj and position is not None:
             block_id = block.id if isinstance(block, SmartBlock) else block
-            file_id = file_obj.id if hasattr(file_obj, 'id') else file_obj
-            
+            file_id = file_obj.id if hasattr(file_obj, "id") else file_obj
+
             try:
                 validate_duplicate_combination(
                     SmartBlockContent,
@@ -204,7 +205,7 @@ class SmartBlockContentSerializer(StrictSerializer):
             except Exception:
                 # Skip validation if IDs are not resolved yet
                 pass
-        
+
         return super().validate(data)
 
 
@@ -228,7 +229,7 @@ class SmartBlockCriteriaSerializer(StrictSerializer):
             block_id = value.id
         else:
             block_id = validate_foreign_key_id(value, "block")
-        
+
         # T496: Verify block ownership
         request = self.context.get("request")
         if request and request.user.is_authenticated:
@@ -246,7 +247,7 @@ class SmartBlockCriteriaSerializer(StrictSerializer):
                         "Block not found.",
                         code="block_not_found",
                     )
-        
+
         return value
 
     def validate_value(self, value: Any) -> Any:
@@ -259,10 +260,10 @@ class SmartBlockCriteriaSerializer(StrictSerializer):
         criteria = data.get("criteria")
         condition = data.get("condition")
         value = data.get("value")
-        
+
         if block and criteria and condition and value:
             block_id = block.id if isinstance(block, SmartBlock) else block
-            
+
             try:
                 validate_duplicate_combination(
                     SmartBlockCriteria,
@@ -278,7 +279,7 @@ class SmartBlockCriteriaSerializer(StrictSerializer):
             except Exception:
                 # Skip validation if IDs are not resolved yet
                 pass
-        
+
         return super().validate(data)
 
     def validate_group(self, value: Any) -> Any:

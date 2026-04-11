@@ -5,7 +5,6 @@ Tests for BOLA (update/delete other's podcasts), BOPLA (mass assignment),
 injection, and rate limiting vulnerabilities.
 """
 
-
 import pytest
 
 from api.podcasts.models import Podcast
@@ -21,7 +20,12 @@ class TestPodcastRUDRedTeamBOLA:
     """BOLA: Access control on UPDATE/DELETE operations."""
 
     def test_bola_update_other_users_podcast(
-        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOLA: Regular user can UPDATE admin's podcast.
@@ -56,7 +60,12 @@ class TestPodcastRUDRedTeamBOLA:
             )
 
     def test_bola_patch_other_users_podcast(
-        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOLA: Regular user can PATCH admin's podcast.
@@ -81,7 +90,12 @@ class TestPodcastRUDRedTeamBOLA:
             pytest.xfail("T724: BOLA - Regular user can PATCH admin's podcast")
 
     def test_bola_delete_other_users_podcast(
-        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOLA: Regular user can DELETE admin's podcast.
@@ -104,7 +118,12 @@ class TestPodcastRUDRedTeamBOLA:
             )
 
     def test_bola_guest_user_update_podcast(
-        self, api_client, admin_user, guest_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        guest_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BFLA: Guest user can UPDATE podcast.
@@ -132,7 +151,12 @@ class TestPodcastRUDRedTeamBOLA:
             pytest.xfail("T726: BFLA - Guest user can UPDATE podcast")
 
     def test_bola_retrieve_other_users_private_podcast(
-        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOLA: Regular user can RETRIEVE admin's private podcast details.
@@ -168,7 +192,12 @@ class TestPodcastRUDRedTeamBOPLA:
     """BOPLA: Mass assignment on UPDATE/PATCH."""
 
     def test_bopla_update_change_owner(
-        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOPLA: Update owner_id via PUT (take ownership of podcast).
@@ -203,7 +232,12 @@ class TestPodcastRUDRedTeamBOPLA:
                 )
 
     def test_bopla_patch_change_owner(
-        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOPLA: Change owner via PATCH.
@@ -230,7 +264,11 @@ class TestPodcastRUDRedTeamBOPLA:
                 pytest.xfail("T729: BOPLA - Owner changed via PATCH")
 
     def test_bopla_patch_extra_fields(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOPLA: PATCH accepts unknown fields silently.
@@ -258,7 +296,11 @@ class TestPodcastRUDRedTeamBOPLA:
             pytest.xfail("T730: BOPLA - PATCH silently ignores extra fields")
 
     def test_bopla_update_id_field(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOPLA: Try to change ID via UPDATE.
@@ -298,7 +340,11 @@ class TestPodcastRUDRedTeamInjection:
     """Injection via UPDATE/PATCH fields."""
 
     def test_xss_via_update_title(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         Stored XSS: Update title with script tag.
@@ -327,7 +373,11 @@ class TestPodcastRUDRedTeamInjection:
                 pytest.xfail("T732: Stored XSS via UPDATE title")
 
     def test_xss_via_patch_description(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         Stored XSS: PATCH description with script.
@@ -353,7 +403,11 @@ class TestPodcastRUDRedTeamInjection:
                 pytest.xfail("T733: Stored XSS via PATCH description")
 
     def test_sqli_via_update_fields(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         SQLi: Injection in UPDATE fields.
@@ -392,7 +446,11 @@ class TestPodcastRUDRedTeamResourceConsumption:
     """Resource consumption on RUD operations."""
 
     def test_rapid_update_requests(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         Rate limiting: Rapid UPDATE requests.
@@ -419,7 +477,11 @@ class TestPodcastRUDRedTeamResourceConsumption:
             pytest.xfail("T735: No rate limiting on Podcast UPDATE")
 
     def test_rapid_delete_requests(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         Rate limiting: Rapid DELETE requests (DoS).
@@ -451,7 +513,12 @@ class TestPodcastRUDRedTeamIDOR:
     """IDOR and enumeration tests."""
 
     def test_idor_sequential_id_access(
-        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         IDOR: Access podcasts by sequential ID enumeration.
@@ -505,7 +572,11 @@ class TestPodcastRUDRedTeamAuthentication:
     """Authentication bypass tests."""
 
     def test_update_without_auth(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         Unauthenticated UPDATE should fail.
@@ -529,7 +600,11 @@ class TestPodcastRUDRedTeamAuthentication:
         assert response.status_code == 403
 
     def test_delete_without_auth(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         Unauthenticated DELETE should fail.
@@ -547,7 +622,11 @@ class TestPodcastRUDRedTeamAuthentication:
         assert response.status_code == 403
 
     def test_method_override_to_bypass_auth(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         Try to bypass auth check via method override.

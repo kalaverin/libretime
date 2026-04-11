@@ -30,7 +30,9 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOPLA:
         BOPLA: CREATE field with forced ID.
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
         forced_id = fake_small_int + 800000
 
@@ -58,13 +60,19 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOPLA:
                 )
 
     def test_bopla_create_extra_fields_ignored(
-        self, api_client, admin_user, fake_word, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_word,
+        fake_catch_phrase,
     ):
         """
         BOPLA: CREATE with extra fields silently ignored.
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
 
         data = {
@@ -102,7 +110,9 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOPLA:
         BOPLA: UPDATE attempt to change ID.
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
         field = baker.make(
             PlayoutHistoryTemplateField,
@@ -137,13 +147,19 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOPLA:
                 pytest.xfail("T641: BOPLA - TemplateField id can be modified")
 
     def test_bopla_patch_extra_fields_ignored(
-        self, api_client, admin_user, fake_word, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_word,
+        fake_catch_phrase,
     ):
         """
         BOPLA: PATCH with extra fields silently ignored.
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
         field = baker.make(
             PlayoutHistoryTemplateField,
@@ -299,13 +315,19 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOLA:
             pass  # May be intended for admin
 
     def test_bola_regular_user_can_modify_global_field(
-        self, api_client, regular_user, fake_word, fake_catch_phrase,
+        self,
+        api_client,
+        regular_user,
+        fake_word,
+        fake_catch_phrase,
     ):
         """
         BFLA: Regular user can modify any template field.
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
         field = baker.make(
             PlayoutHistoryTemplateField,
@@ -345,13 +367,18 @@ class TestPlayoutHistoryTemplateFieldRedTeamInjection:
     """Injection attacks."""
 
     def test_sqli_in_name_field(
-        self, api_client, admin_user, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_catch_phrase,
     ):
         """
         SQL Injection via name field.
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
 
         sqli_names = [
@@ -379,13 +406,19 @@ class TestPlayoutHistoryTemplateFieldRedTeamInjection:
                 pytest.xfail("T645: SQLi in name causes 500")
 
     def test_sqli_in_label_field(
-        self, api_client, admin_user, fake_word, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_word,
+        fake_catch_phrase,
     ):
         """
         SQL Injection via label field.
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
 
         sqli_label = "Label' OR '1'='1"
@@ -409,13 +442,18 @@ class TestPlayoutHistoryTemplateFieldRedTeamInjection:
             pytest.xfail("T645: SQLi in label causes 500")
 
     def test_xss_in_name_field(
-        self, api_client, admin_user, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_catch_phrase,
     ):
         """
         XSS via name field.
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
 
         xss_name = "<script>alert(1)</script>"
@@ -441,13 +479,19 @@ class TestPlayoutHistoryTemplateFieldRedTeamInjection:
                 pytest.xfail("T646: XSS in name field stored unsanitized")
 
     def test_xss_in_label_field(
-        self, api_client, admin_user, fake_word, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_word,
+        fake_catch_phrase,
     ):
         """
         XSS via label field.
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
 
         xss_label = "<img src=x onerror=alert(1)>"
@@ -489,7 +533,9 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
         Validation: Negative position should be rejected.
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
 
         data = {
@@ -522,7 +568,9 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
         Validation: Very large position value.
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
 
         data = {
@@ -544,13 +592,18 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
         assert response.status_code in [201, 400]
 
     def test_create_empty_name(
-        self, api_client, admin_user, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_catch_phrase,
     ):
         """
         Validation: Empty name should be rejected.
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
 
         data = {
@@ -572,13 +625,19 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
             pytest.xfail("T648: Empty name accepted")
 
     def test_create_empty_label(
-        self, api_client, admin_user, fake_word, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_word,
+        fake_catch_phrase,
     ):
         """
         Validation: Empty label should be rejected.
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
 
         data = {
@@ -600,13 +659,19 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
             pytest.xfail("T649: Empty label accepted")
 
     def test_create_duplicate_field_name_same_template(
-        self, api_client, admin_user, fake_word, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_word,
+        fake_catch_phrase,
     ):
         """
         Validation: Duplicate field name in same template.
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
 
         # First field
@@ -640,7 +705,11 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
             pass  # Duplicates rejected
 
     def test_create_nonexistent_template(
-        self, api_client, admin_user, fake_word, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_word,
+        fake_catch_phrase,
     ):
         """
         Validation: CREATE with non-existent template ID.
@@ -663,7 +732,11 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
         assert response.status_code == 400
 
     def test_create_invalid_type_value(
-        self, api_client, admin_user, fake_word, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_word,
+        fake_catch_phrase,
     ):
         """
         Validation: Invalid type values.
@@ -671,7 +744,9 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
         Type should be restricted to known field types.
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
 
         invalid_types = [
@@ -701,13 +776,19 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
                 pass  # No validation on type
 
     def test_create_invalid_is_file_md_type(
-        self, api_client, admin_user, fake_word, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_word,
+        fake_catch_phrase,
     ):
         """
         Validation: Invalid type for is_file_md (should be boolean).
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
 
         data = {
@@ -734,13 +815,19 @@ class TestPlayoutHistoryTemplateFieldRedTeamResourceConsumption:
     """API4:2023 Unrestricted Resource Consumption."""
 
     def test_rapid_field_creation(
-        self, api_client, admin_user, fake_word, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_word,
+        fake_catch_phrase,
     ):
         """
         Rate limiting: Rapid CREATE requests.
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
 
         success_count = 0
@@ -765,7 +852,11 @@ class TestPlayoutHistoryTemplateFieldRedTeamResourceConsumption:
             pytest.xfail("T650: No rate limiting on field CREATE")
 
     def test_many_fields_in_single_template(
-        self, api_client, admin_user, fake_word, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_word,
+        fake_catch_phrase,
     ):
         """
         DoS: Creating many fields in one template.
@@ -773,7 +864,9 @@ class TestPlayoutHistoryTemplateFieldRedTeamResourceConsumption:
         Can cause UI issues and performance degradation.
         """
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
 
         for i in range(50):
@@ -807,7 +900,10 @@ class TestPlayoutHistoryTemplateFieldRedTeamAuthentication:
         assert response.status_code == 403
 
     def test_unauthenticated_create(
-        self, api_client, fake_word, fake_catch_phrase,
+        self,
+        api_client,
+        fake_word,
+        fake_catch_phrase,
     ):
         """Unauthenticated CREATE should fail."""
         api_client.logout()
@@ -827,11 +923,17 @@ class TestPlayoutHistoryTemplateFieldRedTeamAuthentication:
         assert response.status_code == 403
 
     def test_guest_user_create(
-        self, api_client, guest_user, fake_word, fake_catch_phrase,
+        self,
+        api_client,
+        guest_user,
+        fake_word,
+        fake_catch_phrase,
     ):
         """Guest user CREATE should fail."""
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
 
         api_client.force_authenticate(user=guest_user)
@@ -860,11 +962,17 @@ class TestPlayoutHistoryTemplateFieldRedTeamHTTPMethodTampering:
     """HTTP method tampering tests."""
 
     def test_trace_method_disabled(
-        self, api_client, admin_user, fake_word, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_word,
+        fake_catch_phrase,
     ):
         """TRACE method should be disabled."""
         template = baker.make(
-            PlayoutHistoryTemplate, name=fake_catch_phrase, type="file",
+            PlayoutHistoryTemplate,
+            name=fake_catch_phrase,
+            type="file",
         )
         field = baker.make(
             PlayoutHistoryTemplateField,

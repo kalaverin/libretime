@@ -1,6 +1,7 @@
 """Tests for Show BOLA fix - session auth filtering."""
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -39,7 +40,9 @@ class TestShowBOLASessionAuth:
         assert response.status_code == 200
         assert response.json()["name"] == "My Show"
 
-    def test_session_auth_retrieve_other_show_fails(self, host_client, regular_user):
+    def test_session_auth_retrieve_other_show_fails(
+        self, host_client, regular_user,
+    ):
         """Host cannot retrieve other user's show (BOLA fix)."""
         other_user = baker.make(User, username="other_host")
         other_show = baker.make(Show, name="Other Show")
@@ -49,7 +52,9 @@ class TestShowBOLASessionAuth:
         # Should be 404 (not found for this user)
         assert response.status_code == 404
 
-    def test_session_auth_update_other_show_fails(self, host_client, regular_user):
+    def test_session_auth_update_other_show_fails(
+        self, host_client, regular_user,
+    ):
         """Host cannot update other user's show (BOLA fix)."""
         other_user = baker.make(User, username="other_host")
         other_show = baker.make(Show, name="Other Show")
@@ -63,7 +68,9 @@ class TestShowBOLASessionAuth:
         # 403 (permission denied) or 404 (not found) - both acceptable
         assert response.status_code in [403, 404]
 
-    def test_session_auth_delete_other_show_fails(self, host_client, regular_user):
+    def test_session_auth_delete_other_show_fails(
+        self, host_client, regular_user,
+    ):
         """Host cannot delete other user's show (BOLA fix)."""
         other_user = baker.make(User, username="other_host")
         other_show = baker.make(Show, name="Other Show")

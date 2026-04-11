@@ -12,13 +12,13 @@ MANAGER is essentially full admin except for user management.
 """
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
 from api.core.models.role import Role
 from api.schedule.models import Playlist, Show, SmartBlock, Webstream
 from api.storage.models import File
-
 from sdk import now
 
 
@@ -39,18 +39,26 @@ class TestManagerPlaylistPermissions:
             email=f"other_{faker.uuid4()[:8]}@test.com",
             role=Role.HOST,
         )
-        playlist = baker.make(Playlist, name=f"Other Playlist {faker.uuid4()[:8]}", owner=other_host)
+        playlist = baker.make(
+            Playlist,
+            name=f"Other Playlist {faker.uuid4()[:8]}",
+            owner=other_host,
+        )
 
         response = manager_client.get(f"/api/v2/playlists/{playlist.id}")
         assert response.status_code == 200
         assert response.data["name"] == playlist.name
 
-    def test_manager_can_create_playlist(self, manager_client, manager_user, faker):
+    def test_manager_can_create_playlist(
+        self, manager_client, manager_user, faker,
+    ):
         """MANAGER can CREATE playlist (add_playlist permission)."""
         data = {
             "name": f"Manager Playlist {faker.uuid4()[:8]}",
         }
-        response = manager_client.post("/api/v2/playlists", data, format="json")
+        response = manager_client.post(
+            "/api/v2/playlists", data, format="json",
+        )
         assert response.status_code == 201
 
         # Verify playlist was created
@@ -101,7 +109,9 @@ class TestManagerPlaylistPermissions:
         )
         other_playlist_id = other_playlist.id
 
-        response = manager_client.delete(f"/api/v2/playlists/{other_playlist_id}")
+        response = manager_client.delete(
+            f"/api/v2/playlists/{other_playlist_id}",
+        )
         # Manager should be able to delete any playlist
         assert response.status_code == 204
 
@@ -137,7 +147,9 @@ class TestManagerFilePermissions:
         assert response.status_code == 200
         assert response.data["name"] == file_obj.name
 
-    def test_manager_can_create_file(self, manager_client, manager_user, faker):
+    def test_manager_can_create_file(
+        self, manager_client, manager_user, faker,
+    ):
         """MANAGER can CREATE file (add_file permission)."""
         data = {
             "name": f"manager_file_{faker.uuid4()[:8]}.mp3",
@@ -232,13 +244,17 @@ class TestManagerSmartBlockPermissions:
         assert response.status_code == 200
         assert response.data["name"] == block.name
 
-    def test_manager_can_create_smartblock(self, manager_client, manager_user, faker):
+    def test_manager_can_create_smartblock(
+        self, manager_client, manager_user, faker,
+    ):
         """MANAGER can CREATE smart block (add_smartblock permission)."""
         data = {
             "name": f"Manager Block {faker.uuid4()[:8]}",
             "kind": "dynamic",
         }
-        response = manager_client.post("/api/v2/smart-blocks", data, format="json")
+        response = manager_client.post(
+            "/api/v2/smart-blocks", data, format="json",
+        )
         assert response.status_code == 201
 
         block_id = response.data["id"]
@@ -287,7 +303,9 @@ class TestManagerSmartBlockPermissions:
         )
         other_block_id = other_block.id
 
-        response = manager_client.delete(f"/api/v2/smart-blocks/{other_block_id}")
+        response = manager_client.delete(
+            f"/api/v2/smart-blocks/{other_block_id}",
+        )
         assert response.status_code == 204
 
         assert not SmartBlock.objects.filter(id=other_block_id).exists()
@@ -310,7 +328,9 @@ class TestManagerShowPermissions:
         assert response.status_code == 200
         assert response.data["name"] == show.name
 
-    def test_manager_can_create_show(self, manager_client, manager_user, faker):
+    def test_manager_can_create_show(
+        self, manager_client, manager_user, faker,
+    ):
         """MANAGER can CREATE show (add_show permission)."""
         data = {
             "name": f"Manager Show {faker.uuid4()[:8]}",
@@ -328,6 +348,7 @@ class TestManagerShowPermissions:
         show = Show.objects.get(id=show_id)
         # Manager becomes host of the show
         from api.schedule.models import ShowHost
+
         assert ShowHost.objects.filter(show=show, user=manager_user).exists()
 
     def test_manager_can_update_any_show(self, manager_client, faker):
@@ -340,6 +361,7 @@ class TestManagerShowPermissions:
             role=Role.HOST,
         )
         from api.schedule.models import ShowHost
+
         show = baker.make(Show, name=f"Other Show {faker.uuid4()[:8]}")
         ShowHost.objects.create(show=show, user=other_host)
 
@@ -365,6 +387,7 @@ class TestManagerShowPermissions:
             role=Role.HOST,
         )
         from api.schedule.models import ShowHost
+
         show = baker.make(Show, name=f"Other Show {faker.uuid4()[:8]}")
         ShowHost.objects.create(show=show, user=other_host)
         show_id = show.id
@@ -403,14 +426,18 @@ class TestManagerWebstreamPermissions:
         assert response.status_code == 200
         assert response.data["name"] == stream.name
 
-    def test_manager_can_create_webstream(self, manager_client, manager_user, faker):
+    def test_manager_can_create_webstream(
+        self, manager_client, manager_user, faker,
+    ):
         """MANAGER can CREATE webstream (add_webstream permission)."""
         data = {
             "name": f"Manager Stream {faker.uuid4()[:8]}",
             "url": f"https://example.com/{faker.uuid4()[:8]}.mp3",
             "description": f"Manager test stream {faker.uuid4()[:8]}",
         }
-        response = manager_client.post("/api/v2/webstreams", data, format="json")
+        response = manager_client.post(
+            "/api/v2/webstreams", data, format="json",
+        )
         assert response.status_code == 201
 
         stream_id = response.data["id"]
@@ -459,7 +486,9 @@ class TestManagerWebstreamPermissions:
         )
         other_stream_id = other_stream.id
 
-        response = manager_client.delete(f"/api/v2/webstreams/{other_stream_id}")
+        response = manager_client.delete(
+            f"/api/v2/webstreams/{other_stream_id}",
+        )
         assert response.status_code == 204
 
         assert not Webstream.objects.filter(id=other_stream_id).exists()

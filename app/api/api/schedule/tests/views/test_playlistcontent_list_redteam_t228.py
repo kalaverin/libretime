@@ -53,10 +53,15 @@ class TestPlaylistContentListRedTeam:
 
         # Create victim's playlist with content
         victim_playlist = baker.make(
-            Playlist, name="Victim Playlist", owner=victim,
+            Playlist,
+            name="Victim Playlist",
+            owner=victim,
         )
         victim_file = baker.make(
-            File, name="victim.mp3", mime="audio/mp3", owner=victim,
+            File,
+            name="victim.mp3",
+            mime="audio/mp3",
+            owner=victim,
         )
         victim_content = baker.make(
             PlaylistContent,
@@ -82,10 +87,15 @@ class TestPlaylistContentListRedTeam:
         victim = baker.make(User, username="testred_victim")
 
         victim_playlist = baker.make(
-            Playlist, name="Victim Playlist", owner=victim,
+            Playlist,
+            name="Victim Playlist",
+            owner=victim,
         )
         victim_file = baker.make(
-            File, name="victim.mp3", mime="audio/mp3", owner=victim,
+            File,
+            name="victim.mp3",
+            mime="audio/mp3",
+            owner=victim,
         )
         baker.make(
             PlaylistContent,
@@ -116,7 +126,10 @@ class TestPlaylistContentListRedTeam:
         contents = []
         for i in range(5):
             f = baker.make(
-                File, name=f"victim{i}.mp3", mime="audio/mp3", owner=victim,
+                File,
+                name=f"victim{i}.mp3",
+                mime="audio/mp3",
+                owner=victim,
             )
             c = baker.make(
                 PlaylistContent,
@@ -148,7 +161,10 @@ class TestPlaylistContentListRedTeam:
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         baker.make(
@@ -186,7 +202,10 @@ class TestPlaylistContentListRedTeam:
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         baker.make(
@@ -225,7 +244,10 @@ class TestPlaylistContentListRedTeam:
         # Create many contents
         for i in range(100):
             f = baker.make(
-                File, name=f"file{i}.mp3", mime="audio/mp3", owner=user,
+                File,
+                name=f"file{i}.mp3",
+                mime="audio/mp3",
+                owner=user,
             )
             baker.make(
                 PlaylistContent,

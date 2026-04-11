@@ -69,7 +69,8 @@ class TestSmartBlockCreateRedTeam:
         if response.status_code == 201:
             data = response.json()
             assert "2020" not in data.get(
-                "created_at", "",
+                "created_at",
+                "",
             ), "BOPLA: created_at was modified"
 
     # ========================================================================
@@ -284,7 +285,8 @@ class TestSmartBlockCreateAdvancedRedTeam:
         if response.status_code == 201:
             data = response.json()
             assert "2030" not in data.get(
-                "updated_at", "",
+                "updated_at",
+                "",
             ), "BOPLA: updated_at was set to future"
 
     @pytest.mark.xfail(

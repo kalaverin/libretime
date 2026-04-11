@@ -269,9 +269,9 @@ class TestWebstreamDeleteRedTeam:
 
         response = client.delete("/api/v2/webstreams/1")
         # Should return 403 when auth is properly overridden
-        assert response.status_code == 403, (
-            f"BUG T560: Invalid token should return 403, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 403
+        ), f"BUG T560: Invalid token should return 403, got {response.status_code}"
 
     # ========================================================================
     # Unicode and Encoding

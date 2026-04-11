@@ -17,14 +17,19 @@ class TestSmartBlockContentIDOR:
     """IDOR attacks on smart block content."""
 
     def test_list_content_shows_only_own_blocks(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Verify user can only see content from their own blocks."""
         from model_bakery import baker
 
         # Admin's block with content
         admin_block = baker.make(
-            "schedule.SmartBlock", name="Admin Block", owner=admin_user,
+            "schedule.SmartBlock",
+            name="Admin Block",
+            owner=admin_user,
         )
         admin_file = baker.make("storage.File", owner=admin_user)
         admin_content = baker.make(
@@ -37,7 +42,9 @@ class TestSmartBlockContentIDOR:
 
         # User's block with content
         user_block = baker.make(
-            "schedule.SmartBlock", name="User Block", owner=regular_user,
+            "schedule.SmartBlock",
+            name="User Block",
+            owner=regular_user,
         )
         user_file = baker.make("storage.File", owner=regular_user)
         user_content = baker.make(
@@ -62,13 +69,18 @@ class TestSmartBlockContentIDOR:
             pytest.xfail("BOLA: User can see other users' smart block content")
 
     def test_access_other_user_content(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to access content from another user's block."""
         from model_bakery import baker
 
         admin_block = baker.make(
-            "schedule.SmartBlock", name="Admin Block", owner=admin_user,
+            "schedule.SmartBlock",
+            name="Admin Block",
+            owner=admin_user,
         )
         admin_file = baker.make("storage.File", owner=admin_user)
         admin_content = baker.make(
@@ -90,13 +102,18 @@ class TestSmartBlockContentIDOR:
             )
 
     def test_create_content_in_other_user_block(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to create content in another user's block."""
         from model_bakery import baker
 
         admin_block = baker.make(
-            "schedule.SmartBlock", name="Admin Block", owner=admin_user,
+            "schedule.SmartBlock",
+            name="Admin Block",
+            owner=admin_user,
         )
         user_file = baker.make("storage.File", owner=regular_user)
 
@@ -460,7 +477,10 @@ class TestSmartBlockContentInvalidReferences:
         assert response.status_code == 400
 
     def test_create_with_other_user_file(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to create content using another user's file."""
         from model_bakery import baker
@@ -490,13 +510,18 @@ class TestSmartBlockContentDelete:
     """Delete operation security tests."""
 
     def test_delete_other_user_content(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to delete content from another user's block."""
         from model_bakery import baker
 
         admin_block = baker.make(
-            "schedule.SmartBlock", name="Admin Block", owner=admin_user,
+            "schedule.SmartBlock",
+            name="Admin Block",
+            owner=admin_user,
         )
         admin_file = baker.make("storage.File", owner=admin_user)
         admin_content = baker.make(

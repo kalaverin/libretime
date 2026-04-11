@@ -68,7 +68,10 @@ class TestShowInstanceUpdateBOLA:
 
     @pytest.mark.xfail(reason="T398: No owner filtering")
     def test_update_other_user_instance(
-        self, api_client, regular_user, admin_user,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
     ):
         """Update another user's show instance."""
         show = baker.make(Show, name="Admin Show")

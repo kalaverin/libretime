@@ -39,7 +39,10 @@ class TestShowHostDeleteBOLA:
 
     @pytest.mark.xfail(reason="T408: No owner filtering")
     def test_delete_other_user_host_assignment(
-        self, api_client, regular_user, admin_user,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
     ):
         """Delete another user's host assignment."""
         show = baker.make(Show, name="Admin Show")
@@ -127,13 +130,16 @@ class TestShowHostDeleteBusinessLogic:
 
         with connection.cursor() as cursor:
             cursor.execute(
-                "SELECT COUNT(*) FROM cc_show_hosts WHERE id = %s", [host2.id],
+                "SELECT COUNT(*) FROM cc_show_hosts WHERE id = %s",
+                [host2.id],
             )
             count = cursor.fetchone()[0]
             assert count == 1, "Other host was deleted"
 
     def test_delete_user_from_one_show_keeps_others(
-        self, api_client, admin_user,
+        self,
+        api_client,
+        admin_user,
     ):
         """Verify removing user from one show keeps other assignments."""
         show1 = baker.make(Show, name="Show 1")
@@ -154,7 +160,8 @@ class TestShowHostDeleteBusinessLogic:
 
         with connection.cursor() as cursor:
             cursor.execute(
-                "SELECT COUNT(*) FROM cc_show_hosts WHERE id = %s", [host2.id],
+                "SELECT COUNT(*) FROM cc_show_hosts WHERE id = %s",
+                [host2.id],
             )
             count = cursor.fetchone()[0]
             assert count == 1, "Other show assignment was deleted"

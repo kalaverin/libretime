@@ -253,7 +253,10 @@ class TestScheduleBOLA:
     """Broken Object Level Authorization attacks."""
 
     def test_list_shows_only_own_schedules(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Verify list returns only user's own schedules."""
         # Create schedules for both users
@@ -292,7 +295,10 @@ class TestScheduleBOLA:
             )
 
     def test_access_other_user_schedule(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to access another user's schedule by ID."""
         instance = baker.make("schedule.ShowInstance")
@@ -314,7 +320,10 @@ class TestScheduleBOLA:
             )
 
     def test_update_other_user_schedule(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to update another user's schedule."""
         instance = baker.make("schedule.ShowInstance")
@@ -340,7 +349,10 @@ class TestScheduleBOLA:
             )
 
     def test_delete_other_user_schedule(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to delete another user's schedule."""
         instance = baker.make("schedule.ShowInstance")

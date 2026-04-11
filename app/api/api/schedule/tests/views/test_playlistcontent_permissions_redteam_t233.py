@@ -95,7 +95,10 @@ class TestPlaylistContentPermissionsRedTeam:
         victim = baker.make(User, username="testred_victim")
         victim_playlist = baker.make(Playlist, name="Victim", owner=victim)
         victim_file = baker.make(
-            File, name="victim.mp3", mime="audio/mp3", owner=victim,
+            File,
+            name="victim.mp3",
+            mime="audio/mp3",
+            owner=victim,
         )
         victim_content = baker.make(
             PlaylistContent,

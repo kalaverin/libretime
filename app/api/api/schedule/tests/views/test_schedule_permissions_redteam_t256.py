@@ -55,7 +55,10 @@ class TestSchedulePermissionsRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=victim,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=victim,
         )
 
         base_time = now()
@@ -100,7 +103,10 @@ class TestSchedulePermissionsRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=admin,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=admin,
         )
 
         base_time = now()
@@ -118,7 +124,9 @@ class TestSchedulePermissionsRedTeam:
 
         # Host tries to delete admin's schedule
         host = baker.make(
-            User, username=f"testred_host_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"testred_host_{faker.user_name()}",
+            role=Role.HOST,
         )
         api_client.force_authenticate(user=host)
 
@@ -169,7 +177,10 @@ class TestSchedulePermissionsRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -233,14 +244,19 @@ class TestSchedulePermissionsRedTeam:
     def test_bfla_host_admin_operations(self, api_client, faker):
         """BFLA: Host performing admin-only operations."""
         host = baker.make(
-            User, username=f"testred_host_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"testred_host_{faker.user_name()}",
+            role=Role.HOST,
         )
         api_client.force_authenticate(user=host)
 
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=host,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=host,
         )
 
         base_time = now()
@@ -332,7 +348,9 @@ class TestSchedulePermissionsRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(),
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
         )
 
         base_time = now()
@@ -362,7 +380,9 @@ class TestSchedulePermissionsRedTeam:
     def test_role_host_operations(self, api_client, faker):
         """Role: Host user operations."""
         host = baker.make(
-            User, username=f"testred_host_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"testred_host_{faker.user_name()}",
+            role=Role.HOST,
         )
         api_client.force_authenticate(user=host)
 
@@ -425,7 +445,10 @@ class TestSchedulePermissionsRedTeam:
         show1 = baker.make(Show, name=faker.catch_phrase())
         instance1 = baker.make(ShowInstance, show=show1)
         file1 = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user1,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user1,
         )
 
         base_time = now()

@@ -50,13 +50,18 @@ class TestScheduleShowHostPermissionsRedTeam:
     def test_host_can_create_schedule_own_show(self, api_client, faker):
         """Host should be able to create schedule for their own show."""
         host = baker.make(
-            User, username=f"testred_host_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"testred_host_{faker.user_name()}",
+            role=Role.HOST,
         )
         show = baker.make(Show, name=faker.catch_phrase())
         baker.make(ShowHost, show=show, user=host)  # Assign host to show
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=host,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=host,
         )
 
         base_time = now()
@@ -193,13 +198,18 @@ class TestScheduleShowHostPermissionsRedTeam:
     def test_admin_can_modify_any_host_schedule(self, api_client, faker):
         """Admin should be able to modify any host's schedule."""
         host = baker.make(
-            User, username=f"testred_host_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"testred_host_{faker.user_name()}",
+            role=Role.HOST,
         )
         show = baker.make(Show, name=faker.catch_phrase())
         baker.make(ShowHost, show=show, user=host)
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=host,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=host,
         )
 
         base_time = now()
@@ -241,11 +251,15 @@ class TestScheduleShowHostPermissionsRedTeam:
         reason="T619: BOPLA - Host can change schedule to other show instance",
     )
     def test_host_cannot_change_to_other_show_instance(
-        self, api_client, faker,
+        self,
+        api_client,
+        faker,
     ):
         """BOPLA: Host should not change schedule to different show instance."""
         host = baker.make(
-            User, username=f"testred_host_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"testred_host_{faker.user_name()}",
+            role=Role.HOST,
         )
 
         # Host's own show
@@ -253,7 +267,10 @@ class TestScheduleShowHostPermissionsRedTeam:
         baker.make(ShowHost, show=own_show, user=host)
         own_instance = baker.make(ShowInstance, show=own_show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=host,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=host,
         )
 
         base_time = now()
@@ -271,7 +288,9 @@ class TestScheduleShowHostPermissionsRedTeam:
 
         # Another host's show instance
         other_host = baker.make(
-            User, username=f"testred_other_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"testred_other_{faker.user_name()}",
+            role=Role.HOST,
         )
         other_show = baker.make(Show, name=faker.catch_phrase())
         baker.make(ShowHost, show=other_show, host=other_host)
@@ -298,13 +317,18 @@ class TestScheduleShowHostPermissionsRedTeam:
     def test_guest_cannot_modify_host_schedule(self, api_client, faker):
         """BFLA: Guest should not be able to modify host's schedule."""
         host = baker.make(
-            User, username=f"testred_host_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"testred_host_{faker.user_name()}",
+            role=Role.HOST,
         )
         show = baker.make(Show, name=faker.catch_phrase())
         baker.make(ShowHost, show=show, user=host)
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=host,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=host,
         )
 
         base_time = now()
@@ -352,7 +376,10 @@ class TestScheduleShowHostPermissionsRedTeam:
         baker.make(ShowHost, show=show, user=host)
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=host,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=host,
         )
 
         base_time = now()
@@ -387,7 +414,9 @@ class TestScheduleShowHostPermissionsRedTeam:
     def test_host_multiple_shows_isolation(self, api_client, faker):
         """Host with multiple shows should only access their own."""
         host = baker.make(
-            User, username=f"testred_multi_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"testred_multi_{faker.user_name()}",
+            role=Role.HOST,
         )
 
         # Show 1
@@ -395,7 +424,10 @@ class TestScheduleShowHostPermissionsRedTeam:
         baker.make(ShowHost, show=show1, user=host)
         instance1 = baker.make(ShowInstance, show=show1)
         file1 = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=host,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=host,
         )
 
         # Show 2
@@ -403,7 +435,10 @@ class TestScheduleShowHostPermissionsRedTeam:
         baker.make(ShowHost, show=show2, user=host)
         instance2 = baker.make(ShowInstance, show=show2)
         file2 = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=host,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=host,
         )
 
         base_time = now()
@@ -464,7 +499,9 @@ class TestScheduleShowHostPermissionsRedTeam:
     def test_idor_instance_enumeration(self, api_client, faker):
         """IDOR: Enumerating instance IDs to find other hosts' schedules."""
         host = baker.make(
-            User, username=f"testred_host_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"testred_host_{faker.user_name()}",
+            role=Role.HOST,
         )
         api_client.force_authenticate(user=host)
 
@@ -492,13 +529,18 @@ class TestScheduleShowHostPermissionsRedTeam:
     def test_host_privilege_escalation(self, api_client, faker):
         """PrivEsc: Host trying to escalate privileges via schedule manipulation."""
         host = baker.make(
-            User, username=f"testred_host_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"testred_host_{faker.user_name()}",
+            role=Role.HOST,
         )
         show = baker.make(Show, name=faker.catch_phrase())
         baker.make(ShowHost, show=show, user=host)
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=host,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=host,
         )
 
         base_time = now()

@@ -60,11 +60,16 @@ class TestUserTokenBOLA:
     """UserToken Broken Object Level Authorization."""
 
     def test_access_other_user_token(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to access another user's token."""
         token = baker.make(
-            "core.UserToken", user=admin_user, token="admin_secret_token",
+            "core.UserToken",
+            user=admin_user,
+            token="admin_secret_token",
         )
 
         api_client.force_authenticate(user=regular_user)
@@ -74,11 +79,16 @@ class TestUserTokenBOLA:
             pytest.fail("CRITICAL BUG: Can access other user's token (BOLA)")
 
     def test_delete_other_user_token(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to delete another user's token."""
         token = baker.make(
-            "core.UserToken", user=admin_user, token="admin_secret_token",
+            "core.UserToken",
+            user=admin_user,
+            token="admin_secret_token",
         )
 
         api_client.force_authenticate(user=regular_user)
@@ -89,14 +99,21 @@ class TestUserTokenBOLA:
 
     @pytest.mark.xfail(reason="HOST user lacks view_usertoken permission")
     def test_list_shows_only_own_tokens(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Verify list returns only user's own tokens."""
         admin_token = baker.make(
-            "core.UserToken", user=admin_user, token="admin_token",
+            "core.UserToken",
+            user=admin_user,
+            token="admin_token",
         )
         user_token = baker.make(
-            "core.UserToken", user=regular_user, token="user_token",
+            "core.UserToken",
+            user=regular_user,
+            token="user_token",
         )
 
         api_client.force_authenticate(user=regular_user)
@@ -117,7 +134,10 @@ class TestUserTokenMassAssignment:
     """UserToken mass assignment attacks."""
 
     def test_create_token_for_other_user(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to create token for another user."""
         api_client.force_authenticate(user=regular_user)
@@ -139,7 +159,9 @@ class TestUserTokenMassAssignment:
     def test_update_token_value(self, api_client, admin_user):
         """Try to change token value via PATCH."""
         token = baker.make(
-            "core.UserToken", user=admin_user, token="original_token",
+            "core.UserToken",
+            user=admin_user,
+            token="original_token",
         )
 
         api_client.force_authenticate(user=admin_user)
@@ -203,11 +225,16 @@ class TestLoginAttemptBOLA:
     """LoginAttempt Broken Object Level Authorization."""
 
     def test_access_other_user_login_attempt(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to access another user's login attempt record."""
         attempt = baker.make(
-            "core.LoginAttempt", ip="192.168.1.100", attempts=5,
+            "core.LoginAttempt",
+            ip="192.168.1.100",
+            attempts=5,
         )
         # Note: LoginAttempt may not have user FK - need to verify model
 
@@ -217,11 +244,15 @@ class TestLoginAttemptBOLA:
         # Document behavior - may be global or per-user
         assert response.status_code in [200, 403, 404]
 
-    @pytest.mark.xfail(reason="Login attempt counter can be modified via PATCH")
+    @pytest.mark.xfail(
+        reason="Login attempt counter can be modified via PATCH",
+    )
     def test_modify_login_attempt_count(self, api_client, admin_user):
         """Try to modify login attempt counter."""
         attempt = baker.make(
-            "core.LoginAttempt", ip="192.168.1.100", attempts=5,
+            "core.LoginAttempt",
+            ip="192.168.1.100",
+            attempts=5,
         )
 
         api_client.force_authenticate(user=admin_user)
@@ -238,7 +269,9 @@ class TestLoginAttemptBOLA:
     def test_delete_login_attempt_record(self, api_client, admin_user):
         """Try to delete login attempt record."""
         attempt = baker.make(
-            "core.LoginAttempt", ip="192.168.1.100", attempts=5,
+            "core.LoginAttempt",
+            ip="192.168.1.100",
+            attempts=5,
         )
 
         api_client.force_authenticate(user=admin_user)
@@ -253,7 +286,9 @@ class TestLoginAttemptInjection:
     """LoginAttempt injection attacks."""
 
     def test_create_login_attempt_with_xff_header(
-        self, api_client, admin_user,
+        self,
+        api_client,
+        admin_user,
     ):
         """Try to create login attempt with X-Forwarded-For header."""
         api_client.force_authenticate(user=admin_user)

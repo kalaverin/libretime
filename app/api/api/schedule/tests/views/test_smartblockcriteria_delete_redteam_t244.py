@@ -8,7 +8,6 @@ Tests focus on:
 - Cascade effects
 """
 
-
 import pytest
 
 from model_bakery import baker
@@ -147,7 +146,10 @@ class TestSmartBlockCriteriaDeleteRedTeam:
 
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
         criteria = baker.make(
             SmartBlockCriteria,
@@ -185,7 +187,10 @@ class TestSmartBlockCriteriaDeleteRedTeam:
 
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
         criteria = baker.make(
             SmartBlockCriteria,
@@ -226,7 +231,10 @@ class TestSmartBlockCriteriaDeleteRedTeam:
         """Security: Rate limiting on delete operations."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
 
         # Create many criteria
@@ -307,7 +315,10 @@ class TestSmartBlockCriteriaDeleteRedTeam:
         """Logic: Block with no criteria should still be valid."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
 
         # Create criteria and delete them all
@@ -350,9 +361,9 @@ class TestSmartBlockCriteriaDeleteRedTeam:
         client.credentials(HTTP_AUTHORIZATION="Bearer invalid_token")
 
         response = client.delete("/api/v2/smart-block-criteria/1")
-        assert response.status_code == 403, (
-            f"Invalid token should return 403, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 403
+        ), f"Invalid token should return 403, got {response.status_code}"
 
     # ========================================================================
     # Unicode and Encoding

@@ -19,7 +19,10 @@ class TestListenerCountRedTeamBOLA:
     """API1:2023 Broken Object Level Authorization - listener stats access."""
 
     def test_bola_list_shows_all_listener_counts(
-        self, api_client, admin_user, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_catch_phrase,
     ):
         """
         BOLA: LIST returns all listener counts regardless of station.
@@ -33,10 +36,16 @@ class TestListenerCountRedTeamBOLA:
         ts = baker.make(Timestamp, timestamp=now())
 
         baker.make(
-            ListenerCount, timestamp=ts, mount_name=mount1, listener_count=100,
+            ListenerCount,
+            timestamp=ts,
+            mount_name=mount1,
+            listener_count=100,
         )
         baker.make(
-            ListenerCount, timestamp=ts, mount_name=mount2, listener_count=200,
+            ListenerCount,
+            timestamp=ts,
+            mount_name=mount2,
+            listener_count=200,
         )
 
         response = api_client.get("/api/v2/listener-counts")
@@ -50,7 +59,10 @@ class TestListenerCountRedTeamBOLA:
             pass
 
     def test_bola_retrieve_other_station_stats(
-        self, api_client, admin_user, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_catch_phrase,
     ):
         """
         BOLA: Access listener stats for other stations.
@@ -71,7 +83,10 @@ class TestListenerCountRedTeamBOLA:
             pass
 
     def test_bola_regular_user_can_access_all_stats(
-        self, api_client, regular_user, fake_catch_phrase,
+        self,
+        api_client,
+        regular_user,
+        fake_catch_phrase,
     ):
         """
         BFLA: Regular user can access all listener statistics.
@@ -81,7 +96,10 @@ class TestListenerCountRedTeamBOLA:
         mount = baker.make(MountName, mount_name="/admin-station.ogg")
         ts = baker.make(Timestamp, timestamp=now())
         baker.make(
-            ListenerCount, timestamp=ts, mount_name=mount, listener_count=1000,
+            ListenerCount,
+            timestamp=ts,
+            mount_name=mount,
+            listener_count=1000,
         )
 
         api_client.force_authenticate(user=regular_user)
@@ -111,7 +129,11 @@ class TestListenerCountRedTeamBOPLA:
     """API3:2023 Broken Object Property Level Authorization."""
 
     def test_bopla_create_mass_assignment_id(
-        self, api_client, admin_user, fake_small_int, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_small_int,
+        fake_catch_phrase,
     ):
         """
         BOPLA: CREATE with forced ID.
@@ -129,7 +151,9 @@ class TestListenerCountRedTeamBOPLA:
         }
 
         response = api_client.post(
-            "/api/v2/listener-counts", data, format="json",
+            "/api/v2/listener-counts",
+            data,
+            format="json",
         )
 
         if response.status_code == 201:
@@ -140,7 +164,10 @@ class TestListenerCountRedTeamBOPLA:
                 )
 
     def test_bopla_create_extra_fields_ignored(
-        self, api_client, admin_user, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_catch_phrase,
     ):
         """
         BOPLA: CREATE with extra fields silently ignored.
@@ -157,7 +184,9 @@ class TestListenerCountRedTeamBOPLA:
         }
 
         response = api_client.post(
-            "/api/v2/listener-counts", data, format="json",
+            "/api/v2/listener-counts",
+            data,
+            format="json",
         )
 
         if response.status_code == 201:
@@ -166,7 +195,10 @@ class TestListenerCountRedTeamBOPLA:
             )
 
     def test_bopla_update_listener_count_manipulation(
-        self, api_client, admin_user, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_catch_phrase,
     ):
         """
         BOPLA: UPDATE to manipulate listener count.
@@ -176,7 +208,10 @@ class TestListenerCountRedTeamBOPLA:
         mount = baker.make(MountName, mount_name=f"/{fake_catch_phrase}.ogg")
         ts = baker.make(Timestamp, timestamp=now())
         count = baker.make(
-            ListenerCount, timestamp=ts, mount_name=mount, listener_count=10,
+            ListenerCount,
+            timestamp=ts,
+            mount_name=mount,
+            listener_count=10,
         )
 
         data = {
@@ -200,7 +235,11 @@ class TestListenerCountRedTeamBOPLA:
                 )
 
     def test_bopla_negative_listener_count(
-        self, api_client, admin_user, fake_catch_phrase, fake_negative_int,
+        self,
+        api_client,
+        admin_user,
+        fake_catch_phrase,
+        fake_negative_int,
     ):
         """
         BOPLA/Validation: Negative listener count should be rejected.
@@ -215,7 +254,9 @@ class TestListenerCountRedTeamBOPLA:
         }
 
         response = api_client.post(
-            "/api/v2/listener-counts", data, format="json",
+            "/api/v2/listener-counts",
+            data,
+            format="json",
         )
 
         if response.status_code == 201:
@@ -300,7 +341,10 @@ class TestListenerCountRedTeamResourceConsumption:
         for i in range(100):
             ts = baker.make(Timestamp, timestamp=now() - timedelta(days=i))
             baker.make(
-                ListenerCount, timestamp=ts, mount_name=mount, listener_count=i,
+                ListenerCount,
+                timestamp=ts,
+                mount_name=mount,
+                listener_count=i,
             )
 
         # Query large range
@@ -318,7 +362,10 @@ class TestListenerCountRedTeamResourceConsumption:
                 pass  # No pagination limits
 
     def test_rapid_listener_count_creation(
-        self, api_client, admin_user, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_catch_phrase,
     ):
         """
         Rate limiting: Rapid CREATE requests.
@@ -334,7 +381,9 @@ class TestListenerCountRedTeamResourceConsumption:
                 "listener_count": i,
             }
             response = api_client.post(
-                "/api/v2/listener-counts", data, format="json",
+                "/api/v2/listener-counts",
+                data,
+                format="json",
             )
             if response.status_code == 201:
                 success_count += 1
@@ -352,7 +401,10 @@ class TestListenerCountRedTeamResourceConsumption:
         for i in range(200):
             ts = baker.make(Timestamp, timestamp=now() - timedelta(minutes=i))
             baker.make(
-                ListenerCount, timestamp=ts, mount_name=mount, listener_count=i,
+                ListenerCount,
+                timestamp=ts,
+                mount_name=mount,
+                listener_count=i,
             )
 
         response = api_client.get("/api/v2/listener-counts")
@@ -368,7 +420,10 @@ class TestListenerCountRedTeamValidation:
     """Validation bypass tests."""
 
     def test_create_with_future_timestamp(
-        self, api_client, admin_user, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_catch_phrase,
     ):
         """
         Validation: Future timestamp should be rejected.
@@ -385,7 +440,9 @@ class TestListenerCountRedTeamValidation:
         }
 
         response = api_client.post(
-            "/api/v2/listener-counts", data, format="json",
+            "/api/v2/listener-counts",
+            data,
+            format="json",
         )
 
         if response.status_code == 201:
@@ -404,13 +461,18 @@ class TestListenerCountRedTeamValidation:
         }
 
         response = api_client.post(
-            "/api/v2/listener-counts", data, format="json",
+            "/api/v2/listener-counts",
+            data,
+            format="json",
         )
 
         assert response.status_code == 400
 
     def test_create_with_nonexistent_timestamp(
-        self, api_client, admin_user, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_catch_phrase,
     ):
         """
         Validation: Non-existent timestamp should be rejected.
@@ -424,13 +486,18 @@ class TestListenerCountRedTeamValidation:
         }
 
         response = api_client.post(
-            "/api/v2/listener-counts", data, format="json",
+            "/api/v2/listener-counts",
+            data,
+            format="json",
         )
 
         assert response.status_code == 400
 
     def test_create_very_large_listener_count(
-        self, api_client, admin_user, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_catch_phrase,
     ):
         """
         Validation: Very large listener count.
@@ -445,7 +512,9 @@ class TestListenerCountRedTeamValidation:
         }
 
         response = api_client.post(
-            "/api/v2/listener-counts", data, format="json",
+            "/api/v2/listener-counts",
+            data,
+            format="json",
         )
 
         # Document behavior - should have reasonable max
@@ -481,18 +550,26 @@ class TestListenerCountRedTeamAuthentication:
         api_client.logout()
         data = {"listener_count": 100}
         response = api_client.post(
-            "/api/v2/listener-counts", data, format="json",
+            "/api/v2/listener-counts",
+            data,
+            format="json",
         )
         assert response.status_code == 403
 
     def test_unauthenticated_retrieve(
-        self, api_client, admin_user, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_catch_phrase,
     ):
         """Unauthenticated RETRIEVE should fail."""
         mount = baker.make(MountName, mount_name=f"/{fake_catch_phrase}.ogg")
         ts = baker.make(Timestamp, timestamp=now())
         count = baker.make(
-            ListenerCount, timestamp=ts, mount_name=mount, listener_count=100,
+            ListenerCount,
+            timestamp=ts,
+            mount_name=mount,
+            listener_count=100,
         )
 
         api_client.logout()
@@ -541,13 +618,19 @@ class TestListenerCountRedTeamHTTPMethodTampering:
     """HTTP method tampering tests."""
 
     def test_trace_method_disabled(
-        self, api_client, admin_user, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_catch_phrase,
     ):
         """TRACE method should be disabled."""
         mount = baker.make(MountName, mount_name=f"/{fake_catch_phrase}.ogg")
         ts = baker.make(Timestamp, timestamp=now())
         count = baker.make(
-            ListenerCount, timestamp=ts, mount_name=mount, listener_count=100,
+            ListenerCount,
+            timestamp=ts,
+            mount_name=mount,
+            listener_count=100,
         )
 
         response = api_client.trace(f"/api/v2/listener-counts/{count.id}")

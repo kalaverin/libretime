@@ -32,12 +32,14 @@ class TestWebstreamUpdateRedTeam:
     # API1:2023 - BOLA (Broken Object Level Authorization)
     # ========================================================================
 
-    def test_bola_update_other_users_stream(self, host_client, host_user, faker, fake_url):
+    def test_bola_update_other_users_stream(
+        self, host_client, host_user, faker, fake_url,
+    ):
         """BOLA T541: HOST cannot UPDATE another HOST's webstream."""
         from api.core.models.role import Role
-        
+
         victim = baker.make(
-            User, 
+            User,
             username=f"victim_{faker.uuid4()[:8]}",
             email=f"victim_{faker.uuid4()[:8]}@test.com",
             role=Role.HOST,
@@ -56,21 +58,24 @@ class TestWebstreamUpdateRedTeam:
             {"name": f"Hacked {faker.uuid4()[:8]}"},
             format="json",
         )
-        
-        assert response.status_code in [403, 404], (
-            f"BOLA T541: HOST updated victim's webstream, got {response.status_code}"
-        )
-        
+
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA T541: HOST updated victim's webstream, got {response.status_code}"
+
         # Verify not modified
         victim_stream.refresh_from_db()
         assert victim_stream.name == original_name
 
-    def test_bola_delete_other_users_stream(self, host_client, host_user, faker, fake_url):
+    def test_bola_delete_other_users_stream(
+        self, host_client, host_user, faker, fake_url,
+    ):
         """BOLA T542: HOST cannot DELETE another HOST's webstream."""
         from api.core.models.role import Role
-        
+
         victim = baker.make(
-            User, 
+            User,
             username=f"victim_{faker.uuid4()[:8]}",
             email=f"victim_{faker.uuid4()[:8]}@test.com",
             role=Role.HOST,
@@ -85,11 +90,12 @@ class TestWebstreamUpdateRedTeam:
 
         # Attacker tries to delete victim's stream
         response = host_client.delete(f"/api/v2/webstreams/{victim_stream_id}")
-        
-        assert response.status_code in [403, 404], (
-            f"BOLA T542: HOST deleted victim's webstream, got {response.status_code}"
-        )
-        
+
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA T542: HOST deleted victim's webstream, got {response.status_code}"
+
         # Verify still exists
         assert Webstream.objects.filter(id=victim_stream_id).exists()
 

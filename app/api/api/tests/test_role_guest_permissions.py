@@ -13,6 +13,7 @@ They should NOT be able to:
 """
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -40,7 +41,9 @@ class TestGuestPlaylistPermissions:
             email=f"owner_{faker.uuid4()[:8]}@test.com",
             role=Role.HOST,
         )
-        playlist = baker.make(Playlist, name=f"Playlist {faker.uuid4()[:8]}", owner=owner)
+        playlist = baker.make(
+            Playlist, name=f"Playlist {faker.uuid4()[:8]}", owner=owner,
+        )
 
         response = guest_client.get(f"/api/v2/playlists/{playlist.id}")
         # GUEST should see the playlist (public schedule info)
@@ -64,7 +67,9 @@ class TestGuestPlaylistPermissions:
             email=f"owner_{faker.uuid4()[:8]}@test.com",
             role=Role.HOST,
         )
-        playlist = baker.make(Playlist, name=f"Original {faker.uuid4()[:8]}", owner=owner)
+        playlist = baker.make(
+            Playlist, name=f"Original {faker.uuid4()[:8]}", owner=owner,
+        )
 
         response = guest_client.patch(
             f"/api/v2/playlists/{playlist.id}",
@@ -86,7 +91,9 @@ class TestGuestPlaylistPermissions:
             email=f"owner_{faker.uuid4()[:8]}@test.com",
             role=Role.HOST,
         )
-        playlist = baker.make(Playlist, name=f"Playlist {faker.uuid4()[:8]}", owner=owner)
+        playlist = baker.make(
+            Playlist, name=f"Playlist {faker.uuid4()[:8]}", owner=owner,
+        )
         playlist_id = playlist.id
 
         response = guest_client.delete(f"/api/v2/playlists/{playlist_id}")
@@ -211,7 +218,9 @@ class TestGuestSmartBlockPermissions:
             "name": f"Guest Block {faker.uuid4()[:8]}",
             "kind": "dynamic",
         }
-        response = guest_client.post("/api/v2/smart-blocks", data, format="json")
+        response = guest_client.post(
+            "/api/v2/smart-blocks", data, format="json",
+        )
         assert response.status_code in [403, 401]
 
     def test_guest_cannot_update_smartblock(self, guest_client, faker):

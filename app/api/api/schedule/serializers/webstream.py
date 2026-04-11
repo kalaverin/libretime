@@ -6,7 +6,6 @@ from django.db.models import Model
 from api.schedule.models import Webstream, WebstreamMetadata
 from api.serializers import SecureModelSerializer
 from api.validators.race_conditions import (
-    validate_concurrent_update,
     validate_duplicate_name,
     validate_duplicate_url,
 )
@@ -56,7 +55,7 @@ class WebstreamSerializer(SecureModelSerializer):
         name = data.get("name")
         url = data.get("url")
         owner = data.get("owner")
-        
+
         # Get owner ID for validation
         if self.instance:
             owner_id = owner.id if owner else self.instance.owner_id
@@ -66,7 +65,7 @@ class WebstreamSerializer(SecureModelSerializer):
                 owner_id = request.user.id
             else:
                 owner_id = None
-        
+
         # T539: Check for duplicate name
         if name and owner_id:
             validate_duplicate_name(
@@ -75,7 +74,7 @@ class WebstreamSerializer(SecureModelSerializer):
                 owner_id,
                 exclude_id=self.instance.id if self.instance else None,
             )
-        
+
         # T539: Check for duplicate URL
         if url and owner_id:
             validate_duplicate_url(
@@ -84,7 +83,7 @@ class WebstreamSerializer(SecureModelSerializer):
                 owner_id,
                 exclude_id=self.instance.id if self.instance else None,
             )
-        
+
         return super().validate(data)
 
 

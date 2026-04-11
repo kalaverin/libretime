@@ -16,6 +16,7 @@ Usage:
 from typing import Any
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -29,10 +30,10 @@ from api.schedule.models import (
 )
 from api.storage.models import File
 
-
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
 
 def get_results(response) -> list[dict[str, Any]]:
     """Extract results from response (handles paginated and non-paginated)."""
@@ -44,6 +45,7 @@ def get_results(response) -> list[dict[str, Any]]:
 # =============================================================================
 # Base Test Class
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestAnonymousAccessDenied:
@@ -96,7 +98,7 @@ class TestViewPermissionMatrix:
         """GUEST can view all playlists (public content)."""
         owner = baker.make(User, role=Role.HOST)
         playlist = baker.make(
-            Playlist, name=f"Playlist {faker.uuid4()[:8]}", owner=owner
+            Playlist, name=f"Playlist {faker.uuid4()[:8]}", owner=owner,
         )
 
         response = guest_client.get("/api/v2/playlists")
@@ -108,7 +110,7 @@ class TestViewPermissionMatrix:
         """GUEST can view all smart blocks."""
         owner = baker.make(User, role=Role.HOST)
         block = baker.make(
-            SmartBlock, name=f"Block {faker.uuid4()[:8]}", owner=owner
+            SmartBlock, name=f"Block {faker.uuid4()[:8]}", owner=owner,
         )
 
         response = guest_client.get("/api/v2/smart-blocks")
@@ -227,7 +229,7 @@ class TestViewPermissionMatrix:
         """MANAGER sees all playlists (same view as GUEST/HOST)."""
         host = baker.make(User, role=Role.HOST)
         playlist = baker.make(
-            Playlist, name=f"Host Playlist {faker.uuid4()[:8]}", owner=host
+            Playlist, name=f"Host Playlist {faker.uuid4()[:8]}", owner=host,
         )
 
         response = manager_client.get("/api/v2/playlists")
@@ -250,7 +252,7 @@ class TestViewPermissionMatrix:
     # ==========================================================================
 
     def test_all_roles_see_same_content_for_view(
-        self, guest_client, host_client, manager_client, faker
+        self, guest_client, host_client, manager_client, faker,
     ):
         """GUEST, HOST, MANAGER all see the same content when viewing."""
         # Create test data
@@ -267,7 +269,9 @@ class TestViewPermissionMatrix:
         host_shows = get_results(host_client.get("/api/v2/shows"))
 
         # MANAGER sees
-        manager_playlists = get_results(manager_client.get("/api/v2/playlists"))
+        manager_playlists = get_results(
+            manager_client.get("/api/v2/playlists"),
+        )
         manager_shows = get_results(manager_client.get("/api/v2/shows"))
 
         # All see the same objects
@@ -287,6 +291,7 @@ class TestViewPermissionMatrix:
 # =============================================================================
 # Single Object Retrieval Tests
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestViewSingleObject:
@@ -323,6 +328,7 @@ class TestViewSingleObject:
 # =============================================================================
 # List vs Detail Consistency
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestViewListDetailConsistency:

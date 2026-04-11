@@ -119,7 +119,10 @@ class TestShowUpdateBOLA:
             pytest.fail("CRITICAL BUG: Can PUT other user's show")
 
     def test_delete_other_user_show(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to DELETE another user's show."""
         show = baker.make("schedule.Show", name="Admin Show")
@@ -205,7 +208,9 @@ class TestShowUpdateURLAttacks:
     def test_patch_url_to_javascript(self, api_client, admin_user):
         """Try to PATCH URL to javascript protocol."""
         show = baker.make(
-            "schedule.Show", name="Test Show", url="https://example.com",
+            "schedule.Show",
+            name="Test Show",
+            url="https://example.com",
         )
 
         api_client.force_authenticate(user=admin_user)
@@ -223,7 +228,9 @@ class TestShowUpdateURLAttacks:
     def test_patch_url_to_data_protocol(self, api_client, admin_user):
         """Try to PATCH URL to data protocol."""
         show = baker.make(
-            "schedule.Show", name="Test Show", url="https://example.com",
+            "schedule.Show",
+            name="Test Show",
+            url="https://example.com",
         )
 
         api_client.force_authenticate(user=admin_user)
@@ -258,7 +265,9 @@ class TestShowUpdateDescriptionXSS:
                 pytest.fail("BUG: Can inject script via description PATCH")
 
     def test_patch_description_with_event_handler(
-        self, api_client, admin_user,
+        self,
+        api_client,
+        admin_user,
     ):
         """Try to PATCH description with event handler."""
         show = baker.make("schedule.Show", name="Test Show")
@@ -291,9 +300,9 @@ class TestShowUpdateBusinessLogic:
         )
 
         # Fixed: Should return 403 Forbidden for anonymous
-        assert response.status_code == 403, (
-            f"Expected 403, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 403
+        ), f"Expected 403, got {response.status_code}"
 
     def test_put_without_auth(self, anonymous_client):
         """Try to PUT without authentication - should be blocked."""
@@ -314,9 +323,9 @@ class TestShowUpdateBusinessLogic:
         )
 
         # Fixed: Should return 403 Forbidden for anonymous
-        assert response.status_code == 403, (
-            f"Expected 403, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 403
+        ), f"Expected 403, got {response.status_code}"
 
     def test_patch_nonexistent_show(self, api_client, admin_user):
         """Try to PATCH non-existent show."""

@@ -54,7 +54,8 @@ class TestInvalidAuthRedTeamTiming:
             client = APIClient()
             start = time.time()
             client.login(
-                username="nonexistent_user_12345", password="any_password",
+                username="nonexistent_user_12345",
+                password="any_password",
             )
             times_nonexistent.append(time.time() - start)
 
@@ -143,7 +144,8 @@ class TestInvalidAuthRedTeamEnumeration:
         # Try login with non-existent user
         client2 = APIClient()
         result2 = client2.login(
-            username="nonexistent_enum_test", password="wrong",
+            username="nonexistent_enum_test",
+            password="wrong",
         )
 
         # Both should fail the same way

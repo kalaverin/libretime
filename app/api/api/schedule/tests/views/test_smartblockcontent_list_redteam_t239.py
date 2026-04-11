@@ -9,7 +9,6 @@ Tests focus on:
 - Information disclosure via error messages
 """
 
-
 import pytest
 
 from model_bakery import baker
@@ -50,7 +49,10 @@ class TestSmartBlockContentListRedTeam:
             owner=victim,
         )
         victim_file = baker.make(
-            File, name="victim_song.mp3", mime="audio/mp3", owner=victim,
+            File,
+            name="victim_song.mp3",
+            mime="audio/mp3",
+            owner=victim,
         )
         victim_content = baker.make(
             SmartBlockContent,
@@ -88,7 +90,10 @@ class TestSmartBlockContentListRedTeam:
             owner=victim,
         )
         victim_file = baker.make(
-            File, name="victim_song.mp3", mime="audio/mp3", owner=victim,
+            File,
+            name="victim_song.mp3",
+            mime="audio/mp3",
+            owner=victim,
         )
         victim_content = baker.make(
             SmartBlockContent,
@@ -124,10 +129,16 @@ class TestSmartBlockContentListRedTeam:
                 owner=user,
             )
             file_obj = baker.make(
-                File, name=f"song{i}.mp3", mime="audio/mp3", owner=user,
+                File,
+                name=f"song{i}.mp3",
+                mime="audio/mp3",
+                owner=user,
             )
             baker.make(
-                SmartBlockContent, block=block, file=file_obj, position=i,
+                SmartBlockContent,
+                block=block,
+                file=file_obj,
+                position=i,
             )
 
         response = api_client.get("/api/v2/smart-block-contents")
@@ -209,7 +220,10 @@ class TestSmartBlockContentListRedTeam:
         """Security: Arbitrary ordering fields are rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
 
         malicious_orderings = [
@@ -231,10 +245,16 @@ class TestSmartBlockContentListRedTeam:
         """Validation: Sorting with negative position values."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file_obj = baker.make(
-            File, name="song.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="song.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
         baker.make(SmartBlockContent, block=block, file=file_obj, position=-1)
 
@@ -255,14 +275,23 @@ class TestSmartBlockContentListRedTeam:
 
         # Create many content items
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         for i in range(100):
             file_obj = baker.make(
-                File, name=f"song{i}.mp3", mime="audio/mp3", owner=user,
+                File,
+                name=f"song{i}.mp3",
+                mime="audio/mp3",
+                owner=user,
             )
             baker.make(
-                SmartBlockContent, block=block, file=file_obj, position=i,
+                SmartBlockContent,
+                block=block,
+                file=file_obj,
+                position=i,
             )
 
         response = api_client.get(
@@ -297,10 +326,16 @@ class TestSmartBlockContentListRedTeam:
         """Security: Internal fields are not exposed."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file_obj = baker.make(
-            File, name="song.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="song.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
         baker.make(SmartBlockContent, block=block, file=file_obj, position=1)
 
@@ -323,10 +358,16 @@ class TestSmartBlockContentListRedTeam:
         """Security: Related objects are returned as IDs only."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file_obj = baker.make(
-            File, name="song.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="song.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
         baker.make(SmartBlockContent, block=block, file=file_obj, position=1)
 
@@ -374,16 +415,28 @@ class TestSmartBlockContentListRedTeam:
         """HPP: Duplicate block filter parameters."""
         user = baker.make(User, username="testred_user")
         block1 = baker.make(
-            SmartBlock, name="Block1", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block1",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         block2 = baker.make(
-            SmartBlock, name="Block2", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block2",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         file1 = baker.make(
-            File, name="song1.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="song1.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
         file2 = baker.make(
-            File, name="song2.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="song2.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
         baker.make(SmartBlockContent, block=block1, file=file1, position=1)
         baker.make(SmartBlockContent, block=block2, file=file2, position=1)
@@ -452,14 +505,23 @@ class TestSmartBlockContentListRedTeam:
         # Create some content
         user = baker.make(User, username="testred_timing")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.STATIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.STATIC,
+            owner=user,
         )
         for i in range(50):
             file_obj = baker.make(
-                File, name=f"song{i}.mp3", mime="audio/mp3", owner=user,
+                File,
+                name=f"song{i}.mp3",
+                mime="audio/mp3",
+                owner=user,
             )
             baker.make(
-                SmartBlockContent, block=block, file=file_obj, position=i,
+                SmartBlockContent,
+                block=block,
+                file=file_obj,
+                position=i,
             )
 
         # Time populated list

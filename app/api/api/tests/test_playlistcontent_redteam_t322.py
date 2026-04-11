@@ -252,7 +252,10 @@ class TestPlaylistContentIDORWithFilter:
     """IDOR attacks combined with filtering."""
 
     def test_filter_by_other_user_playlist(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to filter by another user's playlist_id."""
         admin_playlist = baker.make("schedule.Playlist", owner=admin_user)

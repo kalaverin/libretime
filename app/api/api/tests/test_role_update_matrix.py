@@ -24,6 +24,7 @@ Usage:
 from typing import Any
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -32,10 +33,10 @@ from api.podcasts.models import Podcast
 from api.schedule.models import Playlist, Show, SmartBlock, Webstream
 from api.storage.models import File
 
-
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
 
 def get_update_data(entity_type: str, faker) -> dict[str, Any]:
     """Generate valid update data for each entity type."""
@@ -68,34 +69,41 @@ def get_update_data(entity_type: str, faker) -> dict[str, Any]:
             "override_outro_playlist": False,
         },
     }
-    return data_map.get(entity_type, lambda: {"name": f"Updated {faker.uuid4()[:8]}"})()
+    return data_map.get(
+        entity_type, lambda: {"name": f"Updated {faker.uuid4()[:8]}"},
+    )()
 
 
 def create_entity(entity_type: str, owner: User | None, faker):
     """Create test entity with given owner."""
     if entity_type == "playlist":
-        return baker.make(Playlist, name=f"Original {faker.uuid4()[:8]}", owner=owner)
-    elif entity_type == "smartblock":
         return baker.make(
-            SmartBlock, name=f"Original {faker.uuid4()[:8]}", owner=owner, kind="static"
+            Playlist, name=f"Original {faker.uuid4()[:8]}", owner=owner,
         )
-    elif entity_type == "webstream":
+    if entity_type == "smartblock":
+        return baker.make(
+            SmartBlock,
+            name=f"Original {faker.uuid4()[:8]}",
+            owner=owner,
+            kind="static",
+        )
+    if entity_type == "webstream":
         return baker.make(
             Webstream,
             name=f"Original {faker.uuid4()[:8]}",
             url=faker.url(),
             owner=owner,
         )
-    elif entity_type == "podcast":
+    if entity_type == "podcast":
         return baker.make(
             Podcast,
             title=f"Original {faker.uuid4()[:8]}",
             url=faker.url(),
             owner=owner,
         )
-    elif entity_type == "file":
+    if entity_type == "file":
         return baker.make(File, owner=owner)
-    elif entity_type == "show":
+    if entity_type == "show":
         return baker.make(
             Show,
             name=f"Original {faker.uuid4()[:8]}",
@@ -130,6 +138,7 @@ def get_endpoint(entity_type: str, obj_id: int) -> str:
 # ANONYMOUS Tests - All Denied
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestUpdateAnonymousDenied:
     """Anonymous users cannot update anything - 403 on all endpoints."""
@@ -140,7 +149,9 @@ class TestUpdateAnonymousDenied:
         playlist = create_entity("playlist", owner, faker)
         data = get_update_data("playlist", faker)
 
-        response = anonymous_client.patch(get_endpoint("playlist", playlist.id), data, format="json")
+        response = anonymous_client.patch(
+            get_endpoint("playlist", playlist.id), data, format="json",
+        )
         assert response.status_code == 403
 
     def test_anonymous_cannot_update_smartblock(self, anonymous_client, faker):
@@ -149,7 +160,9 @@ class TestUpdateAnonymousDenied:
         block = create_entity("smartblock", owner, faker)
         data = get_update_data("smartblock", faker)
 
-        response = anonymous_client.patch(get_endpoint("smartblock", block.id), data, format="json")
+        response = anonymous_client.patch(
+            get_endpoint("smartblock", block.id), data, format="json",
+        )
         assert response.status_code == 403
 
     def test_anonymous_cannot_update_show(self, anonymous_client, faker):
@@ -157,13 +170,16 @@ class TestUpdateAnonymousDenied:
         show = create_entity("show", None, faker)
         data = get_update_data("show", faker)
 
-        response = anonymous_client.patch(get_endpoint("show", show.id), data, format="json")
+        response = anonymous_client.patch(
+            get_endpoint("show", show.id), data, format="json",
+        )
         assert response.status_code == 403
 
 
 # =============================================================================
 # GUEST Tests - All Denied (no change permissions)
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestUpdateGuestDenied:
@@ -175,16 +191,22 @@ class TestUpdateGuestDenied:
         playlist = create_entity("playlist", owner, faker)
         data = get_update_data("playlist", faker)
 
-        response = guest_client.patch(get_endpoint("playlist", playlist.id), data, format="json")
+        response = guest_client.patch(
+            get_endpoint("playlist", playlist.id), data, format="json",
+        )
         assert response.status_code == 403
 
-    def test_guest_cannot_update_own_playlist(self, guest_user, guest_client, faker):
+    def test_guest_cannot_update_own_playlist(
+        self, guest_user, guest_client, faker,
+    ):
         """GUEST cannot update playlist even if they somehow own it."""
         # This shouldn't happen in practice (GUEST can't create), but test anyway
         playlist = create_entity("playlist", guest_user, faker)
         data = get_update_data("playlist", faker)
 
-        response = guest_client.patch(get_endpoint("playlist", playlist.id), data, format="json")
+        response = guest_client.patch(
+            get_endpoint("playlist", playlist.id), data, format="json",
+        )
         assert response.status_code == 403
 
     def test_guest_cannot_update_show(self, guest_client, faker):
@@ -192,13 +214,16 @@ class TestUpdateGuestDenied:
         show = create_entity("show", None, faker)
         data = get_update_data("show", faker)
 
-        response = guest_client.patch(get_endpoint("show", show.id), data, format="json")
+        response = guest_client.patch(
+            get_endpoint("show", show.id), data, format="json",
+        )
         assert response.status_code == 403
 
 
 # =============================================================================
 # HOST Tests - Own Objects Only
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestUpdateHostOwnObjects:
@@ -210,31 +235,43 @@ class TestUpdateHostOwnObjects:
         data = get_update_data("playlist", faker)
         new_name = data["name"]
 
-        response = host_client.patch(get_endpoint("playlist", playlist.id), data, format="json")
-        assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.data}"
+        response = host_client.patch(
+            get_endpoint("playlist", playlist.id), data, format="json",
+        )
+        assert (
+            response.status_code == 200
+        ), f"Expected 200, got {response.status_code}: {response.data}"
         assert response.data["name"] == new_name
 
         # Verify in DB
         playlist.refresh_from_db()
         assert playlist.name == new_name
 
-    def test_host_can_update_own_smartblock(self, host_client, host_user, faker):
+    def test_host_can_update_own_smartblock(
+        self, host_client, host_user, faker,
+    ):
         """HOST can PATCH own smartblock."""
         block = create_entity("smartblock", host_user, faker)
         data = get_update_data("smartblock", faker)
         new_name = data["name"]
 
-        response = host_client.patch(get_endpoint("smartblock", block.id), data, format="json")
+        response = host_client.patch(
+            get_endpoint("smartblock", block.id), data, format="json",
+        )
         assert response.status_code == 200
         assert response.data["name"] == new_name
 
-    def test_host_can_update_own_webstream(self, host_client, host_user, faker):
+    def test_host_can_update_own_webstream(
+        self, host_client, host_user, faker,
+    ):
         """HOST can PATCH own webstream."""
         stream = create_entity("webstream", host_user, faker)
         data = get_update_data("webstream", faker)
         new_name = data["name"]
 
-        response = host_client.patch(get_endpoint("webstream", stream.id), data, format="json")
+        response = host_client.patch(
+            get_endpoint("webstream", stream.id), data, format="json",
+        )
         assert response.status_code == 200
         assert response.data["name"] == new_name
 
@@ -244,7 +281,9 @@ class TestUpdateHostOwnObjects:
         data = get_update_data("podcast", faker)
         new_title = data["title"]
 
-        response = host_client.patch(get_endpoint("podcast", podcast.id), data, format="json")
+        response = host_client.patch(
+            get_endpoint("podcast", podcast.id), data, format="json",
+        )
         assert response.status_code == 200
         assert response.data["title"] == new_title
 
@@ -254,8 +293,13 @@ class TestUpdateHostOwnObjects:
         playlist = create_entity("playlist", other_user, faker)
         data = get_update_data("playlist", faker)
 
-        response = host_client.patch(get_endpoint("playlist", playlist.id), data, format="json")
-        assert response.status_code in [403, 404], f"Expected 403 or 404, got {response.status_code}"
+        response = host_client.patch(
+            get_endpoint("playlist", playlist.id), data, format="json",
+        )
+        assert response.status_code in [
+            403,
+            404,
+        ], f"Expected 403 or 404, got {response.status_code}"
 
     def test_host_cannot_update_other_smartblock(self, host_client, faker):
         """HOST cannot update other's smartblock."""
@@ -263,7 +307,9 @@ class TestUpdateHostOwnObjects:
         block = create_entity("smartblock", other_user, faker)
         data = get_update_data("smartblock", faker)
 
-        response = host_client.patch(get_endpoint("smartblock", block.id), data, format="json")
+        response = host_client.patch(
+            get_endpoint("smartblock", block.id), data, format="json",
+        )
         assert response.status_code in [403, 404]
 
     def test_host_cannot_update_other_webstream(self, host_client, faker):
@@ -272,7 +318,9 @@ class TestUpdateHostOwnObjects:
         stream = create_entity("webstream", other_user, faker)
         data = get_update_data("webstream", faker)
 
-        response = host_client.patch(get_endpoint("webstream", stream.id), data, format="json")
+        response = host_client.patch(
+            get_endpoint("webstream", stream.id), data, format="json",
+        )
         assert response.status_code in [403, 404]
 
     def test_host_cannot_update_show(self, host_client, faker):
@@ -280,13 +328,16 @@ class TestUpdateHostOwnObjects:
         show = create_entity("show", None, faker)
         data = get_update_data("show", faker)
 
-        response = host_client.patch(get_endpoint("show", show.id), data, format="json")
+        response = host_client.patch(
+            get_endpoint("show", show.id), data, format="json",
+        )
         assert response.status_code == 403
 
 
 # =============================================================================
 # MANAGER Tests - Any Object
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestUpdateManagerAnyObject:
@@ -299,7 +350,9 @@ class TestUpdateManagerAnyObject:
         data = get_update_data("playlist", faker)
         new_name = data["name"]
 
-        response = manager_client.patch(get_endpoint("playlist", playlist.id), data, format="json")
+        response = manager_client.patch(
+            get_endpoint("playlist", playlist.id), data, format="json",
+        )
         assert response.status_code == 200
         assert response.data["name"] == new_name
 
@@ -312,7 +365,9 @@ class TestUpdateManagerAnyObject:
         block = create_entity("smartblock", host, faker)
         data = get_update_data("smartblock", faker)
 
-        response = manager_client.patch(get_endpoint("smartblock", block.id), data, format="json")
+        response = manager_client.patch(
+            get_endpoint("smartblock", block.id), data, format="json",
+        )
         assert response.status_code == 200
 
     def test_manager_can_update_host_webstream(self, manager_client, faker):
@@ -321,7 +376,9 @@ class TestUpdateManagerAnyObject:
         stream = create_entity("webstream", host, faker)
         data = get_update_data("webstream", faker)
 
-        response = manager_client.patch(get_endpoint("webstream", stream.id), data, format="json")
+        response = manager_client.patch(
+            get_endpoint("webstream", stream.id), data, format="json",
+        )
         assert response.status_code == 200
 
     def test_manager_can_update_show(self, manager_client, faker):
@@ -330,7 +387,9 @@ class TestUpdateManagerAnyObject:
         data = get_update_data("show", faker)
         new_name = data["name"]
 
-        response = manager_client.patch(get_endpoint("show", show.id), data, format="json")
+        response = manager_client.patch(
+            get_endpoint("show", show.id), data, format="json",
+        )
         assert response.status_code == 200
         assert response.data["name"] == new_name
 
@@ -338,6 +397,7 @@ class TestUpdateManagerAnyObject:
 # =============================================================================
 # ADMIN Tests - Any Object (Superuser)
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestUpdateAdminAnyObject:
@@ -350,7 +410,9 @@ class TestUpdateAdminAnyObject:
         data = get_update_data("playlist", faker)
         new_name = data["name"]
 
-        response = admin_client.patch(get_endpoint("playlist", playlist.id), data, format="json")
+        response = admin_client.patch(
+            get_endpoint("playlist", playlist.id), data, format="json",
+        )
         assert response.status_code == 200
         assert response.data["name"] == new_name
 
@@ -360,7 +422,9 @@ class TestUpdateAdminAnyObject:
         data = get_update_data("show", faker)
         new_name = data["name"]
 
-        response = admin_client.patch(get_endpoint("show", show.id), data, format="json")
+        response = admin_client.patch(
+            get_endpoint("show", show.id), data, format="json",
+        )
         assert response.status_code == 200
         assert response.data["name"] == new_name
 
@@ -369,36 +433,46 @@ class TestUpdateAdminAnyObject:
 # Cross-Role Comparison Tests
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestUpdateCrossRoleComparison:
     """Compare update behavior across roles for same object."""
 
-    def test_host_blocked_others_allowed_manager_admin(self, host_client, manager_client, admin_client, faker):
+    def test_host_blocked_others_allowed_manager_admin(
+        self, host_client, manager_client, admin_client, faker,
+    ):
         """HOST blocked from updating other's object, MANAGER/ADMIN allowed."""
         other_user = baker.make(User, role=Role.HOST)
         playlist = create_entity("playlist", other_user, faker)
         data = get_update_data("playlist", faker)
 
         # HOST blocked
-        host_response = host_client.patch(get_endpoint("playlist", playlist.id), data, format="json")
+        host_response = host_client.patch(
+            get_endpoint("playlist", playlist.id), data, format="json",
+        )
         assert host_response.status_code in [403, 404]
 
         # MANAGER allowed
-        manager_response = manager_client.patch(get_endpoint("playlist", playlist.id), data, format="json")
+        manager_response = manager_client.patch(
+            get_endpoint("playlist", playlist.id), data, format="json",
+        )
         assert manager_response.status_code == 200
 
         # Refresh for ADMIN test
         playlist.refresh_from_db()
-        
+
         # ADMIN allowed
         admin_data = get_update_data("playlist", faker)
-        admin_response = admin_client.patch(get_endpoint("playlist", playlist.id), admin_data, format="json")
+        admin_response = admin_client.patch(
+            get_endpoint("playlist", playlist.id), admin_data, format="json",
+        )
         assert admin_response.status_code == 200
 
 
 # =============================================================================
 # Edge Cases
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestUpdateEdgeCases:
@@ -407,17 +481,23 @@ class TestUpdateEdgeCases:
     def test_update_nonexistent_object_returns_404(self, host_client, faker):
         """PATCH non-existent ID returns 404."""
         data = get_update_data("playlist", faker)
-        response = host_client.patch("/api/v2/playlists/999999", data, format="json")
+        response = host_client.patch(
+            "/api/v2/playlists/999999", data, format="json",
+        )
         # May return 403 (permission denied before check existence) or 404
         assert response.status_code in [403, 404]
 
-    def test_update_with_invalid_data_returns_400(self, host_client, host_user, faker):
+    def test_update_with_invalid_data_returns_400(
+        self, host_client, host_user, faker,
+    ):
         """PATCH with invalid data returns 400 (not 403)."""
         playlist = create_entity("playlist", host_user, faker)
         # Invalid data - empty name
         data = {"name": ""}
 
-        response = host_client.patch(get_endpoint("playlist", playlist.id), data, format="json")
+        response = host_client.patch(
+            get_endpoint("playlist", playlist.id), data, format="json",
+        )
         # Either 200 (if empty name allowed) or 400 (validation error)
         assert response.status_code in [200, 400]
 
@@ -431,7 +511,7 @@ class TestUpdateEdgeCases:
         response = host_client.patch(
             get_endpoint("playlist", playlist.id),
             {"description": new_description},
-            format="json"
+            format="json",
         )
         # May be 200 or field may not exist
         assert response.status_code in [200, 400]
@@ -441,6 +521,8 @@ class TestUpdateEdgeCases:
         playlist = create_entity("playlist", host_user, faker)
         data = get_update_data("playlist", faker)
 
-        response = host_client.put(get_endpoint("playlist", playlist.id), data, format="json")
+        response = host_client.put(
+            get_endpoint("playlist", playlist.id), data, format="json",
+        )
         # PUT may require all fields or work like PATCH
         assert response.status_code in [200, 400]

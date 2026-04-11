@@ -39,7 +39,10 @@ class TestPlaylistContentRetrieveRedTeam:
         victim = baker.make(User, username="testred_victim")
         victim_playlist = baker.make(Playlist, name="Victim", owner=victim)
         victim_file = baker.make(
-            File, name="victim.mp3", mime="audio/mp3", owner=victim,
+            File,
+            name="victim.mp3",
+            mime="audio/mp3",
+            owner=victim,
         )
         content = baker.make(
             PlaylistContent,
@@ -65,7 +68,10 @@ class TestPlaylistContentRetrieveRedTeam:
         contents = []
         for i in range(3):
             f = baker.make(
-                File, name=f"victim{i}.mp3", mime="audio/mp3", owner=victim,
+                File,
+                name=f"victim{i}.mp3",
+                mime="audio/mp3",
+                owner=victim,
             )
             c = baker.make(
                 PlaylistContent,
@@ -97,7 +103,10 @@ class TestPlaylistContentRetrieveRedTeam:
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
         content = baker.make(
             PlaylistContent,
@@ -126,7 +135,10 @@ class TestPlaylistContentRetrieveRedTeam:
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
         content = baker.make(
             PlaylistContent,
@@ -177,7 +189,10 @@ class TestPlaylistContentRetrieveRedTeam:
         user = baker.make(User, username="testred_timing")
         playlist = baker.make(Playlist, name="Test", owner=user)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
         content = baker.make(
             PlaylistContent,

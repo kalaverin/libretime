@@ -75,7 +75,10 @@ class TestSmartBlockCriteriaCreateRedTeam:
         """BOPLA: Setting id field should be ignored or rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
 
         forced_id = 99999
@@ -103,7 +106,10 @@ class TestSmartBlockCriteriaCreateRedTeam:
         """BOPLA: Extra/unknown fields should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
 
         response = api_client.post(
@@ -132,7 +138,10 @@ class TestSmartBlockCriteriaCreateRedTeam:
         """Injection: SQLi attempts in criteria field."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
 
         sqli_payloads = [
@@ -163,7 +172,10 @@ class TestSmartBlockCriteriaCreateRedTeam:
         """Injection: SQLi attempts in condition field."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
 
         sqli_payloads = [
@@ -193,7 +205,10 @@ class TestSmartBlockCriteriaCreateRedTeam:
         """Injection: SQLi attempts in value field."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
 
         sqli_payloads = [
@@ -224,7 +239,10 @@ class TestSmartBlockCriteriaCreateRedTeam:
         """Injection: SQLi attempts in extra field."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
 
         sqli_payloads = [
@@ -260,7 +278,10 @@ class TestSmartBlockCriteriaCreateRedTeam:
         """Validation: Very long value should be rejected or truncated."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
 
         long_value = "A" * 10000
@@ -286,7 +307,10 @@ class TestSmartBlockCriteriaCreateRedTeam:
         """Validation: Unicode and special chars in value field."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
 
         unicode_payloads = [
@@ -320,7 +344,10 @@ class TestSmartBlockCriteriaCreateRedTeam:
         """Validation: Negative group value should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
 
         response = api_client.post(
@@ -349,7 +376,10 @@ class TestSmartBlockCriteriaCreateRedTeam:
         """Logic: Duplicate criteria in same block should be handled."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
 
         # First criteria
@@ -392,7 +422,10 @@ class TestSmartBlockCriteriaCreateRedTeam:
         """Validation: Invalid criteria type should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
 
         response = api_client.post(
@@ -416,7 +449,10 @@ class TestSmartBlockCriteriaCreateRedTeam:
         """Validation: Invalid condition type should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
 
         response = api_client.post(
@@ -466,7 +502,10 @@ class TestSmartBlockCriteriaCreateRedTeam:
 
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
 
         def create_criteria():

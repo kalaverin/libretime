@@ -143,7 +143,12 @@ class TestPodcastListRedTeamBOLA:
     """API1:2023 Broken Object Level Authorization - T353 confirmation."""
 
     def test_bola_t353_list_shows_all_users_podcasts(
-        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOLA T353: LIST returns ALL podcasts regardless of owner.
@@ -153,7 +158,9 @@ class TestPodcastListRedTeamBOLA:
         """
         # Create victim user's private podcast
         victim = baker.make(
-            User, role=Role.HOST, username=f"victim_{fake_catch_phrase}",
+            User,
+            role=Role.HOST,
+            username=f"victim_{fake_catch_phrase}",
         )
         victim_podcast = baker.make(
             Podcast,
@@ -176,14 +183,20 @@ class TestPodcastListRedTeamBOLA:
             )
 
     def test_bola_t353_regular_user_sees_all_podcasts(
-        self, api_client, regular_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        regular_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOLA T353: Regular user can see all podcasts including admin's.
         """
         # Create admin's private podcast
         admin = baker.make(
-            User, role=Role.ADMIN, username=f"admin_{fake_catch_phrase}",
+            User,
+            role=Role.ADMIN,
+            username=f"admin_{fake_catch_phrase}",
         )
         admin_podcast = baker.make(
             Podcast,
@@ -206,7 +219,11 @@ class TestPodcastListRedTeamBOLA:
             )
 
     def test_bola_t353_guest_user_can_list_podcasts(
-        self, api_client, guest_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        guest_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BFLA T353: Guest user can access podcast LIST.
@@ -220,7 +237,11 @@ class TestPodcastListRedTeamBOLA:
             pytest.xfail("T664: BFLA - Guest user can list podcasts")
 
     def test_bola_id_format_manipulation_numeric(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOLA: Test ID format confusion - numeric vs string IDs.
@@ -269,7 +290,10 @@ class TestPodcastListRedTeamInjection:
     """Injection attacks on LIST endpoint using SecLists payloads."""
 
     def test_sqli_in_search_param(
-        self, api_client, admin_user, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_catch_phrase,
     ):
         """
         SQL Injection via search parameter - SecLists comprehensive.
@@ -390,7 +414,12 @@ class TestPodcastListRedTeamInformationDisclosure:
     """Information disclosure tests."""
 
     def test_list_includes_owner_id(
-        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         Information disclosure: LIST includes owner_id field.
@@ -398,10 +427,15 @@ class TestPodcastListRedTeamInformationDisclosure:
         Can be used to enumerate user IDs.
         """
         victim = baker.make(
-            User, role=Role.HOST, username=f"victim_{fake_catch_phrase}",
+            User,
+            role=Role.HOST,
+            username=f"victim_{fake_catch_phrase}",
         )
         baker.make(
-            Podcast, url=fake_url, title=fake_catch_phrase, owner=victim,
+            Podcast,
+            url=fake_url,
+            title=fake_catch_phrase,
+            owner=victim,
         )
 
         response = api_client.get("/api/v2/podcasts")
@@ -437,13 +471,19 @@ class TestPodcastListRedTeamInformationDisclosure:
                 pytest.xfail("T674: Error message leaks database structure")
 
     def test_id_enumeration_via_404_403(
-        self, api_client, regular_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        regular_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         Different errors for existent vs non-existent IDs leak existence.
         """
         admin = baker.make(
-            User, role=Role.ADMIN, username=f"admin_{fake_catch_phrase}",
+            User,
+            role=Role.ADMIN,
+            username=f"admin_{fake_catch_phrase}",
         )
         admin_podcast = baker.make(
             Podcast,
@@ -516,7 +556,11 @@ class TestPodcastListRedTeamResourceConsumption:
             )
 
     def test_bulk_podcast_list(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         Resource consumption: List without pagination (1000 records).
@@ -594,7 +638,10 @@ class TestPodcastListRedTeamAuthentication:
         assert response.status_code == 403
 
     def test_unauthenticated_retrieve(
-        self, api_client, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        fake_url,
+        fake_catch_phrase,
     ):
         """Unauthenticated RETRIEVE should fail."""
         podcast = baker.make(Podcast, url=fake_url, title=fake_catch_phrase)
@@ -635,13 +682,20 @@ class TestPodcastEpisodeListRedTeamBOLA:
     """BOLA tests for PodcastEpisode LIST."""
 
     def test_bola_episode_list_shows_all_episodes(
-        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOLA: PodcastEpisode LIST returns all episodes regardless of podcast owner.
         """
         victim = baker.make(
-            User, role=Role.HOST, username=f"victim_{fake_catch_phrase}",
+            User,
+            role=Role.HOST,
+            username=f"victim_{fake_catch_phrase}",
         )
         victim_podcast = baker.make(
             Podcast,
@@ -680,16 +734,26 @@ class TestPodcastStationListRedTeamBOLA:
     """BOLA tests for StationPodcast LIST."""
 
     def test_bola_station_podcast_list_shows_all(
-        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOLA: StationPodcast LIST returns all regardless of owner.
         """
         victim = baker.make(
-            User, role=Role.HOST, username=f"victim_{fake_catch_phrase}",
+            User,
+            role=Role.HOST,
+            username=f"victim_{fake_catch_phrase}",
         )
         victim_podcast = baker.make(
-            Podcast, url=fake_url, title=fake_catch_phrase, owner=victim,
+            Podcast,
+            url=fake_url,
+            title=fake_catch_phrase,
+            owner=victim,
         )
         station_podcast = baker.make(StationPodcast, podcast=victim_podcast)
 
@@ -719,19 +783,31 @@ class TestImportedPodcastListRedTeamBOLA:
     """BOLA tests for ImportedPodcast LIST."""
 
     def test_bola_imported_podcast_list_shows_all(
-        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOLA: ImportedPodcast LIST returns all regardless of owner.
         """
         victim = baker.make(
-            User, role=Role.HOST, username=f"victim_{fake_catch_phrase}",
+            User,
+            role=Role.HOST,
+            username=f"victim_{fake_catch_phrase}",
         )
         victim_podcast = baker.make(
-            Podcast, url=fake_url, title=fake_catch_phrase, owner=victim,
+            Podcast,
+            url=fake_url,
+            title=fake_catch_phrase,
+            owner=victim,
         )
         imported = baker.make(
-            ImportedPodcast, podcast=victim_podcast, override_album=False,
+            ImportedPodcast,
+            podcast=victim_podcast,
+            override_album=False,
         )
 
         api_client.force_authenticate(user=regular_user)
@@ -760,7 +836,11 @@ class TestPodcastListRedTeamHTTPMethodTampering:
     """HTTP method tampering tests."""
 
     def test_trace_method_disabled(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """TRACE method should be disabled."""
         podcast = baker.make(Podcast, url=fake_url, title=fake_catch_phrase)
@@ -769,7 +849,11 @@ class TestPodcastListRedTeamHTTPMethodTampering:
         assert response.status_code in [405, 403]
 
     def test_method_override_via_header(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         Method override via X-HTTP-Method-Override header.
@@ -787,7 +871,11 @@ class TestPodcastListRedTeamHTTPMethodTampering:
             pytest.xfail("T685: Method override header bypass works")
 
     def test_method_override_via_query_param(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         Method override via _method query parameter.
@@ -795,7 +883,8 @@ class TestPodcastListRedTeamHTTPMethodTampering:
         podcast = baker.make(Podcast, url=fake_url, title=fake_catch_phrase)
 
         response = api_client.post(
-            f"/api/v2/podcasts/{podcast.id}?_method=DELETE", {},
+            f"/api/v2/podcasts/{podcast.id}?_method=DELETE",
+            {},
         )
         if response.status_code == 204:
             pytest.xfail("T686: Method override via query param works")
@@ -811,7 +900,11 @@ class TestPodcastListRedTeamBOPLA:
     """Broken Object Property Level Authorization tests."""
 
     def test_mass_assignment_via_list_endpoint(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         Try to modify read-only fields via LIST (if PATCH on list is supported).
@@ -827,7 +920,11 @@ class TestPodcastListRedTeamBOPLA:
             pytest.xfail("T687: Mass assignment via list endpoint works")
 
     def test_field_selection_via_query_param(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         Try to select specific fields via query param (may bypass field-level auth).
@@ -997,7 +1094,8 @@ class TestPodcastListRedTeamHeaders:
         """
         # First request with poisoned header
         response1 = api_client.get(
-            "/api/v2/podcasts", HTTP_X_FORWARDED_HOST="evil.com",
+            "/api/v2/podcasts",
+            HTTP_X_FORWARDED_HOST="evil.com",
         )
         # Normal request
         response2 = api_client.get("/api/v2/podcasts")

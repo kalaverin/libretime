@@ -34,7 +34,10 @@ class TestLiveLogRedTeamBOLA:
         assert "station" not in fields
 
     def test_bola_list_shows_all_live_logs(
-        self, api_client, admin_user, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_catch_phrase,
     ):
         """
         BOLA: LIST returns all live logs without filtering.
@@ -62,7 +65,10 @@ class TestLiveLogRedTeamBOLA:
             pass  # Document: global access
 
     def test_bola_regular_user_can_access_all_logs(
-        self, api_client, regular_user, fake_catch_phrase,
+        self,
+        api_client,
+        regular_user,
+        fake_catch_phrase,
     ):
         """
         BFLA: Regular user can access all live logs.
@@ -101,7 +107,11 @@ class TestLiveLogRedTeamBOPLA:
     """API3:2023 Broken Object Property Level Authorization."""
 
     def test_bopla_create_mass_assignment_id(
-        self, api_client, admin_user, fake_small_int, fake_word,
+        self,
+        api_client,
+        admin_user,
+        fake_small_int,
+        fake_word,
     ):
         """
         BOPLA: CREATE with forced ID.
@@ -122,7 +132,10 @@ class TestLiveLogRedTeamBOPLA:
                 pytest.xfail("T654: BOPLA - LiveLog id mass assignment works")
 
     def test_bopla_create_extra_fields_ignored(
-        self, api_client, admin_user, fake_word,
+        self,
+        api_client,
+        admin_user,
+        fake_word,
     ):
         """
         BOPLA: CREATE with extra fields silently ignored.
@@ -141,7 +154,10 @@ class TestLiveLogRedTeamBOPLA:
             pytest.xfail("T655: BOPLA - LiveLog extra fields silently ignored")
 
     def test_bopla_update_fake_end_time(
-        self, api_client, admin_user, fake_word,
+        self,
+        api_client,
+        admin_user,
+        fake_word,
     ):
         """
         BOPLA: UPDATE to manipulate end_time.
@@ -174,7 +190,10 @@ class TestLiveLogRedTeamBOPLA:
                     pytest.xfail("T656: BOPLA - Can fake stream end time")
 
     def test_bopla_end_time_before_start_time(
-        self, api_client, admin_user, fake_word,
+        self,
+        api_client,
+        admin_user,
+        fake_word,
     ):
         """
         BOPLA/Validation: end_time before start_time should be rejected.
@@ -212,7 +231,10 @@ class TestLiveLogRedTeamBOPLA:
             pytest.xfail("T658: Future start_time accepted")
 
     def test_bopla_patch_extra_fields_ignored(
-        self, api_client, admin_user, fake_word,
+        self,
+        api_client,
+        admin_user,
+        fake_word,
     ):
         """
         BOPLA: PATCH with extra fields silently ignored.
@@ -288,7 +310,10 @@ class TestLiveLogRedTeamTimeBasedInjection:
                 pytest.xfail("T660: SQLi in state filter causes 500")
 
     def test_sqli_in_datetime_field_create(
-        self, api_client, admin_user, fake_word,
+        self,
+        api_client,
+        admin_user,
+        fake_word,
     ):
         """
         SQL Injection via datetime fields in CREATE.
@@ -326,7 +351,9 @@ class TestLiveLogRedTeamInjection:
             }
 
             response = api_client.post(
-                "/api/v2/live-logs", data, format="json",
+                "/api/v2/live-logs",
+                data,
+                format="json",
             )
 
             if response.status_code == 201:
@@ -351,7 +378,9 @@ class TestLiveLogRedTeamInjection:
             }
 
             response = api_client.post(
-                "/api/v2/live-logs", data, format="json",
+                "/api/v2/live-logs",
+                data,
+                format="json",
             )
 
             # Should accept any string
@@ -373,7 +402,9 @@ class TestLiveLogRedTeamResourceConsumption:
                 "start_time": format_datetime(now() - timedelta(minutes=i)),
             }
             response = api_client.post(
-                "/api/v2/live-logs", data, format="json",
+                "/api/v2/live-logs",
+                data,
+                format="json",
             )
             if response.status_code == 201:
                 success_count += 1
@@ -517,7 +548,9 @@ class TestLiveLogRedTeamValidation:
             }
 
             response = api_client.post(
-                "/api/v2/live-logs", data, format="json",
+                "/api/v2/live-logs",
+                data,
+                format="json",
             )
 
             # Document behavior

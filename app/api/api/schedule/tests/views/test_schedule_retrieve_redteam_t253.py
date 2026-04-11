@@ -44,12 +44,16 @@ class TestScheduleRetrieveRedTeam:
     def test_bola_retrieve_other_users_schedule(self, api_client, faker):
         """BOLA: Can retrieve another user's schedule entry."""
         victim = baker.make(
-            User, username=f"testred_victim_{faker.user_name()}",
+            User,
+            username=f"testred_victim_{faker.user_name()}",
         )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=victim,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=victim,
         )
 
         base_time = now()
@@ -76,7 +80,10 @@ class TestScheduleRetrieveRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -127,9 +134,9 @@ class TestScheduleRetrieveRedTeam:
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {faker.uuid4()}")
 
         response = client.get("/api/v2/schedule/1")
-        assert response.status_code == 403, (
-            f"T589: Invalid token should return 403, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 403
+        ), f"T589: Invalid token should return 403, got {response.status_code}"
 
     # ========================================================================
     # API3:2023 - BOPLA (Broken Object Property Level Authorization)
@@ -141,7 +148,10 @@ class TestScheduleRetrieveRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -184,7 +194,10 @@ class TestScheduleRetrieveRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -272,12 +285,16 @@ class TestScheduleRetrieveRedTeam:
     def test_error_message_leaks_existence_retrieve(self, api_client, faker):
         """Info Leak: Error messages reveal schedule existence."""
         victim = baker.make(
-            User, username=f"testred_victim_{faker.user_name()}",
+            User,
+            username=f"testred_victim_{faker.user_name()}",
         )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=victim,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=victim,
         )
 
         base_time = now()
@@ -311,10 +328,16 @@ class TestScheduleRetrieveRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
         stream = baker.make(
-            Webstream, name=faker.catch_phrase(), url=faker.url(), owner=user,
+            Webstream,
+            name=faker.catch_phrase(),
+            url=faker.url(),
+            owner=user,
         )
 
         base_time = now()

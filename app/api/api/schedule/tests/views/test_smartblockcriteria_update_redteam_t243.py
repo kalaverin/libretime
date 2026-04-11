@@ -100,7 +100,10 @@ class TestSmartBlockCriteriaUpdateRedTeam:
         """Security: Criteria ID enumeration mitigated."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
         criteria = baker.make(
             SmartBlockCriteria,
@@ -173,7 +176,10 @@ class TestSmartBlockCriteriaUpdateRedTeam:
         """Injection: SQLi in PATCH value field."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
         criteria = baker.make(
             SmartBlockCriteria,
@@ -204,7 +210,10 @@ class TestSmartBlockCriteriaUpdateRedTeam:
         """Injection: SQLi in PATCH criteria field."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
         criteria = baker.make(
             SmartBlockCriteria,
@@ -239,7 +248,10 @@ class TestSmartBlockCriteriaUpdateRedTeam:
         """BOPLA: Changing id field on update should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
         criteria = baker.make(
             SmartBlockCriteria,
@@ -369,7 +381,10 @@ class TestSmartBlockCriteriaUpdateRedTeam:
         """Validation: Empty value should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
         criteria = baker.make(
             SmartBlockCriteria,
@@ -393,7 +408,10 @@ class TestSmartBlockCriteriaUpdateRedTeam:
         """Validation: Very long value on update should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
         criteria = baker.make(
             SmartBlockCriteria,

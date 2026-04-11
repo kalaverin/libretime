@@ -72,15 +72,22 @@ class TestSmartBlockCriteriaBOLA:
     """Broken Object Level Authorization attacks."""
 
     def test_list_shows_only_own_criteria(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Verify list returns only user's own criteria."""
         # Create blocks and criteria for both users
         admin_block = baker.make(
-            "schedule.SmartBlock", owner=admin_user, kind="dynamic",
+            "schedule.SmartBlock",
+            owner=admin_user,
+            kind="dynamic",
         )
         user_block = baker.make(
-            "schedule.SmartBlock", owner=regular_user, kind="dynamic",
+            "schedule.SmartBlock",
+            owner=regular_user,
+            kind="dynamic",
         )
 
         admin_criteria = baker.make(
@@ -113,11 +120,16 @@ class TestSmartBlockCriteriaBOLA:
             )
 
     def test_access_other_user_criteria(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to access another user's criteria by ID."""
         admin_block = baker.make(
-            "schedule.SmartBlock", owner=admin_user, kind="dynamic",
+            "schedule.SmartBlock",
+            owner=admin_user,
+            kind="dynamic",
         )
         criteria = baker.make(
             "schedule.SmartBlockCriteria",
@@ -138,11 +150,16 @@ class TestSmartBlockCriteriaBOLA:
             )
 
     def test_update_other_user_criteria(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to update another user's criteria."""
         admin_block = baker.make(
-            "schedule.SmartBlock", owner=admin_user, kind="dynamic",
+            "schedule.SmartBlock",
+            owner=admin_user,
+            kind="dynamic",
         )
         criteria = baker.make(
             "schedule.SmartBlockCriteria",
@@ -165,11 +182,16 @@ class TestSmartBlockCriteriaBOLA:
             )
 
     def test_delete_other_user_criteria(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to delete another user's criteria."""
         admin_block = baker.make(
-            "schedule.SmartBlock", owner=admin_user, kind="dynamic",
+            "schedule.SmartBlock",
+            owner=admin_user,
+            kind="dynamic",
         )
         criteria = baker.make(
             "schedule.SmartBlockCriteria",
@@ -190,14 +212,21 @@ class TestSmartBlockCriteriaBOLA:
             )
 
     def test_filter_shows_only_own_by_block(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Verify filter by block returns only user's own criteria."""
         admin_block = baker.make(
-            "schedule.SmartBlock", owner=admin_user, kind="dynamic",
+            "schedule.SmartBlock",
+            owner=admin_user,
+            kind="dynamic",
         )
         user_block = baker.make(
-            "schedule.SmartBlock", owner=regular_user, kind="dynamic",
+            "schedule.SmartBlock",
+            owner=regular_user,
+            kind="dynamic",
         )
 
         admin_criteria = baker.make(
@@ -239,7 +268,9 @@ class TestSmartBlockCriteriaMassAssignment:
     def test_create_with_id_field(self, api_client, admin_user):
         """Try to set id field during creation."""
         block = baker.make(
-            "schedule.SmartBlock", owner=admin_user, kind="dynamic",
+            "schedule.SmartBlock",
+            owner=admin_user,
+            kind="dynamic",
         )
 
         api_client.force_authenticate(user=admin_user)
@@ -263,10 +294,14 @@ class TestSmartBlockCriteriaMassAssignment:
     def test_update_block_field(self, api_client, admin_user, regular_user):
         """Try to change block via PATCH."""
         block1 = baker.make(
-            "schedule.SmartBlock", owner=admin_user, kind="dynamic",
+            "schedule.SmartBlock",
+            owner=admin_user,
+            kind="dynamic",
         )
         block2 = baker.make(
-            "schedule.SmartBlock", owner=regular_user, kind="dynamic",
+            "schedule.SmartBlock",
+            owner=regular_user,
+            kind="dynamic",
         )
         criteria = baker.make(
             "schedule.SmartBlockCriteria",
@@ -328,7 +363,9 @@ class TestSmartBlockCriteriaBusinessLogic:
     def test_create_criteria_for_static_block(self, api_client, admin_user):
         """Try to create criteria for static block (should be dynamic only)."""
         block = baker.make(
-            "schedule.SmartBlock", owner=admin_user, kind="static",
+            "schedule.SmartBlock",
+            owner=admin_user,
+            kind="static",
         )
 
         api_client.force_authenticate(user=admin_user)

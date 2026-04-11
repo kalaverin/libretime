@@ -7,6 +7,7 @@ Tests for:
 """
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -28,7 +29,9 @@ class TestBolaPlaylistPrevention:
         response = anonymous_client.post("/api/v2/playlists", {})
         assert response.status_code == 403
 
-    def test_bola_update_other_host_playlist(self, host_client, host_user, faker):
+    def test_bola_update_other_host_playlist(
+        self, host_client, host_user, faker,
+    ):
         """BOLA T808: HOST cannot UPDATE another HOST's playlist."""
         victim = baker.make(
             User,
@@ -50,16 +53,19 @@ class TestBolaPlaylistPrevention:
             {"name": f"Hacked {faker.uuid4()[:8]}"},
             format="json",
         )
-        
-        assert response.status_code in [403, 404], (
-            f"BOLA T808: HOST updated victim's playlist, got {response.status_code}"
-        )
-        
+
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA T808: HOST updated victim's playlist, got {response.status_code}"
+
         # Verify not modified
         victim_playlist.refresh_from_db()
         assert victim_playlist.name == original_name
 
-    def test_bola_delete_other_host_playlist(self, host_client, host_user, faker):
+    def test_bola_delete_other_host_playlist(
+        self, host_client, host_user, faker,
+    ):
         """BOLA T809: HOST cannot DELETE another HOST's playlist."""
         victim = baker.make(
             User,
@@ -76,16 +82,21 @@ class TestBolaPlaylistPrevention:
         victim_playlist_id = victim_playlist.id
 
         # Attacker tries to delete victim's playlist
-        response = host_client.delete(f"/api/v2/playlists/{victim_playlist_id}")
-        
-        assert response.status_code in [403, 404], (
-            f"BOLA T809: HOST deleted victim's playlist, got {response.status_code}"
+        response = host_client.delete(
+            f"/api/v2/playlists/{victim_playlist_id}",
         )
-        
+
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA T809: HOST deleted victim's playlist, got {response.status_code}"
+
         # Verify still exists
         assert Playlist.objects.filter(id=victim_playlist_id).exists()
 
-    def test_bola_list_playlists_only_shows_own(self, host_client, host_user, faker):
+    def test_bola_list_playlists_only_shows_own(
+        self, host_client, host_user, faker,
+    ):
         """BOLA: HOST LIST should only show own playlists."""
         # Create victim user with private playlist
         victim = baker.make(
@@ -100,7 +111,7 @@ class TestBolaPlaylistPrevention:
             description=faker.sentence(),
             owner=victim,
         )
-        
+
         # Create own playlist
         own_playlist = baker.make(
             Playlist,
@@ -117,16 +128,16 @@ class TestBolaPlaylistPrevention:
             results = data
         else:
             results = data.get("results", data)
-        
+
         result_ids = [p["id"] for p in results]
-        
+
         # Should see own playlist
         assert own_playlist.id in result_ids, "HOST should see own playlist"
-        
+
         # Should NOT see victim's playlist
-        assert victim_playlist.id not in result_ids, (
-            f"BOLA: HOST can see victim's playlist in LIST!"
-        )
+        assert (
+            victim_playlist.id not in result_ids
+        ), "BOLA: HOST can see victim's playlist in LIST!"
 
     def test_manager_can_update_any_host_playlist(self, manager_client, faker):
         """MANAGER can UPDATE any HOST's playlist (expected, not BOLA)."""
@@ -149,9 +160,9 @@ class TestBolaPlaylistPrevention:
             format="json",
         )
 
-        assert response.status_code == 200, (
-            f"MANAGER should update any playlist! Status: {response.status_code}"
-        )
+        assert (
+            response.status_code == 200
+        ), f"MANAGER should update any playlist! Status: {response.status_code}"
 
         host_playlist.refresh_from_db()
         assert host_playlist.name == new_name

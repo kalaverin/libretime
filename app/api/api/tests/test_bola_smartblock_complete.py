@@ -12,11 +12,16 @@ Pattern: HOST users can only access their OWN resources
 """
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
 from api.core.models.role import Role
-from api.schedule.models import SmartBlock, SmartBlockContent, SmartBlockCriteria
+from api.schedule.models import (
+    SmartBlock,
+    SmartBlockContent,
+    SmartBlockCriteria,
+)
 from api.storage.models import File
 
 
@@ -31,10 +36,14 @@ class TestBolaSmartBlockPrevention:
 
     def test_anonymous_post_smartblock_returns_403(self, anonymous_client):
         """Anonymous POST /smart-blocks returns 403."""
-        response = anonymous_client.post("/api/v2/smart-blocks", {"name": "test"})
+        response = anonymous_client.post(
+            "/api/v2/smart-blocks", {"name": "test"},
+        )
         assert response.status_code == 403
 
-    def test_host_cannot_retrieve_other_host_smartblock(self, host_client, host_user, faker):
+    def test_host_cannot_retrieve_other_host_smartblock(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL T829: HOST cannot RETRIEVE another HOST's SmartBlock."""
         other_host = baker.make(
             User,
@@ -51,11 +60,14 @@ class TestBolaSmartBlockPrevention:
 
         response = host_client.get(f"/api/v2/smart-blocks/{other_block.id}")
 
-        assert response.status_code in [403, 404], (
-            f"BOLA T829: HOST retrieved another HOST's SmartBlock! Status: {response.status_code}"
-        )
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA T829: HOST retrieved another HOST's SmartBlock! Status: {response.status_code}"
 
-    def test_host_list_smartblocks_only_shows_own(self, host_client, host_user, faker):
+    def test_host_list_smartblocks_only_shows_own(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL T830: HOST LIST should only show own SmartBlocks."""
         # Create blocks for other users
         for _ in range(3):
@@ -79,17 +91,19 @@ class TestBolaSmartBlockPrevention:
             results = data
         else:
             results = data.get("results", data)
-        
+
         # Should only see own block
         result_ids = [r["id"] for r in results]
         assert own_block.id in result_ids, "HOST should see own SmartBlock"
-        
-        # Count should be 1 (only own block)
-        assert len(results) == 1, (
-            f"BOLA T830: HOST sees {len(results)} SmartBlocks, expected 1 (own)!"
-        )
 
-    def test_host_cannot_update_other_host_smartblock(self, host_client, host_user, faker):
+        # Count should be 1 (only own block)
+        assert (
+            len(results) == 1
+        ), f"BOLA T830: HOST sees {len(results)} SmartBlocks, expected 1 (own)!"
+
+    def test_host_cannot_update_other_host_smartblock(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL T831: HOST cannot UPDATE another HOST's SmartBlock."""
         other_host = baker.make(
             User,
@@ -111,15 +125,18 @@ class TestBolaSmartBlockPrevention:
             format="json",
         )
 
-        assert response.status_code in [403, 404], (
-            f"BOLA T831: HOST updated another HOST's SmartBlock! Status: {response.status_code}"
-        )
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA T831: HOST updated another HOST's SmartBlock! Status: {response.status_code}"
 
         # Verify not modified
         other_block.refresh_from_db()
         assert other_block.name == original_name
 
-    def test_host_cannot_delete_other_host_smartblock(self, host_client, host_user, faker):
+    def test_host_cannot_delete_other_host_smartblock(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL T832: HOST cannot DELETE another HOST's SmartBlock."""
         other_host = baker.make(
             User,
@@ -137,14 +154,17 @@ class TestBolaSmartBlockPrevention:
 
         response = host_client.delete(f"/api/v2/smart-blocks/{other_block_id}")
 
-        assert response.status_code in [403, 404], (
-            f"BOLA T832: HOST deleted another HOST's SmartBlock! Status: {response.status_code}"
-        )
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA T832: HOST deleted another HOST's SmartBlock! Status: {response.status_code}"
 
         # Verify still exists
         assert SmartBlock.objects.filter(id=other_block_id).exists()
 
-    def test_manager_can_update_any_host_smartblock(self, manager_client, faker):
+    def test_manager_can_update_any_host_smartblock(
+        self, manager_client, faker,
+    ):
         """MANAGER can UPDATE any HOST's SmartBlock (expected, not BOLA)."""
         other_host = baker.make(
             User,
@@ -166,9 +186,9 @@ class TestBolaSmartBlockPrevention:
             format="json",
         )
 
-        assert response.status_code == 200, (
-            f"MANAGER should be able to update any SmartBlock! Status: {response.status_code}"
-        )
+        assert (
+            response.status_code == 200
+        ), f"MANAGER should be able to update any SmartBlock! Status: {response.status_code}"
 
         other_block.refresh_from_db()
         assert other_block.name == new_name
@@ -188,7 +208,9 @@ class TestBolaSmartBlockContentPrevention:
         response = anonymous_client.post("/api/v2/smart-block-contents", {})
         assert response.status_code == 403
 
-    def test_host_cannot_create_content_in_other_host_block(self, host_client, host_user, faker):
+    def test_host_cannot_create_content_in_other_host_block(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL T475: HOST cannot CREATE content in another HOST's SmartBlock."""
         other_host = baker.make(
             User,
@@ -219,11 +241,14 @@ class TestBolaSmartBlockContentPrevention:
             format="json",
         )
 
-        assert response.status_code in [403, 400], (
-            f"BOLA T475: HOST created content in another HOST's block! Status: {response.status_code}"
-        )
+        assert response.status_code in [
+            403,
+            400,
+        ], f"BOLA T475: HOST created content in another HOST's block! Status: {response.status_code}"
 
-    def test_host_cannot_create_content_with_other_host_file(self, host_client, host_user, faker):
+    def test_host_cannot_create_content_with_other_host_file(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL T476: HOST cannot CREATE content using another HOST's File."""
         own_block = baker.make(
             SmartBlock,
@@ -254,22 +279,29 @@ class TestBolaSmartBlockContentPrevention:
             format="json",
         )
 
-        assert response.status_code in [403, 400], (
-            f"BOLA T476: HOST created content with another HOST's file! Status: {response.status_code}"
-        )
+        assert response.status_code in [
+            403,
+            400,
+        ], f"BOLA T476: HOST created content with another HOST's file! Status: {response.status_code}"
 
-    def test_host_list_content_only_shows_own(self, host_client, host_user, faker):
+    def test_host_list_content_only_shows_own(
+        self, host_client, host_user, faker,
+    ):
         """HOST LIST content should only show content from own blocks."""
         # Create own block with content
         own_block = baker.make(SmartBlock, owner=host_user, kind="static")
         own_file = baker.make(File, owner=host_user)
-        own_content = baker.make(SmartBlockContent, block=own_block, file=own_file, position=1)
+        own_content = baker.make(
+            SmartBlockContent, block=own_block, file=own_file, position=1,
+        )
 
         # Create other host's block with content
         other_host = baker.make(User, role=Role.HOST)
         other_block = baker.make(SmartBlock, owner=other_host, kind="static")
         other_file = baker.make(File, owner=other_host)
-        other_content = baker.make(SmartBlockContent, block=other_block, file=other_file, position=1)
+        other_content = baker.make(
+            SmartBlockContent, block=other_block, file=other_file, position=1,
+        )
 
         response = host_client.get("/api/v2/smart-block-contents")
         assert response.status_code == 200
@@ -283,12 +315,14 @@ class TestBolaSmartBlockContentPrevention:
         result_ids = [r["id"] for r in results]
 
         # Should see own content
-        assert own_content.id in result_ids, "HOST should see own SmartBlockContent"
-        
+        assert (
+            own_content.id in result_ids
+        ), "HOST should see own SmartBlockContent"
+
         # Should NOT see other content
-        assert other_content.id not in result_ids, (
-            f"BOLA: HOST sees other user's SmartBlockContent in LIST!"
-        )
+        assert (
+            other_content.id not in result_ids
+        ), "BOLA: HOST sees other user's SmartBlockContent in LIST!"
 
 
 @pytest.mark.django_db
@@ -305,7 +339,9 @@ class TestBolaSmartBlockCriteriaPrevention:
         response = anonymous_client.post("/api/v2/smart-block-criteria", {})
         assert response.status_code == 403
 
-    def test_host_cannot_list_all_criteria(self, host_client, host_user, faker):
+    def test_host_cannot_list_all_criteria(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL T488: HOST LIST criteria should only show own block's criteria."""
         # Create own block with criteria
         own_block = baker.make(SmartBlock, owner=host_user, kind="dynamic")
@@ -340,14 +376,18 @@ class TestBolaSmartBlockCriteriaPrevention:
         result_ids = [r["id"] for r in results]
 
         # Should see own criteria
-        assert own_criteria.id in result_ids, "HOST should see own SmartBlockCriteria"
-        
-        # Should NOT see other criteria
-        assert other_criteria.id not in result_ids, (
-            f"BOLA T488: HOST sees other user's SmartBlockCriteria in LIST!"
-        )
+        assert (
+            own_criteria.id in result_ids
+        ), "HOST should see own SmartBlockCriteria"
 
-    def test_host_cannot_filter_criteria_by_other_host_block(self, host_client, host_user, faker):
+        # Should NOT see other criteria
+        assert (
+            other_criteria.id not in result_ids
+        ), "BOLA T488: HOST sees other user's SmartBlockCriteria in LIST!"
+
+    def test_host_cannot_filter_criteria_by_other_host_block(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL T489: HOST cannot filter criteria by another HOST's block ID."""
         other_host = baker.make(User, role=Role.HOST)
         other_block = baker.make(SmartBlock, owner=other_host, kind="dynamic")
@@ -359,7 +399,9 @@ class TestBolaSmartBlockCriteriaPrevention:
             value="other",
         )
 
-        response = host_client.get(f"/api/v2/smart-block-criteria?block={other_block.id}")
+        response = host_client.get(
+            f"/api/v2/smart-block-criteria?block={other_block.id}",
+        )
         assert response.status_code == 200
 
         data = response.json()
@@ -368,14 +410,16 @@ class TestBolaSmartBlockCriteriaPrevention:
             results = data
         else:
             results = data.get("results", data)
-        
+
         # Should return empty or not include other criteria
         result_ids = [r["id"] for r in results]
-        assert other_criteria.id not in result_ids, (
-            f"BOLA T489: HOST filtered criteria by other user's block!"
-        )
+        assert (
+            other_criteria.id not in result_ids
+        ), "BOLA T489: HOST filtered criteria by other user's block!"
 
-    def test_host_cannot_create_criteria_for_other_host_block(self, host_client, host_user, faker):
+    def test_host_cannot_create_criteria_for_other_host_block(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL T496: HOST cannot CREATE criteria for another HOST's block."""
         other_host = baker.make(User, role=Role.HOST)
         other_block = baker.make(SmartBlock, owner=other_host, kind="dynamic")
@@ -391,11 +435,14 @@ class TestBolaSmartBlockCriteriaPrevention:
             format="json",
         )
 
-        assert response.status_code in [403, 400], (
-            f"BOLA T496: HOST created criteria for another HOST's block! Status: {response.status_code}"
-        )
+        assert response.status_code in [
+            403,
+            400,
+        ], f"BOLA T496: HOST created criteria for another HOST's block! Status: {response.status_code}"
 
-    def test_host_cannot_update_other_host_criteria(self, host_client, host_user, faker):
+    def test_host_cannot_update_other_host_criteria(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL T505: HOST cannot UPDATE another HOST's criteria."""
         other_host = baker.make(User, role=Role.HOST)
         other_block = baker.make(SmartBlock, owner=other_host, kind="dynamic")
@@ -413,11 +460,14 @@ class TestBolaSmartBlockCriteriaPrevention:
             format="json",
         )
 
-        assert response.status_code in [403, 404], (
-            f"BOLA T505: HOST updated another HOST's criteria! Status: {response.status_code}"
-        )
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA T505: HOST updated another HOST's criteria! Status: {response.status_code}"
 
-    def test_host_cannot_delete_other_host_criteria(self, host_client, host_user, faker):
+    def test_host_cannot_delete_other_host_criteria(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL T506: HOST cannot DELETE another HOST's criteria."""
         other_host = baker.make(User, role=Role.HOST)
         other_block = baker.make(SmartBlock, owner=other_host, kind="dynamic")
@@ -430,16 +480,21 @@ class TestBolaSmartBlockCriteriaPrevention:
         )
         criteria_id = other_criteria.id
 
-        response = host_client.delete(f"/api/v2/smart-block-criteria/{criteria_id}")
-
-        assert response.status_code in [403, 404], (
-            f"BOLA T506: HOST deleted another HOST's criteria! Status: {response.status_code}"
+        response = host_client.delete(
+            f"/api/v2/smart-block-criteria/{criteria_id}",
         )
+
+        assert response.status_code in [
+            403,
+            404,
+        ], f"BOLA T506: HOST deleted another HOST's criteria! Status: {response.status_code}"
 
         # Verify still exists
         assert SmartBlockCriteria.objects.filter(id=criteria_id).exists()
 
-    def test_host_cannot_move_criteria_to_other_host_block(self, host_client, host_user, faker):
+    def test_host_cannot_move_criteria_to_other_host_block(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL T507: HOST cannot MOVE criteria to another HOST's block."""
         own_block = baker.make(SmartBlock, owner=host_user, kind="dynamic")
         own_criteria = baker.make(
@@ -449,7 +504,7 @@ class TestBolaSmartBlockCriteriaPrevention:
             condition="contains",
             value="test",
         )
-        
+
         other_host = baker.make(User, role=Role.HOST)
         other_block = baker.make(SmartBlock, owner=other_host, kind="dynamic")
 
@@ -462,10 +517,11 @@ class TestBolaSmartBlockCriteriaPrevention:
         # Should either fail or keep the original block
         if response.status_code == 200:
             own_criteria.refresh_from_db()
-            assert own_criteria.block_id == own_block.id, (
-                f"BOLA T507: HOST moved criteria to another HOST's block!"
-            )
+            assert (
+                own_criteria.block_id == own_block.id
+            ), "BOLA T507: HOST moved criteria to another HOST's block!"
         else:
-            assert response.status_code in [403, 400], (
-                f"Unexpected status: {response.status_code}"
-            )
+            assert response.status_code in [
+                403,
+                400,
+            ], f"Unexpected status: {response.status_code}"

@@ -65,7 +65,8 @@ class TestPlaylistPermissionsRedTeam:
 
         for prefix in invalid_prefixes:
             response = client.get(
-                "/api/v2/playlists", headers={"Authorization": prefix},
+                "/api/v2/playlists",
+                headers={"Authorization": prefix},
             )
             # All should fail
             assert (
@@ -266,7 +267,9 @@ class TestPlaylistPermissionsRedTeam:
 
         # Create victim's playlist
         victim_playlist = baker.make(
-            Playlist, name="Victim Secret Playlist", owner=victim,
+            Playlist,
+            name="Victim Secret Playlist",
+            owner=victim,
         )
 
         # Attacker tries to access by ID
@@ -295,7 +298,8 @@ class TestPlaylistPermissionsRedTeam:
 
         for token in tokens:
             response = client.get(
-                "/api/v2/playlists", headers={"Authorization": token},
+                "/api/v2/playlists",
+                headers={"Authorization": token},
             )
             assert (
                 response.status_code == 403

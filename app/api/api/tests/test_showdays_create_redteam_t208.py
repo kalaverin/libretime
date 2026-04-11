@@ -51,7 +51,10 @@ class TestShowDaysCreateBOLA:
     """Broken Object Level Authorization attacks."""
 
     def test_create_for_other_user_show(
-        self, api_client, regular_user, admin_user,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
     ):
         """Create show day for another user's show."""
         show = baker.make(Show, name="Admin Show")

@@ -35,7 +35,10 @@ class TestShowHostListBOLA:
     """LIST BOLA tests."""
 
     def test_list_shows_only_own_hosts(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """BOLA FIX: List returns only user's own show host assignments."""
         show1 = baker.make(Show, name="Admin Show")
@@ -53,7 +56,9 @@ class TestShowHostListBOLA:
         host_ids = [d["id"] for d in data]
 
         # Should only see own assignment (host2), not admin's
-        assert len(host_ids) == 1, f"Expected 1 assignment, got {len(host_ids)}"
+        assert (
+            len(host_ids) == 1
+        ), f"Expected 1 assignment, got {len(host_ids)}"
         assert host2.id in host_ids, "Own assignment not found"
 
 
@@ -62,7 +67,10 @@ class TestShowHostListUserEnumeration:
     """User enumeration via filter tests."""
 
     def test_filter_by_other_user_id_returns_only_own(
-        self, api_client, regular_user, admin_user,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
     ):
         """BOLA FIX: Filter by other user ID only returns own assignments."""
         # Create show host assignments
@@ -78,7 +86,9 @@ class TestShowHostListUserEnumeration:
         assert response.status_code == 200
         data = response.json()
         # Even with filter for admin, only sees own assignments
-        assert len(data) == 1, "Can enumerate other user's shows via filter (BOLA)"
+        assert (
+            len(data) == 1
+        ), "Can enumerate other user's shows via filter (BOLA)"
 
     def test_filter_by_invalid_user_id(self, api_client, admin_user):
         """Try filter by invalid user_id."""

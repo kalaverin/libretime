@@ -11,7 +11,13 @@ from model_bakery import baker
 from rest_framework.test import APIClient
 
 from api.core.models import User
-from api.schedule.models import Playlist, Schedule, Show, ShowHost, ShowInstance
+from api.schedule.models import (
+    Playlist,
+    Schedule,
+    Show,
+    ShowHost,
+    ShowInstance,
+)
 from api.storage.models import File
 from sdk import now
 
@@ -28,7 +34,10 @@ class TestScheduleAnonymousAccess:
         show = baker.make(Show, name=f"Test Show {faker.uuid4()[:8]}")
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
         self.schedule = baker.make(
             Schedule,
@@ -127,7 +136,9 @@ class TestShowHostAnonymousAccess:
 
     def test_delete_returns_403(self):
         """Anonymous DELETE should return 403."""
-        response = self.client.delete(f"/api/v2/show-hosts/{self.show_host.id}")
+        response = self.client.delete(
+            f"/api/v2/show-hosts/{self.show_host.id}",
+        )
         assert response.status_code == 403
 
 
@@ -141,7 +152,7 @@ class TestPlaylistAnonymousAccess:
         self.client = APIClient()
         user = baker.make(User, username=f"anon_pl_{faker.uuid4()[:8]}")
         self.playlist = baker.make(
-            Playlist, name=f"Test Playlist {faker.uuid4()[:8]}", owner=user
+            Playlist, name=f"Test Playlist {faker.uuid4()[:8]}", owner=user,
         )
 
     def test_list_returns_403(self):

@@ -4,7 +4,6 @@ from rest_framework import filters, viewsets
 from rest_framework.serializers import Serializer
 
 from api.mixins import AutoAssignOwnerMixin
-from api.permissions import check_authorization_header
 from api.schedule.models import (
     SmartBlock,
     SmartBlockContent,
@@ -49,7 +48,9 @@ class BlockIdQuerySetFilter:
 
 
 @final
-class SmartBlockContentViewSet(BlockIdQuerySetFilter, viewsets.ModelViewSet[Any]):
+class SmartBlockContentViewSet(
+    BlockIdQuerySetFilter, viewsets.ModelViewSet[Any],
+):
 
     queryset = SmartBlockContent.objects.all()
     serializer_class: type[Serializer[Any]] = SmartBlockContentSerializer
@@ -62,10 +63,10 @@ class SmartBlockContentViewSet(BlockIdQuerySetFilter, viewsets.ModelViewSet[Any]
     ordering = ["position"]
 
 
-
-
 @final
-class SmartBlockCriteriaViewSet(BlockIdQuerySetFilter, viewsets.ModelViewSet[Any]):
+class SmartBlockCriteriaViewSet(
+    BlockIdQuerySetFilter, viewsets.ModelViewSet[Any],
+):
 
     queryset = SmartBlockCriteria.objects.all()
     serializer_class: type[Serializer[Any]] = SmartBlockCriteriaSerializer

@@ -11,6 +11,7 @@ These tests are critical for API1:2023 compliance.
 """
 
 import pytest
+
 from model_bakery import baker
 
 from api.core.models import User
@@ -23,7 +24,9 @@ from api.storage.models import File
 class TestBolaPlaylistPrevention:
     """BOLA prevention tests for Playlist resource."""
 
-    def test_host_cannot_update_other_host_playlist(self, host_client, host_user, faker):
+    def test_host_cannot_update_other_host_playlist(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL: HOST cannot UPDATE another HOST's playlist (BOLA)."""
         # Create another host user with their playlist
         other_host = baker.make(
@@ -56,7 +59,9 @@ class TestBolaPlaylistPrevention:
         other_playlist.refresh_from_db()
         assert other_playlist.name == original_name
 
-    def test_host_cannot_delete_other_host_playlist(self, host_client, host_user, faker):
+    def test_host_cannot_delete_other_host_playlist(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL: HOST cannot DELETE another HOST's playlist (BOLA)."""
         other_host = baker.make(
             User,
@@ -103,9 +108,9 @@ class TestBolaPlaylistPrevention:
         )
 
         # Manager should succeed
-        assert response.status_code == 200, (
-            f"MANAGER should be able to update any playlist"
-        )
+        assert (
+            response.status_code == 200
+        ), "MANAGER should be able to update any playlist"
 
         other_playlist.refresh_from_db()
         assert other_playlist.name == new_name
@@ -125,7 +130,9 @@ class TestBolaPlaylistPrevention:
         )
         other_playlist_id = other_playlist.id
 
-        response = manager_client.delete(f"/api/v2/playlists/{other_playlist_id}")
+        response = manager_client.delete(
+            f"/api/v2/playlists/{other_playlist_id}",
+        )
 
         assert response.status_code == 204
         assert not Playlist.objects.filter(id=other_playlist_id).exists()
@@ -135,7 +142,9 @@ class TestBolaPlaylistPrevention:
 class TestBolaFilePrevention:
     """BOLA prevention tests for File resource."""
 
-    def test_host_cannot_update_other_host_file(self, host_client, host_user, faker):
+    def test_host_cannot_update_other_host_file(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL: HOST cannot UPDATE another HOST's file (BOLA)."""
         other_host = baker.make(
             User,
@@ -157,14 +166,17 @@ class TestBolaFilePrevention:
             format="json",
         )
 
-        assert response.status_code in [403, 404], (
-            f"BOLA VULNERABILITY: HOST updated another HOST's file!"
-        )
+        assert response.status_code in [
+            403,
+            404,
+        ], "BOLA VULNERABILITY: HOST updated another HOST's file!"
 
         other_file.refresh_from_db()
         assert other_file.name == original_name
 
-    def test_host_cannot_delete_other_host_file(self, host_client, host_user, faker):
+    def test_host_cannot_delete_other_host_file(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL: HOST cannot DELETE another HOST's file (BOLA)."""
         other_host = baker.make(
             User,
@@ -182,9 +194,10 @@ class TestBolaFilePrevention:
 
         response = host_client.delete(f"/api/v2/files/{other_file_id}")
 
-        assert response.status_code in [403, 404], (
-            f"BOLA VULNERABILITY: HOST deleted another HOST's file!"
-        )
+        assert response.status_code in [
+            403,
+            404,
+        ], "BOLA VULNERABILITY: HOST deleted another HOST's file!"
 
         assert File.objects.filter(id=other_file_id).exists()
 
@@ -214,7 +227,7 @@ class TestBolaFilePrevention:
         """Anonymous cannot DOWNLOAD file (403)."""
         from api.core.models import User
         from api.core.models.role import Role
-        
+
         host = baker.make(
             User,
             username=f"host_{faker.uuid4()[:8]}",
@@ -229,7 +242,9 @@ class TestBolaFilePrevention:
             filepath=f"files/{faker.uuid4()[:8]}.mp3",
         )
 
-        response = anonymous_client.get(f"/api/v2/files/{file_obj.id}/download")
+        response = anonymous_client.get(
+            f"/api/v2/files/{file_obj.id}/download",
+        )
 
         # Anonymous gets 403
         assert response.status_code == 403
@@ -239,7 +254,9 @@ class TestBolaFilePrevention:
 class TestBolaSmartBlockPrevention:
     """BOLA prevention tests for SmartBlock resource."""
 
-    def test_host_cannot_update_other_host_smartblock(self, host_client, host_user, faker):
+    def test_host_cannot_update_other_host_smartblock(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL: HOST cannot UPDATE another HOST's smart block (BOLA)."""
         other_host = baker.make(
             User,
@@ -261,14 +278,17 @@ class TestBolaSmartBlockPrevention:
             format="json",
         )
 
-        assert response.status_code in [403, 404], (
-            f"BOLA VULNERABILITY: HOST updated another HOST's smart block!"
-        )
+        assert response.status_code in [
+            403,
+            404,
+        ], "BOLA VULNERABILITY: HOST updated another HOST's smart block!"
 
         other_block.refresh_from_db()
         assert other_block.name == original_name
 
-    def test_host_cannot_delete_other_host_smartblock(self, host_client, host_user, faker):
+    def test_host_cannot_delete_other_host_smartblock(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL: HOST cannot DELETE another HOST's smart block (BOLA)."""
         other_host = baker.make(
             User,
@@ -286,9 +306,10 @@ class TestBolaSmartBlockPrevention:
 
         response = host_client.delete(f"/api/v2/smart-blocks/{other_block_id}")
 
-        assert response.status_code in [403, 404], (
-            f"BOLA VULNERABILITY: HOST deleted another HOST's smart block!"
-        )
+        assert response.status_code in [
+            403,
+            404,
+        ], "BOLA VULNERABILITY: HOST deleted another HOST's smart block!"
 
         assert SmartBlock.objects.filter(id=other_block_id).exists()
 
@@ -297,7 +318,9 @@ class TestBolaSmartBlockPrevention:
 class TestBolaWebstreamPrevention:
     """BOLA prevention tests for Webstream resource."""
 
-    def test_host_cannot_update_other_host_webstream(self, host_client, host_user, faker):
+    def test_host_cannot_update_other_host_webstream(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL: HOST cannot UPDATE another HOST's webstream (BOLA)."""
         other_host = baker.make(
             User,
@@ -319,14 +342,17 @@ class TestBolaWebstreamPrevention:
             format="json",
         )
 
-        assert response.status_code in [403, 404], (
-            f"BOLA VULNERABILITY: HOST updated another HOST's webstream!"
-        )
+        assert response.status_code in [
+            403,
+            404,
+        ], "BOLA VULNERABILITY: HOST updated another HOST's webstream!"
 
         other_stream.refresh_from_db()
         assert other_stream.name == original_name
 
-    def test_host_cannot_delete_other_host_webstream(self, host_client, host_user, faker):
+    def test_host_cannot_delete_other_host_webstream(
+        self, host_client, host_user, faker,
+    ):
         """CRITICAL: HOST cannot DELETE another HOST's webstream (BOLA)."""
         other_host = baker.make(
             User,
@@ -344,9 +370,10 @@ class TestBolaWebstreamPrevention:
 
         response = host_client.delete(f"/api/v2/webstreams/{other_stream_id}")
 
-        assert response.status_code in [403, 404], (
-            f"BOLA VULNERABILITY: HOST deleted another HOST's webstream!"
-        )
+        assert response.status_code in [
+            403,
+            404,
+        ], "BOLA VULNERABILITY: HOST deleted another HOST's webstream!"
 
         assert Webstream.objects.filter(id=other_stream_id).exists()
 
@@ -358,48 +385,79 @@ class TestBolaCrossRoleSummary:
     def test_cross_role_playlist_modification_matrix(self, api_client, faker):
         """Complete matrix: which roles can modify which user's playlist."""
         # Create users of each role
-        host1 = baker.make(User, username=f"host1_{faker.uuid4()[:8]}", role=Role.HOST)
-        host2 = baker.make(User, username=f"host2_{faker.uuid4()[:8]}", role=Role.HOST)
-        manager = baker.make(User, username=f"manager_{faker.uuid4()[:8]}", role=Role.MANAGER)
-        admin = baker.make(User, username=f"admin_{faker.uuid4()[:8]}", role=Role.ADMIN)
+        host1 = baker.make(
+            User, username=f"host1_{faker.uuid4()[:8]}", role=Role.HOST,
+        )
+        host2 = baker.make(
+            User, username=f"host2_{faker.uuid4()[:8]}", role=Role.HOST,
+        )
+        manager = baker.make(
+            User, username=f"manager_{faker.uuid4()[:8]}", role=Role.MANAGER,
+        )
+        admin = baker.make(
+            User, username=f"admin_{faker.uuid4()[:8]}", role=Role.ADMIN,
+        )
 
         # Create playlist owned by host1
-        playlist = baker.make(Playlist, name=f"Host1 Playlist {faker.uuid4()[:8]}", owner=host1)
+        playlist = baker.make(
+            Playlist, name=f"Host1 Playlist {faker.uuid4()[:8]}", owner=host1,
+        )
         playlist_id = playlist.id
 
         results = {}
 
         # Test HOST1 (owner) - should succeed
         api_client.force_authenticate(user=host1)
-        response = api_client.patch(f"/api/v2/playlists/{playlist_id}", {"name": "Updated"}, format="json")
+        response = api_client.patch(
+            f"/api/v2/playlists/{playlist_id}",
+            {"name": "Updated"},
+            format="json",
+        )
         results["owner_host"] = response.status_code
         api_client.logout()
 
         # Test HOST2 (other host) - should fail (BOLA prevention)
         api_client.force_authenticate(user=host2)
-        response = api_client.patch(f"/api/v2/playlists/{playlist_id}", {"name": "Hacked"}, format="json")
+        response = api_client.patch(
+            f"/api/v2/playlists/{playlist_id}",
+            {"name": "Hacked"},
+            format="json",
+        )
         results["other_host"] = response.status_code
         api_client.logout()
 
         # Test MANAGER - should succeed
         api_client.force_authenticate(user=manager)
-        response = api_client.patch(f"/api/v2/playlists/{playlist_id}", {"name": "Manager Updated"}, format="json")
+        response = api_client.patch(
+            f"/api/v2/playlists/{playlist_id}",
+            {"name": "Manager Updated"},
+            format="json",
+        )
         results["manager"] = response.status_code
         api_client.logout()
 
         # Test ADMIN - should succeed
         api_client.force_authenticate(user=admin)
-        response = api_client.patch(f"/api/v2/playlists/{playlist_id}", {"name": "Admin Updated"}, format="json")
+        response = api_client.patch(
+            f"/api/v2/playlists/{playlist_id}",
+            {"name": "Admin Updated"},
+            format="json",
+        )
         results["admin"] = response.status_code
         api_client.logout()
 
         # Assert expected results
-        assert results["owner_host"] == 200, "Owner HOST should be able to update"
-        assert results["other_host"] in [403, 404], "Other HOST should NOT be able to update (BOLA)"
+        assert (
+            results["owner_host"] == 200
+        ), "Owner HOST should be able to update"
+        assert results["other_host"] in [
+            403,
+            404,
+        ], "Other HOST should NOT be able to update (BOLA)"
         assert results["manager"] == 200, "MANAGER should be able to update"
         assert results["admin"] == 200, "ADMIN should be able to update"
 
-        print(f"\nBOLA Prevention Matrix for Playlist:")
+        print("\nBOLA Prevention Matrix for Playlist:")
         print(f"  Owner HOST:   {results['owner_host']} (expected: 200)")
         print(f"  Other HOST:   {results['other_host']} (expected: 403/404)")
         print(f"  MANAGER:      {results['manager']} (expected: 200)")

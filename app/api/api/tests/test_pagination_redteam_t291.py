@@ -78,13 +78,20 @@ class TestBOLAListEndpoints:
         """User A should NOT see User B's files in LIST response. (T874)"""
         # Create users
         user_a = baker.make(
-            User, username=f"user_a_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"user_a_{faker.user_name()}",
+            role=Role.HOST,
         )
         user_b = baker.make(
-            User, username=f"user_b_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"user_b_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="BOLA", name="BOLA Test", description="Test",
+            Library,
+            code="BOLA",
+            name="BOLA Test",
+            description="Test",
         )
 
         # Create files for user A
@@ -138,10 +145,14 @@ class TestBOLAListEndpoints:
     def test_playlists_list_user_isolation(self, api_client, faker):
         """User A should NOT see User B's playlists. (T874)"""
         user_a = baker.make(
-            User, username=f"pl_a_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"pl_a_{faker.user_name()}",
+            role=Role.HOST,
         )
         user_b = baker.make(
-            User, username=f"pl_b_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"pl_b_{faker.user_name()}",
+            role=Role.HOST,
         )
 
         # Create playlists
@@ -181,21 +192,36 @@ class TestBOLAListEndpoints:
     def test_list_returns_only_owned_data(self, api_client, faker):
         """Comprehensive BOLA test across multiple endpoints."""
         user_a = baker.make(
-            User, username=f"owner_a_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"owner_a_{faker.user_name()}",
+            role=Role.HOST,
         )
         user_b = baker.make(
-            User, username=f"owner_b_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"owner_b_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="MULTI", name="Multi", description="Test",
+            Library,
+            code="MULTI",
+            name="Multi",
+            description="Test",
         )
 
         # Create mixed data
         baker.make(
-            File, name="a.mp3", mime="audio/mp3", library=library, owner=user_a,
+            File,
+            name="a.mp3",
+            mime="audio/mp3",
+            library=library,
+            owner=user_a,
         )
         baker.make(
-            File, name="b.mp3", mime="audio/mp3", library=library, owner=user_b,
+            File,
+            name="b.mp3",
+            mime="audio/mp3",
+            library=library,
+            owner=user_b,
         )
         baker.make(Playlist, name="Playlist A", owner=user_a)
         baker.make(Playlist, name="Playlist B", owner=user_b)
@@ -233,10 +259,15 @@ class TestResourceExhaustionNoPagination:
     def test_list_large_dataset_response_time(self, api_client, faker):
         """LIST with 500+ records should still respond reasonably."""
         user = baker.make(
-            User, username=f"load_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"load_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="LOAD", name="Load Test", description="Test",
+            Library,
+            code="LOAD",
+            name="Load Test",
+            description="Test",
         )
 
         # Create 500 files
@@ -268,10 +299,15 @@ class TestResourceExhaustionNoPagination:
     def test_concurrent_list_requests(self, api_client, faker):
         """Multiple concurrent LIST requests = DoS vector."""
         user = baker.make(
-            User, username=f"dos_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"dos_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="DOS", name="DoS Test", description="Test",
+            Library,
+            code="DOS",
+            name="DoS Test",
+            description="Test",
         )
 
         # Create some data
@@ -314,10 +350,15 @@ class TestResourceExhaustionNoPagination:
     def test_response_size_limits(self, api_client, faker):
         """Response should have reasonable size limits."""
         user = baker.make(
-            User, username=f"size_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"size_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="SIZE", name="Size Test", description="Test",
+            Library,
+            code="SIZE",
+            name="Size Test",
+            description="Test",
         )
 
         # Create files with large metadata (within DB limits)
@@ -353,10 +394,15 @@ class TestQueryParamFuzzing:
     def test_filter_sql_injection_files(self, api_client, payload, faker):
         """SQLi attempts in filter parameters should return 400, not 500."""
         user = baker.make(
-            User, username=f"sqli_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"sqli_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="SQLI", name="SQLi Test", description="Test",
+            Library,
+            code="SQLI",
+            name="SQLi Test",
+            description="Test",
         )
         baker.make(
             File,
@@ -381,10 +427,15 @@ class TestQueryParamFuzzing:
     def test_filter_path_traversal(self, api_client, payload, faker):
         """Path traversal in filter parameters."""
         user = baker.make(
-            User, username=f"path_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"path_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="PATH", name="Path Test", description="Test",
+            Library,
+            code="PATH",
+            name="Path Test",
+            description="Test",
         )
         baker.make(
             File,
@@ -402,10 +453,15 @@ class TestQueryParamFuzzing:
     def test_filter_naughty_strings(self, api_client, payload, faker):
         """Edge case strings in filters."""
         user = baker.make(
-            User, username=f"naughty_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"naughty_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="NAUGHTY", name="Naughty", description="Test",
+            Library,
+            code="NAUGHTY",
+            name="Naughty",
+            description="Test",
         )
         baker.make(
             File,
@@ -425,10 +481,15 @@ class TestQueryParamFuzzing:
     def test_pagination_params_rejected(self, api_client, faker):
         """Pagination params should be handled (ignored or rejected)."""
         user = baker.make(
-            User, username=f"page_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"page_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="PAGE", name="Page", description="Test",
+            Library,
+            code="PAGE",
+            name="Page",
+            description="Test",
         )
         baker.make(
             File,
@@ -460,10 +521,15 @@ class TestQueryParamFuzzing:
     def test_sort_param_sql_injection(self, api_client, faker):
         """SQLi via sort/order parameters."""
         user = baker.make(
-            User, username=f"sort_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"sort_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="SORT", name="Sort", description="Test",
+            Library,
+            code="SORT",
+            name="Sort",
+            description="Test",
         )
         baker.make(
             File,
@@ -493,10 +559,15 @@ class TestMassDataExposure:
     def test_list_does_not_expose_sensitive_fields(self, api_client, faker):
         """LIST should not expose internal/sensitive fields."""
         user = baker.make(
-            User, username=f"expose_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"expose_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="EXPOSE", name="Expose", description="Test",
+            Library,
+            code="EXPOSE",
+            name="Expose",
+            description="Test",
         )
         baker.make(
             File,
@@ -530,10 +601,15 @@ class TestMassDataExposure:
     def test_list_vs_retrieve_field_consistency(self, api_client, faker):
         """LIST should not expose more fields than RETRIEVE."""
         user = baker.make(
-            User, username=f"consist_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"consist_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="CONSIST", name="Consist", description="Test",
+            Library,
+            code="CONSIST",
+            name="Consist",
+            description="Test",
         )
         file_obj = baker.make(
             File,
@@ -547,7 +623,8 @@ class TestMassDataExposure:
         list_response = api_client.get("/api/v2/files")
         list_data = list_response.json()
         list_item = next(
-            (f for f in list_data if f["id"] == file_obj.id), None,
+            (f for f in list_data if f["id"] == file_obj.id),
+            None,
         )
         assert list_item is not None
 
@@ -568,10 +645,15 @@ class TestMassDataExposure:
     def test_list_field_count_reasonable(self, api_client, faker):
         """LIST should return fewer fields than RETRIEVE (performance)."""
         user = baker.make(
-            User, username=f"count_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"count_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="COUNT", name="Count", description="Test",
+            Library,
+            code="COUNT",
+            name="Count",
+            description="Test",
         )
         file_obj = baker.make(
             File,
@@ -584,7 +666,8 @@ class TestMassDataExposure:
         list_response = api_client.get("/api/v2/files")
         list_data = list_response.json()
         list_item = next(
-            (f for f in list_data if f["id"] == file_obj.id), None,
+            (f for f in list_data if f["id"] == file_obj.id),
+            None,
         )
 
         retrieve_response = api_client.get(f"/api/v2/files/{file_obj.id}")
@@ -608,20 +691,35 @@ class TestFilterAuthorizationBypass:
     def test_filter_by_other_user_id_blocked(self, api_client, faker):
         """Filtering by other user's ID should not bypass auth. (T875)"""
         user_a = baker.make(
-            User, username=f"filt_a_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"filt_a_{faker.user_name()}",
+            role=Role.HOST,
         )
         user_b = baker.make(
-            User, username=f"filt_b_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"filt_b_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="FILT", name="Filter", description="Test",
+            Library,
+            code="FILT",
+            name="Filter",
+            description="Test",
         )
 
         baker.make(
-            File, name="a.mp3", mime="audio/mp3", library=library, owner=user_a,
+            File,
+            name="a.mp3",
+            mime="audio/mp3",
+            library=library,
+            owner=user_a,
         )
         baker.make(
-            File, name="b.mp3", mime="audio/mp3", library=library, owner=user_b,
+            File,
+            name="b.mp3",
+            mime="audio/mp3",
+            library=library,
+            owner=user_b,
         )
 
         # Authenticate as user A
@@ -642,10 +740,15 @@ class TestFilterAuthorizationBypass:
     def test_filter_by_nonexistent_values(self, api_client, faker):
         """Filtering by non-existent values should return empty, not error."""
         user = baker.make(
-            User, username=f"nonex_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"nonex_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="NONEX", name="NonEx", description="Test",
+            Library,
+            code="NONEX",
+            name="NonEx",
+            description="Test",
         )
         baker.make(
             File,
@@ -676,10 +779,15 @@ class TestUnicodeAndEncoding:
     def test_unicode_in_filter_values(self, api_client, faker):
         """Unicode characters in filter values."""
         user = baker.make(
-            User, username=f"unicode_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"unicode_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="UNI", name="Unicode", description="Test",
+            Library,
+            code="UNI",
+            name="Unicode",
+            description="Test",
         )
         baker.make(
             File,
@@ -707,10 +815,15 @@ class TestUnicodeAndEncoding:
     def test_filter_special_characters(self, api_client, faker):
         """Special regex/wildcard characters in filters."""
         user = baker.make(
-            User, username=f"special_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"special_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="SPECIAL", name="Special", description="Test",
+            Library,
+            code="SPECIAL",
+            name="Special",
+            description="Test",
         )
         baker.make(
             File,
@@ -745,10 +858,15 @@ class TestHttpMethodOverride:
     def test_method_override_on_list(self, api_client, faker):
         """Method override headers should not bypass security."""
         user = baker.make(
-            User, username=f"method_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"method_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="METHOD", name="Method", description="Test",
+            Library,
+            code="METHOD",
+            name="Method",
+            description="Test",
         )
         baker.make(
             File,
@@ -772,10 +890,15 @@ class TestHttpMethodOverride:
     def test_unsupported_methods_on_list(self, api_client, faker):
         """Unsupported HTTP methods on LIST endpoints."""
         user = baker.make(
-            User, username=f"unsupport_{faker.user_name()}", role=Role.HOST,
+            User,
+            username=f"unsupport_{faker.user_name()}",
+            role=Role.HOST,
         )
         library = baker.make(
-            Library, code="UNS", name="Unsup", description="Test",
+            Library,
+            code="UNS",
+            name="Unsup",
+            description="Test",
         )
 
         methods = ["PATCH", "PUT", "DELETE"]

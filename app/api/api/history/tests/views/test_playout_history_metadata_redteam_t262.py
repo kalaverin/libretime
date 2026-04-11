@@ -25,7 +25,9 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
     def victim_metadata(self, faker):
         """Create victim user's metadata."""
         victim = baker.make(
-            User, role=Role.HOST, username=f"victim_{faker.user_name()}",
+            User,
+            role=Role.HOST,
+            username=f"victim_{faker.user_name()}",
         )
         victim_file = baker.make(File, mime="audio/mp3", owner=victim)
         victim_playout = baker.make(
@@ -42,7 +44,11 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
         )
 
     def test_bola_list_shows_all_metadata(
-        self, api_client, admin_user, victim_metadata, faker,
+        self,
+        api_client,
+        admin_user,
+        victim_metadata,
+        faker,
     ):
         """
         BOLA: LIST metadata returns all users' entries.
@@ -61,7 +67,10 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
             pass
 
     def test_bola_retrieve_other_users_metadata(
-        self, api_client, admin_user, victim_metadata,
+        self,
+        api_client,
+        admin_user,
+        victim_metadata,
     ):
         """
         BOLA: RETRIEVE other user's metadata by ID.
@@ -75,7 +84,10 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
             assert data["id"] == victim_metadata.id
 
     def test_bola_create_metadata_for_other_users_playout(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         BOLA: CREATE metadata for another user's playout.
@@ -111,7 +123,10 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
             )
 
     def test_bola_update_other_users_metadata(
-        self, api_client, admin_user, victim_metadata,
+        self,
+        api_client,
+        admin_user,
+        victim_metadata,
     ):
         """
         BOLA: UPDATE other user's metadata.
@@ -133,7 +148,10 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
             pass
 
     def test_bola_delete_other_users_metadata(
-        self, api_client, admin_user, victim_metadata,
+        self,
+        api_client,
+        admin_user,
+        victim_metadata,
     ):
         """
         BOLA: DELETE other user's metadata.
@@ -147,7 +165,10 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
             pass
 
     def test_bola_metadata_links_to_history_detail(
-        self, api_client, admin_user, victim_metadata,
+        self,
+        api_client,
+        admin_user,
+        victim_metadata,
     ):
         """
         BOLA: Metadata reveals history details.
@@ -175,7 +196,10 @@ class TestPlayoutHistoryMetadataRedTeamBOPLA:
     """API3:2023 Broken Object Property Level Authorization - metadata mass assignment."""
 
     def test_bopla_create_mass_assignment_id(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         BOPLA: CREATE metadata with forced ID.
@@ -203,7 +227,10 @@ class TestPlayoutHistoryMetadataRedTeamBOPLA:
                 pytest.xfail("T627: BOPLA - Metadata id mass assignment works")
 
     def test_bopla_create_extra_fields_ignored(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         BOPLA: CREATE metadata with extra fields silently ignored.
@@ -231,7 +258,10 @@ class TestPlayoutHistoryMetadataRedTeamBOPLA:
             )
 
     def test_bopla_update_extra_fields_ignored(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         BOPLA: UPDATE metadata with extra fields.
@@ -262,7 +292,10 @@ class TestPlayoutHistoryMetadataRedTeamBOPLA:
             pytest.xfail("T629: BOPLA - Metadata UPDATE extra fields ignored")
 
     def test_bopla_patch_key_value_manipulation(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         BOPLA: PATCH metadata key/value.
@@ -501,7 +534,10 @@ class TestPlayoutHistoryMetadataRedTeamValidation:
         assert response.status_code == 400
 
     def test_create_missing_required_value(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         Validation: CREATE without required value field.
@@ -524,7 +560,10 @@ class TestPlayoutHistoryMetadataRedTeamValidation:
         assert response.status_code in [201, 400]
 
     def test_create_duplicate_key_same_history(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         Validation: Duplicate key for same history.

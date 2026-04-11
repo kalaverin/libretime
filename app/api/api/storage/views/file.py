@@ -1,7 +1,6 @@
 import os
-import re
+
 from contextlib import suppress
-from os import remove
 from pathlib import Path
 from typing import Any, final
 
@@ -18,7 +17,6 @@ from typing_extensions import override
 
 from api.mixins import AutoAssignOwnerMixin
 from api.permissions import check_authorization_header
-from api.schedule.models import Schedule
 from api.storage.models import File
 from api.storage.serializers import FileSerializer
 

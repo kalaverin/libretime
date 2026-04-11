@@ -39,7 +39,11 @@ class TestScheduleUpdateRedTeam:
         User.objects.filter(username__startswith="testred").delete()
 
     def _get_update_data(
-        self, instance, file_obj=None, stream=None, **overrides,
+        self,
+        instance,
+        file_obj=None,
+        stream=None,
+        **overrides,
     ):
         """Helper to generate valid update data with proper datetime formatting."""
         base_time = now() + timedelta(hours=1)
@@ -75,12 +79,16 @@ class TestScheduleUpdateRedTeam:
     def test_bola_update_other_users_schedule(self, api_client, faker):
         """BOLA: Can update another user's schedule entry."""
         victim = baker.make(
-            User, username=f"testred_victim_{faker.user_name()}",
+            User,
+            username=f"testred_victim_{faker.user_name()}",
         )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=victim,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=victim,
         )
 
         base_time = now()
@@ -114,10 +122,12 @@ class TestScheduleUpdateRedTeam:
     def test_bola_update_to_other_user_file(self, api_client, faker):
         """BOLA: Can update schedule to use another user's file."""
         victim = baker.make(
-            User, username=f"testred_victim_{faker.user_name()}",
+            User,
+            username=f"testred_victim_{faker.user_name()}",
         )
         attacker = baker.make(
-            User, username=f"testred_attacker_{faker.user_name()}",
+            User,
+            username=f"testred_attacker_{faker.user_name()}",
         )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
@@ -129,7 +139,10 @@ class TestScheduleUpdateRedTeam:
             owner=attacker,
         )
         victim_file = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=victim,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=victim,
         )
 
         base_time = now()
@@ -162,10 +175,12 @@ class TestScheduleUpdateRedTeam:
     def test_bola_update_to_other_user_stream(self, api_client, faker):
         """BOLA: Can update schedule to use another user's stream."""
         victim = baker.make(
-            User, username=f"testred_victim_{faker.user_name()}",
+            User,
+            username=f"testred_victim_{faker.user_name()}",
         )
         attacker = baker.make(
-            User, username=f"testred_attacker_{faker.user_name()}",
+            User,
+            username=f"testred_attacker_{faker.user_name()}",
         )
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
@@ -177,7 +192,10 @@ class TestScheduleUpdateRedTeam:
             owner=attacker,
         )
         victim_stream = baker.make(
-            Webstream, name=faker.catch_phrase(), url=faker.url(), owner=victim,
+            Webstream,
+            name=faker.catch_phrase(),
+            url=faker.url(),
+            owner=victim,
         )
 
         base_time = now()
@@ -215,7 +233,10 @@ class TestScheduleUpdateRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -259,7 +280,10 @@ class TestScheduleUpdateRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -319,7 +343,10 @@ class TestScheduleUpdateRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -382,9 +409,9 @@ class TestScheduleUpdateRedTeam:
             json.dumps({}),
             content_type="application/json",
         )
-        assert response.status_code == 403, (
-            f"T597: Invalid token should return 403, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 403
+        ), f"T597: Invalid token should return 403, got {response.status_code}"
 
     # ========================================================================
     # Injection Attacks
@@ -396,7 +423,10 @@ class TestScheduleUpdateRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -419,7 +449,9 @@ class TestScheduleUpdateRedTeam:
 
         for payload in sqli_payloads:
             data = self._get_update_data(
-                instance, file_obj=file_obj, cue_in=payload,
+                instance,
+                file_obj=file_obj,
+                cue_in=payload,
             )
             response = api_client.patch(
                 f"/api/v2/schedule/{schedule.id}",
@@ -435,7 +467,10 @@ class TestScheduleUpdateRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -483,7 +518,10 @@ class TestScheduleUpdateRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -500,7 +538,9 @@ class TestScheduleUpdateRedTeam:
         )
 
         data = self._get_update_data(
-            instance, file_obj=file_obj, cue_in="日本語",
+            instance,
+            file_obj=file_obj,
+            cue_in="日本語",
         )
         response = api_client.patch(
             f"/api/v2/schedule/{schedule.id}",
@@ -524,7 +564,10 @@ class TestScheduleUpdateRedTeam:
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
         file_obj = baker.make(
-            File, name=faker.file_name(), mime=faker.mime_type(), owner=user,
+            File,
+            name=faker.file_name(),
+            mime=faker.mime_type(),
+            owner=user,
         )
 
         base_time = now()
@@ -542,7 +585,9 @@ class TestScheduleUpdateRedTeam:
 
         def update_schedule(position):
             data = self._get_update_data(
-                instance, file_obj=file_obj, position=position,
+                instance,
+                file_obj=file_obj,
+                position=position,
             )
             return api_client.patch(
                 f"/api/v2/schedule/{schedule.id}",

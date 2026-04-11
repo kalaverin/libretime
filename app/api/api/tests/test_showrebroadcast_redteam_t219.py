@@ -38,7 +38,10 @@ class TestShowRebroadcastListBOLA:
 
     @pytest.mark.xfail(reason="T405: No owner filtering")
     def test_list_other_user_rebroadcasts(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """List shows other users' rebroadcasts."""
         show1 = baker.make(Show, name="Admin Show")
@@ -89,7 +92,10 @@ class TestShowRebroadcastCreateBOLA:
 
     @pytest.mark.xfail(reason="T405: No owner filtering")
     def test_create_for_other_user_show(
-        self, api_client, regular_user, admin_user,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
     ):
         """Create rebroadcast for another user's show."""
         show = baker.make(Show, name="Admin Show")

@@ -43,7 +43,9 @@ class TestSerializerMixinRedTeamBOPLA:
     def test_file(self, fake_catch_phrase):
         """Create a test file for scheduling."""
         library = baker.make(
-            Library, name=fake_catch_phrase, description="Test",
+            Library,
+            name=fake_catch_phrase,
+            description="Test",
         )
         user = baker.make(User, username=fake_catch_phrase)
         return baker.make(
@@ -55,7 +57,10 @@ class TestSerializerMixinRedTeamBOPLA:
         )
 
     def test_post_mass_assignment_extra_fields(
-        self, api_client, show_instance, test_file,
+        self,
+        api_client,
+        show_instance,
+        test_file,
     ):
         """
         BOPLA: POST with extra fields that should be read-only.
@@ -87,7 +92,10 @@ class TestSerializerMixinRedTeamBOPLA:
                 pytest.xfail("T794: BOPLA - ID mass assignment via POST works")
 
     def test_patch_mass_assignment_readonly_fields(
-        self, api_client, show_instance, test_file,
+        self,
+        api_client,
+        show_instance,
+        test_file,
     ):
         """
         BOPLA: PATCH with read-only field injection.
@@ -119,7 +127,10 @@ class TestSerializerMixinRedTeamBOPLA:
                 pytest.xfail("T795: BOPLA - ID modification via PATCH works")
 
     def test_post_field_type_confusion(
-        self, api_client, show_instance, test_file,
+        self,
+        api_client,
+        show_instance,
+        test_file,
     ):
         """
         BOPLA: Field type confusion attacks.
@@ -181,7 +192,9 @@ class TestSerializerMixinRedTeamBypass:
     @pytest.fixture
     def test_file(self, fake_catch_phrase):
         library = baker.make(
-            Library, name=fake_catch_phrase, description="Test",
+            Library,
+            name=fake_catch_phrase,
+            description="Test",
         )
         user = baker.make(User, username=fake_catch_phrase)
         return baker.make(
@@ -214,7 +227,10 @@ class TestSerializerMixinRedTeamBypass:
             pytest.xfail("T797: Content-Type bypass causes 500")
 
     def test_method_override_bypass(
-        self, api_client, show_instance, test_file,
+        self,
+        api_client,
+        show_instance,
+        test_file,
     ):
         """
         Try to use write serializer via GET with method override.
@@ -284,7 +300,9 @@ class TestSerializerMixinRedTeamDoS:
     @pytest.fixture
     def test_file(self, fake_catch_phrase):
         library = baker.make(
-            Library, name=fake_catch_phrase, description="Test",
+            Library,
+            name=fake_catch_phrase,
+            description="Test",
         )
         user = baker.make(User, username=fake_catch_phrase)
         return baker.make(
@@ -296,7 +314,10 @@ class TestSerializerMixinRedTeamDoS:
         )
 
     def test_very_long_string_fields(
-        self, api_client, show_instance, test_file,
+        self,
+        api_client,
+        show_instance,
+        test_file,
     ):
         """
         Very long strings in fields may cause DoS.
@@ -349,7 +370,9 @@ class TestSerializerMixinRedTeamInjection:
     @pytest.fixture
     def test_file(self, fake_catch_phrase):
         library = baker.make(
-            Library, name=fake_catch_phrase, description="Test",
+            Library,
+            name=fake_catch_phrase,
+            description="Test",
         )
         user = baker.make(User, username=fake_catch_phrase)
         return baker.make(
@@ -361,7 +384,10 @@ class TestSerializerMixinRedTeamInjection:
         )
 
     def test_sqli_via_serializer_field(
-        self, api_client, show_instance, test_file,
+        self,
+        api_client,
+        show_instance,
+        test_file,
     ):
         """
         SQL Injection through serializer field values.

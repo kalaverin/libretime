@@ -45,7 +45,10 @@ class TestPlaylistCreateBOLA:
 
     @pytest.mark.xfail(reason="T415: No owner validation on CREATE")
     def test_create_with_other_user_as_owner(
-        self, api_client, regular_user, admin_user,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
     ):
         """Create playlist with another user as owner."""
         api_client.force_authenticate(user=regular_user)

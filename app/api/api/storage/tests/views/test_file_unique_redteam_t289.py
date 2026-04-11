@@ -212,7 +212,10 @@ class TestFileUniquePathTraversal:
     @pytest.mark.django_db
     # FIXED: T855 - Path traversal now rejected by validate_filepath
     def test_path_traversal_in_filepath_create(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Path traversal patterns in filepath should be rejected."""
         library = baker.make(Library, name="Test Lib", description="Test")
@@ -244,7 +247,10 @@ class TestFileUniquePathTraversal:
     @pytest.mark.django_db
     # FIXED: T856 - Path traversal in UPDATE now rejected
     def test_path_traversal_in_filepath_update(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Path traversal in filepath UPDATE should be rejected."""
         library = baker.make(Library, name="Test Lib", description="Test")
@@ -274,7 +280,10 @@ class TestFileUniquePathTraversal:
     @pytest.mark.django_db
     # FIXED: T857 - Absolute paths now rejected
     def test_filepath_absolute_path_blocked(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Absolute paths in filepath should be validated."""
         library = baker.make(Library, name="Test Lib", description="Test")
@@ -315,7 +324,10 @@ class TestFileUniqueBOPLA:
 
     @pytest.mark.django_db
     def test_bopla_mass_assignment_id_field(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Try to set id field during CREATE."""
         library = baker.make(Library, name="Test Lib", description="Test")
@@ -350,7 +362,10 @@ class TestFileUniqueBOPLA:
         reason="T859: BOPLA - mass assignment of created_at allowed",
     )
     def test_bopla_mass_assignment_created_at(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Try to set created_at during CREATE."""
         library = baker.make(Library, name="Test Lib", description="Test")
@@ -383,7 +398,11 @@ class TestFileUniqueBOPLA:
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T860: BOPLA - owner change via PATCH allowed")
     def test_bopla_change_owner_via_update(
-        self, api_client, admin_user, regular_user, faker,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        faker,
     ):
         """Try to change file owner via PATCH."""
         library = baker.make(Library, name="Test Lib", description="Test")
@@ -629,7 +648,10 @@ class TestFileUniqueFilterBypass:
 
     @pytest.mark.django_db
     def test_filter_by_md5_case_sensitivity(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """MD5 filter case sensitivity."""
         library = baker.make(Library, name="Test Lib", description="Test")
@@ -657,7 +679,10 @@ class TestFileUniqueFilterBypass:
 
     @pytest.mark.django_db
     def test_filter_by_genre_case_sensitivity(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """Genre filter case sensitivity."""
         library = baker.make(Library, name="Test Lib", description="Test")

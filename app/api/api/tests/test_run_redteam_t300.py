@@ -295,7 +295,9 @@ class TestFixtureSecurity:
 
     @pytest.mark.django_db
     def test_fixture_users_have_unique_credentials(
-        self, admin_user, regular_user,
+        self,
+        admin_user,
+        regular_user,
     ):
         """Different fixture users should have unique credentials."""
         # Users should have different usernames

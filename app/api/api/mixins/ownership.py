@@ -23,7 +23,9 @@ class AutoAssignOwnerMixin:
             serializer_class = PlaylistSerializer
     """
 
-    def perform_create(self, serializer: serializers.BaseSerializer[Any]) -> None:
+    def perform_create(
+        self, serializer: serializers.BaseSerializer[Any],
+    ) -> None:
         """Create instance with current user as owner (if authenticated)."""
         user = self.request.user
 

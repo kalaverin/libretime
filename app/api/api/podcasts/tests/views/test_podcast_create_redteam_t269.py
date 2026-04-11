@@ -66,7 +66,12 @@ class TestPodcastCreateRedTeamBOPLA:
     """API3:2023 Broken Object Property Level Authorization - Mass Assignment."""
 
     def test_bopla_mass_assignment_owner_id(
-        self, api_client, admin_user, regular_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOPLA: Try to create podcast with arbitrary owner_id.
@@ -90,7 +95,11 @@ class TestPodcastCreateRedTeamBOPLA:
                 pytest.xfail("T701: BOPLA - Mass assignment of owner_id works")
 
     def test_bopla_mass_assignment_own_user_id(
-        self, api_client, regular_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        regular_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOPLA: Try to set owner to self (should work or be auto-assigned).
@@ -111,7 +120,11 @@ class TestPodcastCreateRedTeamBOPLA:
             # Owner should be auto-assigned or match
 
     def test_bopla_mass_assignment_id_field(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOPLA: Try to create podcast with specific ID (IDOR).
@@ -134,7 +147,11 @@ class TestPodcastCreateRedTeamBOPLA:
                 pytest.xfail("T702: BOPLA - ID assignment works (IDOR)")
 
     def test_bopla_extra_fields_ignored(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOPLA: Extra fields in request should be rejected, not ignored.
@@ -157,7 +174,11 @@ class TestPodcastCreateRedTeamBOPLA:
             pytest.xfail("T703: BOPLA - Extra fields silently ignored")
 
     def test_bopla_readonly_fields_in_create(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BOPLA: Try to set read-only fields during creation.
@@ -379,7 +400,11 @@ class TestPodcastCreateRedTeamResourceConsumption:
     """Resource consumption and DoS tests."""
 
     def test_rapid_create_requests(
-        self, api_client, admin_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        admin_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         Rate limiting: Rapid CREATE requests.
@@ -465,7 +490,11 @@ class TestPodcastCreateRedTeamAuthentication:
         assert response.status_code == 403
 
     def test_create_as_guest_user(
-        self, api_client, guest_user, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        guest_user,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         BFLA: Guest user should not be able to create podcasts.
@@ -483,7 +512,10 @@ class TestPodcastCreateRedTeamAuthentication:
             pytest.xfail("T717: BFLA - Guest user can create podcasts")
 
     def test_create_with_invalid_token(
-        self, api_client, fake_url, fake_catch_phrase,
+        self,
+        api_client,
+        fake_url,
+        fake_catch_phrase,
     ):
         """
         Invalid token should fail.
@@ -630,7 +662,9 @@ class TestPodcastCreateRedTeamRaceConditions:
                 "title": "Race Test",
             }
             return api_client.post(
-                "/api/v2/podcasts", data, format="json",
+                "/api/v2/podcasts",
+                data,
+                format="json",
             ).status_code
 
         # Fire 5 concurrent creation attempts

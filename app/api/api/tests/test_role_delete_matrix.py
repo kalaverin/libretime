@@ -21,11 +21,10 @@ Usage:
     cd app/api && uv run pytest api/tests/test_role_delete_matrix.py -v
 """
 
-from typing import Any
 
 import pytest
+
 from model_bakery import baker
-from rest_framework.test import APIClient
 
 from api.core.models import User
 from api.core.models.role import Role
@@ -33,36 +32,41 @@ from api.podcasts.models import Podcast
 from api.schedule.models import Playlist, Show, SmartBlock, Webstream
 from api.storage.models import File
 
-
 # =============================================================================
 # Helper Functions
 # =============================================================================
 
+
 def create_entity(entity_type: str, owner: User | None, faker):
     """Create test entity with given owner."""
     if entity_type == "playlist":
-        return baker.make(Playlist, name=f"Test {faker.uuid4()[:8]}", owner=owner)
-    elif entity_type == "smartblock":
         return baker.make(
-            SmartBlock, name=f"Test {faker.uuid4()[:8]}", owner=owner, kind="static"
+            Playlist, name=f"Test {faker.uuid4()[:8]}", owner=owner,
         )
-    elif entity_type == "webstream":
+    if entity_type == "smartblock":
+        return baker.make(
+            SmartBlock,
+            name=f"Test {faker.uuid4()[:8]}",
+            owner=owner,
+            kind="static",
+        )
+    if entity_type == "webstream":
         return baker.make(
             Webstream,
             name=f"Test {faker.uuid4()[:8]}",
             url=faker.url(),
             owner=owner,
         )
-    elif entity_type == "podcast":
+    if entity_type == "podcast":
         return baker.make(
             Podcast,
             title=f"Test {faker.uuid4()[:8]}",
             url=faker.url(),
             owner=owner,
         )
-    elif entity_type == "file":
+    if entity_type == "file":
         return baker.make(File, owner=owner)
-    elif entity_type == "show":
+    if entity_type == "show":
         return baker.make(
             Show,
             name=f"Test {faker.uuid4()[:8]}",
@@ -111,6 +115,7 @@ def entity_exists(entity_type: str, obj_id: int) -> bool:
 # ANONYMOUS Tests - All Denied
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestDeleteAnonymousDenied:
     """Anonymous users cannot delete anything - 403 on all endpoints."""
@@ -120,7 +125,9 @@ class TestDeleteAnonymousDenied:
         owner = baker.make(User, role=Role.HOST)
         playlist = create_entity("playlist", owner, faker)
 
-        response = anonymous_client.delete(get_endpoint("playlist", playlist.id))
+        response = anonymous_client.delete(
+            get_endpoint("playlist", playlist.id),
+        )
         assert response.status_code == 403
         # Verify object NOT deleted
         assert entity_exists("playlist", playlist.id)
@@ -130,7 +137,9 @@ class TestDeleteAnonymousDenied:
         owner = baker.make(User, role=Role.HOST)
         block = create_entity("smartblock", owner, faker)
 
-        response = anonymous_client.delete(get_endpoint("smartblock", block.id))
+        response = anonymous_client.delete(
+            get_endpoint("smartblock", block.id),
+        )
         assert response.status_code == 403
         assert entity_exists("smartblock", block.id)
 
@@ -147,6 +156,7 @@ class TestDeleteAnonymousDenied:
 # GUEST Tests - All Denied (no delete permissions)
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestDeleteGuestDenied:
     """GUEST users cannot delete anything - 403 on all endpoints."""
@@ -160,7 +170,9 @@ class TestDeleteGuestDenied:
         assert response.status_code == 403
         assert entity_exists("playlist", playlist.id)
 
-    def test_guest_cannot_delete_own_playlist(self, guest_user, guest_client, faker):
+    def test_guest_cannot_delete_own_playlist(
+        self, guest_user, guest_client, faker,
+    ):
         """GUEST cannot delete playlist even if they somehow own it."""
         playlist = create_entity("playlist", guest_user, faker)
 
@@ -181,6 +193,7 @@ class TestDeleteGuestDenied:
 # HOST Tests - Own Objects Only
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestDeleteHostOwnObjects:
     """HOST can delete own objects (204), cannot delete others' (403/404)."""
@@ -195,7 +208,9 @@ class TestDeleteHostOwnObjects:
         # Verify object actually deleted
         assert not entity_exists("playlist", obj_id)
 
-    def test_host_can_delete_own_smartblock(self, host_client, host_user, faker):
+    def test_host_can_delete_own_smartblock(
+        self, host_client, host_user, faker,
+    ):
         """HOST can DELETE own smartblock."""
         block = create_entity("smartblock", host_user, faker)
         obj_id = block.id
@@ -204,7 +219,9 @@ class TestDeleteHostOwnObjects:
         assert response.status_code == 204
         assert not entity_exists("smartblock", obj_id)
 
-    def test_host_can_delete_own_webstream(self, host_client, host_user, faker):
+    def test_host_can_delete_own_webstream(
+        self, host_client, host_user, faker,
+    ):
         """HOST can DELETE own webstream."""
         stream = create_entity("webstream", host_user, faker)
         obj_id = stream.id
@@ -263,6 +280,7 @@ class TestDeleteHostOwnObjects:
 # MANAGER Tests - Any Object
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestDeleteManagerAnyObject:
     """MANAGER can delete any objects (own and others')."""
@@ -311,6 +329,7 @@ class TestDeleteManagerAnyObject:
 # ADMIN Tests - Any Object (Superuser)
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestDeleteAdminAnyObject:
     """ADMIN can delete any objects (superuser access)."""
@@ -339,22 +358,29 @@ class TestDeleteAdminAnyObject:
 # Cross-Role Comparison Tests
 # =============================================================================
 
+
 @pytest.mark.django_db
 class TestDeleteCrossRoleComparison:
     """Compare delete behavior across roles for same object."""
 
-    def test_host_blocked_others_allowed_manager_admin(self, host_client, manager_client, admin_client, faker):
+    def test_host_blocked_others_allowed_manager_admin(
+        self, host_client, manager_client, admin_client, faker,
+    ):
         """HOST blocked from deleting other's object, MANAGER/ADMIN allowed."""
         other_user = baker.make(User, role=Role.HOST)
         playlist = create_entity("playlist", other_user, faker)
 
         # HOST blocked
-        host_response = host_client.delete(get_endpoint("playlist", playlist.id))
+        host_response = host_client.delete(
+            get_endpoint("playlist", playlist.id),
+        )
         assert host_response.status_code in [403, 404]
         assert entity_exists("playlist", playlist.id)
 
         # MANAGER allowed
-        manager_response = manager_client.delete(get_endpoint("playlist", playlist.id))
+        manager_response = manager_client.delete(
+            get_endpoint("playlist", playlist.id),
+        )
         assert manager_response.status_code == 204
         assert not entity_exists("playlist", playlist.id)
 
@@ -362,6 +388,7 @@ class TestDeleteCrossRoleComparison:
 # =============================================================================
 # Edge Cases
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestDeleteEdgeCases:
@@ -373,7 +400,9 @@ class TestDeleteEdgeCases:
         # May return 403 (permission denied before check existence) or 404
         assert response.status_code in [403, 404]
 
-    def test_delete_already_deleted_object(self, host_client, host_user, faker):
+    def test_delete_already_deleted_object(
+        self, host_client, host_user, faker,
+    ):
         """DELETE already deleted object returns 404."""
         playlist = create_entity("playlist", host_user, faker)
         obj_id = playlist.id

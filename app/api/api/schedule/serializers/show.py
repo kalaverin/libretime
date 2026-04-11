@@ -17,7 +17,6 @@ from api.serializers import SecureModelSerializer, StrictSerializer
 from api.validators.fields import (
     validate_hex_color,
     validate_non_negative_int,
-    validate_not_null,
 )
 from api.validators.xss import validate_no_xss
 

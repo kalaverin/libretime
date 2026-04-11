@@ -25,7 +25,9 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
     def victim_playout(self, faker):
         """Create victim user's playout history."""
         victim = baker.make(
-            User, role=Role.HOST, username=f"victim_{faker.user_name()}",
+            User,
+            role=Role.HOST,
+            username=f"victim_{faker.user_name()}",
         )
         victim_file = baker.make(File, mime="audio/mp3", owner=victim)
         return baker.make(
@@ -36,7 +38,11 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
         )
 
     def test_bola_retrieve_other_users_playout(
-        self, api_client, admin_user, victim_playout, faker,
+        self,
+        api_client,
+        admin_user,
+        victim_playout,
+        faker,
     ):
         """
         BOLA: RETRIEVE other user's playout by ID.
@@ -55,7 +61,11 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
             assert data["id"] == victim_playout.id
 
     def test_bola_update_other_users_playout(
-        self, api_client, admin_user, victim_playout, faker,
+        self,
+        api_client,
+        admin_user,
+        victim_playout,
+        faker,
     ):
         """
         BOLA: UPDATE other user's playout.
@@ -82,7 +92,10 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
             pass
 
     def test_bola_patch_other_users_playout(
-        self, api_client, admin_user, victim_playout,
+        self,
+        api_client,
+        admin_user,
+        victim_playout,
     ):
         """
         BOLA: PATCH other user's playout.
@@ -104,7 +117,10 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
             pass
 
     def test_bola_delete_other_users_playout(
-        self, api_client, admin_user, victim_playout,
+        self,
+        api_client,
+        admin_user,
+        victim_playout,
     ):
         """
         BOLA: DELETE other user's playout.
@@ -121,7 +137,9 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
             pass
 
     def test_bola_retrieve_nonexistent_returns_404(
-        self, api_client, admin_user,
+        self,
+        api_client,
+        admin_user,
     ):
         """
         BOLA: Non-existent ID returns 404 (not 403).
@@ -132,7 +150,10 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
         assert response.status_code == 404
 
     def test_bola_id_enumeration_via_404_403(
-        self, api_client, regular_user, faker,
+        self,
+        api_client,
+        regular_user,
+        faker,
     ):
         """
         BOLA: Different errors for existent vs non-existent IDs.
@@ -174,7 +195,11 @@ class TestPlayoutHistoryRUDRedTeamBOPLA:
         )
 
     def test_bopla_update_change_id(
-        self, api_client, admin_user, own_playout, faker,
+        self,
+        api_client,
+        admin_user,
+        own_playout,
+        faker,
     ):
         """
         BOPLA: Attempt to change ID via PUT.
@@ -203,7 +228,10 @@ class TestPlayoutHistoryRUDRedTeamBOPLA:
                 pytest.xfail("T624: BOPLA - id can be modified via PUT")
 
     def test_bopla_patch_extra_fields_ignored(
-        self, api_client, admin_user, own_playout,
+        self,
+        api_client,
+        admin_user,
+        own_playout,
     ):
         """
         BOPLA: PATCH with extra fields silently ignored.
@@ -228,7 +256,11 @@ class TestPlayoutHistoryRUDRedTeamBOPLA:
             pytest.xfail("T625: BOPLA - PATCH extra fields silently ignored")
 
     def test_bopla_full_update_with_invalid_field(
-        self, api_client, admin_user, own_playout, faker,
+        self,
+        api_client,
+        admin_user,
+        own_playout,
+        faker,
     ):
         """
         BOPLA: Full UPDATE attempts to set invalid fields.
@@ -325,7 +357,10 @@ class TestPlayoutHistoryRUDRedTeamRaceConditions:
     """Race condition tests."""
 
     def test_race_condition_concurrent_update(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         Race condition: Concurrent UPDATE to same record.
@@ -365,7 +400,10 @@ class TestPlayoutHistoryRUDRedTeamRaceConditions:
             pass  # Document: no versioning/locking
 
     def test_race_condition_update_during_delete(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         Race condition: UPDATE during DELETE.
@@ -396,7 +434,10 @@ class TestPlayoutHistoryRUDRedTeamRaceConditions:
         assert update_response.status_code == 404
 
     def test_race_condition_delete_already_deleted(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         Race condition: Double DELETE of same record.
@@ -420,7 +461,11 @@ class TestPlayoutHistoryRUDRedTeamAuthorization:
     """Authorization level tests."""
 
     def test_retrieve_as_regular_user(
-        self, api_client, regular_user, admin_user, faker,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
+        faker,
     ):
         """
         BFLA: Regular user RETRIEVE permissions.
@@ -556,7 +601,10 @@ class TestPlayoutHistoryRUDRedTeamValidation:
             )
 
     def test_partial_update_invalid_datetime(
-        self, api_client, admin_user, faker,
+        self,
+        api_client,
+        admin_user,
+        faker,
     ):
         """
         Validation: PATCH with invalid datetime format.

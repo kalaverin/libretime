@@ -192,7 +192,10 @@ class TestSmartBlockCriteriaListRedTeam:
         """Security: Arbitrary ordering fields are rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
         baker.make(
             SmartBlockCriteria,
@@ -225,7 +228,10 @@ class TestSmartBlockCriteriaListRedTeam:
         user = baker.make(User, username="testred_user")
 
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
         for i in range(100):
             baker.make(
@@ -259,7 +265,10 @@ class TestSmartBlockCriteriaListRedTeam:
         """Security: Internal fields are not exposed."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
         baker.make(
             SmartBlockCriteria,
@@ -288,7 +297,10 @@ class TestSmartBlockCriteriaListRedTeam:
         """Security: Related objects are returned as IDs only."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
-            SmartBlock, name="Block", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
         baker.make(
             SmartBlockCriteria,
@@ -338,10 +350,16 @@ class TestSmartBlockCriteriaListRedTeam:
         """HPP: Duplicate block filter parameters."""
         user = baker.make(User, username="testred_user")
         block1 = baker.make(
-            SmartBlock, name="Block1", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block1",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
         block2 = baker.make(
-            SmartBlock, name="Block2", kind=SmartBlock.Kind.DYNAMIC, owner=user,
+            SmartBlock,
+            name="Block2",
+            kind=SmartBlock.Kind.DYNAMIC,
+            owner=user,
         )
 
         baker.make(

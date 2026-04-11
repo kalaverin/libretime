@@ -5,11 +5,11 @@ Sanitizes user input to prevent stored XSS attacks.
 """
 
 import re
+
 from typing import Any
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-
 
 # Dangerous HTML tags that should never be allowed
 DANGEROUS_TAGS = frozenset(
@@ -37,7 +37,7 @@ DANGEROUS_TAGS = frozenset(
         "frameset",
         "applet",
         "marquee",
-    ]
+    ],
 )
 
 # JavaScript event handlers
@@ -242,7 +242,7 @@ JS_EVENT_HANDLERS = frozenset(
         "onwebkitpointerlockerror",
         "onwebkittransitionend",
         "onwheel",
-    ]
+    ],
 )
 
 # JavaScript protocol
@@ -258,7 +258,9 @@ VBSCRIPT_PATTERN = re.compile(r"vbscript:", re.IGNORECASE)
 HTML_TAG_PATTERN = re.compile(r"</?[a-zA-Z][^>]*>")
 
 # on* event handler pattern
-EVENT_HANDLER_PATTERN = re.compile(r"\s*on\w+\s*=[\"']?[^\"']*[\"']?", re.IGNORECASE)
+EVENT_HANDLER_PATTERN = re.compile(
+    r"\s*on\w+\s*=[\"']?[^\"']*[\"']?", re.IGNORECASE,
+)
 
 
 def _contains_dangerous_html(value: str) -> bool:
@@ -308,7 +310,7 @@ def _contains_encoded_xss(value: str) -> bool:
 def validate_no_xss(value: Any) -> None:
     """
     Validate that value does not contain XSS payloads.
-    
+
     Blocks:
     - <script> tags
     - JavaScript event handlers (onclick, onerror, etc.)
@@ -316,51 +318,51 @@ def validate_no_xss(value: Any) -> None:
     - data:text/html URIs
     - vbscript: protocol
     - Encoded XSS attempts
-    
+
     Raises:
         ValidationError: If XSS payload detected
     """
     if not isinstance(value, str):
         return
-    
+
     if not value:
         return
-    
+
     # Check for dangerous HTML tags
     if _contains_dangerous_html(value):
         raise ValidationError(
             _("Input contains invalid content"),
             code="xss_dangerous_html",
         )
-    
+
     # Check for JavaScript protocol
     if _contains_js_protocol(value):
         raise ValidationError(
             _("Input contains invalid content"),
             code="xss_js_protocol",
         )
-    
+
     # Check for event handlers
     if _contains_event_handlers(value):
         raise ValidationError(
             _("Input contains invalid content"),
             code="xss_event_handler",
         )
-    
+
     # Check for encoded XSS
     if _contains_encoded_xss(value):
         raise ValidationError(
             _("Input contains invalid content"),
             code="xss_encoded",
         )
-    
+
     # Check for data:text/html
     if DATA_URI_PATTERN.search(value):
         raise ValidationError(
             _("Input contains invalid content"),
             code="xss_data_uri",
         )
-    
+
     # Check for vbscript
     if VBSCRIPT_PATTERN.search(value):
         raise ValidationError(
@@ -372,19 +374,24 @@ def validate_no_xss(value: Any) -> None:
 def sanitize_text(value: str) -> str:
     """
     Sanitize text by removing dangerous content.
-    
+
     This is a fallback if validation is bypassed.
     """
     if not isinstance(value, str):
         return value
-    
+
     # Remove script tags
-    value = re.sub(r"<\s*script[^>]*>.*?</\s*script\s*>", "", value, flags=re.DOTALL | re.IGNORECASE)
-    
+    value = re.sub(
+        r"<\s*script[^>]*>.*?</\s*script\s*>",
+        "",
+        value,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
+
     # Remove event handlers
     value = re.sub(EVENT_HANDLER_PATTERN, "", value)
-    
+
     # Remove javascript protocol
     value = JS_PROTOCOL_PATTERN.sub("", value)
-    
+
     return value

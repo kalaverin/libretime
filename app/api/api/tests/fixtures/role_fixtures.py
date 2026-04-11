@@ -5,6 +5,7 @@ Provides users with specific roles and authenticated clients for each role.
 """
 
 import pytest
+
 from django.contrib.auth.management import create_permissions
 from django.contrib.contenttypes.models import ContentType
 from model_bakery import baker
@@ -15,33 +16,34 @@ from api.core.models.role import Role
 
 def ensure_custom_permissions_exist():
     """Ensure custom 'own_*' permissions exist in the database.
-    
+
     These permissions are not auto-created by Django because they're not
     standard CRUD permissions. We create them manually for HOST role.
     """
     from django.contrib.auth.models import Permission
-    from django.contrib.contenttypes.models import ContentType
-    
+
     # Map of app_label -> models that need own_* permissions
     app_models = {
-        'schedule': ['playlist', 'smartblock', 'webstream'],
-        'podcasts': ['podcast', 'podcastepisode'],
-        'storage': ['file'],
+        "schedule": ["playlist", "smartblock", "webstream"],
+        "podcasts": ["podcast", "podcastepisode"],
+        "storage": ["file"],
     }
-    
-    actions = ['change', 'delete']
-    
+
+    actions = ["change", "delete"]
+
     for app_label, models in app_models.items():
         for model_name in models:
             try:
-                ct = ContentType.objects.get(app_label=app_label, model=model_name)
+                ct = ContentType.objects.get(
+                    app_label=app_label, model=model_name,
+                )
                 for action in actions:
-                    codename = f'{action}_own_{model_name}'
-                    name = f'Can {action} own {model_name}'
+                    codename = f"{action}_own_{model_name}"
+                    name = f"Can {action} own {model_name}"
                     Permission.objects.get_or_create(
                         codename=codename,
                         content_type=ct,
-                        defaults={'name': name}
+                        defaults={"name": name},
                     )
             except ContentType.DoesNotExist:
                 pass  # Model doesn't exist, skip
@@ -50,15 +52,13 @@ def ensure_custom_permissions_exist():
 def ensure_permissions_exist():
     """Ensure all permissions are created in the database."""
     from django.apps import apps
+
     # Create standard permissions for all apps
     for app_config in apps.get_app_configs():
-        if hasattr(app_config, 'models_module'):
+        if hasattr(app_config, "models_module"):
             create_permissions(app_config, verbosity=0)
     # Create custom own_* permissions
     ensure_custom_permissions_exist()
-
-
-
 
 
 # =============================================================================

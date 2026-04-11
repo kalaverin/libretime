@@ -7,7 +7,7 @@ by checking for duplicates and validating constraints at the application level.
 from typing import Any
 
 from django.db import transaction
-from django.db.models import Model, Q
+from django.db.models import Model
 from rest_framework.serializers import ValidationError
 
 
@@ -36,7 +36,9 @@ def validate_duplicate_name(
 
     if queryset.exists():
         raise ValidationError(
-            {field_name: f"A {model_class.__name__} with this name already exists."},
+            {
+                field_name: f"A {model_class.__name__} with this name already exists.",
+            },
             code=f"{field_name}_duplicate",
         )
 
@@ -65,7 +67,9 @@ def validate_duplicate_url(
 
     if queryset.exists():
         raise ValidationError(
-            {field_name: f"A {model_class.__name__} with this URL already exists."},
+            {
+                field_name: f"A {model_class.__name__} with this URL already exists.",
+            },
             code=f"{field_name}_duplicate",
         )
 
@@ -89,7 +93,10 @@ def validate_duplicate_combination(
         queryset = queryset.exclude(id=exclude_id)
 
     if queryset.exists():
-        msg = error_message or f"A {model_class.__name__} with these values already exists."
+        msg = (
+            error_message
+            or f"A {model_class.__name__} with these values already exists."
+        )
         raise ValidationError(msg, code="duplicate_combination")
 
 
@@ -142,7 +149,9 @@ def validate_concurrent_update(
     """
     with transaction.atomic():
         try:
-            instance = model_class.objects.select_for_update().get(id=instance_id)
+            instance = model_class.objects.select_for_update().get(
+                id=instance_id,
+            )
         except model_class.DoesNotExist:
             raise ValidationError(
                 f"{model_class.__name__} not found.",

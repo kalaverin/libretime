@@ -53,10 +53,15 @@ class TestPlaylistContentCreateRedTeam:
         attacker = baker.make(User, username="testred_attacker")
 
         victim_playlist = baker.make(
-            Playlist, name="Victim Playlist", owner=victim,
+            Playlist,
+            name="Victim Playlist",
+            owner=victim,
         )
         attacker_file = baker.make(
-            File, name="attacker.mp3", mime="audio/mp3", owner=attacker,
+            File,
+            name="attacker.mp3",
+            mime="audio/mp3",
+            owner=attacker,
         )
 
         response = api_client.post(
@@ -83,14 +88,19 @@ class TestPlaylistContentCreateRedTeam:
         """BOLA: Mass create content in victim's playlist."""
         victim = baker.make(User, username="testred_victim")
         victim_playlist = baker.make(
-            Playlist, name="Victim Playlist", owner=victim,
+            Playlist,
+            name="Victim Playlist",
+            owner=victim,
         )
 
         # Try to flood victim's playlist
         created = 0
         for i in range(10):
             f = baker.make(
-                File, name=f"file{i}.mp3", mime="audio/mp3", owner=victim,
+                File,
+                name=f"file{i}.mp3",
+                mime="audio/mp3",
+                owner=victim,
             )
             response = api_client.post(
                 "/api/v2/playlist-contents",
@@ -121,7 +131,10 @@ class TestPlaylistContentCreateRedTeam:
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         response = api_client.post(
@@ -150,7 +163,10 @@ class TestPlaylistContentCreateRedTeam:
 
         playlist = baker.make(Playlist, name="Test", owner=user)
         other_file = baker.make(
-            File, name="other.mp3", mime="audio/mp3", owner=other,
+            File,
+            name="other.mp3",
+            mime="audio/mp3",
+            owner=other,
         )
 
         response = api_client.post(
@@ -181,7 +197,10 @@ class TestPlaylistContentCreateRedTeam:
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         sql_payloads = [
@@ -249,7 +268,10 @@ class TestPlaylistContentCreateRedTeam:
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         response = api_client.post(
@@ -275,7 +297,10 @@ class TestPlaylistContentCreateRedTeam:
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         invalid_kinds = [
@@ -307,7 +332,10 @@ class TestPlaylistContentCreateRedTeam:
         """Validation: Non-existent playlist should return 400/404."""
         user = baker.make(User, username="testred_user")
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         response = api_client.post(
@@ -363,7 +391,10 @@ class TestPlaylistContentCreateRedTeam:
 
         def create_content(i):
             f = baker.make(
-                File, name=f"file{i}.mp3", mime="audio/mp3", owner=user,
+                File,
+                name=f"file{i}.mp3",
+                mime="audio/mp3",
+                owner=user,
             )
             return api_client.post(
                 "/api/v2/playlist-contents",
@@ -397,7 +428,10 @@ class TestPlaylistContentCreateRedTeam:
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         # Create huge payload
@@ -432,10 +466,16 @@ class TestPlaylistContentCreateRedTeam:
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
         file1 = baker.make(
-            File, name="file1.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="file1.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
         file2 = baker.make(
-            File, name="file2.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="file2.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         # Create first content at position 1
@@ -478,7 +518,10 @@ class TestPlaylistContentCreateRedTeam:
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         response = api_client.post(
@@ -508,7 +551,10 @@ class TestPlaylistContentCreateRedTeam:
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         unicode_strings = [
@@ -547,7 +593,10 @@ class TestPlaylistContentCreateRedTeam:
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
         file_obj = baker.make(
-            File, name="test.mp3", mime="audio/mp3", owner=user,
+            File,
+            name="test.mp3",
+            mime="audio/mp3",
+            owner=user,
         )
 
         null_tests = [

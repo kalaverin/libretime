@@ -19,7 +19,10 @@ class TestWebstreamIDOR:
     """IDOR attacks on webstream resources."""
 
     def test_list_webstreams_shows_only_own(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Verify user can only see their own webstreams."""
         from model_bakery import baker
@@ -55,7 +58,10 @@ class TestWebstreamIDOR:
             pytest.xfail("BOLA: User can see other users' webstreams")
 
     def test_access_other_user_webstream(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to access another user's webstream."""
         from model_bakery import baker
@@ -75,7 +81,10 @@ class TestWebstreamIDOR:
             pytest.xfail("BOLA: User can access other user's webstream")
 
     def test_modify_other_user_webstream(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to modify another user's webstream."""
         from model_bakery import baker
@@ -238,7 +247,10 @@ class TestWebstreamOwnerBypass:
     """Owner field bypass attempts."""
 
     def test_create_webstream_with_other_owner(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to create webstream with another user as owner."""
         api_client.force_authenticate(user=regular_user)
@@ -261,7 +273,10 @@ class TestWebstreamOwnerBypass:
             assert data.get("owner") != admin_user.id
 
     def test_change_webstream_owner(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to change webstream owner to another user."""
         from model_bakery import baker
@@ -387,7 +402,10 @@ class TestWebstreamDelete:
     """Delete operation security tests."""
 
     def test_delete_other_user_webstream(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to delete another user's webstream."""
         from model_bakery import baker

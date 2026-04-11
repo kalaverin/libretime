@@ -39,7 +39,10 @@ class TestShowInstanceDeleteBOLA:
 
     @pytest.mark.xfail(reason="T398: No owner filtering")
     def test_delete_other_user_instance(
-        self, api_client, regular_user, admin_user,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
     ):
         """Delete another user's show instance."""
         show = baker.make(Show, name="Admin Show")
@@ -157,7 +160,9 @@ class TestShowInstanceDeleteBusinessLogic:
         """Try to delete instance with description."""
         show = baker.make(Show, name="Test Show")
         instance = baker.make(
-            ShowInstance, show=show, description="Important show",
+            ShowInstance,
+            show=show,
+            description="Important show",
         )
 
         api_client.force_authenticate(user=admin_user)

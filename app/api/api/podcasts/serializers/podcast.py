@@ -44,7 +44,7 @@ class PodcastSerializer(StrictSerializer):
         """Validate duplicate URL (T722)."""
         url = data.get("url")
         owner = data.get("owner")
-        
+
         # Get owner ID for validation
         if self.instance:
             owner_id = owner.id if owner else self.instance.owner_id
@@ -54,7 +54,7 @@ class PodcastSerializer(StrictSerializer):
                 owner_id = request.user.id
             else:
                 owner_id = None
-        
+
         # T722: Check for duplicate URL per owner
         if url and owner_id:
             validate_duplicate_url(
@@ -63,7 +63,7 @@ class PodcastSerializer(StrictSerializer):
                 owner_id,
                 exclude_id=self.instance.id if self.instance else None,
             )
-        
+
         return super().validate(data)
 
 

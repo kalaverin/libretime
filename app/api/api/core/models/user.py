@@ -1,7 +1,7 @@
 import hashlib
-from functools import cached_property
 
 from collections.abc import Sequence
+from functools import cached_property
 from typing import TYPE_CHECKING, ClassVar
 
 from django.contrib.auth.models import (

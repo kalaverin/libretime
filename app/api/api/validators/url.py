@@ -10,12 +10,12 @@ Blocks:
 
 import ipaddress
 import re
+
 from typing import Any
 from urllib.parse import unquote, urlparse
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-
 
 # Dangerous URL schemes that should never be allowed
 DANGEROUS_SCHEMES = frozenset(
@@ -39,7 +39,7 @@ DANGEROUS_SCHEMES = frozenset(
         "javascript",
         "data",
         "vbscript",
-    ]
+    ],
 )
 
 # Allowed schemes whitelist
@@ -61,7 +61,7 @@ IPV4_IN_IP6_LOCALHOST = re.compile(
 def _is_internal_ip(hostname: str) -> bool:
     """
     Check if hostname resolves to an internal/private IP address.
-    
+
     Blocks:
     - RFC 1918 private ranges (10/8, 172.16/12, 192.168/16)
     - Link-local addresses (169.254/16)
@@ -72,11 +72,11 @@ def _is_internal_ip(hostname: str) -> bool:
     # First check for localhost names
     if LOCALHOST_PATTERNS.match(hostname):
         return True
-    
+
     # Check for IPv4 embedded in IPv6 localhost
     if IPV4_IN_IP6_LOCALHOST.match(hostname):
         return True
-    
+
     # Try to parse as IP address
     try:
         ip = ipaddress.ip_address(hostname)
@@ -87,21 +87,23 @@ def _is_internal_ip(hostname: str) -> bool:
             or ip.is_link_local
             or ip.is_reserved
             or ip.is_multicast
-            or ip.is_unspecified
+            or ip.is_unspecified,
         )
     except ValueError:
         # Not a valid IP address, assume it's a hostname
         # Check for localhost variants and internal naming patterns
         hostname_lower = hostname.lower()
-        
+
         # Direct localhost matches
         if hostname_lower in ("localhost", "localhost.localdomain"):
             return True
-        
+
         # Check for localhost subdomains
-        if hostname_lower.endswith(".localhost") or hostname_lower.endswith(".localhost.localdomain"):
+        if hostname_lower.endswith(".localhost") or hostname_lower.endswith(
+            ".localhost.localdomain",
+        ):
             return True
-        
+
         # Common internal naming patterns (may resolve to internal IPs)
         internal_prefixes = (
             "internal.",
@@ -113,14 +115,14 @@ def _is_internal_ip(hostname: str) -> bool:
         )
         if hostname_lower.startswith(internal_prefixes):
             return True
-        
+
         return False
 
 
 def _decode_url_encoding(value: str) -> str:
     """
     Decode percent-encoded characters for detection.
-    
+
     Uses urllib.parse.unquote for full decoding, then checks for
     common double-encoding patterns.
     """
@@ -136,11 +138,11 @@ def _decode_url_encoding(value: str) -> str:
 def validate_url_safe(value: Any, allow_internal: bool = False) -> None:
     """
     Validate URL is safe from SSRF attacks.
-    
+
     Args:
         value: URL string to validate
         allow_internal: If True, allows internal IPs (for special cases)
-    
+
     Raises:
         ValidationError: If URL is unsafe or invalid
     """
@@ -149,23 +151,23 @@ def validate_url_safe(value: Any, allow_internal: bool = False) -> None:
             _("URL must be a string"),
             code="url_invalid_type",
         )
-    
+
     if not value:
         raise ValidationError(
             _("URL cannot be empty"),
             code="url_empty",
         )
-    
+
     # Check for null bytes
     if "\x00" in value or "%00" in value:
         raise ValidationError(
             _("URL contains invalid characters"),
             code="url_null_byte",
         )
-    
+
     # Decode potential URL encoding to catch bypass attempts (including double encoding)
     decoded_value = _decode_url_encoding(value)
-    
+
     try:
         parsed = urlparse(decoded_value)
     except ValueError as exc:
@@ -174,7 +176,7 @@ def validate_url_safe(value: Any, allow_internal: bool = False) -> None:
             code="url_invalid_format",
             params={"error": str(exc)},
         ) from exc
-    
+
     # Validate scheme
     scheme = parsed.scheme.lower()
     if not scheme:
@@ -182,21 +184,23 @@ def validate_url_safe(value: Any, allow_internal: bool = False) -> None:
             _("URL must have a scheme (http:// or https://)"),
             code="url_missing_scheme",
         )
-    
+
     if scheme in DANGEROUS_SCHEMES:
         raise ValidationError(
             _("URL scheme '%(scheme)s' is not allowed"),
             code="url_dangerous_scheme",
             params={"scheme": scheme},
         )
-    
+
     if scheme not in ALLOWED_SCHEMES:
         raise ValidationError(
-            _("URL scheme '%(scheme)s' is not allowed. Use http:// or https://"),
+            _(
+                "URL scheme '%(scheme)s' is not allowed. Use http:// or https://",
+            ),
             code="url_disallowed_scheme",
             params={"scheme": scheme},
         )
-    
+
     # Validate hostname exists
     hostname = parsed.hostname
     if not hostname:
@@ -204,14 +208,14 @@ def validate_url_safe(value: Any, allow_internal: bool = False) -> None:
             _("URL must have a hostname"),
             code="url_missing_hostname",
         )
-    
+
     # Check for internal IPs (SSRF protection)
     if not allow_internal and _is_internal_ip(hostname):
         raise ValidationError(
             _("Internal URLs are not allowed"),
             code="url_internal_ip",
         )
-    
+
     # Additional check: block common cloud metadata endpoints
     # These are link-local but we want explicit message
     if hostname in ("169.254.169.254", "metadata.google.internal", "metadata"):
@@ -219,14 +223,14 @@ def validate_url_safe(value: Any, allow_internal: bool = False) -> None:
             _("Cloud metadata endpoints are not allowed"),
             code="url_cloud_metadata",
         )
-    
+
     # Check for URL with credentials (user:pass@host)
     if parsed.username or parsed.password:
         raise ValidationError(
             _("URLs with embedded credentials are not allowed"),
             code="url_embedded_credentials",
         )
-    
+
     # Check for DNS rebinding protection:
     # Hostnames should not look like IP addresses with trailing dots
     if re.match(r"^\d+\.\d+\.\d+\.\d+\.+$", hostname):
@@ -239,7 +243,7 @@ def validate_url_safe(value: Any, allow_internal: bool = False) -> None:
 def validate_url_not_internal(value: Any) -> None:
     """
     Validate URL does not point to internal network resources.
-    
+
     Alias for validate_url_safe with allow_internal=False.
     """
     return validate_url_safe(value, allow_internal=False)

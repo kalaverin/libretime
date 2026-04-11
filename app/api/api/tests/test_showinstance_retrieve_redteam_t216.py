@@ -40,7 +40,10 @@ class TestShowInstanceRetrieveBOLA:
 
     @pytest.mark.xfail(reason="T398: No owner filtering on ShowInstance")
     def test_retrieve_other_user_instance(
-        self, api_client, regular_user, admin_user,
+        self,
+        api_client,
+        regular_user,
+        admin_user,
     ):
         """Retrieve another user's show instance."""
         show = baker.make(Show, name="Admin Show")

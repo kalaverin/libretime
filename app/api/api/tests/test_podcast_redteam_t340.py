@@ -18,7 +18,10 @@ class TestPodcastIDOR:
     """IDOR attacks on podcast resources."""
 
     def test_list_podcasts_shows_only_own(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """BOLA: Verify user can only see their own podcasts.
 
@@ -62,7 +65,10 @@ class TestPodcastIDOR:
             )
 
     def test_access_other_user_podcast_directly(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """BOLA: Try to access another user's podcast by ID.
 
@@ -93,7 +99,10 @@ class TestPodcastIDOR:
             )
 
     def test_modify_other_user_podcast(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to modify another user's podcast (horizontal privilege escalation).
 
@@ -119,7 +128,10 @@ class TestPodcastIDOR:
         assert response.status_code in [403, 404]
 
     def test_delete_other_user_podcast(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to delete another user's podcast.
 
@@ -209,7 +221,10 @@ class TestPodcastOwnerMassAssignment:
     """Mass assignment attacks on owner field."""
 
     def test_create_podcast_with_other_user_as_owner(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to create podcast with another user as owner.
 
@@ -237,7 +252,10 @@ class TestPodcastOwnerMassAssignment:
             assert data.get("owner") != admin_user.id
 
     def test_change_podcast_owner_to_another_user(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to change podcast owner to another user.
 
@@ -280,14 +298,18 @@ class TestPodcastOwnerMassAssignment:
 
         api_client.force_authenticate(user=admin_user)
         response = api_client.patch(
-            f"/api/v2/podcasts/{podcast.id}", {"owner": None}, format="json",
+            f"/api/v2/podcasts/{podcast.id}",
+            {"owner": None},
+            format="json",
         )
 
         # May succeed (make it a site podcast) or fail
         assert response.status_code in [200, 400]
 
     def test_create_podcast_with_invalid_owner_id(
-        self, api_client, admin_user,
+        self,
+        api_client,
+        admin_user,
     ):
         """Try to create podcast with non-existent owner ID."""
         api_client.force_authenticate(user=admin_user)
@@ -306,7 +328,9 @@ class TestPodcastOwnerMassAssignment:
         assert response.status_code == 400
 
     def test_create_podcast_with_negative_owner_id(
-        self, api_client, admin_user,
+        self,
+        api_client,
+        admin_user,
     ):
         """Try to create podcast with negative owner ID."""
         api_client.force_authenticate(user=admin_user)
@@ -403,7 +427,10 @@ class TestPodcastEpisodeBOLA:
     """BOLA attacks on podcast episodes."""
 
     def test_access_episode_of_other_user_podcast(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """BOLA: Try to access episode of another user's podcast.
 
@@ -443,7 +470,10 @@ class TestPodcastEpisodeBOLA:
             )
 
     def test_modify_episode_of_other_user_podcast(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to modify episode of another user's podcast."""
         from model_bakery import baker
@@ -480,7 +510,10 @@ class TestPodcastPermissionsBypass:
     """Permission bypass attempts."""
 
     def test_admin_can_access_any_podcast(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Verify admin can access any podcast (expected behavior)."""
         from model_bakery import baker
@@ -556,7 +589,10 @@ class TestPodcastStationIDOR:
     """IDOR attacks on station podcasts."""
 
     def test_list_station_podcasts_shows_only_own(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Verify user can only see their own station podcasts.
 
@@ -567,13 +603,15 @@ class TestPodcastStationIDOR:
         # Admin creates station podcast
         admin_podcast = baker.make("podcasts.Podcast", owner=admin_user)
         admin_station = baker.make(
-            "podcasts.StationPodcast", podcast=admin_podcast,
+            "podcasts.StationPodcast",
+            podcast=admin_podcast,
         )
 
         # User creates station podcast
         user_podcast = baker.make("podcasts.Podcast", owner=regular_user)
         user_station = baker.make(
-            "podcasts.StationPodcast", podcast=user_podcast,
+            "podcasts.StationPodcast",
+            podcast=user_podcast,
         )
 
         api_client.force_authenticate(user=regular_user)
@@ -597,7 +635,10 @@ class TestPodcastImportedIDOR:
     """IDOR attacks on imported podcasts."""
 
     def test_access_other_user_imported_podcast(
-        self, api_client, admin_user, regular_user,
+        self,
+        api_client,
+        admin_user,
+        regular_user,
     ):
         """Try to access another user's imported podcast."""
         from model_bakery import baker
@@ -605,7 +646,8 @@ class TestPodcastImportedIDOR:
         # Admin creates imported podcast
         admin_podcast = baker.make("podcasts.Podcast", owner=admin_user)
         admin_imported = baker.make(
-            "podcasts.ImportedPodcast", podcast=admin_podcast,
+            "podcasts.ImportedPodcast",
+            podcast=admin_podcast,
         )
 
         # User tries to access

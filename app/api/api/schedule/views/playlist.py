@@ -5,7 +5,6 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.serializers import Serializer
 
 from api.mixins import AutoAssignOwnerMixin
-from api.permissions import check_authorization_header
 from api.schedule.models import Playlist, PlaylistContent
 from api.schedule.serializers import (
     PlaylistContentSerializer,

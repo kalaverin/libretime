@@ -5,9 +5,7 @@ from django_filters import rest_framework as filters
 from rest_framework import viewsets
 from rest_framework.serializers import Serializer
 
-from api.core.models.role import Role
 from api.mixins import ReadWriteSerializerMixin
-from api.permissions import check_authorization_header
 from api.schedule.models import Schedule
 from api.schedule.serializers import (
     ReadScheduleSerializer,
