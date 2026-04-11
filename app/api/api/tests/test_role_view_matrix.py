@@ -46,6 +46,31 @@ def get_results(response) -> list[dict[str, Any]]:
 # =============================================================================
 
 @pytest.mark.django_db
+class TestAnonymousAccessDenied:
+    """Anonymous users get 403 on all endpoints (no read access)."""
+
+    def test_anonymous_gets_403_on_shows(self, anonymous_client):
+        """Anonymous user gets 403, not empty list."""
+        response = anonymous_client.get("/api/v2/shows")
+        assert response.status_code == 403
+
+    def test_anonymous_gets_403_on_playlists(self, anonymous_client):
+        """Anonymous user gets 403 on playlists."""
+        response = anonymous_client.get("/api/v2/playlists")
+        assert response.status_code == 403
+
+    def test_anonymous_gets_403_on_files(self, anonymous_client):
+        """Anonymous user gets 403 on files."""
+        response = anonymous_client.get("/api/v2/files")
+        assert response.status_code == 403
+
+    def test_anonymous_gets_403_on_podcasts(self, anonymous_client):
+        """Anonymous user gets 403 on podcasts."""
+        response = anonymous_client.get("/api/v2/podcasts")
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
 class TestViewPermissionMatrix:
     """
     Test matrix: VIEW operations for all roles.

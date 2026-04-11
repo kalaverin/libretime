@@ -124,19 +124,24 @@ class IsSystemTokenOrUser(BasePermission):
 
     @override
     def has_permission(self, request: Request, view: Any) -> bool:
+        # API-Key auth (services) - bypass Django permissions
+        if check_authorization_header(request):
+            return True
+            
+        # Anonymous users without API-Key get 403
+        if not request.user or not request.user.is_authenticated:
+            return False
+            
+        # Authenticated users check Django permissions
+        perm = get_permission_for_view(request, view)
+        # Required as view_apiroot is a permission not linked to a specific
+        # model. This use-case allows users to view the base of the API
+        # explorer. Their assigned group permissions determine further access
+        # into the explorer.
 
-        if request.user and request.user.is_authenticated:
-            perm = get_permission_for_view(request, view)
-            # Required as view_apiroot is a permission not linked to a specific
-            # model. This use-case allows users to view the base of the API
-            # explorer. Their assigned group permissions determine further access
-            # into the explorer.
-
-            if perm == "view_apiroot":
-                return True
-            return request.user.has_perm(perm)
-
-        return check_authorization_header(request)
+        if perm == "view_apiroot":
+            return True
+        return request.user.has_perm(perm)
 
     @override
     def has_object_permission(
