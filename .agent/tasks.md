@@ -6728,3 +6728,13 @@ Summary: |
   All tests pass (22 passed, 1 xfailed for ShowViewSet issue).
   Full permission suite now: 261 passed, 2 xfailed, 1 xpassed.
 
+
+## [DONE] fix T924 — Fix MANAGER show permissions (remove xfail)
+Status: DONE
+Completed: 2026-04-11T03:00:00Z
+Scope: api/schedule/views/show.py, test_role_*_matrix.py
+Summary: |
+  Fixed ShowViewSet._check_show_ownership() to allow MANAGER role.
+  Removed xfail markers from 3 tests.
+  Full permission matrix now: 264 passed, 0 xfailed.
+

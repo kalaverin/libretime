@@ -324,7 +324,6 @@ class TestUpdateManagerAnyObject:
         response = manager_client.patch(get_endpoint("webstream", stream.id), data, format="json")
         assert response.status_code == 200
 
-    @pytest.mark.xfail(reason="ShowViewSet.perform_update has additional ownership check blocking non-owners")
     def test_manager_can_update_show(self, manager_client, faker):
         """MANAGER can update shows."""
         show = create_entity("show", None, faker)
@@ -355,7 +354,6 @@ class TestUpdateAdminAnyObject:
         assert response.status_code == 200
         assert response.data["name"] == new_name
 
-    @pytest.mark.xfail(reason="ShowViewSet.perform_update has additional ownership check blocking non-owners", strict=False)
     def test_admin_can_update_show(self, admin_client, faker):
         """ADMIN can update shows."""
         show = create_entity("show", None, faker)

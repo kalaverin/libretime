@@ -58,22 +58,26 @@ class ShowViewSet(viewsets.ModelViewSet[Any]):
         # Note: API-Key auth creates show without host (service-to-service)
 
     def _check_show_ownership(self, show: Show) -> None:
-        """Verify user is host or admin before modifying a show."""
+        """Verify user is host, manager, or admin before modifying a show."""
+        from api.core.models.role import Role
+        
         user = self.request.user
         # API-Key auth bypasses ownership check (services have full access)
         if check_authorization_header(self.request):
             return
-        # Superuser can modify any show
-        # Handle both method and property
+        # Superuser (ADMIN) can modify any show
         is_super = user.is_superuser
         if callable(is_super):
             is_super = is_super()
         if is_super:
             return
+        # MANAGER can modify any show (has full CRUD permissions)
+        if user.role == Role.MANAGER:
+            return
         # Host can modify their shows
         if show.hosts.filter(id=user.id).exists():
             return
-        raise PermissionDenied("Only show hosts or admins can modify this show.")
+        raise PermissionDenied("Only show hosts, managers, or admins can modify this show.")
 
     def perform_update(self, serializer: Any) -> None:
         """Update show - restricted to hosts and admins."""

@@ -2658,3 +2658,29 @@ All HOST can now: create own, update own, delete own, view all
 - Update: 25 tests (PATCH/PUT)
 - Delete: 23 tests (DELETE)
 
+
+---
+
+### [2026-04-11T03:00:00Z]
+
+**Fixed:** MANAGER can now update/delete shows (removed xfail tests)
+
+**Problem:** ShowViewSet._check_show_ownership() only allowed ADMIN and HOST, blocking MANAGER
+
+**Solution in api/schedule/views/show.py:**
+```python
+def _check_show_ownership(self, show: Show) -> None:
+    # ... API-Key and ADMIN checks ...
+    # MANAGER can modify any show (has full CRUD permissions)
+    if user.role == Role.MANAGER:
+        return
+    # ... HOST check ...
+```
+
+**Removed xfail markers:**
+- test_role_update_matrix.py::test_manager_can_update_show
+- test_role_update_matrix.py::test_admin_can_update_show  
+- test_role_delete_matrix.py::test_manager_can_delete_show
+
+**Final Permission Matrix Suite: 264 passed, 0 xfailed** 🔥💀
+

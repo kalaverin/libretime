@@ -297,7 +297,6 @@ class TestDeleteManagerAnyObject:
         assert response.status_code == 204
         assert not entity_exists("webstream", obj_id)
 
-    @pytest.mark.xfail(reason="ShowViewSet.perform_destroy has additional ownership check blocking non-owners")
     def test_manager_can_delete_show(self, manager_client, faker):
         """MANAGER can delete shows."""
         show = create_entity("show", None, faker)
