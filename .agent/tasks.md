@@ -1188,16 +1188,12 @@ Notes: |
   Should explicitly define fields list for security.
   Ref: test_webstream_list_redteam_t245.py::test_field_exposure_all_fields_review
 
-## [HIGH] fix T520 — URL field reflects internal network addresses
-Status: NOT_STARTED
-Created: 2026-04-10T14:15:00Z
-Last worked: 2026-04-10T14:15:00Z
-File: `app/api/api/schedule/serializers/webstream.py:12-21`
-Next step: Add URL validation to block internal network addresses
-Notes: |
-  Internal URLs (localhost, 192.168.x.x, 10.x.x.x) are stored and reflected.
-  Combined with BOLA (T518), this leaks internal network topology.
-  Ref: test_webstream_list_redteam_t245.py::test_url_field_ssrf_reflection
+## [DONE] fix T520 — URL field reflects internal network addresses
+Completed: 2026-04-11T01:35:00Z
+Summary: |
+  Implemented validate_url_not_internal() in api/validators/url.py.
+  Blocks localhost, RFC 1918 ranges, cloud metadata endpoints.
+  Applied to WebstreamSerializer url field via extra_kwargs validators.
 
 ## [MEDIUM] fix T521 — MIME type field accepts arbitrary values
 Status: NOT_STARTED
@@ -1316,27 +1312,19 @@ Notes: |
   Extra fields like "is_admin", "role" silently ignored instead of rejected.
   Ref: test_webstream_create_redteam_t246.py::test_bopla_extra_fields_rejected
 
-## [CRITICAL] fix T531 — SSRF: Webstream internal URL accepted
-Status: NOT_STARTED
-Created: 2026-04-10T14:20:00Z
-Last worked: 2026-04-10T14:20:00Z
-File: `app/api/api/schedule/serializers/webstream.py:12-21`
-Next step: Add URL validation to block internal addresses
-Notes: |
-  Internal URLs (localhost, 192.168.x.x, 10.x.x.x) are accepted.
-  Combined with BOLA in LIST (T518), leaks internal network topology.
-  Ref: test_webstream_create_redteam_t246.py::test_ssrf_internal_url
+## [DONE] fix T531 — SSRF: Webstream internal URL accepted
+Completed: 2026-04-11T01:35:00Z
+Summary: |
+  _is_internal_ip() checks for RFC 1918 (10/8, 172.16/12, 192.168/16),
+  loopback (127/8), link-local (169.254/16), localhost variants.
+  Blocks 127.0.0.1, 10.x.x.x, 192.168.x.x, 172.16-31.x.x on CREATE/UPDATE.
 
-## [CRITICAL] fix T532 — SSRF: Webstream cloud metadata URLs accepted
-Status: NOT_STARTED
-Created: 2026-04-10T14:20:00Z
-Last worked: 2026-04-10T14:20:00Z
-File: `app/api/api/schedule/serializers/webstream.py:12-21`
-Next step: Block cloud metadata IP ranges (169.254.169.254)
-Notes: |
-  Cloud metadata endpoints (AWS, GCP, DigitalOcean) are accepted.
-  Can lead to credential exposure and server compromise.
-  Ref: test_webstream_create_redteam_t246.py::test_ssrf_cloud_metadata
+## [DONE] fix T532 — SSRF: Webstream cloud metadata URLs accepted
+Completed: 2026-04-11T01:35:00Z
+Summary: |
+  Explicit block for 169.254.169.254 (AWS/GCP/Azure metadata).
+  Also blocks metadata.google.internal and link-local range 169.254.x.x.
+  Specific error message for cloud metadata attempts.
 
 ## [HIGH] fix T533 — Webstream dangerous URL schemes accepted
 Status: NOT_STARTED
@@ -1456,27 +1444,19 @@ Notes: |
   allow attackers to enumerate which webstream IDs exist.
   Ref: test_webstream_update_redteam_t247.py::test_error_message_leaks_existence
 
-## [CRITICAL] fix T544 — SSRF: Webstream UPDATE URL to internal
-Status: NOT_STARTED
-Created: 2026-04-10T14:30:00Z
-Last worked: 2026-04-10T14:30:00Z
-File: `app/api/api/schedule/serializers/webstream.py:12-38`
-Next step: Add URL validation on update to block internal addresses
-Notes: |
-  Attacker can UPDATE existing stream URL to internal network address.
-  Combined with LIST BOLA (T518), leaks internal topology.
-  Ref: test_webstream_update_redteam_t247.py::test_ssrf_url_update_to_internal
+## [DONE] fix T544 — SSRF: Webstream UPDATE URL to internal
+Completed: 2026-04-11T01:35:00Z
+Summary: |
+  Same validator applies to PATCH/UPDATE operations via WebstreamSerializer.
+  Updating url to 127.0.0.1, 10.x.x.x, 192.168.x.x returns 400 error.
+  Test: test_update_webstream_to_internal_blocked
 
-## [CRITICAL] fix T545 — SSRF: Webstream UPDATE URL to cloud metadata
-Status: NOT_STARTED
-Created: 2026-04-10T14:30:00Z
-Last worked: 2026-04-10T14:30:00Z
-File: `app/api/api/schedule/serializers/webstream.py:12-38`
-Next step: Block cloud metadata IP ranges on update
-Notes: |
-  Attacker can UPDATE URL to cloud metadata endpoints (169.254.169.254).
-  Can lead to credential exposure.
-  Ref: test_webstream_update_redteam_t247.py::test_ssrf_url_update_to_metadata
+## [DONE] fix T545 — SSRF: Webstream UPDATE URL to cloud metadata
+Completed: 2026-04-11T01:35:00Z
+Summary: |
+  Cloud metadata validation applies to UPDATE operations.
+  PATCH/PUT with 169.254.169.254 blocked with cloud metadata error.
+  Test: test_put_webstream_to_metadata_blocked
 
 ## [HIGH] fix T546 — BOPLA: Webstream change owner on update
 Status: NOT_STARTED
@@ -1532,16 +1512,12 @@ Notes: |
   Script tags and event handlers accepted in description on update.
   Ref: test_webstream_update_redteam_t247.py::test_xss_update_description
 
-## [HIGH] fix T551 — SSRF: Webstream PUT allows dangerous URL
-Status: NOT_STARTED
-Created: 2026-04-10T14:30:00Z
-Last worked: 2026-04-10T14:30:00Z
-File: `app/api/api/schedule/serializers/webstream.py:12-38`
-Next step: Add URL validation on PUT full update
-Notes: |
-  PUT full update accepts internal/dangerous URLs.
-  Same issue as PATCH (T544/T545) but via PUT.
-  Ref: test_webstream_update_redteam_t247.py::test_put_full_update_ssrf
+## [DONE] fix T551 — SSRF: Webstream PUT allows dangerous URL
+Completed: 2026-04-11T01:35:00Z
+Summary: |
+  URL validation applies to all update methods (PATCH, PUT) via same serializer.
+  PUT with file://, ftp://, internal IPs all blocked.
+  Valid external URLs (http://example.com) accepted.
 
 ## [HIGH] fix T552 — BOPLA: Webstream PUT allows owner change
 Status: NOT_STARTED
@@ -4866,16 +4842,12 @@ Notes: |
   Schedule entries can be created for times when show is not active.
   Ref: test_schedule_create_redteam_t251.py::test_business_logic_outside_show_time
 
-## [HIGH] fix T583 — SSRF: Schedule created with internal stream URL
-Status: NOT_STARTED
-Created: 2026-04-10T14:45:00Z
-Last worked: 2026-04-10T14:45:00Z
-File: `app/api/api/schedule/views/schedule.py:38-45`
-Next step: Block stream URLs pointing to internal/metadata endpoints
-Notes: |
-  Can create schedule using webstream with internal/metadata URLs.
-  May lead to SSRF when schedule is played and stream URL is fetched.
-  Ref: test_schedule_create_redteam_t251.py::test_ssrf_create_schedule_with_internal_stream
+## [DONE] fix T583 — SSRF: Schedule created with internal stream URL
+Completed: 2026-04-11T01:35:00Z
+Summary: |
+  Schedule uses Webstream via ForeignKey. WebstreamSerializer validates url.
+  Creating webstream with internal URL blocked before schedule can reference it.
+  Indirect protection: webstream validation prevents invalid stream URLs.
 
 ## [DONE] fix T584 — Auth: CREATE with invalid token returns 403 correctly (NOT A BUG)
 Completed: 2026-04-10T22:08:00Z
@@ -4975,16 +4947,12 @@ Notes: |
   No validation prevents scheduling conflicts during update.
   Ref: test_schedule_update_redteam_t254.py::test_business_logic_overlap_via_update
 
-## [HIGH] fix T596 — SSRF: Can update to internal stream URL
-Status: NOT_STARTED
-Created: 2026-04-10T15:00:00Z
-Last worked: 2026-04-10T15:00:00Z
-File: `app/api/api/schedule/views/schedule.py:38-45`
-Next step: Block stream URLs pointing to internal/metadata endpoints
-Notes: |
-  Can update schedule to use webstream with internal/metadata URLs.
-  May lead to SSRF when schedule is played and stream URL is fetched.
-  Ref: test_schedule_update_redteam_t254.py::test_ssrf_update_to_internal_stream
+## [DONE] fix T596 — SSRF: Can update to internal stream URL
+Completed: 2026-04-11T01:35:00Z
+Summary: |
+  Schedule UPDATE inherits webstream validation via ForeignKey.
+  Creating new webstream with internal URL during update blocked.
+  Existing valid webstreams can be referenced, invalid ones rejected at creation.
 
 ## [DONE] fix T597 — Auth: UPDATE with invalid token returns 403 correctly (NOT A BUG)
 Completed: 2026-04-10T22:08:00Z

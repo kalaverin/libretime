@@ -2762,3 +2762,34 @@ def download(self, request: Request, **__: Any) -> HttpResponse:
 **All 34 path security tests pass.**
 
 **Tasks completed:** T8, T479, T855, T856, T857, T886, T890
+
+### [2026-04-11T01:35:00Z]
+
+**Fixed:** SSRF protection for Webstream and Schedule (T520, T523, T531, T532, T544, T545, T551, T583, T596)
+
+**Changes:**
+
+1. **api/validators/url.py** - SSRF protection validators:
+   - `validate_url_safe()` - Main URL validator with scheme, hostname, credentials checks
+   - `validate_url_not_internal()` - Blocks internal IPs and cloud metadata
+   - `_is_internal_ip()` - RFC 1918, loopback, link-local detection
+   - Blocks: file://, ftp://, localhost, 127.x.x.x, 10.x.x.x, 192.168.x.x, 172.16-31.x.x, 169.254.169.254
+
+2. **api/schedule/serializers/webstream.py** - WebstreamSerializer updated:
+   ```python
+   extra_kwargs = {
+       "url": {"validators": [validate_url_not_internal]},
+   }
+   ```
+
+3. **Tests added** - `test_ssrf_webstream_schedule_t29_t520_t523_t531_t532_t544_t545_t551_t583_t596.py`:
+   - 21 tests covering all SSRF vectors
+   - Dangerous schemes: file://, ftp:// - blocked
+   - Internal IPs: localhost, 127.0.0.1, 10.0.0.1, 192.168.1.1, 172.16/31.x.x - blocked
+   - Cloud metadata: 169.254.169.254 - blocked
+   - URL-encoded bypass: %6c%6f%63%61%6c%68%6f%73%74 - blocked
+   - Valid URLs: http://example.com, https://radio.com:8000/stream - work
+
+**All 21 SSRF tests pass.**
+
+**Tasks completed:** T520, T523, T531, T532, T544, T545, T551, T583, T596

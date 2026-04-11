@@ -212,16 +212,16 @@
 
 | ID | Вектор | Компонент | Описание |
 |----|--------|-----------|----------|
-| T29 | URL | Podcast download | file://, internal URLs |
-| T520 | URL | Webstream LIST | Internal reflection |
-| T523 | URL | Webstream | Invalid URL accepted |
-| T531 | URL | Webstream CREATE | Internal URL accepted |
-| T532 | URL | Webstream CREATE | Cloud metadata |
-| T544 | URL | Webstream UPDATE | Update to internal |
-| T545 | URL | Webstream UPDATE | Cloud metadata update |
-| T551 | URL | Webstream PUT | Dangerous URL |
-| T583 | stream | Schedule CREATE | Internal stream |
-| T596 | stream | Schedule UPDATE | Internal stream update |
+    | T29 | URL | Podcast download | file://, internal URLs |
+    | T520 | URL | Webstream LIST | Internal reflection |
+    | T523 | URL | Webstream | Invalid URL accepted |
+    | T531 | URL | Webstream CREATE | Internal URL accepted |
+    | T532 | URL | Webstream CREATE | Cloud metadata |
+    | T544 | URL | Webstream UPDATE | Update to internal |
+    | T545 | URL | Webstream UPDATE | Cloud metadata update |
+    | T551 | URL | Webstream PUT | Dangerous URL |
+    | T583 | stream | Schedule CREATE | Internal stream |
+    | T596 | stream | Schedule UPDATE | Internal stream update |
 
 ---
 

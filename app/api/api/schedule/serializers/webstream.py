@@ -5,6 +5,7 @@ from django.db.models import Model
 from rest_framework.serializers import ModelSerializer
 
 from api.schedule.models import Webstream, WebstreamMetadata
+from api.validators.url import validate_url_not_internal
 from sdk import now
 
 
@@ -18,6 +19,7 @@ class WebstreamSerializer(ModelSerializer[Any]):
             "created_at": {"required": False},
             "updated_at": {"required": False},
             "length": {"required": False},
+            "url": {"validators": [validate_url_not_internal]},
         }
 
     def create(self, validated_data: dict[str, Any]) -> Webstream:
