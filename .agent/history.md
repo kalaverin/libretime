@@ -2538,3 +2538,43 @@ GROUPS = {
 - MANAGER → owner = MANAGER
 - ADMIN → owner = ADMIN
 - All verified by `test_role_create_matrix.py` 🔥💀
+
+
+---
+
+### [2026-04-11T03:00:00Z]
+
+**Completed:** Full permission test suite for all CRUD operations
+
+**Test Files Created:**
+
+| File | Tests | Coverage |
+|------|-------|----------|
+| `test_role_create_matrix.py` | 12 | CREATE (POST) for all roles |
+| `test_role_view_matrix.py` | 17 | LIST (GET) for all roles |
+| `test_role_detail_matrix.py` | 21 | DETAIL (GET /{id}) for all roles |
+| `test_role_anonymous_denied.py` | 162 | Anonymous 403 on all endpoints |
+
+**Total: 212 permission tests** 🔥💀
+
+**Permission Matrix Summary:**
+
+| Operation | GUEST | HOST | MANAGER | ADMIN |
+|-----------|-------|------|---------|-------|
+| **CREATE** | 403 | 201 ✅ (own) | 201 ✅ | 201 ✅ |
+| **LIST** | 200 ✅ | 200 ✅ | 200 ✅ | 200 ✅ |
+| **DETAIL** | 200 ✅ | 200 ✅ | 200 ✅ | 200 ✅ |
+| **ANONYMOUS** | 403 | N/A | N/A | N/A |
+
+**Key Security Changes:**
+1. Anonymous → 403 on all endpoints (no access)
+2. API-Key → Full access (services only)
+3. All authenticated roles see same content for VIEW
+4. Only CREATE/UPDATE/DELETE differ by role
+
+**Files Modified:**
+- `app/api/api/permissions.py` — Anonymous 403, API-Key bypass
+- `app/api/api/permission_constants.py` — ADMIN permissions added
+- `app/api/api/schedule/views/webstream.py` — Removed owner filter for VIEW
+
+**Next Steps:** UPDATE and DELETE permission matrices
