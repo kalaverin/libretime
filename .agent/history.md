@@ -2629,3 +2629,32 @@ def get_own_obj(request: Request, view: "APIView") -> str:
 
 All HOST can now: create own, update own, delete own, view all
 
+
+---
+
+### [2026-04-11T02:50:00Z]
+
+**Added:** Comprehensive DELETE permission matrix tests
+
+**New file:** `api/tests/test_role_delete_matrix.py`
+- 23 tests covering DELETE operations across all roles
+- Test classes: `TestDeleteAnonymousDenied`, `TestDeleteGuestDenied`, `TestDeleteHostOwnObjects`, `TestDeleteManagerAnyObject`, `TestDeleteAdminAnyObject`, `TestDeleteCrossRoleComparison`, `TestDeleteEdgeCases`
+
+**DELETE Matrix Results:**
+| Role | Own Object | Other's Object |
+|------|-----------|----------------|
+| HOST | 204 | 403/404 |
+| MANAGER | 204 | 204 |
+| ADMIN | 204 | 204 |
+
+**Known Issue:**
+- Show delete blocked for MANAGER by `ShowViewSet.perform_destroy` (1 xfail)
+
+**Full Permission Matrix Suite: 261 passed, 2 xfailed, 1 xpassed**
+- Anonymous: 162 tests (403 on all endpoints)
+- View: 17 tests (public read)
+- Detail: 21 tests (single object retrieve)
+- Create: 12 tests (POST + owner assignment)
+- Update: 25 tests (PATCH/PUT)
+- Delete: 23 tests (DELETE)
+

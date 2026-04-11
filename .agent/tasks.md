@@ -6717,3 +6717,14 @@ Summary: |
   Created comprehensive permission matrix tests: 239 passed, 1 xfailed, 1 xpassed.
   HOST can now: create own, update own, delete own, view all content.
 
+
+## [DONE] test T923 — Add DELETE permission matrix tests
+Status: DONE
+Completed: 2026-04-11T02:50:00Z
+Scope: api/tests/test_role_delete_matrix.py
+Summary: |
+  Created comprehensive DELETE permission matrix tests (23 tests).
+  Covers: Anonymous 403, GUEST 403, HOST own-only, MANAGER/ADMIN any.
+  All tests pass (22 passed, 1 xfailed for ShowViewSet issue).
+  Full permission suite now: 261 passed, 2 xfailed, 1 xpassed.
+
