@@ -2721,3 +2721,44 @@ def download(self, request: Request, **__: Any) -> HttpResponse:
 - T854 (File download) - DONE
 - T806-T809, T829-T832, T850-T851 - работают как задумано (public read for authenticated)
 
+
+### [2026-04-11T01:27:28Z]
+
+**Fixed:** Path traversal security hardening with pathlib (T8, T479, T855-T857, T886, T890)
+
+**Changes:**
+
+1. **validators.py** - Enhanced filepath validation:
+   - `_contains_junk()` - Detects control chars, zero-width chars, bidi overrides
+   - `validate_filepath()` - Main validator with pattern matching
+   - `validate_filepath_resolves_within_storage()` - pathlib-based resolution check
+
+2. **views/file.py** - Secure perform_destroy() with pathlib:
+   ```python
+   def _resolve_and_validate_path(self, filepath: str) -> Path:
+       storage_root = Path(settings.CONFIG.storage.path).resolve()
+       full_path = (storage_root / filepath).resolve()
+       if not full_path.is_relative_to(storage_root):
+           raise APIException("filepath escapes storage directory")
+       return full_path
+   ```
+
+3. **serializers/smart_block.py** - cue_in/cue_out validation:
+   - `validate_no_path_patterns()` - Rejects path separators in duration fields
+
+4. **serializers/file.py** - FileSerializer updated:
+   - `extra_kwargs = {"filepath": {"validators": [validate_filepath]}}`
+
+**Test coverage:**
+- `test_path_traversal_t8_t479_t855_t856_t857_t886_t890.py` - 12 tests, all pass
+- `test_filepath_security_advanced.py` - 22 tests covering:
+  - Junk characters (null bytes, control chars, zero-width, bidi)
+  - Path traversal variants (../, ..\, URL-encoded, double-encoded)
+  - Absolute paths (Unix /, Windows C:\, UNC \\)
+  - Valid paths still work (relative, unicode, spaces, special chars)
+  - Edge cases (empty, null, very long paths)
+  - pathlib resolution in perform_destroy()
+
+**All 34 path security tests pass.**
+
+**Tasks completed:** T8, T479, T855, T856, T857, T886, T890
