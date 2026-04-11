@@ -2302,11 +2302,11 @@ Created: 2026-04-09T12:00:00Z
 Last worked: 2026-04-10T00:30:00Z
 Scope: api/permissions.py
 Notes: |
-  FIXED: Added is_authenticated check before calling is_superuser() in both
+  FIXED: Added is_authenticated check before calling is_superuser in both
   has_permission() and has_object_permission() methods.
 
-  Root cause: AnonymousUser.is_superuser is a bool property, while User.is_superuser()
-  is a method. Calling is_superuser() on AnonymousUser raised TypeError.
+  Root cause: AnonymousUser.is_superuser is a bool property, while User.is_superuser
+  is a method. Calling is_superuser on AnonymousUser raised TypeError.
 
   Changes:
   - api/permissions.py: Added is_authenticated check in IsAdminOrOwnUser

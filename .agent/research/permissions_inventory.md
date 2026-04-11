@@ -424,7 +424,7 @@ def get_own_obj(request, view):
            return Model.objects.all()
        if not self.request.user.is_authenticated:
            return Model.objects.none()
-       if self.request.user.is_superuser():
+       if self.request.user.is_superuser:
            return Model.objects.all()
        return Model.objects.filter(owner=self.request.user)
    ```

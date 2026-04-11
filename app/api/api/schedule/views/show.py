@@ -20,6 +20,8 @@ from api.schedule.serializers import (
     ShowRebroadcastSerializer,
     ShowSerializer,
 )
+from api.core.models import User
+from api.permissions import request_superauthorized, is_authenticated, is_superuser
 
 
 @final
@@ -31,46 +33,37 @@ class ShowViewSet(viewsets.ModelViewSet[Any]):
 
     def perform_create(self, serializer: Any) -> None:
         """Create show and assign current user as host (for session auth)."""
+
         show = serializer.save()
-        # Add creator as host (only for session-authenticated users, not API-Key)
         user = self.request.user
-        if user.is_authenticated and not user.is_anonymous:
-            from api.core.models import User
 
-            if isinstance(user, User):
-                ShowHost.objects.get_or_create(show=show, user=user)
-        # Note: API-Key auth creates show without host (service-to-service)
+        if is_authenticated(user) or is_superuser(user):
+            ShowHost.objects.get_or_create(show=show, user=user)
 
-    def _check_show_ownership(self, show: Show) -> None:
+        elif check_authorization_header(request):
+            ShowHost.objects.get_or_create(show=show)
+
+    def check_ownership(self, show: Show) -> None:
         """Verify user is host, manager, or admin before modifying a show."""
-        from api.core.models.role import Role
 
-        user = self.request.user
-        # API-Key auth bypasses ownership check (services have full access)
-        if check_authorization_header(self.request):
-            return
-        # Superuser (ADMIN) can modify any show
-        is_super = user.is_superuser
-        if callable(is_super):
-            is_super = is_super()
-        if is_super:
-            return
-        # MANAGER can modify any show (has full CRUD permissions)
-        if user.role == Role.MANAGER:
-            return
-        # Host can modify their shows
-        if show.hosts.filter(id=user.id).exists():
-            return
-        raise PermissionDenied("Only show hosts, managers, or admins can modify this show.")
+        request = self.request
+        if not (
+            request_superauthorized(request) or
+            show.hosts.filter(id=request.user.id).exists()
+        ):
+            raise PermissionDenied(
+                "Only show hosts, managers, or "
+                "admins can modify this show."
+            )
 
     def perform_update(self, serializer: Any) -> None:
         """Update show - restricted to hosts and admins."""
-        self._check_show_ownership(serializer.instance)
+        self.check_ownership(serializer.instance)
         serializer.save()
 
     def perform_destroy(self, instance: Show) -> None:
         """Delete show - restricted to hosts and admins."""
-        self._check_show_ownership(instance)
+        self.check_ownership(instance)
         instance.delete()
 
 

@@ -1,4 +1,5 @@
 import hashlib
+from functools import cached_property
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, ClassVar
@@ -147,6 +148,7 @@ class User(AbstractBaseUser):
     # (managed = True), then this can be replaced with
     # django.contrib.auth.models.PermissionMixin.
 
+    @cached_property
     def is_superuser(self) -> bool:
         return self.role == Role.ADMIN
 
@@ -178,11 +180,7 @@ class User(AbstractBaseUser):
         return self.get_user_permissions(obj) + self.get_group_permissions(obj)
 
     def has_perm(self, perm: str, obj: object | None = None) -> bool:
-        # Handle both method (User) and bool (AnonymousUser)
-        is_super = self.is_superuser
-        if callable(is_super):
-            is_super = is_super()
-        if is_super:
+        if self.is_superuser:
             return True
         if not perm:
             return False

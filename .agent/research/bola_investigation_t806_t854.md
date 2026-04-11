@@ -171,7 +171,7 @@ def get_queryset(self) -> Any:
     user = request.user
     if not user.is_authenticated:
         return Model.objects.none()
-    if user.is_superuser():
+    if user.is_superuser:
         return Model.objects.all()
     return Model.objects.filter(owner=user)  # ← Ownership filter
 
@@ -238,7 +238,7 @@ def get_queryset(self):
     if not self.request.user.is_authenticated:
         return self.queryset.none()
     # Admin: full access
-    if self.request.user.is_superuser():
+    if self.request.user.is_superuser:
         return self.queryset
     # User: own records only
     return self.queryset.filter(owner=self.request.user)

@@ -91,7 +91,7 @@ class TestIsAdminOrOwnUserAttributeManipulation:
             IsAdminOrOwnUser().has_permission(request, None)
 
     def test_is_superuser_returns_string_true(self):
-        """is_superuser() returns 'True' string - bool() converts to True."""
+        """is_superuser returns 'True' string - bool() converts to True."""
         request = APIRequestFactory().get("/api/v2/users")
         user = MagicMock()
         user.is_authenticated = True
@@ -103,7 +103,7 @@ class TestIsAdminOrOwnUserAttributeManipulation:
         assert result is True
 
     def test_is_superuser_returns_non_empty_string(self):
-        """is_superuser() returns any non-empty string - truthy."""
+        """is_superuser returns any non-empty string - truthy."""
         request = APIRequestFactory().get("/api/v2/users")
         user = MagicMock()
         user.is_authenticated = True
@@ -114,7 +114,7 @@ class TestIsAdminOrOwnUserAttributeManipulation:
         assert result is True
 
     def test_is_superuser_returns_empty_string(self):
-        """is_superuser() returns '' - falsy."""
+        """is_superuser returns '' - falsy."""
         request = APIRequestFactory().get("/api/v2/users")
         user = MagicMock()
         user.is_authenticated = True
@@ -125,7 +125,7 @@ class TestIsAdminOrOwnUserAttributeManipulation:
         assert result is False
 
     def test_is_superuser_returns_one(self):
-        """is_superuser() returns 1 - truthy."""
+        """is_superuser returns 1 - truthy."""
         request = APIRequestFactory().get("/api/v2/users")
         user = MagicMock()
         user.is_authenticated = True
@@ -136,7 +136,7 @@ class TestIsAdminOrOwnUserAttributeManipulation:
         assert result is True
 
     def test_is_superuser_returns_list(self):
-        """is_superuser() returns non-empty list - truthy."""
+        """is_superuser returns non-empty list - truthy."""
         request = APIRequestFactory().get("/api/v2/users")
         user = MagicMock()
         user.is_authenticated = True
@@ -147,7 +147,7 @@ class TestIsAdminOrOwnUserAttributeManipulation:
         assert result is True
 
     def test_is_superuser_raises_exception(self):
-        """is_superuser() raises exception - should propagate."""
+        """is_superuser raises exception - should propagate."""
         request = APIRequestFactory().get("/api/v2/users")
         user = MagicMock()
         user.is_authenticated = True

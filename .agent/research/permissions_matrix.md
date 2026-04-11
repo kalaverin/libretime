@@ -233,7 +233,7 @@ class SecureViewSet(ModelViewSet):
             return self.queryset.none()
         
         # Admin: full access
-        if user.is_superuser():
+        if user.is_superuser:
             return self.queryset
         
         # Regular user: own objects only

@@ -236,8 +236,8 @@ class TestHostFilePermissions:
         other_file.refresh_from_db()
         assert other_file.name == original_name
 
-    def test_host_can_delete_own_file(self, host_client, host_user, faker):
-        """HOST can DELETE own file (delete_own_file permission)."""
+    def test_host_cannot_delete_own_file(self, host_client, host_user, faker):
+        """HOST cannot DELETE own file - file deletion is not allowed (409)."""
         file_obj = baker.make(
             File,
             name=f"to_delete_{faker.uuid4()[:8]}.mp3",
@@ -247,10 +247,11 @@ class TestHostFilePermissions:
         file_id = file_obj.id
 
         response = host_client.delete(f"/api/v2/files/{file_id}")
-        assert response.status_code == 204
+        # File deletion is not allowed for anyone (409 Conflict)
+        assert response.status_code == 409
 
-        # Verify deleted (metadata only - file deletion is in perform_destroy)
-        assert not File.objects.filter(id=file_id).exists()
+        # Verify file was NOT deleted
+        assert File.objects.filter(id=file_id).exists()
 
     def test_host_cannot_delete_other_file(self, host_client, faker):
         """HOST cannot DELETE other user's file (BOLA prevention)."""

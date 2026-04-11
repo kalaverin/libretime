@@ -31,10 +31,10 @@
 class IsAdminOrOwnUser(BasePermission):
     """Разрешение для пользователей: admin может всё, обычный пользователь - только свои данные"""
     def has_permission(self, request, view) -> bool:
-        return bool(request.user.is_superuser())
+        return bool(request.user.is_superuser)
 
     def has_object_permission(self, request, view, obj) -> bool:
-        if request.user.is_superuser():
+        if request.user.is_superuser:
             return True
         return obj.username == request.user
 
@@ -1158,7 +1158,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 def check_permission(user, permission: str, obj=None):
     """Проверка разрешения Django-style"""
-    if user.is_superuser():
+    if user.is_superuser:
         return True
     if not permission:
         return False

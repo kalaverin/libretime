@@ -246,7 +246,7 @@ def get_queryset(self):
         return Model.objects.all()
     if not self.request.user.is_authenticated:
         return Model.objects.none()
-    if self.request.user.is_superuser():
+    if self.request.user.is_superuser:
         return Model.objects.all()
     return Model.objects.filter(owner=self.request.user)
 ```
@@ -275,7 +275,7 @@ def perform_update(self, serializer):
     # Only show hosts or admins can modify
     show = serializer.instance
     user = self.request.user
-    if not user.is_superuser() and not show.hosts.filter(id=user.id).exists():
+    if not user.is_superuser and not show.hosts.filter(id=user.id).exists():
         raise PermissionDenied("Only show hosts can modify")
     serializer.save()
 ```

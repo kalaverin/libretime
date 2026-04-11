@@ -203,11 +203,11 @@ class TestUser:
 
     def test_is_superuser_for_admin(self, admin_user):
         """Test is_superuser returns True for admin."""
-        assert admin_user.is_superuser() is True
+        assert admin_user.is_superuser is True
 
     def test_is_superuser_for_non_admin(self, user):
         """Test is_superuser returns False for non-admin."""
-        assert user.is_superuser() is False
+        assert user.is_superuser is False
 
     def test_get_user_permissions(self, user):
         """Test get_user_permissions returns empty list."""

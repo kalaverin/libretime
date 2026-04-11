@@ -2250,7 +2250,7 @@ def get_queryset(self):
         return Model.objects.all()  # Service: full
     if not request.user.is_authenticated:
         return Model.objects.none()  # Anonymous: empty
-    if request.user.is_superuser():
+    if request.user.is_superuser:
         return Model.objects.all()  # Admin: full
     return Model.objects.filter(owner=user)  # User: own
 ```
@@ -2395,7 +2395,7 @@ def test_host_cannot_update_other_playlist(self, host_client, faker):
 - ❌ BOLA prevention tests: 9 failed (confirmed vulnerabilities)
 
 **Bugs Fixed:**
-1. `is_superuser()` method → property consistency
+1. `is_superuser` method → property consistency
    - `app/api/api/core/models/user.py:181` - removed ()
    - `app/api/api/schedule/views/show.py:67` - removed ()
    - `app/api/api/schedule/views/webstream.py:31` - removed ()
@@ -2425,12 +2425,12 @@ def test_host_cannot_update_other_playlist(self, host_client, faker):
 - Мой первый фикс сломал всё — `user.is_superuser` для User возвращал bound method (truthy!)
 
 **Solution:**
-1. `_is_superuser()` helper in `permissions.py` — handles both callable and bool
+1. `is_superuser` helper in `permissions.py` — handles both callable and bool
 2. `has_perm()` in `user.py` — same pattern with callable check
-3. В `show.py` и `webstream.py` — `user.is_superuser()` (там точно User, не Anonymous)
+3. В `show.py` и `webstream.py` — `user.is_superuser` (там точно User, не Anonymous)
 
 **Files changed:**
-- `app/api/api/permissions.py` — added `_is_superuser()` helper
+- `app/api/api/permissions.py` — added `is_superuser` helper
 - `app/api/api/core/models/user.py:181` — callable check in `has_perm()`
 - `app/api/api/schedule/views/show.py:67` — restored `()`
 - `app/api/api/schedule/views/webstream.py:31` — restored `()`

@@ -1730,7 +1730,7 @@ range_start = format_datetime(now_seconds() - timedelta(minutes=1))
 
 | ID | Bug | Location | Impact |
 |----|-----|----------|--------|
-| T308 | `is_superuser()` TypeError | `IsAdminOrOwnUser.has_permission()` | 500 on unauthenticated requests |
+| T308 | `is_superuser` TypeError | `IsAdminOrOwnUser.has_permission()` | 500 on unauthenticated requests |
 | T341 | `IndexError` on empty Api-Key | `check_authorization_header()` | 500 on `Authorization: Api-Key ` |
 
 **Tests confirming bugs:** `test_auth_session.py::TestBugT308`, `test_auth_apikey.py::TestBugT341`

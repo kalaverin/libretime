@@ -1,5 +1,6 @@
 import os
 import re
+from contextlib import suppress
 from os import remove
 from pathlib import Path
 from typing import Any, final
@@ -43,10 +44,8 @@ class FileViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
 
     @action(detail=True, methods=["GET"])
     def download(self, request: Request, **__: Any) -> HttpResponse:
-        # API-Key auth (services) - allow
-        if check_authorization_header(request):
-            pass  # Service auth allowed
-        else:
+
+        if not check_authorization_header(request):
             # Session auth - require authenticated user
             user = request.user
             if not user.is_authenticated:
@@ -76,81 +75,20 @@ class FileViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
         Raises:
             APIException: If path escapes storage directory or is invalid
         """
-        try:
-            storage_root = Path(settings.CONFIG.storage.path).resolve()
+        storage_root = Path(settings.CONFIG.storage.path).resolve()
 
+        with suppress(OSError, ValueError):
             # Join storage root with filepath and resolve
             # resolve() removes .., ., and symlinks
             full_path = (storage_root / filepath).resolve()
 
             # Security check: ensure resolved path is within storage
             # Using Path.is_relative_to() or manual check
-            try:
-                # Python 3.9+ has is_relative_to()
-                is_within = full_path.is_relative_to(storage_root)
-            except AttributeError:
-                # Fallback for older Python: check if path starts with storage root
-                try:
-                    full_path.relative_to(storage_root)
-                    is_within = True
-                except ValueError:
-                    is_within = False
+            if full_path.is_relative_to(storage_root):
+                return full_path
 
-            if not is_within:
-                logger.error(
-                    "file path escapes storage directory: %s resolves to %s, "
-                    "which is outside storage root %s",
-                    filepath,
-                    full_path,
-                    storage_root,
-                )
-                raise APIException(
-                    "filepath escapes storage directory",
-                )
-
-            return full_path
-
-        except (OSError, ValueError) as exc:
-            logger.error(
-                "error resolving filepath %s: %s",
-                filepath,
-                str(exc),
-            )
-            raise APIException(
-                "invalid filepath",
-            ) from exc
+        raise APIException("invalid filepath")
 
     @override
     def perform_destroy(self, instance: File) -> None:
-
-        if Schedule.is_file_scheduled_in_the_future(file_id=instance.id):
-            raise FileInUse("file is scheduled in the future")
-
-        try:
-            if instance.filepath is None:
-                logger.warning(
-                    "file does not have a filepath: %d",
-                    instance.id,
-                )
-                return
-
-            # Use pathlib to resolve and validate path (T8)
-            resolved_path = self._resolve_and_validate_path(instance.filepath)
-
-            # Convert to string for os.path.isfile check
-            path_str = str(resolved_path)
-
-            if not os.path.isfile(path_str):
-                logger.warning(
-                    "file does not exist in storage: %d (resolved to %s)",
-                    instance.id,
-                    path_str,
-                )
-                return
-
-            remove(path_str)
-
-        except OSError as exception:
-            raise APIException(
-                "could not delete file from storage",
-            ) from exception
+        raise FileInUse("file deletion is not allowed")

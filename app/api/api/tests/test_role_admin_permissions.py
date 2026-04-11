@@ -161,8 +161,8 @@ class TestAdminFilePermissions:
         other_file.refresh_from_db()
         assert other_file.name == new_name
 
-    def test_admin_can_delete_any_file(self, admin_client, faker):
-        """ADMIN can DELETE ANY file."""
+    def test_admin_cannot_delete_file(self, admin_client, faker):
+        """ADMIN cannot DELETE file - file deletion is not allowed (409)."""
         other_host = baker.make(
             User,
             username=f"other_{faker.uuid4()[:8]}",
@@ -178,9 +178,11 @@ class TestAdminFilePermissions:
         other_file_id = other_file.id
 
         response = admin_client.delete(f"/api/v2/files/{other_file_id}")
-        assert response.status_code == 204
+        # File deletion is not allowed for anyone (409 Conflict)
+        assert response.status_code == 409
 
-        assert not File.objects.filter(id=other_file_id).exists()
+        # Verify file was NOT deleted
+        assert File.objects.filter(id=other_file_id).exists()
 
 
 @pytest.mark.django_db
