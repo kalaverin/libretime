@@ -13,6 +13,8 @@ from api.core.models.role import Role
 from api.schedule.models import Playlist, Show, SmartBlock, Webstream
 from api.storage.models import File
 
+from sdk import now
+
 
 @pytest.mark.django_db
 class TestAdminPlaylistPermissions:
@@ -127,6 +129,8 @@ class TestAdminFilePermissions:
         data = {
             "name": f"admin_file_{faker.uuid4()[:8]}.mp3",
             "mime": "audio/mpeg",
+            "size": 1024,
+            "accessed": int(now().timestamp()),
         }
         response = admin_client.post("/api/v2/files", data, format="json")
         assert response.status_code == 201

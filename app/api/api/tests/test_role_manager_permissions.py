@@ -19,6 +19,8 @@ from api.core.models.role import Role
 from api.schedule.models import Playlist, Show, SmartBlock, Webstream
 from api.storage.models import File
 
+from sdk import now
+
 
 @pytest.mark.django_db
 class TestManagerPlaylistPermissions:
@@ -140,6 +142,8 @@ class TestManagerFilePermissions:
         data = {
             "name": f"manager_file_{faker.uuid4()[:8]}.mp3",
             "mime": "audio/mpeg",
+            "size": 1024,
+            "accessed": int(now().timestamp()),
         }
         response = manager_client.post("/api/v2/files", data, format="json")
         assert response.status_code == 201
@@ -403,6 +407,7 @@ class TestManagerWebstreamPermissions:
         data = {
             "name": f"Manager Stream {faker.uuid4()[:8]}",
             "url": f"https://example.com/{faker.uuid4()[:8]}.mp3",
+            "description": f"Manager test stream {faker.uuid4()[:8]}",
         }
         response = manager_client.post("/api/v2/webstreams", data, format="json")
         assert response.status_code == 201
