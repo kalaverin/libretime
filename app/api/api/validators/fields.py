@@ -8,6 +8,98 @@ from django.utils.translation import gettext_lazy as _
 
 
 # =============================================================================
+# SQL Injection Protection
+# =============================================================================
+
+# Patterns that indicate SQL injection attempts
+_SQL_INJECTION_PATTERNS = [
+    # Union-based
+    r"(\%27)|(\')|(\-\-)|(\%23)|(#)",
+    # Boolean-based
+    r"((\%3D)|(=))[^\n]*((\%27)|(\')|(\-\-)|(\%3B)|(;))",
+    # Error-based  
+    r"\w*((\%27)|(\'))((\%6F)|o|(\%4F))((\%72)|r|(\%52))",
+    # Stacked queries
+    r"((\%27)|(\'))union",
+    r"exec(\s|\+)\(s\s*\+\s*x",
+    # OR/AND based - detect OR/AND between quoted values
+    r"'[^']*'\s+(or|and)\s+'[^']*'",
+    r"\"[^\"]*\"\s+(or|and)\s+\"[^\"]*\"",
+    r"\d+\s+(or|and)\s+\d+\s*=\s*\d+",
+    # Comment-based
+    r"--|/\*|\*/",
+    # Common SQL keywords in context
+    r"(union|select|insert|update|delete|drop|create|alter)\s+",
+    r"(from|where|table|database)\s+",
+]
+
+_SQLI_REGEX = re.compile("|".join(_SQL_INJECTION_PATTERNS), re.IGNORECASE)
+
+
+def validate_no_sql_injection(value: Any, field_name: str = "value") -> Any:
+    """Validate that value doesn't contain SQL injection patterns."""
+    if not isinstance(value, str):
+        return value
+    
+    if _SQLI_REGEX.search(value):
+        raise ValidationError(
+            _("{field} contains invalid characters.").format(field=field_name),
+            code=f"{field_name}_invalid_chars",
+        )
+    return value
+
+
+# =============================================================================
+# ID Validation
+# =============================================================================
+
+def validate_integer_id(value: Any, field_name: str = "id") -> int:
+    """Validate that value is a valid integer ID (positive integer)."""
+    if value is None:
+        return value
+    
+    # Handle string input (from query params)
+    if isinstance(value, str):
+        # Check for SQL injection first
+        validate_no_sql_injection(value, field_name)
+        
+        # Check for non-digit characters
+        if not value.lstrip("-").isdigit():
+            raise ValidationError(
+                _("{field} must be an integer.").format(field=field_name),
+                code=f"{field_name}_invalid",
+            )
+        try:
+            value = int(value)
+        except (ValueError, TypeError):
+            raise ValidationError(
+                _("{field} must be an integer.").format(field=field_name),
+                code=f"{field_name}_invalid",
+            )
+    
+    # Must be int at this point
+    if not isinstance(value, int):
+        raise ValidationError(
+            _("{field} must be an integer.").format(field=field_name),
+            code=f"{field_name}_invalid",
+        )
+    
+    # Check for positive
+    if value <= 0:
+        raise ValidationError(
+            _("{field} must be a positive integer.").format(field=field_name),
+            code=f"{field_name}_invalid",
+        )
+    
+    return value
+
+
+def validate_foreign_key_id(value: Any, field_name: str = "id") -> int:
+    """Validate foreign key ID - positive integer, no SQLi."""
+    return validate_integer_id(value, field_name)
+
+
+# =============================================================================
 # Negative Value Validators
 # =============================================================================
 

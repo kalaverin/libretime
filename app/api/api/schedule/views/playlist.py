@@ -10,6 +10,7 @@ from api.schedule.serializers import (
     PlaylistContentSerializer,
     PlaylistSerializer,
 )
+from api.validators.fields import validate_integer_id
 
 
 @final
@@ -35,5 +36,11 @@ class PlaylistContentViewSet(viewsets.ModelViewSet[Any]):
         queryset = super().get_queryset()
         playlist_id = self.request.query_params.get("playlist")
         if playlist_id:
-            queryset = queryset.filter(playlist_id=playlist_id)
+            # Validate playlist_id to prevent SQLi and 500 errors (T357)
+            try:
+                validate_integer_id(playlist_id, "playlist")
+                queryset = queryset.filter(playlist_id=playlist_id)
+            except Exception:
+                # Return empty queryset for invalid IDs
+                return queryset.none()
         return queryset

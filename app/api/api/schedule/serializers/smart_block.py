@@ -15,6 +15,7 @@ from api.serializers import SecureModelSerializer, StrictSerializer
 from api.validators.fields import (
     validate_choice,
     validate_duration_format,
+    validate_foreign_key_id,
     validate_hex_color,
     validate_max_length,
     validate_non_negative_float,
@@ -76,6 +77,19 @@ class SmartBlockContentSerializer(StrictSerializer):
             "file": {"required": True},
         }
 
+    def validate_block(self, value: Any) -> Any:
+        """Validate block ID is valid integer (T356)."""
+        if isinstance(value, SmartBlock):
+            return value
+        return validate_foreign_key_id(value, "block")
+
+    def validate_file(self, value: Any) -> Any:
+        """Validate file ID is valid integer."""
+        from api.storage.models import File
+        if isinstance(value, File):
+            return value
+        return validate_foreign_key_id(value, "file")
+
     def validate_offset(self, value: Any) -> Any:
         """Validate offset is non-negative (T481)."""
         return validate_non_negative_float(value, "offset")
@@ -113,6 +127,16 @@ class SmartBlockCriteriaSerializer(StrictSerializer):
             "condition": {"required": True},
             "value": {"required": True},
         }
+
+    def validate_block(self, value: Any) -> Any:
+        """Validate block ID is valid integer (T490, T367)."""
+        if isinstance(value, SmartBlock):
+            return value
+        return validate_foreign_key_id(value, "block")
+
+    def validate_value(self, value: Any) -> Any:
+        """Validate value length (T499)."""
+        return validate_max_length(value, 512, "value")
 
     def validate_group(self, value: Any) -> Any:
         """Validate group is non-negative (T500)."""

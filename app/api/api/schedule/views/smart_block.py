@@ -14,6 +14,7 @@ from api.schedule.serializers import (
     SmartBlockCriteriaSerializer,
     SmartBlockSerializer,
 )
+from api.validators.fields import validate_integer_id
 
 
 @final
@@ -54,7 +55,13 @@ class SmartBlockContentViewSet(viewsets.ModelViewSet[Any]):
         queryset = super().get_queryset()
         block_id = self.request.query_params.get("block")
         if block_id:
-            queryset = queryset.filter(block_id=block_id)
+            # Validate block_id to prevent SQLi and 500 errors (T356, T490)
+            try:
+                validate_integer_id(block_id, "block")
+                queryset = queryset.filter(block_id=block_id)
+            except Exception:
+                # Return empty queryset for invalid IDs
+                return queryset.none()
         return queryset
 
 
@@ -74,5 +81,11 @@ class SmartBlockCriteriaViewSet(viewsets.ModelViewSet[Any]):
         queryset = super().get_queryset()
         block_id = self.request.query_params.get("block")
         if block_id:
-            queryset = queryset.filter(block_id=block_id)
+            # Validate block_id to prevent SQLi and 500 errors (T367, T490)
+            try:
+                validate_integer_id(block_id, "block")
+                queryset = queryset.filter(block_id=block_id)
+            except Exception:
+                # Return empty queryset for invalid IDs
+                return queryset.none()
         return queryset

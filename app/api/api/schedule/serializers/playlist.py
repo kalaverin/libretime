@@ -7,6 +7,7 @@ from api.schedule.models import Playlist, PlaylistContent
 from api.serializers import SecureModelSerializer, StrictSerializer
 from api.validators.fields import (
     validate_duration_format,
+    validate_foreign_key_id,
     validate_non_negative_float,
     validate_non_negative_int,
 )
@@ -36,6 +37,19 @@ class PlaylistContentSerializer(StrictSerializer):
             "playlist": {"required": True},
             "offset": {"required": False},
         }
+
+    def validate_playlist(self, value: Any) -> Any:
+        """Validate playlist ID is valid integer (T357)."""
+        if isinstance(value, Playlist):
+            return value
+        return validate_foreign_key_id(value, "playlist")
+
+    def validate_file(self, value: Any) -> Any:
+        """Validate file ID is valid integer."""
+        from api.storage.models import File
+        if isinstance(value, File):
+            return value
+        return validate_foreign_key_id(value, "file")
 
     def validate_position(self, value: Any) -> Any:
         """Validate position is non-negative (T644)."""

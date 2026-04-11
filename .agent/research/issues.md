@@ -387,17 +387,17 @@
 
 | ID | Операция | Компонент | Описание |
 |----|----------|-----------|----------|
-| T12 | queue popleft | playout/player/queue | Race в deque |
-| T30 | organise_file | analyzer/pipeline | TOCTOU |
-| T486 | Concurrent CREATE | SmartBlockContent | Дубликаты |
-| T504 | Concurrent CREATE | SmartBlockCriteria | Race condition |
-| T515 | Concurrent DELETE | SmartBlockCriteria | Race |
-| T539 | Concurrent CREATE | Webstream | Дубликаты |
-| T555 | Concurrent UPDATE | Webstream | Lost updates |
-| T586 | Concurrent CREATE | Schedule | Same slot race |
-| T559 | Concurrent DELETE | Webstream | Race |
-| T433 | Duplicate names | SmartBlock | Race на имена |
-| T722 | Duplicate podcasts | Podcast | Concurrent creation |
+    | T12 | queue popleft | playout/player/queue | Race в deque |
+    | T30 | organise_file | analyzer/pipeline | TOCTOU |
+    | T486 | Concurrent CREATE | SmartBlockContent | Дубликаты |
+    | T504 | Concurrent CREATE | SmartBlockCriteria | Race condition |
+    | T515 | Concurrent DELETE | SmartBlockCriteria | Race |
+    | T539 | Concurrent CREATE | Webstream | Дубликаты |
+    | T555 | Concurrent UPDATE | Webstream | Lost updates |
+    | T586 | Concurrent CREATE | Schedule | Same slot race |
+    | T559 | Concurrent DELETE | Webstream | Race |
+    | T433 | Duplicate names | SmartBlock | Race на имена |
+    | T722 | Duplicate podcasts | Podcast | Concurrent creation |
 
 ---
 
