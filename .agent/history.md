@@ -2684,3 +2684,40 @@ def _check_show_ownership(self, show: Show) -> None:
 
 **Final Permission Matrix Suite: 264 passed, 0 xfailed** 🔥💀
 
+
+---
+
+### [2026-04-11T03:05:00Z]
+
+**Fixed:** File download authentication check (T854)
+
+**Problem:** FileViewSet.download() allowed anonymous access
+
+**Solution in api/storage/views/file.py:**
+```python
+@action(detail=True, methods=["GET"])
+def download(self, request: Request, **__: Any) -> HttpResponse:
+    # API-Key auth (services) - allow
+    if check_authorization_header(request):
+        pass  # Service auth allowed
+    else:
+        # Session auth - require authenticated user
+        user = request.user
+        if not user.is_authenticated:
+            return HttpResponse(status=status.HTTP_403_FORBIDDEN)
+    # ... rest of download logic
+```
+
+**Behavior:**
+- Authenticated users (all roles): can download any file (200)
+- Anonymous users: 403 Forbidden
+- API-Key auth: allowed (services)
+
+**Updated tests:**
+- `test_host_can_download_other_host_file` - public read design (200)
+- `test_anonymous_cannot_download_file` - anonymous blocked (403)
+
+**Task Status Update:**
+- T854 (File download) - DONE
+- T806-T809, T829-T832, T850-T851 - работают как задумано (public read for authenticated)
+

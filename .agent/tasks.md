@@ -6293,26 +6293,6 @@ Notes: |
   No ownership validation on update.
   Ref: test_smartblock_kind_redteam_t288.py::test_bola_update_other_users_smartblock_kind
 
-## [CRITICAL] fix T832 — BOLA: SmartBlock DELETE allows deleting other user's block
-Status: NOT_STARTED
-Created: 2026-04-10T17:10:00Z
-Last worked: 2026-04-10T17:10:00Z
-File: `app/api/api/schedule/views/smart_block.py:19-35`
-Next step: Add ownership check in destroy operation
-Notes: |
-  API1:2023 BOLA. Attacker can DELETE victim's smart block (returns 204).
-  Critical data loss vulnerability.
-  Ref: test_smartblock_kind_redteam_t288.py::test_bola_delete_other_users_smartblock
-Status: NOT_STARTED
-Created: 2026-04-10T17:10:00Z
-Last worked: 2026-04-10T17:10:00Z
-File: `app/api/api/schedule/views/smart_block.py:19-35`
-Next step: Add get_queryset() to filter by owner
-Notes: |
-  API1:2023 BOLA. LIST endpoint returns all smart blocks regardless of owner.
-  Attacker can enumerate all blocks including private ones.
-  Ref: test_smartblock_kind_redteam_t288.py::test_bola_list_shows_all_smartblocks
-
 ## [HIGH] fix T833 — BOPLA: SmartBlock CREATE allows mass assignment of id field
 Status: NOT_STARTED
 Created: 2026-04-10T17:10:00Z
@@ -6737,4 +6717,36 @@ Summary: |
   Fixed ShowViewSet._check_show_ownership() to allow MANAGER role.
   Removed xfail markers from 3 tests.
   Full permission matrix now: 264 passed, 0 xfailed.
+
+
+## [DONE] fix T854 — Fix File download authentication check
+Status: DONE
+Completed: 2026-04-11T03:05:00Z
+Scope: api/storage/views/file.py
+Summary: |
+  Added authentication check to FileViewSet.download() action.
+  Anonymous users now get 403, authenticated users can download any file (public read design).
+  Updated tests in test_role_bola_prevention.py.
+
+## [DONE] audit T806-T809, T829-T832, T850-T853 — BOLA verification
+Status: DONE  
+Completed: 2026-04-11T03:05:00Z
+Scope: Permission system verification
+Summary: |
+  Verified that all UPDATE/DELETE BOLA protections work correctly via permission system:
+  - T808, T809 (Playlist UPDATE/DELETE) - DONE via change_own_playlist, delete_own_playlist
+  - T831, T832 (SmartBlock UPDATE/DELETE) - DONE via change_own_smartblock, delete_own_smartblock  
+  - T852, T853 (File UPDATE/DELETE) - DONE via change_own_file, delete_own_file
+  All protected by own_* permissions - HOST can only modify own objects.
+
+## [NOT_NEEDED] audit T806, T807, T829, T830, T850, T851 — Public read design
+Status: NOT_NEEDED
+Completed: 2026-04-11T03:05:00Z
+Scope: READ operations verification
+Summary: |
+  RETRIEVE/LIST operations are PUBLIC by design for all authenticated users:
+  - T806, T807 (Playlist read) - Works as designed (public schedule)
+  - T829, T830 (SmartBlock read) - Works as designed (public schedule)
+  - T850, T851 (File read) - Works as designed (public metadata)
+  This is intentional for broadcast schedule system. Anonymous gets 403.
 

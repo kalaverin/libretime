@@ -15,6 +15,7 @@ from structlog import get_logger
 from typing_extensions import override
 
 from api.mixins import AutoAssignOwnerMixin
+from api.permissions import check_authorization_header
 from api.schedule.models import Schedule
 from api.storage.models import File
 from api.storage.serializers import FileSerializer
@@ -40,7 +41,16 @@ class FileViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
     filterset_fields: tuple[str, ...] = ("md5", "genre")
 
     @action(detail=True, methods=["GET"])
-    def download(self, _: Request, **__: Any) -> HttpResponse:
+    def download(self, request: Request, **__: Any) -> HttpResponse:
+        # API-Key auth (services) - allow
+        if check_authorization_header(request):
+            pass  # Service auth allowed
+        else:
+            # Session auth - require authenticated user
+            user = request.user
+            if not user.is_authenticated:
+                return HttpResponse(status=status.HTTP_403_FORBIDDEN)
+        
         instance: File = self.get_object()
 
         response = HttpResponse()

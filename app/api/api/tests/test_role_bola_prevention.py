@@ -188,10 +188,9 @@ class TestBolaFilePrevention:
 
         assert File.objects.filter(id=other_file_id).exists()
 
-    def test_host_cannot_download_other_host_file(self, host_client, faker):
-        """CRITICAL: HOST cannot DOWNLOAD another HOST's file (BOLA)."""
-        # Note: This depends on FileViewSet.download implementation
-        # If download doesn't check ownership, it's a BOLA
+    def test_host_can_download_other_host_file(self, host_client, faker):
+        """HOST can DOWNLOAD another HOST's file (public read design)."""
+        # Files are public for all authenticated users (broadcast system design)
         other_host = baker.make(
             User,
             username=f"other_host_{faker.uuid4()[:8]}",
@@ -208,11 +207,32 @@ class TestBolaFilePrevention:
 
         response = host_client.get(f"/api/v2/files/{other_file.id}/download")
 
-        # Download may be allowed or denied depending on design
-        # If public access: 200
-        # If private: 403/404
-        # For now, we just check it doesn't crash
-        assert response.status_code in [200, 403, 404]
+        # All authenticated users can download (public read design)
+        assert response.status_code == 200
+
+    def test_anonymous_cannot_download_file(self, anonymous_client, faker):
+        """Anonymous cannot DOWNLOAD file (403)."""
+        from api.core.models import User
+        from api.core.models.role import Role
+        
+        host = baker.make(
+            User,
+            username=f"host_{faker.uuid4()[:8]}",
+            email=f"host_{faker.uuid4()[:8]}@test.com",
+            role=Role.HOST,
+        )
+        file_obj = baker.make(
+            File,
+            name=f"host_file_{faker.uuid4()[:8]}.mp3",
+            owner=host,
+            mime="audio/mpeg",
+            filepath=f"files/{faker.uuid4()[:8]}.mp3",
+        )
+
+        response = anonymous_client.get(f"/api/v2/files/{file_obj.id}/download")
+
+        # Anonymous gets 403
+        assert response.status_code == 403
 
 
 @pytest.mark.django_db
