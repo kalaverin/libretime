@@ -28,22 +28,27 @@ PermissionsType = Sequence[type[BasePermission]]
 
 
 def get_own_obj(request: Request, view: "APIView") -> str:
-
+    """
+    Determine if HOST user should use 'own_' permission prefix.
+    
+    For HOST role with modify operations (PUT/PATCH/DELETE) on existing
+    objects, use 'own_' prefix. Object-level ownership check happens in
+    has_object_permission().
+    
+    Note: POST (create) uses regular permission without 'own_' prefix,
+    because the creator automatically becomes the owner.
+    """
     user = request.user
-    if user is None or user.role != Role.HOST or request.method == "GET":
+    if user is None or user.role != Role.HOST:
         return ""
-
-    qs = view.queryset.all()
-    with suppress(AttributeError):
-        model_owners = []
-        for model in qs:
-            owner = model.get_owner()
-            if owner not in model_owners:
-                model_owners.append(owner)
-        if len(model_owners) == 1 and user in model_owners:
-            return "own_"
-
-    return ""
+    
+    # POST (create) doesn't use own_* - creator becomes owner automatically
+    # GET/HEAD/OPTIONS are view operations
+    if request.method in ("GET", "HEAD", "OPTIONS", "POST"):
+        return ""
+    
+    # HOST gets own_* prefix for update/delete operations
+    return "own_"
 
 
 def get_permission_for_view(
@@ -150,9 +155,29 @@ class IsSystemTokenOrUser(BasePermission):
         view: "APIView",
         obj: Any,
     ) -> bool:
+        # API-Key auth bypasses all checks
+        if check_authorization_header(request):
+            return True
 
         if request.user and request.user.is_authenticated:
             perm = get_permission_for_view(request, view)
-            return request.user.has_perm(perm, obj)
+            
+            # For own_* permissions, check object ownership
+            if perm and "own_" in perm:
+                # Superuser can modify any object
+                if _is_superuser(request.user):
+                    return True
+                # Check ownership
+                if hasattr(obj, 'owner'):
+                    return obj.owner == request.user
+                elif hasattr(obj, 'get_owner'):
+                    return obj.get_owner() == request.user
+                # No ownership info - deny
+                return False
+            
+            # Regular permission check
+            if perm:
+                return request.user.has_perm(perm)
+            return True
 
-        return check_authorization_header(request)
+        return False

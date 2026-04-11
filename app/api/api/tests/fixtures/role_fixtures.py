@@ -5,10 +5,60 @@ Provides users with specific roles and authenticated clients for each role.
 """
 
 import pytest
+from django.contrib.auth.management import create_permissions
+from django.contrib.contenttypes.models import ContentType
 from model_bakery import baker
 
 from api.core.models import User
 from api.core.models.role import Role
+
+
+def ensure_custom_permissions_exist():
+    """Ensure custom 'own_*' permissions exist in the database.
+    
+    These permissions are not auto-created by Django because they're not
+    standard CRUD permissions. We create them manually for HOST role.
+    """
+    from django.contrib.auth.models import Permission
+    from django.contrib.contenttypes.models import ContentType
+    
+    # Map of app_label -> models that need own_* permissions
+    app_models = {
+        'schedule': ['playlist', 'smartblock', 'webstream'],
+        'podcasts': ['podcast', 'podcastepisode'],
+        'storage': ['file'],
+    }
+    
+    actions = ['change', 'delete']
+    
+    for app_label, models in app_models.items():
+        for model_name in models:
+            try:
+                ct = ContentType.objects.get(app_label=app_label, model=model_name)
+                for action in actions:
+                    codename = f'{action}_own_{model_name}'
+                    name = f'Can {action} own {model_name}'
+                    Permission.objects.get_or_create(
+                        codename=codename,
+                        content_type=ct,
+                        defaults={'name': name}
+                    )
+            except ContentType.DoesNotExist:
+                pass  # Model doesn't exist, skip
+
+
+def ensure_permissions_exist():
+    """Ensure all permissions are created in the database."""
+    from django.apps import apps
+    # Create standard permissions for all apps
+    for app_config in apps.get_app_configs():
+        if hasattr(app_config, 'models_module'):
+            create_permissions(app_config, verbosity=0)
+    # Create custom own_* permissions
+    ensure_custom_permissions_exist()
+
+
+
 
 
 # =============================================================================
@@ -30,8 +80,9 @@ def session_client() -> "APIClient":
 
 
 @pytest.fixture
-def guest_user(faker) -> User:
+def guest_user(faker, db) -> User:
     """Create a user with GUEST role (read-only)."""
+    ensure_permissions_exist()
     return baker.make(
         User,
         username=f"guest_{faker.user_name()}_{faker.uuid4()[:8]}",
@@ -43,8 +94,9 @@ def guest_user(faker) -> User:
 
 
 @pytest.fixture
-def host_user(faker) -> User:
+def host_user(faker, db) -> User:
     """Create a user with HOST role (can create and modify own content)."""
+    ensure_permissions_exist()
     return baker.make(
         User,
         username=f"host_{faker.user_name()}_{faker.uuid4()[:8]}",
@@ -56,8 +108,9 @@ def host_user(faker) -> User:
 
 
 @pytest.fixture
-def manager_user(faker) -> User:
+def manager_user(faker, db) -> User:
     """Create a user with MANAGER role (can CRUD all content)."""
+    ensure_permissions_exist()
     return baker.make(
         User,
         username=f"manager_{faker.user_name()}_{faker.uuid4()[:8]}",
@@ -69,8 +122,9 @@ def manager_user(faker) -> User:
 
 
 @pytest.fixture
-def admin_user(faker) -> User:
+def admin_user(faker, db) -> User:
     """Create a user with ADMIN role (superuser)."""
+    ensure_permissions_exist()
     user = baker.make(
         User,
         username=f"admin_{faker.user_name()}_{faker.uuid4()[:8]}",
@@ -91,31 +145,35 @@ def admin_user(faker) -> User:
 
 
 @pytest.fixture
-def guest_client(session_client, guest_user) -> "APIClient":
+def guest_client(guest_user) -> "APIClient":
     """API client authenticated as GUEST user."""
-    session_client.force_authenticate(user=guest_user)
-    return session_client
+    client = APIClient()
+    client.force_authenticate(user=guest_user)
+    return client
 
 
 @pytest.fixture
-def host_client(session_client, host_user) -> "APIClient":
+def host_client(host_user) -> "APIClient":
     """API client authenticated as HOST user."""
-    session_client.force_authenticate(user=host_user)
-    return session_client
+    client = APIClient()
+    client.force_authenticate(user=host_user)
+    return client
 
 
 @pytest.fixture
-def manager_client(session_client, manager_user) -> "APIClient":
+def manager_client(manager_user) -> "APIClient":
     """API client authenticated as MANAGER user."""
-    session_client.force_authenticate(user=manager_user)
-    return session_client
+    client = APIClient()
+    client.force_authenticate(user=manager_user)
+    return client
 
 
 @pytest.fixture
-def admin_client(session_client, admin_user) -> "APIClient":
+def admin_client(admin_user) -> "APIClient":
     """API client authenticated as ADMIN user."""
-    session_client.force_authenticate(user=admin_user)
-    return session_client
+    client = APIClient()
+    client.force_authenticate(user=admin_user)
+    return client
 
 
 # =============================================================================

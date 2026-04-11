@@ -64,7 +64,11 @@ class ShowViewSet(viewsets.ModelViewSet[Any]):
         if check_authorization_header(self.request):
             return
         # Superuser can modify any show
-        if user.is_superuser():
+        # Handle both method and property
+        is_super = user.is_superuser
+        if callable(is_super):
+            is_super = is_super()
+        if is_super:
             return
         # Host can modify their shows
         if show.hosts.filter(id=user.id).exists():
