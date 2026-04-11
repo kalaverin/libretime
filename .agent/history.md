@@ -2929,3 +2929,48 @@ def download(self, request: Request, **__: Any) -> HttpResponse:
 
 **Tasks completed:** T481, T482, T483, T499, T500, T502, T503, T522, T536, T381, T900, T395, T441, T443
 
+
+
+---
+
+## Session 2026-04-11T03:00:00Z — SQL Injection & Invalid ID Protection
+
+**Focus:** Fix SQLi and invalid ID handling in query parameters
+
+**Protection Layer Added:**
+
+1. **api/validators/fields.py** - ID validation:
+   - `validate_integer_id()` - Validates ID is positive integer
+   - `validate_foreign_key_id()` - Wrapper for FK validation
+   - `validate_no_sql_injection()` - Pattern detection (for critical fields)
+
+2. **Updated ViewSets with ID validation:**
+   - `SmartBlockContentViewSet.get_queryset()` - Validates block_id (T356)
+   - `SmartBlockCriteriaViewSet.get_queryset()` - Validates block_id (T367, T490)
+   - `PlaylistContentViewSet.get_queryset()` - Validates playlist_id (T357)
+
+3. **Django ORM Protection:**
+   - All SQL queries use parameterized statements
+   - SQLi in text fields (length, value) handled safely by ORM
+   - No manual SQL string concatenation
+
+4. **Tests added** - `test_sql_injection_redteam.py` (14 tests):
+   - SQLi in ID filters - returns empty results, not 500
+   - Invalid ID formats - handled gracefully
+   - SQLi in text fields - stored as text, not executed
+   - Valid IDs still work correctly
+
+**All 14 SQLi/ID validation tests pass.**
+
+**Tasks completed:** T490, T356, T357, T367, T491, T492, T613, T814
+
+---
+
+**Security Summary (377 tests total):**
+- Path Traversal: 34 tests ✓
+- SSRF: 21 tests ✓
+- Mass Assignment: 21 tests ✓
+- XSS: 272 tests ✓
+- Field Validation: 22 tests ✓
+- SQL Injection: 14 tests ✓
+
