@@ -152,8 +152,8 @@ if DEBUG:
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": renderer_classes,
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.BasicAuthentication",
+        "api.permissions.SafeSessionAuthentication",
+        "api.permissions.SafeBasicAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": [
         "api.permissions.IsSystemTokenOrUser",

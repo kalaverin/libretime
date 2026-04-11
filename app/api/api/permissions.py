@@ -4,11 +4,44 @@ from secrets import compare_digest
 from typing import TYPE_CHECKING, Any
 
 from django.conf import settings
+from rest_framework import authentication
 from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
 from typing_extensions import override
 
 from api.core.models import Role
+
+
+class SafeSessionAuthentication(authentication.SessionAuthentication):
+    """
+    SessionAuthentication that safely handles malformed headers.
+    
+    Fixes:
+    - T376, T793: UnicodeEncodeError on non-ASCII Authorization header
+    """
+
+    def authenticate(self, request):
+        try:
+            return super().authenticate(request)
+        except UnicodeEncodeError:
+            # Reject requests with non-ASCII characters in Authorization header
+            return None
+
+
+class SafeBasicAuthentication(authentication.BasicAuthentication):
+    """
+    BasicAuthentication that safely handles malformed headers.
+    
+    Fixes:
+    - T376, T793: UnicodeEncodeError on non-ASCII Authorization header
+    """
+
+    def authenticate(self, request):
+        try:
+            return super().authenticate(request)
+        except UnicodeEncodeError:
+            # Reject requests with non-ASCII characters in Authorization header
+            return None
 
 if TYPE_CHECKING:
     from rest_framework.views import APIView
@@ -69,16 +102,77 @@ def get_permission_for_view(
 
 
 def check_authorization_header(request: Request) -> bool:
-
-    auth_header = request.headers.get("authorization", "")
-    if auth_header.startswith("Api-Key"):
-        parts = auth_header.split()
-        if len(parts) < 2:
-            return False
-        token = parts[1]
-        return compare_digest(token, settings.CONFIG.general.api_key)
-
-    return False
+    """
+    Validate API-Key authorization header.
+    
+    Security considerations:
+    - Strict case-sensitivity: only "Api-Key" prefix accepted (T459, T753)
+    - Whitespace handling: single space required after prefix
+    - Injection protection: rejects newlines, CR, null bytes (T912, T913)
+    - Unicode handling: rejects non-ASCII characters (T376, T749, T793)
+    - Empty token: properly rejected without crash (T460, T341)
+    """
+    try:
+        auth_header = request.headers.get("authorization", "")
+    except (UnicodeDecodeError, UnicodeEncodeError):
+        # Handle unicode encoding errors in header (T376, T793)
+        return False
+    
+    # Handle None or non-string values
+    if not isinstance(auth_header, str):
+        return False
+    
+    # Reject headers with non-ASCII characters (T376, T749, T793)
+    # This prevents UnicodeEncodeError in subsequent processing
+    try:
+        auth_header.encode('ascii')
+    except UnicodeEncodeError:
+        return False
+    
+    # Reject headers with control characters (injection protection: T912, T913)
+    # This includes newlines (\n, \r), null bytes (\x00), and other control chars
+    if any(ord(c) < 32 for c in auth_header):
+        return False
+    
+    # Strict case-sensitive prefix check (T459, T753)
+    # Only exact "Api-Key" prefix is accepted - not "api-key", "API-KEY", etc.
+    if not auth_header.startswith("Api-Key"):
+        return False
+    
+    # Extract the remainder after "Api-Key"
+    remainder = auth_header[7:]  # len("Api-Key") == 7
+    
+    # Must start with a single space (T460 - strict format)
+    if not remainder.startswith(" "):
+        return False
+    
+    # Extract token (strip only the single required space, not all whitespace)
+    token = remainder[1:]
+    
+    # Reject empty token (T460, T341)
+    if not token:
+        return False
+    
+    # Reject tokens with leading/trailing whitespace (T460 variants)
+    if token != token.strip():
+        return False
+    
+    # Reject tokens containing whitespace (multiple tokens, injection attempts)
+    if any(c.isspace() for c in token):
+        return False
+    
+    # Reject non-ASCII tokens (T376, T749)
+    try:
+        token.encode('ascii')
+    except UnicodeEncodeError:
+        return False
+    
+    # Constant-time comparison to prevent timing attacks
+    expected_key = settings.CONFIG.general.api_key
+    if not isinstance(expected_key, str):
+        expected_key = str(expected_key)
+    
+    return compare_digest(token, expected_key)
 
 
 def _is_superuser(user) -> bool:

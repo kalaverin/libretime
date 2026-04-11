@@ -259,14 +259,14 @@
 | T589 | Invalid token | Schedule RETRIEVE | 200 on invalid |
 | T597 | Invalid token | Schedule UPDATE | 200 on invalid |
 | T600 | Invalid token | Schedule DELETE | 200 on invalid |
-| T376 | Unicode | Auth header | UnicodeEncodeError |
-| T749 | Unicode | API Key | 500 error |
-| T793 | Unicode | Auth header | Unhandled exception |
-| T459 | Case sensitivity | Auth header | Case-sensitive parsing |
-| T753 | Case sensitivity | Authorization | Case-sensitive reject |
-| T460 | Empty token | Auth | Empty/malformed |
-| T912 | Newline | API Key | Header injection \\n |
-| T913 | CR | API Key | Header injection \\r |
+    | T376 | Unicode | Auth header | UnicodeEncodeError |
+    | T749 | Unicode | API Key | 500 error |
+    | T793 | Unicode | Auth header | Unhandled exception |
+    | T459 | Case sensitivity | Auth header | Case-sensitive parsing |
+    | T753 | Case sensitivity | Authorization | Case-sensitive reject |
+    | T460 | Empty token | Auth | Empty/malformed |
+    | T912 | Newline | API Key | Header injection \\n |
+    | T913 | CR | API Key | Header injection \\r |
 | T740 | Account lockout | Auth | No lockout after fails |
 | T783 | Brute force | Password | No rate limiting |
 | T784 | Brute force | API Key | No CAPTCHA/blocking |
