@@ -105,17 +105,59 @@ class SmartBlockContentSerializer(StrictSerializer):
         }
 
     def validate_block(self, value: Any) -> Any:
-        """Validate block ID is valid integer (T356)."""
+        """Validate block ID is valid integer and owned by current user (T356, T475)."""
         if isinstance(value, SmartBlock):
-            return value
-        return validate_foreign_key_id(value, "block")
+            block_id = value.id
+        else:
+            block_id = validate_foreign_key_id(value, "block")
+        
+        # T475: Verify block ownership
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            user = request.user
+            if user.role not in [user.role.ADMIN, user.role.MANAGER]:
+                try:
+                    block = SmartBlock.objects.get(id=block_id)
+                    if block.owner_id != user.id:
+                        raise ValidationError(
+                            "You do not have permission to use this block.",
+                            code="block_permission_denied",
+                        )
+                except SmartBlock.DoesNotExist:
+                    raise ValidationError(
+                        "Block not found.",
+                        code="block_not_found",
+                    )
+        
+        return value
 
     def validate_file(self, value: Any) -> Any:
-        """Validate file ID is valid integer."""
+        """Validate file ID is valid integer and owned by current user (T476)."""
         from api.storage.models import File
         if isinstance(value, File):
-            return value
-        return validate_foreign_key_id(value, "file")
+            file_id = value.id
+        else:
+            file_id = validate_foreign_key_id(value, "file")
+        
+        # T476: Verify file ownership
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            user = request.user
+            if user.role not in [user.role.ADMIN, user.role.MANAGER]:
+                try:
+                    file_obj = File.objects.get(id=file_id)
+                    if file_obj.owner_id != user.id:
+                        raise ValidationError(
+                            "You do not have permission to use this file.",
+                            code="file_permission_denied",
+                        )
+                except File.DoesNotExist:
+                    raise ValidationError(
+                        "File not found.",
+                        code="file_not_found",
+                    )
+        
+        return value
 
     def validate_offset(self, value: Any) -> Any:
         """Validate offset is non-negative (T481)."""
@@ -181,10 +223,31 @@ class SmartBlockCriteriaSerializer(StrictSerializer):
         }
 
     def validate_block(self, value: Any) -> Any:
-        """Validate block ID is valid integer (T490, T367)."""
+        """Validate block ID is valid integer and owned by current user (T490, T367, T496)."""
         if isinstance(value, SmartBlock):
-            return value
-        return validate_foreign_key_id(value, "block")
+            block_id = value.id
+        else:
+            block_id = validate_foreign_key_id(value, "block")
+        
+        # T496: Verify block ownership
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            user = request.user
+            if user.role not in [user.role.ADMIN, user.role.MANAGER]:
+                try:
+                    block = SmartBlock.objects.get(id=block_id)
+                    if block.owner_id != user.id:
+                        raise ValidationError(
+                            "You do not have permission to use this block.",
+                            code="block_permission_denied",
+                        )
+                except SmartBlock.DoesNotExist:
+                    raise ValidationError(
+                        "Block not found.",
+                        code="block_not_found",
+                    )
+        
+        return value
 
     def validate_value(self, value: Any) -> Any:
         """Validate value length (T499)."""

@@ -41,6 +41,17 @@ class FileViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
     filter_backends: tuple[Any, ...] = (filters.DjangoFilterBackend,)
     filterset_fields: tuple[str, ...] = ("md5", "genre")
 
+    def get_queryset(self) -> Any:
+        """Filter by owner for BOLA prevention (T850, T851, T853)."""
+        queryset = super().get_queryset()
+        user = self.request.user
+        if not user.is_authenticated:
+            return queryset.none()
+        # Admin and Manager can see all, Host can only see own
+        if user.role not in [user.role.ADMIN, user.role.MANAGER]:
+            return queryset.filter(owner=user)
+        return queryset
+
     @action(detail=True, methods=["GET"])
     def download(self, request: Request, **__: Any) -> HttpResponse:
         # API-Key auth (services) - allow

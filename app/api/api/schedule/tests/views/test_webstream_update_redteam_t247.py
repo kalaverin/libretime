@@ -32,49 +32,66 @@ class TestWebstreamUpdateRedTeam:
     # API1:2023 - BOLA (Broken Object Level Authorization)
     # ========================================================================
 
-    @pytest.mark.xfail(reason="T541: BOLA - can update other user's webstream")
-    def test_bola_update_other_users_stream(self, api_client):
-        """BOLA: Updating another user's webstream should fail."""
-        victim = baker.make(User, username="testred_victim")
-        attacker = baker.make(User, username="testred_attacker")
-
+    def test_bola_update_other_users_stream(self, host_client, host_user, faker, fake_url):
+        """BOLA T541: HOST cannot UPDATE another HOST's webstream."""
+        from api.core.models.role import Role
+        
+        victim = baker.make(
+            User, 
+            username=f"victim_{faker.uuid4()[:8]}",
+            email=f"victim_{faker.uuid4()[:8]}@test.com",
+            role=Role.HOST,
+        )
         victim_stream = baker.make(
             Webstream,
-            name="Victim Stream",
-            url="http://victim.com/stream",
+            name=f"Victim Stream {faker.uuid4()[:8]}",
+            url=fake_url,
             owner=victim,
         )
+        original_name = victim_stream.name
 
         # Attacker tries to update victim's stream
-        response = api_client.patch(
+        response = host_client.patch(
             f"/api/v2/webstreams/{victim_stream.id}",
-            json.dumps({"name": "Hacked Stream"}),
-            content_type="application/json",
+            {"name": f"Hacked {faker.uuid4()[:8]}"},
+            format="json",
         )
-        assert response.status_code in [
-            403,
-            404,
-        ], f"BOLA: Updated victim's stream, got {response.status_code}"
+        
+        assert response.status_code in [403, 404], (
+            f"BOLA T541: HOST updated victim's webstream, got {response.status_code}"
+        )
+        
+        # Verify not modified
+        victim_stream.refresh_from_db()
+        assert victim_stream.name == original_name
 
-    @pytest.mark.xfail(reason="T542: BOLA - can delete other user's webstream")
-    def test_bola_delete_other_users_stream(self, api_client):
-        """BOLA: Deleting another user's webstream should fail."""
-        victim = baker.make(User, username="testred_victim")
-        attacker = baker.make(User, username="testred_attacker")
-
+    def test_bola_delete_other_users_stream(self, host_client, host_user, faker, fake_url):
+        """BOLA T542: HOST cannot DELETE another HOST's webstream."""
+        from api.core.models.role import Role
+        
+        victim = baker.make(
+            User, 
+            username=f"victim_{faker.uuid4()[:8]}",
+            email=f"victim_{faker.uuid4()[:8]}@test.com",
+            role=Role.HOST,
+        )
         victim_stream = baker.make(
             Webstream,
-            name="Victim Stream",
-            url="http://victim.com/stream",
+            name=f"Victim Stream {faker.uuid4()[:8]}",
+            url=fake_url,
             owner=victim,
         )
+        victim_stream_id = victim_stream.id
 
         # Attacker tries to delete victim's stream
-        response = api_client.delete(f"/api/v2/webstreams/{victim_stream.id}")
-        assert response.status_code in [
-            403,
-            404,
-        ], f"BOLA: Deleted victim's stream, got {response.status_code}"
+        response = host_client.delete(f"/api/v2/webstreams/{victim_stream_id}")
+        
+        assert response.status_code in [403, 404], (
+            f"BOLA T542: HOST deleted victim's webstream, got {response.status_code}"
+        )
+        
+        # Verify still exists
+        assert Webstream.objects.filter(id=victim_stream_id).exists()
 
     # ========================================================================
     # IDOR / ID Enumeration

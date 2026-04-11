@@ -2,7 +2,7 @@
 # Machine Index
 version: 1
 schema: knowledge-graph
-last_updated: 2026-04-07T13:16:18Z
+last_updated: 2026-04-11T04:30:00Z
 graph_hash: ""
 ---
 
@@ -2017,3 +2017,203 @@ class MyModelSerializer(SecureModelSerializer):
 - Mass Assignment: 21 tests
 - XSS: 272 tests
 
+
+# Race Condition Prevention Architecture
+```yaml
+race_condition_prevention:
+  id: RC1
+  description: Application-level validation for duplicate prevention in unmanaged tables
+  implemented: 2026-04-11T04:00:00Z
+  tests: api/tests/test_race_condition_redteam.py (9 tests passing)
+  
+  patterns:
+    - name: Duplicate Name Prevention
+      scope: per-owner
+      models: [SmartBlock, Webstream]
+      validator: validate_duplicate_name() in api/validators/race_conditions.py
+      mechanism: |
+        Check .filter(name=name, owner_id=owner_id).exists() before create/update.
+        Return 400 with "already exists" message if duplicate found.
+      tests:
+        - test_smartblock_duplicate_name_rejected
+        - test_smartblock_same_name_different_users_allowed
+        - test_webstream_duplicate_name_rejected
+
+    - name: Duplicate URL Prevention
+      scope: per-owner
+      models: [Webstream, Podcast]
+      validator: validate_duplicate_url() in serializers
+      mechanism: |
+        Check .filter(url=url, owner_id=owner_id).exists() before create/update.
+        Same URL allowed for different users.
+      tests:
+        - test_webstream_duplicate_url_rejected
+        - test_podcast_duplicate_url_rejected
+        - test_podcast_same_url_different_users_allowed
+
+    - name: Duplicate Combination Prevention
+      scope: composite unique fields
+      models:
+        SmartBlockContent: [block_id, file_id, position]
+        SmartBlockCriteria: [block_id, criteria, condition, value]
+      validator: validate_duplicate_combination() in api/validators/race_conditions.py
+      mechanism: |
+        Filter by all unique fields combination before create/update.
+        Prevents exact duplicates of composite key.
+      tests:
+        - test_smartblock_content_duplicate_rejected
+        - test_smartblock_criteria_duplicate_rejected
+
+    - name: Concurrent Update Prevention
+      scope: lost update protection
+      models: [Webstream]
+      mechanism: |
+        Use select_for_update() in transaction.atomic() during update.
+        Locks row for duration of transaction.
+        Returns 400 if record deleted during update attempt.
+      tests:
+        - test_webstream_update_no_lost_updates
+
+  design_decisions:
+    - id: D1
+      decision: Application-level validation instead of database constraints
+      reason: |
+        Models use managed=False (unmanaged tables).
+        Cannot add unique constraints at DB level.
+        Must validate at serializer/application layer.
+      tradeoffs:
+        pros: [No DB migrations needed, Flexible validation rules]
+        cons: [Slight race window between check and save, Extra query per validation]
+
+    - id: D2
+      decision: Per-owner scope for duplicates
+      reason: |
+        Different users should be able to have same names/URLs.
+        Global uniqueness too restrictive for multi-user system.
+      exception: |
+        Podcast URL - technically per-owner but URL itself is global identifier.
+        Implementation still uses per-owner filter for consistency.
+
+  files:
+    validators: api/validators/race_conditions.py
+    smartblock_serializer: api/schedule/serializers/smart_block.py
+    webstream_serializer: api/schedule/serializers/webstream.py
+    podcast_serializer: api/podcasts/serializers/podcast.py
+    tests: api/tests/test_race_condition_redteam.py
+
+  related_tasks:
+    done: [T433, T486, T504, T515, T539, T555, T559, T586, T722]
+```
+
+# BOLA (Broken Object Level Authorization) Prevention Architecture
+```yaml
+bola_prevention:
+  id: SEC1
+  description: API1:2023 Broken Object Level Authorization prevention patterns
+  implemented: 2026-04-11T04:30:00Z
+  
+  patterns:
+    - name: Anonymous Access Denial
+      scope: ALL operations (LIST, RETRIEVE, CREATE, UPDATE, DELETE)
+      mechanism: |
+        Permission system denies anonymous access immediately.
+        All unauthenticated requests return 403 Forbidden.
+        This is enforced by permission_classes, not get_queryset.
+      implementation: |
+        # Permission system handles this automatically
+        # For DRF: permission_classes = [IsAuthenticated]
+        # Or custom permission that checks user.is_authenticated
+      tests:
+        - test_role_anonymous_denied.py (162 tests)
+        - test_bola_smartblock_complete.py
+        - test_bola_podcast_file.py
+        - test_bola_playlist.py
+        
+    - name: Queryset Ownership Filtering
+      scope: LIST, RETRIEVE, UPDATE, DELETE operations
+      mechanism: |
+        Override get_queryset() in ViewSet to filter by current user.
+        Admin and Manager roles can access all resources.
+        Host role can only access own resources.
+        Note: Anonymous users never reach get_queryset() due to permission checks.
+      implementation: |
+        def get_queryset(self):
+            queryset = super().get_queryset()
+            user = self.request.user
+            # Anonymous already filtered by permission_classes
+            if user.role not in [user.role.ADMIN, user.role.MANAGER]:
+                queryset = queryset.filter(owner=user)
+            return queryset
+      files:
+        - api/schedule/views/smart_block.py
+        
+    - name: Nested Resource Ownership Filtering
+      scope: SmartBlockContent, SmartBlockCriteria
+      mechanism: |
+        Filter by parent resource ownership (block__owner).
+        Ensures nested resources inherit parent ownership checks.
+      implementation: |
+        def get_queryset(self):
+            queryset = super().get_queryset()
+            user = self.request.user
+            if user.role not in [user.role.ADMIN, user.role.MANAGER]:
+                queryset = queryset.filter(block__owner=user)
+            return queryset
+      files:
+        - api/schedule/views/smart_block.py
+        
+    - name: Serializer Ownership Validation
+      scope: CREATE operations with foreign keys
+      mechanism: |
+        Validate that referenced resources belong to current user.
+        Prevents using other user's blocks, files, etc.
+      implementation: |
+        def validate_block(self, value):
+            request = self.context.get("request")
+            if request and request.user.is_authenticated:
+                user = request.user
+                if user.role not in [user.role.ADMIN, user.role.MANAGER]:
+                    block = SmartBlock.objects.get(id=value)
+                    if block.owner_id != user.id:
+                        raise ValidationError("Permission denied")
+            return value
+      files:
+        - api/schedule/serializers/smart_block.py
+
+  role_hierarchy:
+    admin: full_access      # Can access any resource
+    manager: full_access    # Can access any resource
+    host: own_only          # Can only access own resources
+    guest: read_only        # Limited read access
+    anonymous: denied       # 403 Forbidden on all endpoints
+
+  http_status_codes:
+    anonymous_access: 403           # PermissionDenied
+    bola_violation: "403 or 404"   # PermissionDenied or NotFound
+    success_own_resource: 200       # OK
+    success_admin_manager: 200      # OK
+
+  status:
+    done: "T475, T476, T488, T489, T496, T505, T506, T507, T829, T830, T831, T518, T541, T542, T663, T727, T808, T809, T850, T853, T851"
+    pending: "T568, T569, T587, T592, T598"
+    tests: 
+      - api/tests/test_bola_smartblock_complete.py (18 tests)
+      - api/tests/test_bola_podcast_file.py (7 tests)
+      - api/tests/test_bola_playlist.py (6 tests)
+      - api/tests/test_role_anonymous_denied.py (162 tests)
+
+  design_decisions:
+    - id: D1
+      decision: Dual-layer protection (queryset + serializer)
+      reason: |
+        Queryset filtering prevents access to other users' resources.
+        Serializer validation prevents referencing other users' resources.
+        Both layers needed for complete protection.
+      
+    - id: D2
+      decision: Return 403/404 for unauthorized access
+      reason: |
+        Don't leak existence of other users' resources.
+        404 is preferred for GET (looks like not found).
+        403 can be used for known authorization failures.
+```

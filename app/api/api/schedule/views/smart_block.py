@@ -29,8 +29,17 @@ class SmartBlockViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
     ordering = ["name"]
 
     def get_queryset(self) -> Any:
-        """Filter by kind if provided."""
+        """Filter by owner for BOLA prevention (T829, T830, T831, T832)."""
         queryset = super().get_queryset()
+        
+        # BOLA fix: Only show blocks owned by current user
+        # Admin and Manager can see all, Host can only see their own
+        user = self.request.user
+        if not user.is_authenticated:
+            return queryset.none()
+        if user.role not in [user.role.ADMIN, user.role.MANAGER]:
+            queryset = queryset.filter(owner=user)
+        
         kind = self.request.query_params.get("kind")
         if kind:
             queryset = queryset.filter(kind=kind)
@@ -51,8 +60,17 @@ class SmartBlockContentViewSet(viewsets.ModelViewSet[Any]):
     ordering = ["position"]
 
     def get_queryset(self) -> Any:
-        """Filter by block if provided."""
+        """Filter by block owner for BOLA prevention (T475, T476)."""
         queryset = super().get_queryset()
+        
+        # BOLA fix: Only show content from blocks owned by current user
+        # Admin and Manager can see all, Host can only see their own
+        user = self.request.user
+        if not user.is_authenticated:
+            return queryset.none()
+        if user.role not in [user.role.ADMIN, user.role.MANAGER]:
+            queryset = queryset.filter(block__owner=user)
+        
         block_id = self.request.query_params.get("block")
         if block_id:
             # Validate block_id to prevent SQLi and 500 errors (T356, T490)
@@ -77,8 +95,17 @@ class SmartBlockCriteriaViewSet(viewsets.ModelViewSet[Any]):
     ordering = ["group", "criteria"]
 
     def get_queryset(self) -> Any:
-        """Filter by block if provided."""
+        """Filter by block owner for BOLA prevention (T488, T489, T496)."""
         queryset = super().get_queryset()
+        
+        # BOLA fix: Only show criteria from blocks owned by current user
+        # Admin and Manager can see all, Host can only see their own
+        user = self.request.user
+        if not user.is_authenticated:
+            return queryset.none()
+        if user.role not in [user.role.ADMIN, user.role.MANAGER]:
+            queryset = queryset.filter(block__owner=user)
+        
         block_id = self.request.query_params.get("block")
         if block_id:
             # Validate block_id to prevent SQLi and 500 errors (T367, T490)

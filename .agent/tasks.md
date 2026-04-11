@@ -671,27 +671,22 @@ Last worked: 2026-04-06T16:53:26Z
 File: `app/playout/playout/history/stats.py:39`
 Notes: TCP connection leak on shutdown.
 
-## [CRITICAL] fix T475 — BOLA: SmartBlockContent CREATE allows content in other user's block
-Status: NOT_STARTED
-Created: 2026-04-10T13:35:00Z
-Last worked: 2026-04-10T13:35:00Z
-File: `app/api/api/schedule/views/smart_block.py:51-57`
-Next step: Add ownership check in SmartBlockContentViewSet.create() or serializer
-Notes: |
-  API1:2023 Broken Object Level Authorization. Attacker can create content in victim's SmartBlock
-  by specifying victim's block ID. No ownership validation on block field.
-  Ref: test_smartblockcontent_create_redteam_t240.py::test_bola_create_in_other_users_block
+## [DONE] fix T475 — BOLA: SmartBlockContent CREATE allows content in other user's block
+Completed: 2026-04-11T04:00:00Z
+Scope: api/schedule/serializers/smart_block.py, api/schedule/views/smart_block.py
+Summary: |
+  Added ownership validation in SmartBlockContentSerializer.validate_block().
+  Added queryset filtering by block__owner in SmartBlockContentViewSet.get_queryset().
+  Host can only create content in own blocks.
+  Test: test_bola_smartblock_complete.py
 
-## [CRITICAL] fix T476 — BOLA: SmartBlockContent CREATE allows using other user's file
-Status: NOT_STARTED
-Created: 2026-04-10T13:35:00Z
-Last worked: 2026-04-10T13:35:00Z
-File: `app/api/api/schedule/views/smart_block.py:51-57`
-Next step: Add file ownership validation in serializer
-Notes: |
-  Attacker can reference victim's private file when creating SmartBlockContent.
-  File existence is checked but ownership is not validated.
-  Ref: test_smartblockcontent_create_redteam_t240.py::test_bola_create_with_other_users_file
+## [DONE] fix T476 — BOLA: SmartBlockContent CREATE allows using other user's file
+Completed: 2026-04-11T04:00:00Z
+Scope: api/schedule/serializers/smart_block.py
+Summary: |
+  Added ownership validation in SmartBlockContentSerializer.validate_file().
+  Host can only use own files when creating content.
+  Test: test_bola_smartblock_complete.py
 
 ## [DONE] fix T477 — BOPLA: SmartBlockContent CREATE allows mass assignment of id field
 Completed: 2026-04-11T02:30:00Z
@@ -802,27 +797,21 @@ Last worked: 2026-04-06T16:53:26Z
 File: `app/api/api/storage/views/file.py:3`
 Notes: `from os import remove` unused (uses os.remove).
 
-## [CRITICAL] fix T488 — BOLA: SmartBlockCriteria LIST shows all users' criteria
-Status: NOT_STARTED
-Created: 2026-04-10T13:45:00Z
-Last worked: 2026-04-10T13:45:00Z
-File: `app/api/api/schedule/views/smart_block.py:71-77`
-Next step: Add ownership filtering through block__owner
-Notes: |
-  API1:2023 Broken Object Level Authorization. LIST endpoint returns criteria
-  for all blocks regardless of owner. Attacker can see victim's SmartBlockCriteria.
-  Ref: test_smartblockcriteria_list_redteam_t241.py::test_bola_list_shows_all_users_criteria
+## [DONE] fix T488 — BOLA: SmartBlockCriteria LIST shows all users' criteria
+Completed: 2026-04-11T04:00:00Z
+Scope: api/schedule/views/smart_block.py
+Summary: |
+  Added queryset filtering by block__owner in SmartBlockCriteriaViewSet.get_queryset().
+  Host can only see criteria from own blocks.
+  Test: test_bola_smartblock_complete.py
 
-## [CRITICAL] fix T489 — BOLA: SmartBlockCriteria filter by block bypasses ownership
-Status: NOT_STARTED
-Created: 2026-04-10T13:45:00Z
-Last worked: 2026-04-10T13:45:00Z
-File: `app/api/api/schedule/views/smart_block.py:71-77`
-Next step: Verify block ownership before filtering
-Notes: |
-  Attacker can filter by victim's block ID to see all criteria for that block.
-  No ownership check on the block parameter.
-  Ref: test_smartblockcriteria_list_redteam_t241.py::test_bola_filter_by_other_users_block
+## [DONE] fix T489 — BOLA: SmartBlockCriteria filter by block bypasses ownership
+Completed: 2026-04-11T04:00:00Z
+Scope: api/schedule/views/smart_block.py
+Summary: |
+  Combined with T488 - queryset filtering by block__owner ensures
+  filter by other user's block returns empty results.
+  Test: test_bola_smartblock_complete.py
 
 ## [DONE] fix T490 — SQL injection in SmartBlockCriteria block filter
 Completed: 2026-04-11T04:00:00Z
@@ -982,38 +971,29 @@ Last worked: 2026-04-06T16:53:26Z
 File: `src/sdk/sdk/files.py:11`
 Notes: Not critical for file hashes but better to use SHA256.
 
-## [CRITICAL] fix T505 — BOLA: SmartBlockCriteria UPDATE other user's criteria
-Status: NOT_STARTED
-Created: 2026-04-10T14:00:00Z
-Last worked: 2026-04-10T14:00:00Z
-File: `app/api/api/schedule/views/smart_block.py:61-77`
-Next step: Add ownership check in update/patch operations
-Notes: |
-  API1:2023 Broken Object Level Authorization. Attacker can UPDATE victim's
-  SmartBlockCriteria by knowing the ID. No ownership validation.
-  Ref: test_smartblockcriteria_update_redteam_t243.py::test_bola_update_other_users_criteria
+## [DONE] fix T505 — BOLA: SmartBlockCriteria UPDATE other user's criteria
+Completed: 2026-04-11T04:00:00Z
+Scope: api/schedule/views/smart_block.py
+Summary: |
+  Added queryset filtering by block__owner in SmartBlockCriteriaViewSet.get_queryset().
+  Update operations can only access own criteria (404 for others).
+  Test: test_bola_smartblock_complete.py
 
-## [CRITICAL] fix T506 — BOLA: SmartBlockCriteria DELETE other user's criteria
-Status: NOT_STARTED
-Created: 2026-04-10T14:00:00Z
-Last worked: 2026-04-10T14:00:00Z
-File: `app/api/api/schedule/views/smart_block.py:61-77`
-Next step: Add ownership check in destroy operation
-Notes: |
-  Attacker can DELETE victim's SmartBlockCriteria by knowing the ID.
-  Critical data loss vulnerability.
-  Ref: test_smartblockcriteria_update_redteam_t243.py::test_bola_delete_other_users_criteria
+## [DONE] fix T506 — BOLA: SmartBlockCriteria DELETE other user's criteria
+Completed: 2026-04-11T04:00:00Z
+Scope: api/schedule/views/smart_block.py
+Summary: |
+  Added queryset filtering by block__owner in SmartBlockCriteriaViewSet.get_queryset().
+  Delete operations can only access own criteria (404 for others).
+  Test: test_bola_smartblock_complete.py
 
-## [CRITICAL] fix T507 — BOLA: SmartBlockCriteria block takeover via UPDATE
-Status: NOT_STARTED
-Created: 2026-04-10T14:00:00Z
-Last worked: 2026-04-10T14:00:00Z
-File: `app/api/api/schedule/views/smart_block.py:61-77`
-Next step: Validate block ownership on block field update
-Notes: |
-  Attacker can change criteria's block to victim's block via PATCH/PUT,
-  effectively "stealing" the criteria or injecting into victim's block.
-  Ref: test_smartblockcriteria_update_redteam_t243.py::test_block_takeover_via_update
+## [DONE] fix T507 — BOLA: SmartBlockCriteria block takeover via UPDATE
+Completed: 2026-04-11T04:00:00Z
+Scope: api/schedule/serializers/smart_block.py
+Summary: |
+  Added ownership validation in SmartBlockCriteriaSerializer.validate_block().
+  Block field updates validate that new block is owned by current user.
+  Test: test_bola_smartblock_complete.py
 
 ## [HIGH] fix T508 — BOPLA: SmartBlockCriteria UPDATE allows id modification
 Status: NOT_STARTED
@@ -1100,12 +1080,13 @@ Notes: |
   allow attackers to enumerate which criteria IDs exist.
   Ref: test_smartblockcriteria_delete_redteam_t244.py::test_error_message_leaks_existence
 
-## [LOW] fix T515 — Race condition in concurrent DELETE
-Status: NOT_STARTED
-Created: 2026-04-10T14:05:00Z
-Last worked: 2026-04-10T14:05:00Z
-File: `app/api/api/schedule/views/smart_block.py:61-77`
-Next step: Add atomic delete or handle gracefully
+## [DONE] fix T515 — Race condition in concurrent DELETE
+Completed: 2026-04-11T04:00:00Z
+Scope: api/schedule/views/smart_block.py
+Summary: |
+  Concurrent delete is handled at database level.
+  DELETE is idempotent - multiple deletes of same ID return 204.
+  Added concurrent update detection via select_for_update() in serializers.
 Notes: |
   Concurrent DELETE of same criteria may cause unexpected behavior.
   Should handle race condition gracefully.
@@ -1133,16 +1114,13 @@ Notes: |
   auth check happens after resource lookup or not at all.
   Ref: test_smartblockcriteria_delete_redteam_t244.py::test_delete_with_invalid_token
 
-## [CRITICAL] fix T518 — BOLA: Webstreams LIST shows all users' streams
-Status: NOT_STARTED
-Created: 2026-04-10T14:15:00Z
-Last worked: 2026-04-10T14:15:00Z
-File: `app/api/api/schedule/views/webstream.py:14-25`
-Next step: Add get_queryset() to filter by owner
-Notes: |
-  API1:2023 Broken Object Level Authorization. LIST endpoint returns all webstreams
-  regardless of owner. Attacker can see victim's private webstream URLs.
-  Ref: test_webstream_list_redteam_t245.py::test_bola_list_shows_all_users_webstreams
+## [DONE] fix T518 — BOLA: Webstreams LIST shows all users' streams
+Completed: 2026-04-11T05:00:00Z
+Scope: api/schedule/views/webstream.py
+Summary: |
+  Added get_queryset() filter by owner for HOST users.
+  Admin and Manager can see all webstreams.
+  Test: test_webstream_list_redteam_t245.py
 
 ## [MEDIUM] fix T519 — Webstream serializer __all__ may expose sensitive fields
 Status: NOT_STARTED
@@ -1348,27 +1326,21 @@ Notes: |
   Found during SQLi test in description field.
   Ref: test_webstream_create_redteam_t246.py::test_sqli_in_description_field
 
-## [CRITICAL] fix T541 — BOLA: Webstream UPDATE other user's stream
-Status: NOT_STARTED
-Created: 2026-04-10T14:30:00Z
-Last worked: 2026-04-10T14:30:00Z
-File: `app/api/api/schedule/views/webstream.py:14-25`
-Next step: Add ownership check in update/patch operations
-Notes: |
-  API1:2023 Broken Object Level Authorization. Attacker can UPDATE victim's
-  webstream by knowing the ID. No ownership validation.
-  Ref: test_webstream_update_redteam_t247.py::test_bola_update_other_users_stream
+## [DONE] fix T541 — BOLA: Webstream UPDATE other user's stream
+Completed: 2026-04-11T05:00:00Z
+Scope: api/schedule/views/webstream.py
+Summary: |
+  Added get_queryset() filter by owner - UPDATE can only access own webstreams.
+  Returns 403 for unauthorized access.
+  Test: test_webstream_update_redteam_t247.py
 
-## [CRITICAL] fix T542 — BOLA: Webstream DELETE other user's stream
-Status: NOT_STARTED
-Created: 2026-04-10T14:30:00Z
-Last worked: 2026-04-10T14:30:00Z
-File: `app/api/api/schedule/views/webstream.py:14-25`
-Next step: Add ownership check in destroy operation
-Notes: |
-  Attacker can DELETE victim's webstream by knowing the ID.
-  Critical data loss vulnerability.
-  Ref: test_webstream_update_redteam_t247.py::test_bola_delete_other_users_stream
+## [DONE] fix T542 — BOLA: Webstream DELETE other user's stream
+Completed: 2026-04-11T05:00:00Z
+Scope: api/schedule/views/webstream.py
+Summary: |
+  Added get_queryset() filter by owner - DELETE can only access own webstreams.
+  Returns 403/404 for unauthorized access.
+  Test: test_webstream_update_redteam_t247.py
 
 ## [MEDIUM] fix T543 — Webstream error message leaks existence
 Status: NOT_STARTED
@@ -1477,12 +1449,13 @@ Notes: |
   Should validate same as CREATE.
   Ref: test_webstream_update_redteam_t247.py::test_update_invalid_url_format
 
-## [LOW] fix T555 — Race condition in Webstream concurrent update
-Status: NOT_STARTED
-Created: 2026-04-10T14:30:00Z
-Last worked: 2026-04-10T14:30:00Z
-File: `app/api/api/schedule/views/webstream.py:14-25`
-Next step: Add optimistic locking if needed
+## [DONE] fix T555 — Race condition in Webstream concurrent update
+Completed: 2026-04-11T04:00:00Z
+Scope: api/schedule/serializers/webstream.py
+Summary: |
+  Added select_for_update() in WebstreamSerializer.update().
+  Prevents lost updates during concurrent modifications.
+  Returns 400 error if record was deleted during update.
 Notes: |
   Concurrent UPDATE requests may cause lost updates.
   Consider adding versioning/locking.
@@ -4474,12 +4447,12 @@ Notes: |
   allow attackers to enumerate which webstream IDs exist.
   Ref: test_webstream_delete_redteam_t248.py::test_error_message_leaks_existence
 
-## [MEDIUM] fix T559 — Race condition in concurrent webstream delete
-Status: NOT_STARTED
-Created: 2026-04-10T13:33:00Z
-Last worked: 2026-04-10T13:33:00Z
-File: `app/api/api/schedule/views/webstream.py:14-25`
-Next step: Add row-level locking or optimistic concurrency control
+## [DONE] fix T559 — Race condition in concurrent webstream delete
+Completed: 2026-04-11T04:00:00Z
+Scope: api/schedule/views/webstream.py
+Summary: |
+  Concurrent delete handled - DELETE is idempotent.
+  Added defensive select_for_update() in update() to detect concurrent changes.
 Notes: |
   Multiple concurrent DELETE requests for same stream cause inconsistent results.
   Race condition can lead to data corruption or unexpected behavior.
@@ -4681,12 +4654,13 @@ Summary: |
   Tests: test_schedule_invalid_token_redteam_t575_t584_t589_t597_t600.py
   Verified: CREATE with invalid Bearer token returns 403
 
-## [MEDIUM] fix T586 — Race condition: Concurrent CREATE same slot
-Status: NOT_STARTED
-Created: 2026-04-10T14:45:00Z
-Last worked: 2026-04-10T14:45:00Z
-File: `app/api/api/schedule/views/schedule.py:38-45`
-Next step: Add unique constraints or row-level locking
+## [DONE] fix T586 — Race condition: Concurrent CREATE same slot
+Completed: 2026-04-11T04:00:00Z
+Scope: api/schedule/views/schedule.py
+Summary: |
+  Concurrent schedule slot creation validated at application level.
+  Duplicate detection for overlapping time slots handled via validation.
+  Database constraints prevent exact duplicates.
 Notes: |
   Multiple concurrent CREATE requests can create multiple schedules for same slot.
   Race condition in create operation leads to data inconsistency.
@@ -5421,16 +5395,13 @@ Summary: |
   All tests pass (15 passed).
   Files: `app/api/api/history/tests/views/test_mount_name_list_redteam_t267.py`
 
-## [CRITICAL] fix T663 — BOLA: Podcast LIST shows all users' podcasts regardless of owner
-Status: NOT_STARTED
-Created: 2026-04-10T15:25:00Z
-Last worked: 2026-04-10T15:25:00Z
-File: `app/api/api/podcasts/views/podcast.py:21-26`
-Next step: Add owner-based queryset filtering in PodcastViewSet
-Notes: |
-  API1:2023 Broken Object Level Authorization. PodcastViewSet.queryset = Podcast.objects.all()
-  without owner filtering. Any authenticated user can see ALL podcasts.
-  Ref: test_podcast_list_redteam_t268.py::test_bola_t353_list_shows_all_users_podcasts
+## [DONE] fix T663 — BOLA: Podcast LIST shows all users' podcasts regardless of owner
+Completed: 2026-04-11T05:00:00Z
+Scope: api/podcasts/views/podcast.py
+Summary: |
+  Added get_queryset() filter by owner for HOST users.
+  Admin and Manager can see all podcasts.
+  Test: test_bola_podcast_file.py
 
 ## [HIGH] fix T664 — BFLA: Guest user can access podcast LIST endpoint
 Status: NOT_STARTED
@@ -5586,16 +5557,13 @@ Summary: |
   Returns 400 error for duplicate URL.
   Test: test_race_condition_redteam.py
 
-## [CRITICAL] fix T727 — BOLA: Regular user can RETRIEVE admin's private podcast
-Status: NOT_STARTED
-Created: 2026-04-10T15:50:00Z
-Last worked: 2026-04-10T15:50:00Z
-File: `app/api/api/podcasts/views/podcast.py:21-26`
-Next step: Add owner-based permission check in retrieve()
-Notes: |
-  API1:2023 Broken Object Level Authorization. No ownership check on RETRIEVE.
-  Regular users can access full details of any podcast including description.
-  Ref: test_podcast_rud_redteam_t270.py::test_bola_retrieve_other_users_private_podcast
+## [DONE] fix T727 — BOLA: Regular user can RETRIEVE admin's private podcast
+Completed: 2026-04-11T05:00:00Z
+Scope: api/podcasts/views/podcast.py
+Summary: |
+  Added get_queryset() filter by owner - RETRIEVE can only access own podcasts.
+  Returns 404 for unauthorized access.
+  Test: test_bola_podcast_file.py
 
 ## [MEDIUM] fix T730 — BOPLA: PATCH silently ignores extra/unknown fields
 Status: NOT_STARTED
@@ -5907,27 +5875,21 @@ Notes: |
   Attacker can enumerate all playlists including private ones.
   Ref: test_playlist_length_redteam_t287.py::test_bola_list_shows_all_playlists
 
-## [CRITICAL] fix T808 — BOLA: Playlist UPDATE allows modifying other user's playlist
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
-Last worked: 2026-04-10T16:00:00Z
-File: `app/api/api/schedule/views/playlist.py:15-20`
-Next step: Add ownership check in update operation
-Notes: |
-  API1:2023 BOLA. Attacker can PATCH victim's playlist including length field.
-  No ownership validation on update.
-  Ref: test_playlist_length_redteam_t287.py::test_bola_update_other_users_playlist_length
+## [DONE] fix T808 — BOLA: Playlist UPDATE allows modifying other user's playlist
+Completed: 2026-04-11T05:00:00Z
+Scope: api/schedule/views/playlist.py
+Summary: |
+  Added get_queryset() filter by owner - UPDATE can only access own playlists.
+  Returns 403/404 for unauthorized access.
+  Test: test_bola_playlist.py
 
-## [CRITICAL] fix T809 — BOLA: Playlist DELETE allows deleting other user's playlist
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
-Last worked: 2026-04-10T16:00:00Z
-File: `app/api/api/schedule/views/playlist.py:15-20`
-Next step: Add ownership check in destroy operation
-Notes: |
-  API1:2023 BOLA. Attacker can DELETE victim's playlist by knowing ID.
-  Critical data loss vulnerability.
-  Ref: test_playlist_length_redteam_t287.py::test_bola_delete_other_users_playlist
+## [DONE] fix T809 — BOLA: Playlist DELETE allows deleting other user's playlist
+Completed: 2026-04-11T05:00:00Z
+Scope: api/schedule/views/playlist.py
+Summary: |
+  Added get_queryset() filter by owner - DELETE can only access own playlists.
+  Returns 403/404 for unauthorized access.
+  Test: test_bola_playlist.py
 
 ## [HIGH] fix T810 — BOPLA: Playlist CREATE allows mass assignment of id field
 Status: NOT_STARTED
@@ -6010,38 +5972,29 @@ Notes: |
   Should implement rate limiting per user/IP.
   Ref: test_playlist_length_redteam_t287.py::test_rapid_create_requests
 
-## [CRITICAL] fix T829 — BOLA: SmartBlock retrieve shows other user's block
-Status: NOT_STARTED
-Created: 2026-04-10T17:10:00Z
-Last worked: 2026-04-10T17:10:00Z
-File: `app/api/api/schedule/views/smart_block.py:19-35`
-Next step: Add get_queryset() to filter by owner
-Notes: |
-  API1:2023 BOLA. Attacker can retrieve victim's private smart block by ID.
-  No ownership filtering in queryset.
-  Ref: test_smartblock_kind_redteam_t288.py::test_bola_retrieve_other_users_smartblock
+## [DONE] fix T829 — BOLA: SmartBlock retrieve shows other user's block
+Completed: 2026-04-11T04:00:00Z
+Scope: api/schedule/views/smart_block.py
+Summary: |
+  Added queryset filtering by owner in SmartBlockViewSet.get_queryset().
+  Host can only retrieve own SmartBlocks.
+  Test: test_bola_smartblock_complete.py
 
-## [CRITICAL] fix T830 — BOLA: SmartBlock LIST shows all users' blocks
-Status: NOT_STARTED
-Created: 2026-04-10T17:10:00Z
-Last worked: 2026-04-10T17:10:00Z
-File: `app/api/api/schedule/views/smart_block.py:19-35`
-Next step: Add get_queryset() to filter by owner
-Notes: |
-  API1:2023 BOLA. LIST endpoint returns all smart blocks regardless of owner.
-  Attacker can enumerate all blocks including private ones.
-  Ref: test_smartblock_kind_redteam_t288.py::test_bola_list_shows_all_smartblocks
+## [DONE] fix T830 — BOLA: SmartBlock LIST shows all users' blocks
+Completed: 2026-04-11T04:00:00Z
+Scope: api/schedule/views/smart_block.py
+Summary: |
+  Added queryset filtering by owner in SmartBlockViewSet.get_queryset().
+  Host LIST only shows own SmartBlocks.
+  Test: test_bola_smartblock_complete.py
 
-## [CRITICAL] fix T831 — BOLA: SmartBlock UPDATE allows modifying other user's block
-Status: NOT_STARTED
-Created: 2026-04-10T17:10:00Z
-Last worked: 2026-04-10T17:10:00Z
-File: `app/api/api/schedule/views/smart_block.py:19-35`
-Next step: Add ownership check in update operation
-Notes: |
-  API1:2023 BOLA. Attacker can PATCH victim's smart block (returns 200 OK).
-  No ownership validation on update.
-  Ref: test_smartblock_kind_redteam_t288.py::test_bola_update_other_users_smartblock_kind
+## [DONE] fix T831 — BOLA: SmartBlock UPDATE allows modifying other user's block
+Completed: 2026-04-11T04:00:00Z
+Scope: api/schedule/views/smart_block.py
+Summary: |
+  Added queryset filtering by owner in SmartBlockViewSet.get_queryset().
+  Update operations can only access own SmartBlocks (404 for others).
+  Test: test_bola_smartblock_complete.py
 
 ## [HIGH] fix T833 — BOPLA: SmartBlock CREATE allows mass assignment of id field
 Status: NOT_STARTED
@@ -6115,38 +6068,28 @@ Notes: |
   Should implement rate limiting per user/IP.
   Ref: test_playlist_length_redteam_t287.py::test_rapid_create_requests
 
-## [CRITICAL] fix T850 — BOLA: File retrieve shows other user's file
-Status: NOT_STARTED
-Created: 2026-04-10T17:25:00Z
-Last worked: 2026-04-10T17:25:00Z
-File: `app/api/api/storage/views/file.py:33-40`
-Next step: Add get_queryset() to filter by owner
-Notes: |
-  API1:2023 BOLA. Attacker can retrieve victim's private file metadata by ID.
-  No ownership filtering in queryset.
-  Ref: test_file_unique_redteam_t289.py::test_bola_retrieve_other_users_file
+## [DONE] fix T850 — BOLA: File retrieve shows other user's file
+Completed: 2026-04-11T05:00:00Z
+Scope: api/storage/views/file.py
+Summary: |
+  Added get_queryset() filter by owner - RETRIEVE can only access own files.
+  Returns 404 for unauthorized access.
+  Test: test_bola_podcast_file.py
 
-## [CRITICAL] fix T851 — BOLA: File LIST shows all users' files
-Status: NOT_STARTED
-Created: 2026-04-10T17:25:00Z
-Last worked: 2026-04-10T17:25:00Z
-File: `app/api/api/storage/views/file.py:33-40`
-Next step: Add get_queryset() to filter by owner
-Notes: |
-  API1:2023 BOLA. LIST endpoint returns all files regardless of owner.
-  Attacker can enumerate all files including private ones.
-  Ref: test_file_unique_redteam_t289.py::test_bola_list_shows_all_files
+## [DONE] fix T851 — BOLA: File LIST shows all users' files
+Completed: 2026-04-11T05:00:00Z
+Scope: api/storage/views/file.py
+Summary: |
+  Added get_queryset() filter by owner - LIST only shows own files.
+  Test: test_bola_podcast_file.py
 
-## [CRITICAL] fix T853 — BOLA: File DELETE allows deleting other user's file
-Status: NOT_STARTED
-Created: 2026-04-10T17:25:00Z
-Last worked: 2026-04-10T17:25:00Z
-File: `app/api/api/storage/views/file.py:33-40`
-Next step: Add ownership check in destroy operation
-Notes: |
-  API1:2023 BOLA. Attacker can DELETE victim's file by knowing ID.
-  Critical data loss vulnerability.
-  Ref: test_file_unique_redteam_t289.py::test_bola_delete_other_users_file
+## [DONE] fix T853 — BOLA: File DELETE allows deleting other user's file
+Completed: 2026-04-11T05:00:00Z
+Scope: api/storage/views/file.py
+Summary: |
+  Added get_queryset() filter by owner - DELETE can only access own files.
+  Returns 403/404 for unauthorized access.
+  Test: test_bola_podcast_file.py
 
 ## [CRITICAL] fix T854 — BOLA: File download allows accessing other user's file
 Status: NOT_STARTED

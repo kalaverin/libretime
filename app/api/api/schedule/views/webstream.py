@@ -20,16 +20,18 @@ class WebstreamViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
     model_permission_name: str = "webstream"
 
     def get_queryset(self) -> Any:
-        """All authenticated users see all webstreams (public content)."""
+        """Filter by owner for BOLA prevention (T518, T541, T542)."""
         request = self.request
         # API-Key auth (services) - full access
         if check_authorization_header(request):
             return Webstream.objects.all()
-        # Session auth (users) - all authenticated see all
+        # Session auth (users) - filter by ownership
         user = request.user
         if not user.is_authenticated:
             return Webstream.objects.none()
-        # All authenticated users (GUEST, HOST, MANAGER, ADMIN) see all
+        # Admin and Manager can see all, Host can only see own
+        if user.role not in [user.role.ADMIN, user.role.MANAGER]:
+            return Webstream.objects.filter(owner=user)
         return Webstream.objects.all()
 
 

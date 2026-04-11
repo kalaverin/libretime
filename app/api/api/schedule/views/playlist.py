@@ -20,6 +20,17 @@ class PlaylistViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
     serializer_class: type[Serializer[Any]] = PlaylistSerializer
     model_permission_name: str = "playlist"
 
+    def get_queryset(self) -> Any:
+        """Filter by owner for BOLA prevention (T808, T809)."""
+        queryset = super().get_queryset()
+        user = self.request.user
+        if not user.is_authenticated:
+            return queryset.none()
+        # Admin and Manager can see all, Host can only see own
+        if user.role not in [user.role.ADMIN, user.role.MANAGER]:
+            return queryset.filter(owner=user)
+        return queryset
+
 
 @final
 class PlaylistContentViewSet(viewsets.ModelViewSet[Any]):

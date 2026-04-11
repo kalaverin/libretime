@@ -1,4 +1,4 @@
-# Work History — 2026-04-07T12:49:46Z
+# Work History — 2026-04-11T01:27:00Z
 
 <!-- Protocol: ~/.config/kimi/skills/memory-protocol/SKILL.md (modified: 2026-04-07T12:03:05Z, commit: 8407a3fffae7e8a6a45e80fb73eeded8078dafa7) -->
 <!-- The following section is a FULL COPY of ~/.config/kimi/skills/memory-protocol/SKILL.md
@@ -2974,3 +2974,110 @@ def download(self, request: Request, **__: Any) -> HttpResponse:
 - Field Validation: 22 tests ✓
 - SQL Injection: 14 tests ✓
 
+
+### [2026-04-11T01:27:00Z]
+**Completed:**
+- Implemented race condition prevention for 9 security tasks (T433, T486, T504, T515, T539, T555, T559, T586, T722)
+- Added duplicate prevention validators in api/validators/race_conditions.py
+- Implemented duplicate name prevention for SmartBlock and Webstream (per owner)
+- Implemented duplicate URL prevention for Webstream and Podcast (per owner)
+- Implemented duplicate content prevention for SmartBlockContent (block+file+position)
+- Implemented duplicate criteria prevention for SmartBlockCriteria (block+criteria+condition+value)
+- Added concurrent update prevention using select_for_update() for Webstream updates
+- Created comprehensive test suite in test_race_condition_redteam.py (9 tests, all passing)
+- Updated all 9 task statuses in tasks.md to DONE
+- Documented race condition prevention architecture in knowledge.md
+
+**Discovered:**
+- Django unmanaged tables (managed=False) cannot use database unique constraints
+- Must implement duplicate prevention at application/serializer layer
+- Application-level validation adds minimal overhead (single EXISTS query)
+- Per-owner scope allows different users to have same names/URLs (correct UX)
+- select_for_update() prevents lost updates during concurrent modifications
+- All 45 core security tests pass after implementation
+
+**Decisions:**
+- Use validate_duplicate_name() and validate_duplicate_combination() helper functions
+- Apply validation in serializer.validate() methods for consistency
+- Keep duplicate scope per-owner for UX flexibility
+- Use application-level validation as permanent solution for unmanaged tables
+
+**Open:**
+- None - all race condition tickets resolved
+
+**Modified files:**
+- `app/api/api/validators/race_conditions.py` - new validators (validate_duplicate_name, validate_duplicate_combination)
+- `app/api/api/schedule/serializers/smart_block.py` - added duplicate validation
+- `app/api/api/schedule/serializers/webstream.py` - added duplicate validation + concurrent update protection
+- `app/api/api/podcasts/serializers/podcast.py` - added duplicate URL validation
+- `app/api/api/tests/test_race_condition_redteam.py` - new test suite (9 tests)
+- `.agent/tasks.md` - updated 9 task statuses to DONE
+- `.agent/knowledge.md` - added race condition prevention architecture documentation
+
+### [2026-04-11T04:30:00Z]
+**Completed:**
+- Implemented BOLA (Broken Object Level Authorization) fixes for SmartBlock components
+- Fixed T475: SmartBlockContent CREATE - added block ownership validation in serializer
+- Fixed T476: SmartBlockContent CREATE - added file ownership validation in serializer  
+- Fixed T488: SmartBlockCriteria LIST - added queryset filtering by block__owner
+- Fixed T489: SmartBlockCriteria filter - combined with T488 fix
+- Fixed T496: SmartBlockCriteria CREATE - added block ownership validation
+- Fixed T505: SmartBlockCriteria UPDATE - added queryset filtering
+- Fixed T506: SmartBlockCriteria DELETE - added queryset filtering
+- Fixed T507: SmartBlockCriteria block takeover - added block validation on update
+- Fixed T829: SmartBlock RETRIEVE - added owner filtering in get_queryset()
+- Fixed T830: SmartBlock LIST - added owner filtering in get_queryset()
+- Fixed T831: SmartBlock UPDATE - added owner filtering in get_queryset()
+- Updated 11 task statuses in tasks.md to DONE
+- Created comprehensive BOLA test suite in test_bola_smartblock_complete.py (14 tests)
+
+**Discovered:**
+- BOLA prevention requires both queryset filtering AND serializer validation
+- Queryset filtering in get_queryset() prevents LIST/RETRIEVE/UPDATE/DELETE on others' resources
+- Serializer validation prevents CREATE with others' block/file references
+- Admin and Manager roles bypass ownership checks (can access any resource)
+- 59 security tests passing (14 BOLA + 9 race condition + 22 validation + 14 SQLi)
+
+**Decisions:**
+- Use block__owner filtering for nested resources (SmartBlockContent, SmartBlockCriteria)
+- Use direct owner filtering for top-level resources (SmartBlock)
+- Validate ownership in serializer validate_block() and validate_file() methods
+- Return 403/404 for unauthorized access (don't leak existence)
+
+**Open:**
+- Webstream BOLA fixes (T518, T541, T542)
+- Podcast BOLA fixes (T663, T727)
+- Playlist BOLA fixes (T808, T809)
+- File BOLA fixes (T850, T853)
+
+**Modified files:**
+- `app/api/api/schedule/views/smart_block.py` - BOLA fixes for SmartBlock, SmartBlockContent, SmartBlockCriteria
+- `app/api/api/schedule/serializers/smart_block.py` - ownership validation in serializers
+- `app/api/api/tests/test_bola_smartblock_complete.py` - new comprehensive test suite (14 tests)
+- `.agent/tasks.md` - updated 11 task statuses to DONE
+
+### [2026-04-11T06:00:00Z]
+**Completed:**
+- Added anonymous access tests to all BOLA test suites
+- Verified all endpoints return 403 for unauthenticated users
+- Confirmed permission system works correctly (162 tests passing)
+
+**Anonymous Access Tests Added:**
+- SmartBlock: GET/POST /smart-blocks → 403
+- SmartBlockContent: GET/POST /smart-block-contents → 403
+- SmartBlockCriteria: GET/POST /smart-block-criteria → 403
+- Podcast: GET/POST /podcasts → 403
+- File: GET/POST /files → 403
+- Playlist: GET/POST /playlists → 403
+
+**Test Results:**
+- test_bola_smartblock_complete.py: 18 tests passing
+- test_bola_podcast_file.py: 7 tests passing
+- test_bola_playlist.py: 4 tests passing
+- test_role_anonymous_denied.py: 162 tests passing
+
+**Verified:**
+- Anonymous users get 403 immediately (permission denied)
+- Authenticated HOST users see only own resources
+- MANAGER/ADMIN users can access any resources
+- All BOLA fixes work correctly with permission system

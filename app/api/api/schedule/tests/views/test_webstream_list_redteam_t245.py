@@ -30,35 +30,53 @@ class TestWebstreamListRedTeam:
     # API1:2023 - BOLA (Broken Object Level Authorization)
     # ========================================================================
 
-    @pytest.mark.xfail(
-        reason="T518: BOLA - LIST shows all users' webstreams without filtering",
-    )
-    def test_bola_list_shows_all_users_webstreams(self, api_client):
-        """BOLA: LIST should only show webstreams from user's own account."""
-        victim = baker.make(User, username="testred_victim")
-        attacker = baker.make(User, username="testred_attacker")
-
-        # Victim's private webstream
+    def test_bola_list_shows_all_users_webstreams(self, host_client, host_user, faker, fake_url):
+        """BOLA T518: LIST should only show webstreams from user's own account."""
+        from api.core.models.role import Role
+        
+        # Create victim user with private webstream
+        victim = baker.make(
+            User, 
+            username=f"victim_{faker.uuid4()[:8]}",
+            email=f"victim_{faker.uuid4()[:8]}@test.com",
+            role=Role.HOST,
+        )
         victim_stream = baker.make(
             Webstream,
-            name="Victim Private Stream",
-            url="http://victim-private.com/stream",
-            description="Secret stream",
+            name=f"Victim Stream {faker.uuid4()[:8]}",
+            url=fake_url,
+            description=faker.sentence(),
             owner=victim,
+        )
+        
+        # Create attacker's own stream
+        own_stream = baker.make(
+            Webstream,
+            name=f"Own Stream {faker.uuid4()[:8]}",
+            url=fake_url,
+            owner=host_user,
         )
 
         # Attacker lists all webstreams
-        response = api_client.get("/api/v2/webstreams")
+        response = host_client.get("/api/v2/webstreams")
         assert response.status_code == 200
 
         data = response.json()
-        victim_stream_ids = [
-            s["id"] for s in data if s.get("name") == "Victim Private Stream"
-        ]
-
-        assert (
-            len(victim_stream_ids) == 0
-        ), f"BOLA: Attacker can see {len(victim_stream_ids)} victim's webstreams"
+        # Handle both paginated and non-paginated responses
+        if isinstance(data, list):
+            results = data
+        else:
+            results = data.get("results", data)
+        
+        result_ids = [s["id"] for s in results]
+        
+        # Should see own stream
+        assert own_stream.id in result_ids, "HOST should see own webstream"
+        
+        # Should NOT see victim's stream
+        assert victim_stream.id not in result_ids, (
+            f"BOLA T518: HOST can see victim's webstream in LIST!"
+        )
 
     def test_stream_id_enumeration_mitigated(self, api_client):
         """Security: Stream ID enumeration mitigated by owner filtering."""
