@@ -29,23 +29,6 @@ class ShowViewSet(viewsets.ModelViewSet[Any]):
     serializer_class: type[Serializer[Any]] = ShowSerializer
     model_permission_name: str = "show"
 
-    def get_queryset(self) -> Any:
-        """Return all shows - schedule is public information.
-        
-        READ operations (LIST/RETRIEVE): All authenticated users see all shows.
-        WRITE operations (UPDATE/DELETE): Restricted to hosts/admins in perform_* methods.
-        """
-        request = self.request
-        # API-Key auth (services) - full access
-        if check_authorization_header(request):
-            return Show.objects.all()
-        # Session auth (users) - shows are public schedule
-        user = request.user
-        if not user.is_authenticated:
-            return Show.objects.none()
-        # All authenticated users see all shows (broadcast schedule is public)
-        return Show.objects.all()
-
     def perform_create(self, serializer: Any) -> None:
         """Create show and assign current user as host (for session auth)."""
         show = serializer.save()
@@ -61,7 +44,7 @@ class ShowViewSet(viewsets.ModelViewSet[Any]):
     def _check_show_ownership(self, show: Show) -> None:
         """Verify user is host, manager, or admin before modifying a show."""
         from api.core.models.role import Role
-        
+
         user = self.request.user
         # API-Key auth bypasses ownership check (services have full access)
         if check_authorization_header(self.request):
@@ -105,29 +88,6 @@ class ShowHostViewSet(viewsets.ModelViewSet[Any]):
     queryset = ShowHost.objects.all()
     serializer_class: type[Serializer[Any]] = ShowHostSerializer
     model_permission_name: str = "showhost"
-
-    def get_queryset(self) -> Any:
-        """Filter show host assignments by user for non-admin users.
-
-        ADMIN and MANAGER can see all show host assignments.
-        HOST can only see their own assignments.
-        """
-        queryset = super().get_queryset()
-        user = self.request.user
-
-        # API-Key auth (services) - full access
-        if check_authorization_header(self.request):
-            return queryset
-
-        if not user.is_authenticated:
-            return queryset.none()
-
-        # ADMIN and MANAGER can see all assignments
-        if user.role == Role.ADMIN or user.role == Role.MANAGER:
-            return queryset
-
-        # HOST can only see their own assignments
-        return queryset.filter(user=user)
 
 
 @final

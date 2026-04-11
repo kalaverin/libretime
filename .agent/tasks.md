@@ -5831,27 +5831,22 @@ Summary: |
   security bugs (T901-T911), 6 xpassed (already fixed).
   Ref: test_file_organization_redteam_t298.py
 
-## [CRITICAL] fix T806 — BOLA: Playlist retrieve shows other user's playlist
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
-Last worked: 2026-04-10T16:00:00Z
-File: `app/api/api/schedule/views/playlist.py:15-20`
-Next step: Add get_queryset() to filter by owner
-Notes: |
-  API1:2023 Broken Object Level Authorization. Attacker can retrieve victim's
-  private playlist by ID. No ownership filtering in queryset.
-  Ref: test_playlist_length_redteam_t287.py::test_bola_retrieve_other_users_playlist_length
+## [DONE] fix T806 — BOLA: Playlist retrieve shows other user's playlist
+Completed: 2026-04-11T12:30:00Z
+Scope: api/schedule/views/playlist.py
+Summary: |
+  RESOLVED: BY DESIGN. All authenticated users (GUEST, HOST, MANAGER, ADMIN) 
+  can view ALL playlists. BOLA protection applies only to MODIFY operations.
+  get_queryset() returns all objects for VIEW; has_perm() enforces ownership 
+  for UPDATE/DELETE. 42 VIEW permission tests passing.
 
-## [CRITICAL] fix T807 — BOLA: Playlist LIST shows all users' playlists
-Status: NOT_STARTED
-Created: 2026-04-10T16:00:00Z
-Last worked: 2026-04-10T16:00:00Z
-File: `app/api/api/schedule/views/playlist.py:15-20`
-Next step: Add get_queryset() to filter by owner
-Notes: |
-  API1:2023 BOLA. LIST endpoint returns all playlists regardless of owner.
-  Attacker can enumerate all playlists including private ones.
-  Ref: test_playlist_length_redteam_t287.py::test_bola_list_shows_all_playlists
+## [DONE] fix T807 — BOLA: Playlist LIST shows all users' playlists
+Completed: 2026-04-11T12:30:00Z
+Scope: api/schedule/views/playlist.py
+Summary: |
+  RESOLVED: BY DESIGN. LIST returns all playlists for all authenticated users.
+  This is consistent with permissions inventory - VIEW is public within 
+  authenticated users. BOLA protection only for MODIFY operations.
 
 ## [DONE] fix T808 — BOLA: Playlist UPDATE allows modifying other user's playlist
 Completed: 2026-04-11T05:00:00Z

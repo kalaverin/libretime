@@ -4,6 +4,7 @@ from rest_framework import viewsets
 from rest_framework.serializers import Serializer
 
 from api.mixins import AutoAssignOwnerMixin
+from api.permissions import check_authorization_header
 from api.podcasts.models import (
     ImportedPodcast,
     Podcast,
@@ -24,17 +25,6 @@ class PodcastViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
     queryset = Podcast.objects.all()
     serializer_class: type[Serializer[Any]] = PodcastSerializer
     model_permission_name: str = "podcast"
-
-    def get_queryset(self) -> Any:
-        """Filter by owner for BOLA prevention (T663, T727)."""
-        queryset = super().get_queryset()
-        user = self.request.user
-        if not user.is_authenticated:
-            return queryset.none()
-        # Admin and Manager can see all, Host can only see own
-        if user.role not in [user.role.ADMIN, user.role.MANAGER]:
-            return queryset.filter(owner=user)
-        return queryset
 
 
 @final

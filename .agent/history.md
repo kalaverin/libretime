@@ -243,6 +243,30 @@ You MUST append a session entry after completing any work
 - `.agent/style.md` — protocol copy refreshed
 - `.agent/glossary.md` — protocol copy refreshed
 
+### [2026-04-11T13:30:00Z]
+**Completed:**
+- Fixed VIEW operations for all ViewSets (Playlist, SmartBlock, File, Podcast, Webstream)
+- Removed ownership filtering from get_queryset() for LIST/RETRIEVE operations
+- BOLA protection now applies only to MODIFY operations (UPDATE/DELETE)
+- Updated 5 ViewSet files: playlist.py, smart_block.py, file.py, podcast.py, webstream.py
+- Closed tasks: T806, T807, T829, T830, T850, T851, T727 (BY DESIGN - not bugs)
+- All 42 VIEW permission tests passing (test_role_view_matrix.py, test_role_detail_matrix.py)
+- Updated .agent/knowledge.md with VIEW vs MODIFY permission architecture
+
+**Design Decision:**
+- VIEW operations: All authenticated users see ALL content (GUEST, HOST, MANAGER, ADMIN)
+- MODIFY operations: HOST can only modify own content (BOLA protection via has_perm)
+- This matches permissions inventory - schedule content is public within station
+
+**Files modified:**
+- `app/api/api/schedule/views/playlist.py` - get_queryset() returns all for VIEW
+- `app/api/api/schedule/views/smart_block.py` - get_queryset() returns all for VIEW
+- `app/api/api/schedule/views/webstream.py` - get_queryset() returns all for VIEW
+- `app/api/api/storage/views/file.py` - get_queryset() returns all for VIEW
+- `app/api/api/podcasts/views/podcast.py` - get_queryset() returns all for VIEW
+
+**Tests:** 42/42 VIEW tests passing, 430 permission-related tests passing
+
 <!-- Agent appends new sessions HERE, at the END of Sessions section, before the --- separator -->
 <!-- Format:
 ### [YYYY-MM-DDTHH:mm:ssZ]

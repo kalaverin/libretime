@@ -4,6 +4,7 @@ from rest_framework import filters, viewsets
 from rest_framework.serializers import Serializer
 
 from api.mixins import AutoAssignOwnerMixin
+from api.permissions import check_authorization_header
 from api.schedule.models import (
     SmartBlock,
     SmartBlockContent,
@@ -28,26 +29,27 @@ class SmartBlockViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
     ordering_fields = ["name", "created_at"]
     ordering = ["name"]
 
-    def get_queryset(self) -> Any:
-        """Filter by owner for BOLA prevention (T829, T830, T831, T832)."""
+
+class BlockIdQuerySetFilter:
+
+    def get_queryset(self):
         queryset = super().get_queryset()
-        
-        # BOLA fix: Only show blocks owned by current user
-        # Admin and Manager can see all, Host can only see their own
-        user = self.request.user
-        if not user.is_authenticated:
-            return queryset.none()
-        if user.role not in [user.role.ADMIN, user.role.MANAGER]:
-            queryset = queryset.filter(owner=user)
-        
-        kind = self.request.query_params.get("kind")
-        if kind:
-            queryset = queryset.filter(kind=kind)
+
+        if value := self.request.query_params.get("block"):
+            try:
+                validate_integer_id(value, "block")
+
+            except Exception:
+                # Return empty queryset for invalid IDs
+                return queryset.none()
+
+            queryset = queryset.filter(block_id=value)
+
         return queryset
 
 
 @final
-class SmartBlockContentViewSet(viewsets.ModelViewSet[Any]):
+class SmartBlockContentViewSet(BlockIdQuerySetFilter, viewsets.ModelViewSet[Any]):
 
     queryset = SmartBlockContent.objects.all()
     serializer_class: type[Serializer[Any]] = SmartBlockContentSerializer
@@ -59,32 +61,11 @@ class SmartBlockContentViewSet(viewsets.ModelViewSet[Any]):
     ordering_fields = ["position"]
     ordering = ["position"]
 
-    def get_queryset(self) -> Any:
-        """Filter by block owner for BOLA prevention (T475, T476)."""
-        queryset = super().get_queryset()
-        
-        # BOLA fix: Only show content from blocks owned by current user
-        # Admin and Manager can see all, Host can only see their own
-        user = self.request.user
-        if not user.is_authenticated:
-            return queryset.none()
-        if user.role not in [user.role.ADMIN, user.role.MANAGER]:
-            queryset = queryset.filter(block__owner=user)
-        
-        block_id = self.request.query_params.get("block")
-        if block_id:
-            # Validate block_id to prevent SQLi and 500 errors (T356, T490)
-            try:
-                validate_integer_id(block_id, "block")
-                queryset = queryset.filter(block_id=block_id)
-            except Exception:
-                # Return empty queryset for invalid IDs
-                return queryset.none()
-        return queryset
+
 
 
 @final
-class SmartBlockCriteriaViewSet(viewsets.ModelViewSet[Any]):
+class SmartBlockCriteriaViewSet(BlockIdQuerySetFilter, viewsets.ModelViewSet[Any]):
 
     queryset = SmartBlockCriteria.objects.all()
     serializer_class: type[Serializer[Any]] = SmartBlockCriteriaSerializer
@@ -93,26 +74,3 @@ class SmartBlockCriteriaViewSet(viewsets.ModelViewSet[Any]):
     filterset_fields = ["block"]
     ordering_fields = ["group", "criteria"]
     ordering = ["group", "criteria"]
-
-    def get_queryset(self) -> Any:
-        """Filter by block owner for BOLA prevention (T488, T489, T496)."""
-        queryset = super().get_queryset()
-        
-        # BOLA fix: Only show criteria from blocks owned by current user
-        # Admin and Manager can see all, Host can only see their own
-        user = self.request.user
-        if not user.is_authenticated:
-            return queryset.none()
-        if user.role not in [user.role.ADMIN, user.role.MANAGER]:
-            queryset = queryset.filter(block__owner=user)
-        
-        block_id = self.request.query_params.get("block")
-        if block_id:
-            # Validate block_id to prevent SQLi and 500 errors (T367, T490)
-            try:
-                validate_integer_id(block_id, "block")
-                queryset = queryset.filter(block_id=block_id)
-            except Exception:
-                # Return empty queryset for invalid IDs
-                return queryset.none()
-        return queryset

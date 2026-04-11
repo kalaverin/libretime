@@ -2129,23 +2129,46 @@ bola_prevention:
         - test_bola_podcast_file.py
         - test_bola_playlist.py
         
-    - name: Queryset Ownership Filtering
-      scope: LIST, RETRIEVE, UPDATE, DELETE operations
+    - name: View Operations - All Authenticated Users
+      scope: LIST, RETRIEVE operations
       mechanism: |
-        Override get_queryset() in ViewSet to filter by current user.
-        Admin and Manager roles can access all resources.
-        Host role can only access own resources.
-        Note: Anonymous users never reach get_queryset() due to permission checks.
+        All authenticated users (GUEST, HOST, MANAGER, ADMIN) can view ALL resources.
+        get_queryset() returns complete queryset without ownership filtering.
+        Anonymous users are denied at permission level (403).
+        BOLA protection does NOT apply to VIEW operations - this is by design.
       implementation: |
         def get_queryset(self):
             queryset = super().get_queryset()
-            user = self.request.user
-            # Anonymous already filtered by permission_classes
-            if user.role not in [user.role.ADMIN, user.role.MANAGER]:
-                queryset = queryset.filter(owner=user)
+            # API-Key auth (services) - full access
+            if check_authorization_header(self.request):
+                return queryset
+            # All authenticated users see all objects for VIEW
             return queryset
       files:
+        - api/schedule/views/playlist.py
         - api/schedule/views/smart_block.py
+        - api/schedule/views/webstream.py
+        - api/storage/views/file.py
+        - api/podcasts/views/podcast.py
+      tests:
+        - api/tests/test_role_view_matrix.py (21 tests)
+        - api/tests/test_role_detail_matrix.py (21 tests)
+        
+    - name: Modify Operations - Ownership Protection (BOLA)
+      scope: UPDATE, DELETE operations
+      mechanism: |
+        BOLA protection applies only to MODIFY operations.
+        Host can only update/delete own resources.
+        Admin and Manager can modify any resource.
+        Protection enforced via has_perm() or serializer validation, NOT get_queryset().
+      implementation: |
+        # In serializer or permission class
+        if user.role == HOST and obj.owner != user:
+            raise PermissionDenied()
+      files:
+        - api/permissions.py
+        - api/schedule/serializers/playlist.py
+        - api/schedule/serializers/smart_block.py
         
     - name: Nested Resource Ownership Filtering
       scope: SmartBlockContent, SmartBlockCriteria
@@ -2194,7 +2217,7 @@ bola_prevention:
     success_admin_manager: 200      # OK
 
   status:
-    done: "T475, T476, T488, T489, T496, T505, T506, T507, T829, T830, T831, T518, T541, T542, T663, T727, T808, T809, T850, T853, T851"
+    done: "T475, T476, T488, T489, T496, T505, T506, T507, T806, T807, T808, T809, T829, T830, T831, T832, T518, T541, T542, T663, T727, T850, T851, T853"
     pending: "T568, T569, T587, T592, T598"
     tests: 
       - api/tests/test_bola_smartblock_complete.py (18 tests)
@@ -2204,16 +2227,22 @@ bola_prevention:
 
   design_decisions:
     - id: D1
-      decision: Dual-layer protection (queryset + serializer)
+      decision: VIEW vs MODIFY permission separation
       reason: |
-        Queryset filtering prevents access to other users' resources.
-        Serializer validation prevents referencing other users' resources.
-        Both layers needed for complete protection.
+        VIEW operations (LIST/RETRIEVE): All authenticated users see ALL content.
+        MODIFY operations (UPDATE/DELETE): BOLA protection via has_perm/serializer.
+        This matches permissions inventory: schedule content is public within station.
       
     - id: D2
-      decision: Return 403/404 for unauthorized access
+      decision: Dual-layer protection for MODIFY only (serializer + permission)
       reason: |
-        Don't leak existence of other users' resources.
-        404 is preferred for GET (looks like not found).
-        403 can be used for known authorization failures.
+        No queryset filtering for VIEW - all authenticated users see everything.
+        Serializer validation prevents cross-user references in CREATE.
+        has_perm() or serializer checks enforce ownership for UPDATE/DELETE.
+      
+    - id: D3
+      decision: Return 403/404 for unauthorized MODIFY access
+      reason: |
+        Don't leak existence of other users' resources on MODIFY attempts.
+        403 for permission denied, 404 if object not found (both valid).
 ```

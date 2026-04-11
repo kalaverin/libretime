@@ -41,17 +41,6 @@ class FileViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
     filter_backends: tuple[Any, ...] = (filters.DjangoFilterBackend,)
     filterset_fields: tuple[str, ...] = ("md5", "genre")
 
-    def get_queryset(self) -> Any:
-        """Filter by owner for BOLA prevention (T850, T851, T853)."""
-        queryset = super().get_queryset()
-        user = self.request.user
-        if not user.is_authenticated:
-            return queryset.none()
-        # Admin and Manager can see all, Host can only see own
-        if user.role not in [user.role.ADMIN, user.role.MANAGER]:
-            return queryset.filter(owner=user)
-        return queryset
-
     @action(detail=True, methods=["GET"])
     def download(self, request: Request, **__: Any) -> HttpResponse:
         # API-Key auth (services) - allow
@@ -62,7 +51,7 @@ class FileViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
             user = request.user
             if not user.is_authenticated:
                 return HttpResponse(status=status.HTTP_403_FORBIDDEN)
-        
+
         instance: File = self.get_object()
 
         response = HttpResponse()
@@ -77,23 +66,23 @@ class FileViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
     def _resolve_and_validate_path(self, filepath: str) -> Path:
         """
         Resolve filepath to absolute path using pathlib and validate it's within storage.
-        
+
         Args:
             filepath: The relative filepath from the File instance
-            
+
         Returns:
             Path: Resolved absolute Path object
-            
+
         Raises:
             APIException: If path escapes storage directory or is invalid
         """
         try:
             storage_root = Path(settings.CONFIG.storage.path).resolve()
-            
+
             # Join storage root with filepath and resolve
             # resolve() removes .., ., and symlinks
             full_path = (storage_root / filepath).resolve()
-            
+
             # Security check: ensure resolved path is within storage
             # Using Path.is_relative_to() or manual check
             try:
@@ -106,7 +95,7 @@ class FileViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
                     is_within = True
                 except ValueError:
                     is_within = False
-            
+
             if not is_within:
                 logger.error(
                     "file path escapes storage directory: %s resolves to %s, "
@@ -118,9 +107,9 @@ class FileViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
                 raise APIException(
                     "filepath escapes storage directory",
                 )
-            
+
             return full_path
-            
+
         except (OSError, ValueError) as exc:
             logger.error(
                 "error resolving filepath %s: %s",
@@ -147,7 +136,7 @@ class FileViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
 
             # Use pathlib to resolve and validate path (T8)
             resolved_path = self._resolve_and_validate_path(instance.filepath)
-            
+
             # Convert to string for os.path.isfile check
             path_str = str(resolved_path)
 

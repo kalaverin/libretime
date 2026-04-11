@@ -49,27 +49,3 @@ class ScheduleViewSet(ReadWriteSerializerMixin, viewsets.ModelViewSet[Any]):
     write_serializer_class: type[Serializer[Any]] = WriteScheduleSerializer
     filterset_class: type[filters.FilterSet] = ScheduleFilter
     model_permission_name: str = "schedule"
-
-    def get_queryset(self) -> Any:
-        """Filter schedules by show host ownership for non-admin users.
-
-        ADMIN and MANAGER can see all schedules.
-        HOST can only see schedules for shows where they are a host.
-        """
-        queryset = super().get_queryset()
-        user = self.request.user
-
-        # API-Key auth (services) - full access
-        if check_authorization_header(self.request):
-            return queryset
-
-        if not user.is_authenticated:
-            return queryset.none()
-
-        # ADMIN and MANAGER can see all schedules
-        if user.role in [Role.ADMIN, Role.MANAGER]:
-            return queryset
-
-        # HOST can only see schedules for shows they host
-        # Schedule -> ShowInstance -> Show -> ShowHost (user)
-        return queryset.filter(instance__show__hosts=user)

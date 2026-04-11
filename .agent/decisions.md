@@ -148,8 +148,10 @@ These should then be added to `.agent/decisions.md` for long-term tracking.
 | 2026-04-09T14:41:24Z | Create T<n> bug entries in tasks.md for each documented bug | Centralized bug tracking with unique IDs (T316, T317, T318) enables cross-referencing in tests, decisions, and history | ACTIVE | - |
 | 2026-04-10T22:08:00Z | Use `credentials()` not `defaults[]` to override DRF APIClient auth | `credentials()` has priority over `defaults[]` in DRF APIClient; `defaults[auth]` does not override `credentials(auth)` | ACTIVE | - |
 | 2026-04-10T22:50:00Z | Document Authorization header case sensitivity as known bug | RFC 7230 violation but low impact; use `@pytest.mark.xfail` to track; fix when auth system refactored | ACTIVE | - |
-| 2026-04-10T23:00:00Z | Standardize BOLA fix pattern across all ViewSets | Show/Webstream pattern (check_authorization_header + ownership filter) is the reference implementation; apply to Playlist, SmartBlock, File | ACTIVE | - |
+| 2026-04-10T23:00:00Z | ~~Standardize BOLA fix pattern across all ViewSets~~ | Incorrectly applied ownership filtering to VIEW operations | SUPERSEDED | VIEW vs MODIFY separation (2026-04-11T13:30:00Z) |
 | 2026-04-10T23:35:00Z | Document complete permissions system | Full inventory in .agent/research/permissions_inventory.md and permissions_matrix.md; use as reference for all permission-related work | ACTIVE | - |
+| 2026-04-11T13:30:00Z | VIEW operations show ALL content to authenticated users | Per permissions inventory: GUEST, HOST, MANAGER, ADMIN all see same content for LIST/RETRIEVE; BOLA only for MODIFY | ACTIVE | - |
+| 2026-04-11T13:30:00Z | BOLA protection applies only to MODIFY operations | UPDATE/DELETE require ownership check (has_perm or serializer); VIEW operations unfiltered in get_queryset() | ACTIVE | - |
 | 2026-04-11T03:00:00Z | Centralize security validators in `api/validators/` | Single location for path traversal, SSRF, XSS validation; promotes reuse and consistent security posture | ACTIVE | - |
 | 2026-04-11T03:00:00Z | Use regex-based XSS detection at API boundary | Block XSS payloads in serializers, not template layer; fail-fast with 400 error | ACTIVE | - |
 | 2026-04-11T03:00:00Z | Use SecureModelSerializer as base for all model serializers | Built-in mass assignment protection (id, owner, timestamps blocked); consistent security across API | ACTIVE | - |

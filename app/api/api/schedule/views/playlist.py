@@ -21,26 +21,6 @@ class PlaylistViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
     serializer_class: type[Serializer[Any]] = PlaylistSerializer
     model_permission_name: str = "playlist"
 
-    def get_queryset(self) -> Any:
-        """Filter by owner for BOLA prevention (T808, T809).
-
-        API-Key auth bypasses filtering (services have full access).
-        """
-        queryset = super().get_queryset()
-
-        # API-Key auth (services) - full access
-        if check_authorization_header(self.request):
-            return queryset
-
-        user = self.request.user
-        if not user.is_authenticated:
-            return queryset.none()
-
-        # Admin and Manager can see all, Host can only see own
-        if user.role not in [user.role.ADMIN, user.role.MANAGER]:
-            return queryset.filter(owner=user)
-        return queryset
-
 
 @final
 class PlaylistContentViewSet(viewsets.ModelViewSet[Any]):
@@ -55,13 +35,15 @@ class PlaylistContentViewSet(viewsets.ModelViewSet[Any]):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        playlist_id = self.request.query_params.get("playlist")
-        if playlist_id:
-            # Validate playlist_id to prevent SQLi and 500 errors (T357)
+
+        if value := self.request.query_params.get("playlist"):
             try:
-                validate_integer_id(playlist_id, "playlist")
-                queryset = queryset.filter(playlist_id=playlist_id)
+                validate_integer_id(value, "playlist")
+
             except Exception:
                 # Return empty queryset for invalid IDs
                 return queryset.none()
+
+            queryset = queryset.filter(playlist_id=value)
+
         return queryset
