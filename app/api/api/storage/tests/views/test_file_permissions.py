@@ -92,7 +92,7 @@ class TestFileViewSetPermissions:
         assert response.json()["name"] == "Updated"
 
     def test_delete_with_api_key_succeeds(self, api_client):
-        """DELETE with API key should succeed."""
+        """DELETE with API key is not allowed - returns 409."""
         user = baker.make(User, username="perm_user5")
         file = baker.make(
             File,
@@ -103,11 +103,9 @@ class TestFileViewSetPermissions:
             accessed=0,
             filepath="audio/delete.mp3",
         )
-        with patch("api.storage.views.file.os.path.isfile", return_value=True):
-            with patch("api.storage.views.file.remove"):
-                response = api_client.delete(f"/api/v2/files/{file.id}")
-        # With API key, delete succeeds (returns 204)
-        assert response.status_code == 204
+        response = api_client.delete(f"/api/v2/files/{file.id}")
+        # File deletion is not allowed for anyone (409 Conflict)
+        assert response.status_code == 409
 
     def test_create_file_with_api_key(self, api_client):
         """CREATE with API key should succeed."""

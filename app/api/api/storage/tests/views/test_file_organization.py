@@ -407,7 +407,7 @@ class TestFileOrganizationUpdates:
         assert data["library"] == lib2.id
 
     def test_update_filepath(self, api_client):
-        """Update file path."""
+        """Update file path with relative path."""
         import json
 
         user = baker.make(User, username="path_update")
@@ -424,15 +424,15 @@ class TestFileOrganizationUpdates:
             mime="audio/mp3",
             library=library,
             owner=user,
-            filepath="/old/path/file.mp3",
+            filepath="old/path/file.mp3",
         )
 
         response = api_client.patch(
             f"/api/v2/files/{file_obj.id}",
-            json.dumps({"filepath": "/new/path/file.mp3"}),
+            json.dumps({"filepath": "new/path/file.mp3"}),
             content_type="application/json",
         )
 
         assert response.status_code == 200
         data = response.json()
-        assert data["filepath"] == "/new/path/file.mp3"
+        assert data["filepath"] == "new/path/file.mp3"

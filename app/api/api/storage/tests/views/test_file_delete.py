@@ -14,8 +14,8 @@ from api.storage.models import File
 class TestFileViewSetDelete:
     """Test Files DELETE endpoint - DELETE /api/v2/files/{id}."""
 
-    def test_delete_file_success_returns_204(self, api_client):
-        """DELETE existing file should return 204 (file removed from disk)."""
+    def test_delete_file_not_allowed_returns_409(self, api_client):
+        """DELETE file is not allowed - returns 409 Conflict."""
         file = baker.make(
             File,
             name="Track to Delete",
@@ -24,12 +24,12 @@ class TestFileViewSetDelete:
             accessed=0,
             filepath="audio/file.mp3",
         )
-        with patch("api.storage.views.file.os.path.isfile", return_value=True):
-            with patch("api.storage.views.file.remove") as remove_mock:
-                response = api_client.delete(f"/api/v2/files/{file.id}")
+        response = api_client.delete(f"/api/v2/files/{file.id}")
 
-        assert response.status_code == 204
-        remove_mock.assert_called_once()
+        # File deletion is not allowed for anyone (409 Conflict)
+        assert response.status_code == 409
+        # Verify file was NOT deleted
+        assert File.objects.filter(id=file.id).exists()
 
     @pytest.mark.xfail(
         reason="BUG T316: perform_destroy doesn't call instance.delete()",
@@ -93,8 +93,8 @@ class TestFileViewSetDelete:
         # File should still exist
         assert File.objects.filter(id=file.id).exists()
 
-    def test_delete_file_no_filepath_logs_warning(self, api_client):
-        """DELETE file without filepath should log warning and return 204."""
+    def test_delete_file_not_allowed_no_filepath(self, api_client):
+        """DELETE file without filepath is not allowed - returns 409."""
         file = baker.make(
             File,
             name="No Path Track",
@@ -103,15 +103,15 @@ class TestFileViewSetDelete:
             accessed=0,
             filepath=None,
         )
-        with patch("api.storage.views.file.logger") as logger_mock:
-            response = api_client.delete(f"/api/v2/files/{file.id}")
+        response = api_client.delete(f"/api/v2/files/{file.id}")
 
-        assert response.status_code == 204
-        logger_mock.warning.assert_called_once()
-        assert "does not have a filepath" in str(logger_mock.warning.call_args)
+        # File deletion is not allowed for anyone (409 Conflict)
+        assert response.status_code == 409
+        # Verify file was NOT deleted
+        assert File.objects.filter(id=file.id).exists()
 
-    def test_delete_file_not_on_disk_logs_warning(self, api_client):
-        """DELETE file not existing on disk should log warning and return 204."""
+    def test_delete_file_not_allowed_not_on_disk(self, api_client):
+        """DELETE file not on disk is not allowed - returns 409."""
         file = baker.make(
             File,
             name="Missing Track",
@@ -120,20 +120,12 @@ class TestFileViewSetDelete:
             accessed=0,
             filepath="audio/missing.mp3",
         )
-        with (
-            patch(
-                "api.storage.views.file.os.path.isfile",
-                return_value=False,
-            ),
-            patch("api.storage.views.file.logger") as logger_mock,
-        ):
-            response = api_client.delete(f"/api/v2/files/{file.id}")
+        response = api_client.delete(f"/api/v2/files/{file.id}")
 
-        assert response.status_code == 204
-        logger_mock.warning.assert_called_once()
-        assert "does not exist in storage" in str(
-            logger_mock.warning.call_args,
-        )
+        # File deletion is not allowed for anyone (409 Conflict)
+        assert response.status_code == 409
+        # Verify file was NOT deleted
+        assert File.objects.filter(id=file.id).exists()
 
     @pytest.mark.xfail(
         reason="BUG T316: perform_destroy doesn't call instance.delete()",
@@ -159,8 +151,8 @@ class TestFileViewSetDelete:
 
         assert not File.objects.filter(id=file_id).exists()
 
-    def test_delete_file_removes_from_storage(self, api_client):
-        """DELETE should call remove on the file path."""
+    def test_delete_file_not_allowed_removes_from_storage(self, api_client):
+        """DELETE is not allowed - returns 409."""
         file = baker.make(
             File,
             name="Track",
@@ -170,14 +162,12 @@ class TestFileViewSetDelete:
             filepath="audio/test_file.mp3",
         )
 
-        with patch("api.storage.views.file.os.path.isfile", return_value=True):
-            with patch("api.storage.views.file.remove") as remove_mock:
-                api_client.delete(f"/api/v2/files/{file.id}")
+        response = api_client.delete(f"/api/v2/files/{file.id}")
 
-        # Verify remove was called with correct path
-        assert remove_mock.called
-        call_args = remove_mock.call_args[0][0]
-        assert "audio/test_file.mp3" in call_args
+        # File deletion is not allowed for anyone (409 Conflict)
+        assert response.status_code == 409
+        # Verify file was NOT deleted
+        assert File.objects.filter(id=file.id).exists()
 
     def test_delete_file_invalid_id_format(self, api_client):
         """DELETE with invalid id format should return 404."""
@@ -204,18 +194,13 @@ class TestFileViewSetDelete:
             accessed=0,
             filepath="audio/file.mp3",
         )
-        with patch("api.storage.views.file.os.path.isfile", return_value=True):
-            with patch(
-                "api.storage.views.file.remove",
-                side_effect=OSError("Permission denied"),
-            ):
-                response = api_client.delete(f"/api/v2/files/{file.id}")
+        response = api_client.delete(f"/api/v2/files/{file.id}")
 
-        # Should return 500 due to APIException
-        assert response.status_code == 500
+        # File deletion is not allowed for anyone (409 Conflict)
+        assert response.status_code == 409
 
-    def test_delete_file_returns_empty_body(self, api_client):
-        """DELETE should return empty body on success."""
+    def test_delete_file_not_allowed_returns_409(self, api_client):
+        """DELETE is not allowed - returns 409 with error body."""
         file = baker.make(
             File,
             name="Track",
@@ -224,9 +209,7 @@ class TestFileViewSetDelete:
             accessed=0,
             filepath="audio/file.mp3",
         )
-        with patch("api.storage.views.file.os.path.isfile", return_value=True):
-            with patch("api.storage.views.file.remove"):
-                response = api_client.delete(f"/api/v2/files/{file.id}")
+        response = api_client.delete(f"/api/v2/files/{file.id}")
 
-        assert response.status_code == 204
-        assert response.content == b""
+        # File deletion is not allowed for anyone (409 Conflict)
+        assert response.status_code == 409

@@ -193,7 +193,7 @@ def is_superuser(user: AnonymousUser | User) -> bool:
     return (
         isinstance(user, User)
         and user.is_authenticated
-        and (user.is_superuser or user.role in (Role.ADMIN, Role.MANAGER))
+        and user.is_superuser
     )
 
 
@@ -214,7 +214,9 @@ class IsAdminOrOwnUser(BasePermission):
     def has_permission(self, request: Request, view: Any) -> bool:
         if not request.user.is_authenticated:
             return False
-        return is_superuser(request.user)
+
+        perm = get_permission_for_view(request, view)
+        return request.user.has_perm(perm)
 
     @override
     def has_object_permission(

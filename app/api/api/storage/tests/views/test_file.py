@@ -31,7 +31,8 @@ class TestFileViewSet(APITestCase):
         response = self.client.get(f"/api/v2/files/{file.id}/download")
         self.assertEqual(response.status_code, 200)
 
-    def test_destroy(self):
+    def test_destroy_not_allowed(self):
+        """File deletion is not allowed - returns 409 Conflict."""
         self.client.credentials(HTTP_AUTHORIZATION=f"Api-Key {self.token}")
         file: File = baker.make(
             "storage.File",
@@ -39,15 +40,15 @@ class TestFileViewSet(APITestCase):
             filepath=AUDIO_FILENAME,
         )
 
-        with patch("api.storage.views.file.remove") as remove_mock:
-            response = self.client.delete(f"/api/v2/files/{file.id}")
+        response = self.client.delete(f"/api/v2/files/{file.id}")
 
-        self.assertEqual(response.status_code, 204)
-        remove_mock.assert_called_with(
-            os.path.join(settings.CONFIG.storage.path, file.filepath),
-        )
+        # File deletion is not allowed for anyone (409 Conflict)
+        self.assertEqual(response.status_code, 409)
+        # Verify file was NOT deleted
+        self.assertTrue(File.objects.filter(id=file.id).exists())
 
-    def test_destroy_no_file(self):
+    def test_destroy_no_file_still_not_allowed(self):
+        """File deletion is not allowed even if file doesn't exist on disk."""
         self.client.credentials(HTTP_AUTHORIZATION=f"Api-Key {self.token}")
         file = baker.make(
             "storage.File",
@@ -55,11 +56,13 @@ class TestFileViewSet(APITestCase):
             filepath="invalid.mp3",
         )
         response = self.client.delete(f"/api/v2/files/{file.id}")
-        self.assertEqual(response.status_code, 204)
+        # File deletion is not allowed (409 Conflict)
+        self.assertEqual(response.status_code, 409)
 
-    def test_destroy_invalid(self):
+    def test_destroy_invalid_file(self):
+        """Deleting non-existent file returns 404."""
         self.client.credentials(HTTP_AUTHORIZATION=f"Api-Key {self.token}")
-        file_id = "1"
+        file_id = "99999"  # Non-existent ID
         response = self.client.delete(f"/api/v2/files/{file_id}")
         self.assertEqual(response.status_code, 404)
 
