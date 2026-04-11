@@ -11,6 +11,7 @@ from api.podcasts.models import (
     StationPodcast,
 )
 from api.serializers import StrictSerializer
+from api.validators.race_conditions import validate_duplicate_url
 from api.validators.xss import validate_no_xss
 
 
@@ -38,6 +39,32 @@ class PodcastSerializer(StrictSerializer):
         if value:
             validate_no_xss(value)
         return value
+
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Validate duplicate URL (T722)."""
+        url = data.get("url")
+        owner = data.get("owner")
+        
+        # Get owner ID for validation
+        if self.instance:
+            owner_id = owner.id if owner else self.instance.owner_id
+        else:
+            request = self.context.get("request")
+            if request and hasattr(request, "user"):
+                owner_id = request.user.id
+            else:
+                owner_id = None
+        
+        # T722: Check for duplicate URL per owner
+        if url and owner_id:
+            validate_duplicate_url(
+                Podcast,
+                url,
+                owner_id,
+                exclude_id=self.instance.id if self.instance else None,
+            )
+        
+        return super().validate(data)
 
 
 class PodcastEpisodeSerializer(StrictSerializer):

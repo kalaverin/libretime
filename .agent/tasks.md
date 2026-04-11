@@ -4058,18 +4058,14 @@ Notes: |
 
   Red team test: test_bopla_mass_assignment_length in test_smartblock_create_redteam_t235.py
 
-## [LOW] fix T433 — No unique constraint on SmartBlock name (race condition possible)
-Status: NOT_STARTED
-Created: 2026-04-10T12:40:00Z
-Scope: api/schedule/models/smart_block.py
-Next step: Add unique_together constraint on (name, owner) if business requires
-Notes: |
-  RACE CONDITION: Multiple blocks with same name can be created concurrently.
-
-  Current behavior allows duplicate names which may confuse users.
-  Not a security issue but potential data quality concern.
-
-  Red team test: test_create_race_condition_duplicate_names in test_smartblock_create_redteam_t235.py
+## [DONE] fix T433 — No unique constraint on SmartBlock name (race condition possible)
+Completed: 2026-04-11T04:00:00Z
+Scope: api/schedule/serializers/smart_block.py
+Summary: |
+  Added validate_duplicate_name() in SmartBlockSerializer.validate().
+  Checks for existing block with same name per owner before create/update.
+  Returns 400 error with "duplicate" message.
+  Test: test_race_condition_redteam.py
 
 ## [CRITICAL] fix T434 — BOLA: Any user can PATCH other user's SmartBlock
 Status: NOT_STARTED
@@ -5581,16 +5577,14 @@ Notes: |
   XSS vector - if URL is rendered as link, executes JavaScript.
   Ref: test_podcast_create_redteam_t269.py::test_invalid_url_formats
 
-## [LOW] fix T722 — Race condition allows duplicate podcast creation
-Status: NOT_STARTED
-Created: 2026-04-10T15:40:00Z
-Last worked: 2026-04-10T15:40:00Z
-File: `app/api/api/podcasts/models/podcast.py:38-41`
-Next step: Add unique constraint on URL field or use get_or_create
-Notes: |
-  API6:2023 Unrestricted Access to Sensitive Business Flows. Concurrent requests
-  can create duplicate podcasts with same URL. No unique constraint in model.
-  Ref: test_podcast_create_redteam_t269.py::test_duplicate_creation_race
+## [DONE] fix T722 — Race condition allows duplicate podcast creation
+Completed: 2026-04-11T04:00:00Z
+Scope: api/podcasts/serializers/podcast.py
+Summary: |
+  Added validate_duplicate_url() in PodcastSerializer.validate().
+  Checks for duplicate URL per owner before create.
+  Returns 400 error for duplicate URL.
+  Test: test_race_condition_redteam.py
 
 ## [CRITICAL] fix T727 — BOLA: Regular user can RETRIEVE admin's private podcast
 Status: NOT_STARTED

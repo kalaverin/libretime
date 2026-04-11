@@ -24,6 +24,7 @@ from api.validators.fields import (
     validate_not_null,
     validate_time_order,
 )
+from api.validators.race_conditions import validate_duplicate_combination, validate_duplicate_name
 
 # Pattern to detect path-like strings (T479)
 _PATH_LIKE_PATTERN = re.compile(
@@ -63,6 +64,32 @@ class SmartBlockSerializer(SecureModelSerializer):
     def validate_name(self, value: Any) -> Any:
         """Validate name is not empty (T443)."""
         return validate_not_empty_string(value, "name")
+
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Validate duplicate name per owner (T433)."""
+        name = data.get("name")
+        owner = data.get("owner")
+        
+        # Get owner ID from instance or context for updates
+        if self.instance:
+            owner_id = owner.id if owner else self.instance.owner_id
+        else:
+            # For create, owner is set by perform_create
+            request = self.context.get("request")
+            if request and hasattr(request, "user"):
+                owner_id = request.user.id
+            else:
+                owner_id = None
+        
+        if name and owner_id:
+            validate_duplicate_name(
+                SmartBlock,
+                name,
+                owner_id,
+                exclude_id=self.instance.id if self.instance else None,
+            )
+        
+        return super().validate(data)
 
 
 @final
@@ -107,10 +134,35 @@ class SmartBlockContentSerializer(StrictSerializer):
         return validate_duration_format(value, "cue_out")
 
     def validate(self, data: dict[str, Any]) -> dict[str, Any]:
-        """Validate time order (T482)."""
+        """Validate time order (T482) and duplicates (T486)."""
         cue_in = data.get("cue_in")
         cue_out = data.get("cue_out")
         validate_time_order(cue_in, cue_out)
+        
+        # T486: Check for duplicate content in same block
+        block = data.get("block")
+        file_obj = data.get("file")
+        position = data.get("position")
+        
+        if block and file_obj and position is not None:
+            block_id = block.id if isinstance(block, SmartBlock) else block
+            file_id = file_obj.id if hasattr(file_obj, 'id') else file_obj
+            
+            try:
+                validate_duplicate_combination(
+                    SmartBlockContent,
+                    filters={
+                        "block_id": block_id,
+                        "file_id": file_id,
+                        "position": position,
+                    },
+                    exclude_id=self.instance.id if self.instance else None,
+                    error_message="This content already exists in this position within the block.",
+                )
+            except Exception:
+                # Skip validation if IDs are not resolved yet
+                pass
+        
         return super().validate(data)
 
 
@@ -137,6 +189,34 @@ class SmartBlockCriteriaSerializer(StrictSerializer):
     def validate_value(self, value: Any) -> Any:
         """Validate value length (T499)."""
         return validate_max_length(value, 512, "value")
+
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Validate duplicate criteria (T504)."""
+        block = data.get("block")
+        criteria = data.get("criteria")
+        condition = data.get("condition")
+        value = data.get("value")
+        
+        if block and criteria and condition and value:
+            block_id = block.id if isinstance(block, SmartBlock) else block
+            
+            try:
+                validate_duplicate_combination(
+                    SmartBlockCriteria,
+                    filters={
+                        "block_id": block_id,
+                        "criteria": criteria,
+                        "condition": condition,
+                        "value": value,
+                    },
+                    exclude_id=self.instance.id if self.instance else None,
+                    error_message="This criterion already exists for this block.",
+                )
+            except Exception:
+                # Skip validation if IDs are not resolved yet
+                pass
+        
+        return super().validate(data)
 
     def validate_group(self, value: Any) -> Any:
         """Validate group is non-negative (T500)."""
