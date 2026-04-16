@@ -15,8 +15,7 @@ Example:
 
 import logging.config
 import sys
-
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable
 from functools import partial
 from logging import (
     WARNING,
@@ -28,11 +27,10 @@ from logging import (
     root,
 )
 from os import getenv
-from typing import Any, TextIO, final
+from typing import Any, TextIO, final, override
 
 import orjson
 import structlog
-
 from structlog.dev import ConsoleRenderer, RichTracebackFormatter
 from structlog.processors import (
     CallsiteParameter,
@@ -52,7 +50,6 @@ from structlog.stdlib import (
     add_logger_name,
 )
 from structlog.types import Processor
-from typing_extensions import override
 
 
 @final
@@ -93,32 +90,31 @@ DEFAULT_PROCESSORS: tuple[Processor, ...] = (
     add_log_level,
 )
 
+IGNORE_FILES = frozenset(getenv("LOGGING_IGNORE_FILES", "").split(";"))
+
+IGNORE_MODULES = frozenset(getenv("LOGGING_IGNORE_MODULES", "").split(";"))
+
+
 ###
 
 
+@final
 class SuppressSpamFilter(Filter):
 
-    MODULES = frozenset(
-        {
-            "amqp.connection.Connection.heartbeat_tick",
-            "django.utils.autoreload",
-            "pika.heartbeat",
-            "worker.tasks",
-        },
-    )
+    def __init__(
+        self,
+        modules: Collection[str],
+        files: Collection[str],
+    ) -> None:
+        super().__init__()
+        self.modules: frozenset[str] = frozenset(modules)
+        self.files: frozenset[str] = frozenset(files)
 
-    FILES = frozenset(
-        {
-            "autoreload.py",
-            "connection.py",
-        },
-    )
-    # podcast_download
-
+    @override
     def filter(self, record: LogRecord) -> bool:
         return (
-            record.module not in self.MODULES
-            and record.filename not in self.FILES
+            record.module not in self.modules
+            and record.filename not in self.files
         )
 
 
@@ -139,6 +135,8 @@ def configure(
     descriptor: TextIO = sys.stdout,
     serializer_options: int = DEFAULT_JSON_OPTIONS,
     processors: Iterable[Processor] = DEFAULT_PROCESSORS,
+    ignore_files: Collection[str] | None = None,
+    ignore_modules: Collection[str] | None = None,
 ) -> None:
     """Configure structured logging with structlog.
 
@@ -237,7 +235,20 @@ def configure(
     # override all loggers to use our handler and formatter
 
     handler: StreamHandler[TextIO] = StreamHandler(descriptor)
-    handler.addFilter(SuppressSpamFilter())
+
+    # add a filter to suppress logs from those sources
+
+    files = IGNORE_FILES | frozenset(ignore_files or ())
+    modules = IGNORE_MODULES | frozenset(ignore_modules or ())
+
+    if files or modules:
+        handler.addFilter(
+            SuppressSpamFilter(
+                files=files,
+                modules=modules,
+            ),
+        )
+
     handler.setFormatter(fmt=formatter)
 
     for logger in (getLogger(), *map(getLogger, root.manager.loggerDict)):
