@@ -1,12 +1,10 @@
 import shutil
-
 from pathlib import Path
 
 import pytest
-
 from sdk.logging import setup_logger
 
-from .fixtures import fixtures_path
+from analyzer_tests.fixtures import fixtures_path
 
 setup_logger("debug")
 
