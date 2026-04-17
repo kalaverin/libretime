@@ -5,7 +5,7 @@ import pytest
 from requests import Response
 from worker.tasks import extract_filename, podcast_download
 
-from .fixtures import fixtures_path
+from tests.worker.fixtures import fixtures_path
 
 
 @pytest.mark.parametrize(

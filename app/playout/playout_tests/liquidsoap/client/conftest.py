@@ -1,12 +1,16 @@
 import logging
+import shutil
 
 from collections.abc import Generator
 from contextlib import contextmanager
+from os import environ
 from pathlib import Path
 from random import randint
-from subprocess import PIPE, STDOUT, Popen
+from subprocess import PIPE, STDOUT, Popen, run
 from time import sleep
 from typing import Protocol
+
+import pytest
 
 import pytest
 
@@ -19,6 +23,26 @@ from sdk.logging import setup_logger
 logger = logging.getLogger(__name__)
 
 setup_logger("debug")
+
+_LIQUIDSOAP = shutil.which("liquidsoap") or environ.get("LIQUIDSOAP_EXECUTABLE")
+if _LIQUIDSOAP is None:
+    pytest.skip("liquidsoap not installed", allow_module_level=True)
+
+try:
+    _result = run(
+        (_LIQUIDSOAP, "--version"),
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    if "Liquidsoap" not in _result.stdout:
+        pytest.skip("liquidsoap not installed", allow_module_level=True)
+except Exception:  # noqa: BLE001
+    pytest.skip("liquidsoap not installed", allow_module_level=True)
+
+# Skip integration tests with fake liquidsoap (cannot run telnet/socket server)
+if "dev/liquidsoap" in _LIQUIDSOAP:
+    pytest.skip("fake liquidsoap cannot run integration tests", allow_module_level=True)
 
 
 LIQ_SCRIPT = """
@@ -114,7 +138,7 @@ def run_liq_server(
 
     # The --verbose flag seem to hang when testing in CI
     with Popen(
-        ("liquidsoap", "--debug", str(entrypoint)),
+        (_LIQUIDSOAP, "--debug", str(entrypoint)),
         stdout=PIPE,
         stderr=STDOUT,
         text=True,
