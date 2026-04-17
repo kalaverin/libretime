@@ -7,7 +7,7 @@ postinstall = [
   "direnv allow .",
   "cp -n .env.sample .env",
   "uv venv --clear",
-  "uv sync --all-packages --refresh",
+  "uv sync --all-packages --group development",
   # ".venv/bin/pre-commit install --hook-type pre-push --config etc/pre-commit.yaml"
 ]
 
