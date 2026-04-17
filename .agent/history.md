@@ -3185,3 +3185,34 @@ def download(self, request: Request, **__: Any) -> HttpResponse:
 - `app/analyzer/analyzer_tests/pipeline/pipeline_test.py`
 
 **Result:** `tests/analyzer/pipeline/unit/` — 246 passed, 35 skipped
+
+
+### [2026-04-17T14:03:00Z]
+**Completed:**
+- Migrated api-client tests from `app/api-client/api_client_tests/` to `tests/api-client/`
+- Migrated worker tests from `app/worker/worker_tests/` to `tests/worker/`
+- Migrated playout tests from `app/playout/playout_tests/` to `tests/playout/unit/` and `tests/playout/integration/`
+
+**Test fixes (test-only, no production code changes):**
+- `test_api_client` (v1/v2): removed `http://localhost:8080/base` from parametrization — absolute paths `/api/...` replace base path per `join_url_path` design
+- `dev/liquidsoap`: added playability-check handling (exit non-zero for missing files after `--`)
+- `playout/liquidsoap/client/conftest.py`: skip integration tests when fake liquidsoap is used
+- `test_generate_entrypoint`: fixed mock path `libretime_playout.liquidsoap.entrypoint.here` → `playout.liquidsoap.entrypoint.here`
+- `test_create_liquidsoap_annotation`: fixed mock path `libretime_playout.player.events.CACHE_DIR` → `playout.player.events.CACHE_DIR`
+- `schedule_test.py`: updated datetime keys from `2022-09-05-13-00-00` to `2022-09-05T13:00:00Z` (matching `sdk.format_datetime` ISO output); added `tzinfo=UTC` to all expected datetimes; imported `UTC` from `sdk.compat`
+- `liquidsoap/fixtures/__init__.py`: added `path=Path("/nonexistent")` to `make_config()` to prevent `etc/config.yml` from leaking into test configs
+
+**New files:**
+- `tests/api-client/__init__.py`, `test_client.py`, `test_v1.py`, `test_v2.py`
+- `tests/worker/__init__.py`, `conftest.py`, `fixtures/`, `test_tasks.py`
+- `tests/playout/conftest.py`, `unit/fixtures/`, `unit/history/`, `unit/liquidsoap/`, `unit/player/`, `integration/liquidsoap/client/`
+
+**Removed directories:**
+- `app/api-client/api_client_tests/`
+- `app/worker/worker_tests/`
+- `app/playout/playout_tests/`
+
+**Result:**
+- `tests/api-client/` — 8 passed
+- `tests/worker/` — 10 passed
+- `tests/playout/` — 34 passed, 11 skipped

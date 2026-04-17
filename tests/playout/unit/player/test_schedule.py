@@ -2,6 +2,7 @@ import random
 
 from datetime import datetime
 
+from sdk.compat import UTC
 import pytest
 
 from api_client.v2 import ApiClient
@@ -281,9 +282,9 @@ def test_generate_live_events(stream_preferences: StreamPreferences):
     result = {}
     generate_live_events(result, show_instance_3, stream_preferences)
     assert result == {
-        "2022-09-05-13-00-00": ActionEvent(
-            start=datetime(2022, 9, 5, 13, 0),
-            end=datetime(2022, 9, 5, 13, 0),
+        "2022-09-05T13:00:00Z": ActionEvent(
+            start=datetime(2022, 9, 5, 13, 0, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 13, 0, tzinfo=UTC),
             type=EventKind.ACTION,
             event_type="kick_out",
         ),
@@ -293,15 +294,15 @@ def test_generate_live_events(stream_preferences: StreamPreferences):
     stream_preferences.input_fade_transition = 2.0
     generate_live_events(result, show_instance_3, stream_preferences)
     assert result == {
-        "2022-09-05-12-59-58": ActionEvent(
-            start=datetime(2022, 9, 5, 12, 59, 58),
-            end=datetime(2022, 9, 5, 12, 59, 58),
+        "2022-09-05T12:59:58Z": ActionEvent(
+            start=datetime(2022, 9, 5, 12, 59, 58, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 12, 59, 58, tzinfo=UTC),
             type=EventKind.ACTION,
             event_type="switch_off",
         ),
-        "2022-09-05-13-00-00": ActionEvent(
-            start=datetime(2022, 9, 5, 13, 0),
-            end=datetime(2022, 9, 5, 13, 0),
+        "2022-09-05T13:00:00Z": ActionEvent(
+            start=datetime(2022, 9, 5, 13, 0, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 13, 0, tzinfo=UTC),
             type=EventKind.ACTION,
             event_type="kick_out",
         ),
@@ -322,9 +323,9 @@ def test_generate_file_events(stream_preferences: StreamPreferences):
         stream_preferences,
     )
     assert result == {
-        "2022-09-05-11-00-00": FileEvent(
-            start=datetime(2022, 9, 5, 11, 0),
-            end=datetime(2022, 9, 5, 11, 5, 2),
+        "2022-09-05T11:00:00Z": FileEvent(
+            start=datetime(2022, 9, 5, 11, 0, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 11, 5, 2, tzinfo=UTC),
             type=EventKind.FILE,
             row_id=1,
             uri=None,
@@ -353,9 +354,9 @@ def test_generate_file_events(stream_preferences: StreamPreferences):
         stream_preferences,
     )
     assert result == {
-        "2022-09-05-11-00-00": FileEvent(
-            start=datetime(2022, 9, 5, 11, 0),
-            end=datetime(2022, 9, 5, 11, 5, 2),
+        "2022-09-05T11:00:00Z": FileEvent(
+            start=datetime(2022, 9, 5, 11, 0, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 11, 5, 2, tzinfo=UTC),
             type=EventKind.FILE,
             row_id=1,
             uri=None,
@@ -383,36 +384,36 @@ def test_generate_webstream_events():
     result = {}
     generate_webstream_events(result, schedule_5, WEBSTREAM_1, SHOW_3)
     assert result == {
-        "2022-09-05-12-10-00": WebStreamEvent(
-            start=datetime(2022, 9, 5, 12, 9, 55),
-            end=datetime(2022, 9, 5, 12, 9, 55),
+        "2022-09-05T12:10:00Z": WebStreamEvent(
+            start=datetime(2022, 9, 5, 12, 9, 55, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 12, 9, 55, tzinfo=UTC),
             type=EventKind.WEB_STREAM_BUFFER_START,
             row_id=5,
             uri="http://stream.radio.org/main.ogg",
             id=1,
             show_name="Show 3",
         ),
-        "2022-09-05-12-10-00_0": WebStreamEvent(
-            start=datetime(2022, 9, 5, 12, 10),
-            end=datetime(2022, 9, 5, 12, 40),
+        "2022-09-05T12:10:00Z_0": WebStreamEvent(
+            start=datetime(2022, 9, 5, 12, 10, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 12, 40, tzinfo=UTC),
             type=EventKind.WEB_STREAM_OUTPUT_START,
             row_id=5,
             uri="http://stream.radio.org/main.ogg",
             id=1,
             show_name="Show 3",
         ),
-        "2022-09-05-12-40-00": WebStreamEvent(
-            start=datetime(2022, 9, 5, 12, 40),
-            end=datetime(2022, 9, 5, 12, 40),
+        "2022-09-05T12:40:00Z": WebStreamEvent(
+            start=datetime(2022, 9, 5, 12, 40, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 12, 40, tzinfo=UTC),
             type=EventKind.WEB_STREAM_BUFFER_END,
             row_id=5,
             uri="http://stream.radio.org/main.ogg",
             id=1,
             show_name="Show 3",
         ),
-        "2022-09-05-12-40-00_0": WebStreamEvent(
-            start=datetime(2022, 9, 5, 12, 40),
-            end=datetime(2022, 9, 5, 12, 40),
+        "2022-09-05T12:40:00Z_0": WebStreamEvent(
+            start=datetime(2022, 9, 5, 12, 40, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 12, 40, tzinfo=UTC),
             type=EventKind.WEB_STREAM_OUTPUT_END,
             row_id=5,
             uri="http://stream.radio.org/main.ogg",
@@ -473,9 +474,9 @@ def test_get_schedule(schedule, requests_mock, api_client: ApiClient):
     requests_mock.get(f"{base_url}/api/v2/webstreams/1", json=WEBSTREAM_1)
 
     assert get_schedule(api_client) == {
-        "2022-09-05-11-00-00": FileEvent(
-            start=datetime(2022, 9, 5, 11, 0),
-            end=datetime(2022, 9, 5, 11, 5, 2),
+        "2022-09-05T11:00:00Z": FileEvent(
+            start=datetime(2022, 9, 5, 11, 0, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 11, 5, 2, tzinfo=UTC),
             type=EventKind.FILE,
             row_id=1,
             uri=None,
@@ -492,9 +493,9 @@ def test_get_schedule(schedule, requests_mock, api_client: ApiClient):
             filesize=10000,
             file_ready=False,
         ),
-        "2022-09-05-11-05-02": FileEvent(
-            start=datetime(2022, 9, 5, 11, 5, 2),
-            end=datetime(2022, 9, 5, 11, 10),
+        "2022-09-05T11:05:02Z": FileEvent(
+            start=datetime(2022, 9, 5, 11, 5, 2, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 11, 10, tzinfo=UTC),
             type=EventKind.FILE,
             row_id=2,
             uri=None,
@@ -511,9 +512,9 @@ def test_get_schedule(schedule, requests_mock, api_client: ApiClient):
             filesize=10000,
             file_ready=False,
         ),
-        "2022-09-05-11-10-00": FileEvent(
-            start=datetime(2022, 9, 5, 11, 10),
-            end=datetime(2022, 9, 5, 12, 8, 59),
+        "2022-09-05T11:10:00Z": FileEvent(
+            start=datetime(2022, 9, 5, 11, 10, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 12, 8, 59, tzinfo=UTC),
             type=EventKind.FILE,
             row_id=3,
             uri=None,
@@ -530,9 +531,9 @@ def test_get_schedule(schedule, requests_mock, api_client: ApiClient):
             filesize=10000,
             file_ready=False,
         ),
-        "2022-09-05-12-08-59": FileEvent(
-            start=datetime(2022, 9, 5, 12, 8, 59),
-            end=datetime(2022, 9, 5, 12, 10),
+        "2022-09-05T12:08:59Z": FileEvent(
+            start=datetime(2022, 9, 5, 12, 8, 59, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 12, 10, tzinfo=UTC),
             type=EventKind.FILE,
             row_id=4,
             uri=None,
@@ -549,45 +550,45 @@ def test_get_schedule(schedule, requests_mock, api_client: ApiClient):
             filesize=10000,
             file_ready=False,
         ),
-        "2022-09-05-12-10-00": WebStreamEvent(
-            start=datetime(2022, 9, 5, 12, 9, 55),
-            end=datetime(2022, 9, 5, 12, 9, 55),
+        "2022-09-05T12:10:00Z": WebStreamEvent(
+            start=datetime(2022, 9, 5, 12, 9, 55, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 12, 9, 55, tzinfo=UTC),
             type=EventKind.WEB_STREAM_BUFFER_START,
             row_id=5,
             uri="http://stream.radio.org/main.ogg",
             id=1,
             show_name="Show 3",
         ),
-        "2022-09-05-12-10-00_0": WebStreamEvent(
-            start=datetime(2022, 9, 5, 12, 10),
-            end=datetime(2022, 9, 5, 12, 40),
+        "2022-09-05T12:10:00Z_0": WebStreamEvent(
+            start=datetime(2022, 9, 5, 12, 10, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 12, 40, tzinfo=UTC),
             type=EventKind.WEB_STREAM_OUTPUT_START,
             row_id=5,
             uri="http://stream.radio.org/main.ogg",
             id=1,
             show_name="Show 3",
         ),
-        "2022-09-05-12-40-00": WebStreamEvent(
-            start=datetime(2022, 9, 5, 12, 40),
-            end=datetime(2022, 9, 5, 12, 40),
+        "2022-09-05T12:40:00Z": WebStreamEvent(
+            start=datetime(2022, 9, 5, 12, 40, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 12, 40, tzinfo=UTC),
             type=EventKind.WEB_STREAM_BUFFER_END,
             row_id=5,
             uri="http://stream.radio.org/main.ogg",
             id=1,
             show_name="Show 3",
         ),
-        "2022-09-05-12-40-00_0": WebStreamEvent(
-            start=datetime(2022, 9, 5, 12, 40),
-            end=datetime(2022, 9, 5, 12, 40),
+        "2022-09-05T12:40:00Z_0": WebStreamEvent(
+            start=datetime(2022, 9, 5, 12, 40, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 12, 40, tzinfo=UTC),
             type=EventKind.WEB_STREAM_OUTPUT_END,
             row_id=5,
             uri="http://stream.radio.org/main.ogg",
             id=1,
             show_name="Show 3",
         ),
-        "2022-09-05-12-40-00_1": FileEvent(
-            start=datetime(2022, 9, 5, 12, 40),
-            end=datetime(2022, 9, 5, 12, 53, 23),
+        "2022-09-05T12:40:00Z_1": FileEvent(
+            start=datetime(2022, 9, 5, 12, 40, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 12, 53, 23, tzinfo=UTC),
             type=EventKind.FILE,
             row_id=6,
             uri=None,
@@ -604,9 +605,9 @@ def test_get_schedule(schedule, requests_mock, api_client: ApiClient):
             filesize=10000,
             file_ready=False,
         ),
-        "2022-09-05-12-53-23": FileEvent(
-            start=datetime(2022, 9, 5, 12, 53, 23),
-            end=datetime(2022, 9, 5, 12, 58, 25),
+        "2022-09-05T12:53:23Z": FileEvent(
+            start=datetime(2022, 9, 5, 12, 53, 23, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 12, 58, 25, tzinfo=UTC),
             type=EventKind.FILE,
             row_id=7,
             uri=None,
@@ -623,9 +624,9 @@ def test_get_schedule(schedule, requests_mock, api_client: ApiClient):
             filesize=10000,
             file_ready=False,
         ),
-        "2022-09-05-12-58-25": FileEvent(
-            start=datetime(2022, 9, 5, 12, 58, 25),
-            end=datetime(2022, 9, 5, 13, 0),
+        "2022-09-05T12:58:25Z": FileEvent(
+            start=datetime(2022, 9, 5, 12, 58, 25, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 13, 0, tzinfo=UTC),
             type=EventKind.FILE,
             row_id=8,
             uri=None,
@@ -642,21 +643,21 @@ def test_get_schedule(schedule, requests_mock, api_client: ApiClient):
             filesize=10000,
             file_ready=False,
         ),
-        "2022-09-05-12-59-58": ActionEvent(
-            start=datetime(2022, 9, 5, 12, 59, 58),
-            end=datetime(2022, 9, 5, 12, 59, 58),
+        "2022-09-05T12:59:58Z": ActionEvent(
+            start=datetime(2022, 9, 5, 12, 59, 58, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 12, 59, 58, tzinfo=UTC),
             type=EventKind.ACTION,
             event_type="switch_off",
         ),
-        "2022-09-05-13-00-00": ActionEvent(
-            start=datetime(2022, 9, 5, 13, 0),
-            end=datetime(2022, 9, 5, 13, 0),
+        "2022-09-05T13:00:00Z": ActionEvent(
+            start=datetime(2022, 9, 5, 13, 0, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 13, 0, tzinfo=UTC),
             type=EventKind.ACTION,
             event_type="kick_out",
         ),
-        "2022-09-05-13-00-00_0": FileEvent(
-            start=datetime(2022, 9, 5, 13, 0),
-            end=datetime(2022, 9, 5, 13, 5, 2),
+        "2022-09-05T13:00:00Z_0": FileEvent(
+            start=datetime(2022, 9, 5, 13, 0, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 13, 5, 2, tzinfo=UTC),
             type=EventKind.FILE,
             row_id=9,
             uri=None,
@@ -673,9 +674,9 @@ def test_get_schedule(schedule, requests_mock, api_client: ApiClient):
             filesize=10000,
             file_ready=False,
         ),
-        "2022-09-05-13-05-02": FileEvent(
-            start=datetime(2022, 9, 5, 13, 5, 2),
-            end=datetime(2022, 9, 5, 13, 10),
+        "2022-09-05T13:05:02Z": FileEvent(
+            start=datetime(2022, 9, 5, 13, 5, 2, tzinfo=UTC),
+            end=datetime(2022, 9, 5, 13, 10, tzinfo=UTC),
             type=EventKind.FILE,
             row_id=10,
             uri=None,

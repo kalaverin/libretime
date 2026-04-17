@@ -9,8 +9,8 @@ from playout.liquidsoap.entrypoint import generate_entrypoint
 from playout.liquidsoap.models import Info, StreamPreferences
 from playout.liquidsoap.version import get_liquidsoap_version
 
-from .conftest import LIQ_VERSION
-from .fixtures import (
+from tests.playout.unit.liquidsoap.conftest import LIQ_VERSION
+from tests.playout.unit.liquidsoap.fixtures import (
     TEST_STREAM_CONFIGS,
     make_config_with_stream,
 )
@@ -31,7 +31,7 @@ def test_generate_entrypoint(
     snapshot,
 ):
     with mock.patch(
-        "libretime_playout.liquidsoap.entrypoint.here",
+        "playout.liquidsoap.entrypoint.here",
         Path("/fake"),
     ):
         found = generate_entrypoint(

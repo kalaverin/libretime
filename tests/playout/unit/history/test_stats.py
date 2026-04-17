@@ -8,7 +8,7 @@ from playout.history.stats import AnyOutput, Stats, StatsCollector
 from requests.exceptions import HTTPError
 from sdk.config import IcecastOutput, ShoutcastOutput
 
-from ..fixtures import icecast_stats, shoutcast_admin
+from tests.playout.unit.fixtures import icecast_stats, shoutcast_admin
 
 
 @pytest.fixture(name="outputs")

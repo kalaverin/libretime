@@ -10,7 +10,7 @@ from playout.player.liquidsoap import (
 )
 
 
-@patch("libretime_playout.player.events.CACHE_DIR", Path("/fake"))
+@patch("playout.player.events.CACHE_DIR", Path("/fake"))
 def test_create_liquidsoap_annotation():
     file_event = FileEvent(
         type=EventKind.FILE,

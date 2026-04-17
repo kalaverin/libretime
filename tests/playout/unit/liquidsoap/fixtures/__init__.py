@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import List
 
 from playout.config import Config
@@ -5,6 +6,7 @@ from playout.config import Config
 
 def make_config(**kwargs) -> Config:
     return Config(
+        path=Path("/nonexistent"),
         **{
             "general": {
                 "public_url": "http://localhost:8080",
