@@ -3145,3 +3145,43 @@ def download(self, request: Request, **__: Any) -> HttpResponse:
 - `tests/unit/analyzer/test_pipeline_ffmpeg.py`
 - `tests/unit/analyzer/test_pipeline.py`
 - `.agent/tasks.md`
+
+
+### [2026-04-17T13:46:00Z]
+**Completed:**
+- Migrated all analyzer tests from `app/analyzer/analyzer_tests/` to `tests/analyzer/pipeline/unit/`
+- Generated missing test fixture audio files (mp3, flac, ogg, m4a, wav) via `generate.sh`
+- Fixed `dev/liquidsoap` mock binary to handle playability-check calls (exit non-zero for missing files)
+- Added `LIQUIDSOAP_PATH` to `.env` for analyzer playability tests
+
+**Test fixes (test-only, no production code changes):**
+- `test_analyze_metadata.py`: `pytest.approx` does not work inside dict `==`; extracted `length_seconds` and `bit_rate` for separate comparison
+- `fixtures/__init__.py`: corrected `channels` for mono m4a from 2 to 1 (was marked `# Weird`)
+- `test_analyze_playability.py`: added skip for macOS/fake liquidsoap on DRM WMA test
+
+**New files:**
+- `tests/analyzer/__init__.py`
+- `tests/analyzer/conftest.py` (src_dir, dest_dir fixtures)
+- `tests/analyzer/pipeline/__init__.py`
+- `tests/analyzer/pipeline/unit/__init__.py`
+- `tests/analyzer/pipeline/unit/test_analyze_cuepoint.py`
+- `tests/analyzer/pipeline/unit/test_analyze_metadata.py`
+- `tests/analyzer/pipeline/unit/test_analyze_playability.py`
+- `tests/analyzer/pipeline/unit/test_analyze_replaygain.py`
+- `tests/analyzer/pipeline/unit/test_ffmpeg.py`
+- `tests/analyzer/pipeline/unit/test_organise_file.py`
+- `tests/analyzer/pipeline/unit/test_pipeline.py`
+
+**Removed files:**
+- `app/analyzer/analyzer_tests/__init__.py`
+- `app/analyzer/analyzer_tests/conftest.py`
+- `app/analyzer/analyzer_tests/pipeline/__init__.py`
+- `app/analyzer/analyzer_tests/pipeline/analyze_cuepoint_test.py`
+- `app/analyzer/analyzer_tests/pipeline/analyze_metadata_test.py`
+- `app/analyzer/analyzer_tests/pipeline/analyze_playability_test.py`
+- `app/analyzer/analyzer_tests/pipeline/analyze_replaygain_test.py`
+- `app/analyzer/analyzer_tests/pipeline/ffmpeg_test.py`
+- `app/analyzer/analyzer_tests/pipeline/organise_file_test.py`
+- `app/analyzer/analyzer_tests/pipeline/pipeline_test.py`
+
+**Result:** `tests/analyzer/pipeline/unit/` — 246 passed, 35 skipped
