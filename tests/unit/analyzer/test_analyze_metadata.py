@@ -12,6 +12,15 @@ import pytest
 from analyzer.pipeline.analyze_metadata import analyze_metadata, flatten, comment_get
 
 
+def _mock_getitem(mapping):
+    """Return a __getitem__ that raises KeyError for missing keys."""
+
+    def getter(self, key):
+        return mapping[key]
+
+    return getter
+
+
 class TestHelperFunctions:
     """Tests for helper functions."""
 
@@ -80,10 +89,10 @@ class TestAnalyzeMetadata:
         mock_audio.info.bitrate = 128000
         mock_audio.info.length = 180.5
         mock_audio.info.mode = 0  # stereo
-        mock_audio.__getitem__ = lambda self, key: {
+        mock_audio.__getitem__ = _mock_getitem({
             "title": ["Test Title"],
             "artist": ["Test Artist"],
-        }.get(key, [])
+        })
 
         with patch("analyzer.pipeline.analyze_metadata.File", return_value=mock_audio):
             with patch("analyzer.pipeline.analyze_metadata.compute_md5", return_value="a" * 32):
@@ -111,6 +120,7 @@ class TestAnalyzeMetadata:
         mock_audio.info.mode = 3  # mono
         mock_audio.info.sample_rate = 44100
         mock_audio.info.length = 60.0
+        mock_audio.__getitem__ = _mock_getitem({})
 
         with patch("analyzer.pipeline.analyze_metadata.File", return_value=mock_audio):
             with patch("analyzer.pipeline.analyze_metadata.compute_md5", return_value="b" * 32):
@@ -127,6 +137,7 @@ class TestAnalyzeMetadata:
         mock_audio.info.channels = 6  # 5.1 surround
         mock_audio.info.sample_rate = 48000
         mock_audio.info.length = 120.0
+        mock_audio.__getitem__ = _mock_getitem({})
 
         with patch("analyzer.pipeline.analyze_metadata.File", return_value=mock_audio):
             with patch("analyzer.pipeline.analyze_metadata.compute_md5", return_value="c" * 32):
@@ -143,7 +154,7 @@ class TestAnalyzeMetadata:
         mock_audio.info.length = 60.0
 
         # Test "5/12" format
-        mock_audio.__getitem__ = lambda self, key: {"tracknumber": ["5/12"]}.get(key, [])
+        mock_audio.__getitem__ = _mock_getitem({"tracknumber": ["5/12"]})
 
         with patch("analyzer.pipeline.analyze_metadata.File", return_value=mock_audio):
             with patch("analyzer.pipeline.analyze_metadata.compute_md5", return_value="d" * 32):
@@ -159,7 +170,7 @@ class TestAnalyzeMetadata:
         mock_audio = MagicMock()
         mock_audio.mime = ["audio/mp3"]
         mock_audio.info.length = 60.0
-        mock_audio.__getitem__ = lambda self, key: {"tracknumber": ["3-10"]}.get(key, [])
+        mock_audio.__getitem__ = _mock_getitem({"tracknumber": ["3-10"]})
 
         with patch("analyzer.pipeline.analyze_metadata.File", return_value=mock_audio):
             with patch("analyzer.pipeline.analyze_metadata.compute_md5", return_value="e" * 32):
@@ -175,7 +186,7 @@ class TestAnalyzeMetadata:
         mock_audio = MagicMock()
         mock_audio.mime = ["audio/mp3"]
         mock_audio.info.length = 60.0
-        mock_audio.__getitem__ = lambda self, key: {"tracknumber": ["7"]}.get(key, [])
+        mock_audio.__getitem__ = _mock_getitem({"tracknumber": ["7"]})
 
         with patch("analyzer.pipeline.analyze_metadata.File", return_value=mock_audio):
             with patch("analyzer.pipeline.analyze_metadata.compute_md5", return_value="f" * 32):
@@ -192,7 +203,7 @@ class TestAnalyzeMetadata:
         mock_audio = MagicMock()
         mock_audio.mime = ["audio/mp3"]
         mock_audio.info.length = 60.0
-        mock_audio.__getitem__ = lambda self, key: []  # No tags
+        mock_audio.__getitem__ = _mock_getitem({})  # No tags → KeyError
 
         with patch("analyzer.pipeline.analyze_metadata.File", return_value=mock_audio):
             with patch("analyzer.pipeline.analyze_metadata.compute_md5", return_value="0" * 32):
@@ -226,7 +237,7 @@ class TestAnalyzeMetadata:
         mock_audio = MagicMock()
         mock_audio.mime = ["audio/mp3"]
         mock_audio.info.length = 60.0
-        mock_audio.__getitem__ = lambda self, key: ["New Title"] if key == "title" else []
+        mock_audio.__getitem__ = _mock_getitem({"title": ["New Title"]})
 
         with patch("analyzer.pipeline.analyze_metadata.File", return_value=mock_audio):
             with patch("analyzer.pipeline.analyze_metadata.compute_md5", return_value="g" * 32):
@@ -243,7 +254,7 @@ class TestAnalyzeMetadata:
         mock_audio = MagicMock()
         mock_audio.mime = ["audio/mp3"]
         mock_audio.info.length = 60.0
-        mock_audio.__getitem__ = lambda self, key: ["Artist 1", "Artist 2"] if key == "artist" else []
+        mock_audio.__getitem__ = _mock_getitem({"artist": ["Artist 1", "Artist 2"]})
 
         with patch("analyzer.pipeline.analyze_metadata.File", return_value=mock_audio):
             with patch("analyzer.pipeline.analyze_metadata.compute_md5", return_value="h" * 32):
@@ -296,7 +307,7 @@ class TestAnalyzeMetadata:
             "website": ["http://example.com"],
             "date": ["2024"],
         }
-        mock_audio.__getitem__ = lambda self, key: tag_values.get(key, [])
+        mock_audio.__getitem__ = _mock_getitem(tag_values)
 
         with patch("analyzer.pipeline.analyze_metadata.File", return_value=mock_audio):
             with patch("analyzer.pipeline.analyze_metadata.compute_md5", return_value="j" * 32):
@@ -315,7 +326,7 @@ class TestAnalyzeMetadata:
                 assert result["encoder"] == "Encoder"
                 assert result["genre"] == "Genre"
                 assert result["isrc"] == "ISRC123"
-                assert result["label"] == "Label"  # label from "label"
+                assert result["label"] == "Organization"  # organization overwrites label
                 assert result["language"] == "English"
                 assert result["last_modified"] == "2024-01-01"
                 assert result["mood"] == "Happy"
@@ -331,10 +342,11 @@ class TestAnalyzeMetadata:
         mock_audio.mime = ["audio/mp3"]
         # Intentionally not setting sample_rate, bitrate, length
         mock_audio.info = MagicMock()
-        mock_audio.info.length = None
-        # No sample_rate attribute
+        # No sample_rate, bitrate, or length attributes
         delattr(mock_audio.info, "sample_rate")
         delattr(mock_audio.info, "bitrate")
+        delattr(mock_audio.info, "length")
+        mock_audio.__getitem__ = _mock_getitem({})
 
         with patch("analyzer.pipeline.analyze_metadata.File", return_value=mock_audio):
             with patch("analyzer.pipeline.analyze_metadata.compute_md5", return_value="k" * 32):

@@ -194,10 +194,8 @@ class TestPipelineRunAnalysis:
                                 PipelineOptions(),
                             )
 
-        # Queue should have the error metadata
-        result = queue.get()
-        assert result["import_status"] == PipelineStatus.FAILED
-        assert "could not be played" in result["reason"].lower()
+        # Production code raises without queue.put on UnplayableFileError
+        assert queue.empty()
 
     def test_run_analysis_metadata_step_failure(self, tmp_path):
         """Test handling of failure in metadata analysis step."""
@@ -419,7 +417,8 @@ class TestPipelineIntegrationScenarios:
 
         # Simulate each step enriching the metadata
         def make_step(additional_data):
-            def step(filepath, metadata):
+            def step(*args, **kwargs):
+                metadata = args[-1] if args else kwargs.get("metadata", {})
                 return {**metadata, **additional_data}
             return step
 

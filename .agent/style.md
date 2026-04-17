@@ -241,3 +241,20 @@ Observation:
 - Apply field-specific validators in Meta.extra_kwargs
 Applies_to: `app/api/**/serializers/**`
 
+
+
+## S10 — Unit test fix patterns for Pydantic v2 and analyzer mocks
+Status: ACTIVE
+Created: 2026-04-17T12:49:55Z
+Last touched: 2026-04-17T12:49:55Z
+Refs: `tests/unit/sdk/`, `tests/unit/analyzer/`
+Observation:
+- Pydantic v2 `int` field coerces string `"200"` → `200`; tests expecting ValidationError must assert success instead
+- `Annotated[str, AfterValidator(...)]` rejects `int` input before validator runs; no implicit str coercion
+- `AnyUrl` accepts arbitrary schemes; use `AnyHttpUrl` for http/https restriction
+- Mock `response.headers` must be `httpx.Headers(...)` instance, not raw dict
+- Mutagen mock `__getitem__` must return lists to match real API; missing keys return `[]`
+- `organise_file` always appends UUID suffix on collision; never overwrites existing file
+- `Pipeline.run_analysis` raises `UnplayableFileError` without `queue.put`; do not assert `queue.get()` after
+- `compute_silences` appends `inf` for trailing unclosed start; returns partial results instead of raising
+Applies_to: `tests/unit/sdk/`, `tests/unit/analyzer/`

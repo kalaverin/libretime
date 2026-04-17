@@ -18,4 +18,4 @@ class TestUTC:
         from datetime import timedelta
         
         assert UTC.utcoffset(None) == timedelta(0)
-        assert UTC.dst(None) == timedelta(0)
+        assert UTC.dst(None) is None

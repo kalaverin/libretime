@@ -14,7 +14,6 @@ from sdk.config._models import (
     AudioOGG,
     AudioOpus,
     BaseAudio,
-    BaseHarborInput,
     BaseInput,
     BaseSystemOutput,
     DatabaseConfig,
@@ -277,27 +276,23 @@ class TestBaseAudio:
         """Test valid bitrate values."""
         valid_bitrates = [32, 48, 64, 96, 128, 160, 192, 224, 256, 320]
 
+        class TestAudio(BaseAudio):
+            format: str = "test"
+
         for bitrate in valid_bitrates:
-
-            class TestAudio(BaseAudio):
-                format: str = "test"
-                bitrate: int = bitrate
-
-            audio = TestAudio()
+            audio = TestAudio(bitrate=bitrate)
             assert audio.bitrate == bitrate
 
     def test_invalid_bitrate(self):
         """Test that invalid bitrate raises ValidationError."""
         invalid_bitrates = [11, 31, 33, 100, 200, 321, 500]
 
+        class TestAudio(BaseAudio):
+            format: str = "test"
+
         for bitrate in invalid_bitrates:
-
-            class TestAudio(BaseAudio):
-                format: str = "test"
-                bitrate: int = bitrate
-
             with pytest.raises(ValidationError) as exc_info:
-                TestAudio()
+                TestAudio(bitrate=bitrate)
             assert "invalid bitrate" in str(exc_info.value).lower()
 
     def test_mono_channels(self):
@@ -812,14 +807,12 @@ class TestOutputs:
         assert len(merged) == 0  # System outputs not in merged
 
     def test_different_system_output_types(self):
-        """Test different system output types."""
-        outputs = Outputs(
-            system=[
-                ALSASystemOutput(device="hw:0,0"),
-                PulseAudioSystemOutput(device="my-sink"),
-            ],
-        )
-        # Actually max_length=1, so this should fail
+        """Test max_length=1 is enforced for system outputs."""
+        # Single output should succeed
+        outputs = Outputs(system=[ALSASystemOutput(device="hw:0,0")])
+        assert len(outputs.system) == 1
+
+        # Two outputs should fail
         with pytest.raises(ValidationError):
             Outputs(
                 system=[

@@ -2246,3 +2246,39 @@ bola_prevention:
         Don't leak existence of other users' resources on MODIFY attempts.
         403 for permission denied, 404 if object not found (both valid).
 ```
+
+
+---
+
+## K-SDK-PYDANTIC-V2 — Pydantic v2 behavior changes affecting tests
+
+- `int` field with string value `"200"` → **coerced** to `200` in v2 (was validation error in v1)
+- `Annotated[str, AfterValidator(...)]` → `int` input **rejected before validator runs** (no implicit coercion to str)
+- `AnyUrl` → accepts **arbitrary schemes** (e.g., `unknown://`); only `AnyHttpUrl` restricts to `http`/`https`
+- `model_dump_json()` on `httpx.Headers` → fails; use `to_json(to_builtin(response))` instead
+
+## K-HTTPX-HEADERS — httpx.Headers quirks in tests
+
+- `httpx.Headers` normalizes keys to **lowercase** and joins duplicate values with commas
+- Mock `response.headers` must be wrapped in `httpx.Headers(...)` instance, not raw dict
+- Iteration yields lowercase keys; `to_builtin(headers)` produces lowercase-keyed dict
+- `is_json_response` checks for `application/json` substring; `application/ld+json` returns `False`
+
+## K-CONFIG-MERGE — deep_merge_dict and EnvLoader behavior
+
+- `deep_merge_dict(base, *overrides)` → override list **replaces** base list entirely (no tail kept)
+- `if value:` guard skips falsy values (`0`, `False`, `""`, `None`, `[]`) — they do not override existing values
+- `BaseConfig.__init__` passes `kwargs` as **base**, file values as override, env values as final override
+- `EnvLoader` init kwarg is `env_delimiter`, not `delimiter`
+- `guess_env_array_indexes` requires underscore after prefix (`PREFIX_0` valid, `PREFIX0` invalid)
+- `_get_mapping` filters out falsy values, affecting allOf/anyOf composition results
+
+## K-ANALYZER-TEST — Analyzer unit test patterns
+
+- Mutagen `File` mock `__getitem__` must return **lists** for all tag values (mutagen API)
+- `bit_rate` comes from `info.bitrate`, not tags
+- `organise_file` always generates **UUID suffix** on collision (never overwrites); first duplicate also gets suffix
+- `Pipeline.run_analysis` on `UnplayableFileError` → **raises without queue.put**; tests must not call `queue.get()` after
+- `compute_silences` pairs starts with ends and appends `inf` for trailing unclosed start (no exception on mismatch)
+- `make_step` mocks for `organise_file` must accept 4 positional args (`audio_file_path, import_directory, original_filename, metadata`)
+

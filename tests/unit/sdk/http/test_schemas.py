@@ -7,6 +7,7 @@ from httpx import Headers
 from pydantic import ValidationError
 
 from sdk.http.schemas import BaseResponse, HTTPxResponse
+from sdk.http.shared import to_json
 
 
 class TestBaseResponse:
@@ -124,7 +125,7 @@ class TestBaseResponse:
         headers = Headers({})
 
         with pytest.raises(ValidationError):
-            BaseResponse(status="200", headers=headers)
+            BaseResponse(status="not_an_int", headers=headers)
 
     def test_status_can_be_any_integer(self):
         """Test that status can be any HTTP status code."""
@@ -163,7 +164,7 @@ class TestBaseResponse:
         assert "headers" in dumped
 
     def test_model_dump_json_works(self):
-        """Test that model_dump_json method works."""
+        """Test that response can be serialized to JSON."""
         headers = Headers({"Content-Type": "application/json"})
         response = BaseResponse(
             status=200,
@@ -171,7 +172,9 @@ class TestBaseResponse:
             data={"key": "value"},
         )
 
-        json_str = response.model_dump_json()
+        # model_dump_json cannot serialize arbitrary types like Headers directly
+        dumped = response.model_dump()
+        json_str = to_json(dumped)
 
         # Should be valid JSON string
         import orjson

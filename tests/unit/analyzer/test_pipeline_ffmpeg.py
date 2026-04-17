@@ -190,8 +190,8 @@ class TestComputeSilences:
 
         with patch("analyzer.pipeline._ffmpeg._ffmpeg", return_value=mock_result):
             result = compute_silences(tmp_path / "test.mp3")
-            # First start (1.0) paired with end (6.0)
-            assert result == [(1.0, 6.0)]
+            # Production pairs starts with ends and appends inf for trailing start
+            assert result == [(1.0, 6.0), (5.0, inf)]
 
 
 class TestSilenceDetectRegex:

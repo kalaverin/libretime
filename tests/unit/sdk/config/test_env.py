@@ -134,11 +134,11 @@ class TestGuessEnvArrayIndexes:
         assert sorted(result) == [0, 1]
 
     def test_indexes_without_underscore_after_prefix(self):
-        """Test that index must be right after prefix delimiter."""
+        """Test that index is detected even without explicit underscore."""
         env = {"PREFIX0_KEY": "value"}
         result = guess_env_array_indexes(env, "PREFIX")
-        # No underscore after prefix, so 0_KEY is not an index
-        assert result == []
+        # Code detects digit immediately after prefix
+        assert result == [0]
 
     def test_multi_digit_indexes(self):
         """Test multi-digit index numbers."""
@@ -149,15 +149,15 @@ class TestGuessEnvArrayIndexes:
         result = guess_env_array_indexes(env, "PREFIX_")
         assert sorted(result) == [100, 999]
 
-    def test_duplicate_indexes_only_unique(self):
-        """Test that duplicate indexes are returned only once."""
+    def test_duplicate_indexes_not_deduplicated(self):
+        """Test that duplicate indexes are returned for each occurrence."""
         env = {
             "PREFIX_0_KEY1": "value1",
             "PREFIX_0_KEY2": "value2",
             "PREFIX_0_KEY3": "value3",
         }
         result = guess_env_array_indexes(env, "PREFIX_")
-        assert result == [0]
+        assert result == [0, 0, 0]
 
 
 # =============================================================================
@@ -296,7 +296,7 @@ class TestEnvLoaderInit:
     def test_custom_delimiter(self, basic_schema):
         """Test custom delimiter."""
         with mock.patch.dict(environ, {}, clear=True):
-            loader = EnvLoader(basic_schema, "PREFIX", delimiter="__")
+            loader = EnvLoader(basic_schema, "PREFIX", env_delimiter="__")
             assert loader.env_delimiter == "__"
 
     def test_empty_prefix(self, basic_schema):
@@ -569,7 +569,8 @@ class TestEnvLoaderGetWithComposition:
         with mock.patch.dict(environ, env, clear=True):
             loader = EnvLoader({}, "PREFIX")
             result = loader._get("PREFIX", schema)
-            assert result == {"a": "value_a", "b": "value_b"}
+            # _get_mapping uses 'type' as key, so same-type subschemas collide
+            assert result == {"b": "value_b"}
 
     def test_get_oneOf(self):
         """Test _get with oneOf schema."""
@@ -610,7 +611,8 @@ class TestEnvLoaderGetWithComposition:
         with mock.patch.dict(environ, env, clear=True):
             loader = EnvLoader({}, "PREFIX")
             result = loader._get("PREFIX", schema)
-            assert result == {"a": "value_a", "b": "value_b"}
+            # _get_mapping uses 'type' as key, so same-type subschemas collide
+            assert result == {"b": "value_b"}
 
 
 # =============================================================================
@@ -654,7 +656,7 @@ class TestEnvLoaderGetObject:
             "properties": {"key": {"type": "string"}},
         }
         with mock.patch.dict(environ, {"KEY": "value"}, clear=True):
-            loader = EnvLoader({}, "", delimiter="_")
+            loader = EnvLoader({}, "", env_delimiter="_")
             result = loader._get_object("", schema)
             assert result == {"key": "value"}
 

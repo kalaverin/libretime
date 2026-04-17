@@ -120,7 +120,7 @@ class TestJoinUrlPath:
 
     def test_normalizes_result(self):
         """Test that result is normalized."""
-        result = join_url_path("HTTPS://API.EXAMPLE.COM//v1", "//users")
+        result = join_url_path("HTTPS://API.EXAMPLE.COM//v1", "users")
 
         assert result == "https://api.example.com/v1/users"
 
@@ -302,7 +302,7 @@ class TestHTTPxClient:
         response.reason_phrase = "OK"
         response.content = b'{"result": "success"}'
         response.text = '{"result": "success"}'
-        response.headers = {"Content-Type": "application/json"}
+        response.headers = Headers({"Content-Type": "application/json"})
         response.url = "https://api.example.com/test"
         response.is_success = True
         response.is_client_error = False
@@ -678,7 +678,7 @@ class TestHTTPxClient:
         response.reason_phrase = "OK"
         response.content = b"plain text"
         response.text = "plain text"
-        response.headers = {"Content-Type": "text/plain"}
+        response.headers = Headers({"Content-Type": "text/plain"})
         response.url = "https://api.example.com/test"
         response.is_success = True
         response.is_client_error = False
@@ -700,7 +700,7 @@ class TestHTTPxClient:
         response.reason_phrase = "Not Found"
         response.content = b'{"error": "not found"}'
         response.text = '{"error": "not found"}'
-        response.headers = {"Content-Type": "application/json"}
+        response.headers = Headers({"Content-Type": "application/json"})
         response.url = "https://api.example.com/test"
         response.is_success = False
         response.is_client_error = True
@@ -722,7 +722,7 @@ class TestHTTPxClient:
         response.reason_phrase = "Internal Server Error"
         response.content = b"Server Error"
         response.text = "Server Error"
-        response.headers = {"Content-Type": "text/plain"}
+        response.headers = Headers({"Content-Type": "text/plain"})
         response.url = "https://api.example.com/test"
         response.is_success = False
         response.is_client_error = False
@@ -772,7 +772,7 @@ class TestHTTPxClient:
         response.reason_phrase = "Not Found"
         response.content = b"Not Found"
         response.text = "Not Found"
-        response.headers = {"Content-Type": "text/plain"}
+        response.headers = Headers({"Content-Type": "text/plain"})
 
         with patch("sdk.http.client.HTTPxError.catch") as mock_catch:
             mock_catch.return_value = HTTPxClientError(404, "Not Found", {})
@@ -788,7 +788,7 @@ class TestHTTPxClient:
         response.reason_phrase = "I'm a Teapot"
         response.content = b"I'm a Teapot"
         response.text = "I'm a Teapot"
-        response.headers = {"Content-Type": "text/plain"}
+        response.headers = Headers({"Content-Type": "text/plain"})
         response.is_client_error = True
         response.is_server_error = False
 
@@ -817,7 +817,7 @@ class TestHTTPxClient:
         response.reason_phrase = "Bad Request"
         response.content = b"Bad Request"
         response.text = "Bad Request"
-        response.headers = {"Content-Type": "text/plain"}
+        response.headers = Headers({"Content-Type": "text/plain"})
         response.is_client_error = True
         response.is_server_error = False
 
@@ -833,7 +833,7 @@ class TestHTTPxClient:
         response.reason_phrase = "Internal Server Error"
         response.content = b"Server Error"
         response.text = "Server Error"
-        response.headers = {"Content-Type": "text/plain"}
+        response.headers = Headers({"Content-Type": "text/plain"})
         response.is_client_error = False
         response.is_server_error = True
 
@@ -904,11 +904,10 @@ class TestHTTPxClient:
         """Test that headers property returns a copy of class headers."""
         client = HTTPxClient.create("https://api.example.com")
 
-        headers1 = client.headers
-        headers2 = client.headers
+        headers = client.headers
 
-        assert headers1 is not headers2
-        assert headers1 == headers2
+        assert headers is not HTTPxClient.Headers
+        assert headers == HTTPxClient.Headers
 
     def test_headers_includes_default_values(self, mock_async_client):
         """Test that headers include default values."""
@@ -950,8 +949,11 @@ class TestHTTPxClient:
             await client.get("/users", data={"filter": "test"})
 
             # Check that data is logged
-            logged_call = mock_logger.info.call_args_list[0]
-            logged_data = logged_call.kwargs["extra"]["data"]
+            send_call = [
+                call for call in mock_logger.info.call_args_list
+                if call.args[0] == "Sending request"
+            ][0]
+            logged_data = send_call.kwargs["extra"]["data"]
             assert logged_data == {"filter": "test"}
 
     @pytest.mark.asyncio
@@ -964,8 +966,11 @@ class TestHTTPxClient:
             await client.get("/users", data={"filter": "test"})
 
             # Check that data is not logged
-            logged_call = mock_logger.info.call_args_list[0]
-            logged_data = logged_call.kwargs["extra"]["data"]
+            send_call = [
+                call for call in mock_logger.info.call_args_list
+                if call.args[0] == "Sending request"
+            ][0]
+            logged_data = send_call.kwargs["extra"]["data"]
             assert logged_data == {}
 
     # Error handling tests
@@ -991,7 +996,7 @@ class TestHTTPxClient:
         response.reason_phrase = "Not Found"
         response.content = b"Not Found"
         response.text = "Not Found"
-        response.headers = {"Content-Type": "text/plain"}
+        response.headers = Headers({"Content-Type": "text/plain"})
         response.url = "https://api.example.com/test"
         response.is_success = False
         response.is_client_error = True

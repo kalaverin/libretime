@@ -44,8 +44,8 @@ class TestTimeInMilliseconds:
         """Maximum time (23:59:59.999999) should calculate correctly."""
         result = time_in_milliseconds(time(23, 59, 59, 999999))
         # 23*3600 + 59*60 + 59 + 0.999999 = 86399.999999 seconds
-        expected = int(86399.999999 * 1000)
-        assert result == expected
+        expected = (23 * 3600 + 59 * 60 + 59 + 0.999999) * 1000
+        assert result == pytest.approx(expected)
 
 
 class TestTimeInSeconds:

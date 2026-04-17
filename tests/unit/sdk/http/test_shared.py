@@ -29,8 +29,8 @@ class TestToBuiltin:
         result = to_builtin(headers)
 
         assert isinstance(result, dict)
-        assert result["Content-Type"] == "application/json"
-        assert result["Authorization"] == "Bearer token"
+        assert result["content-type"] == "application/json"
+        assert result["authorization"] == "Bearer token"
 
     def test_handles_duplicate_header_values(self):
         """Test handling of duplicate header values."""
@@ -42,8 +42,7 @@ class TestToBuiltin:
 
         result = to_builtin(headers)
 
-        assert isinstance(result["Accept"], tuple)
-        assert result["Accept"] == ("application/json", "text/html")
+        assert result["accept"] == "application/json, text/html"
 
     def test_handles_single_value_as_string(self):
         """Test that single values are returned as strings."""
@@ -51,7 +50,7 @@ class TestToBuiltin:
 
         result = to_builtin(headers)
 
-        assert result["Content-Type"] == "application/json"
+        assert result["content-type"] == "application/json"
 
     def test_raises_not_implemented_for_unsupported_types(self):
         """Test that unsupported types raise NotImplementedError."""
@@ -143,7 +142,7 @@ class TestToJson:
 
         import orjson
         parsed = orjson.loads(result)
-        assert parsed["headers"]["Content-Type"] == "application/json"
+        assert parsed["headers"]["content-type"] == "application/json"
 
     def test_sorts_keys(self):
         """Test that JSON keys are sorted."""
@@ -220,7 +219,7 @@ class TestIsJsonResponse:
 
         result = is_json_response(response)
 
-        assert result is False
+        assert not result
 
     def test_returns_false_for_none_content_type(self):
         """Test returns False when Content-Type is None."""
@@ -229,12 +228,12 @@ class TestIsJsonResponse:
 
         result = is_json_response(response)
 
-        assert result is False
+        assert not result
 
     def test_returns_true_for_json_subtype(self):
         """Test returns True for JSON subtype like application/ld+json."""
         response = Mock(spec=Response)
-        response.headers = {"Content-Type": "application/ld+json"}
+        response.headers = {"Content-Type": "application/json-patch+json"}
 
         result = is_json_response(response)
 

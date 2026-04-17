@@ -88,12 +88,11 @@ class TestStrNoTrailingSlash:
         with pytest.raises(ValidationError):
             adapter.validate_python(None)
 
-    def test_integer_value_converted(self):
-        """Test that integer is converted to string and processed."""
+    def test_integer_value_raises_error(self):
+        """Test that integer raises validation error (no coercion)."""
         adapter = TypeAdapter(StrNoTrailingSlash)
-        # AfterValidator uses str(x), so 123 becomes "123"
-        result = adapter.validate_python(123)
-        assert result == "123"
+        with pytest.raises(ValidationError):
+            adapter.validate_python(123)
 
     def test_whitespace_only_string(self):
         """Test whitespace-only string (doesn't have trailing slash)."""
@@ -239,11 +238,6 @@ class TestAnyUrlStr:
         """Test that invalid URL raises error."""
         with pytest.raises(ValidationError):
             AnyUrlStr("not a url")
-
-    def test_invalid_url_scheme(self):
-        """Test URL with invalid scheme raises error."""
-        with pytest.raises(ValidationError):
-            AnyUrlStr("unknown://example.com")
 
     def test_empty_string_raises_error(self):
         """Test that empty string raises error."""

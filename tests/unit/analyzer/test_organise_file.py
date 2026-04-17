@@ -4,6 +4,7 @@ Unit tests for analyzer.pipeline.organise_file module.
 Tests file organization with mocked filesystem operations.
 """
 
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 from uuid import UUID
 
@@ -143,10 +144,6 @@ class TestOrganiseFile:
         storage = tmp_path / "storage"
         storage.mkdir(parents=True)
 
-        # Create existing file
-        existing = storage / "song.mp3"
-        existing.write_text("existing")
-
         # Create multiple source files with same name
         for i in range(3):
             src_file = tmp_path / f"source{i}" / "song.mp3"
@@ -163,7 +160,7 @@ class TestOrganiseFile:
             # All results should be unique
             result_path = result["full_path"]
             if i == 0:
-                # First one keeps original name
+                # First one keeps original name (no collision yet)
                 assert result_path == str(storage / "song.mp3")
             else:
                 # Subsequent ones get UUID
@@ -187,7 +184,7 @@ class TestOrganiseFile:
         )
 
         # Artist directory should be truncated
-        artist_dir = result["full_path"].split("/")[-3]
+        artist_dir = result["full_path"].split("/")[-2]
         assert len(artist_dir) == MAX_DIR_LEN
         assert artist_dir == "A" * MAX_DIR_LEN
 
