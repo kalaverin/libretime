@@ -16,7 +16,8 @@ Example:
 import logging.config
 import sys
 from collections.abc import Collection, Iterable
-from functools import partial
+from fnmatch import translate
+from functools import cached_property, lru_cache, partial
 from logging import (
     WARNING,
     Filter,
@@ -27,7 +28,9 @@ from logging import (
     root,
 )
 from os import getenv
-from typing import Any, TextIO, final, override
+from re import Pattern, compile
+from typing import Any, TextIO, final
+from typing_extensions import override
 
 import orjson
 import structlog
@@ -107,14 +110,43 @@ class SuppressSpamFilter(Filter):
         files: Collection[str],
     ) -> None:
         super().__init__()
-        self.modules: frozenset[str] = frozenset(modules)
-        self.files: frozenset[str] = frozenset(files)
+        self._files: frozenset[str] = frozenset(filter(bool, files))
+        self._modules: frozenset[str] = frozenset(filter(bool, modules))
+
+    @cached_property
+    def regex_files(self) -> Pattern[str]:
+        return compile(
+            "|".join(
+                map(translate, sorted(self._files, key=len, reverse=True))
+            )
+        )
+
+    @cached_property
+    def regex_modules(self) -> Pattern[str]:
+        return compile(
+            "|".join(
+                map(translate, sorted(self._modules, key=len, reverse=True))
+            )
+        )
+
+    @lru_cache(maxsize=2**10)
+    def is_ignored_file(self, name: str) -> bool:
+        if self._files:
+            print("here", self._files)
+            return bool(self.regex_files.search(name))
+        return False
+
+    @lru_cache(maxsize=2**10)
+    def is_ignored_modules(self, name: str) -> bool:
+        if self._modules:
+            return bool(self.regex_modules.search(name))
+        return False
 
     @override
     def filter(self, record: LogRecord) -> bool:
-        return (
-            record.module not in self.modules
-            and record.filename not in self.files
+        return not (
+            self.is_ignored_file(record.filename)
+            or self.is_ignored_modules(record.name)
         )
 
 

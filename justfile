@@ -59,6 +59,7 @@ dock:
 test:
     @uv run \
     pytest \
+        -x \
         -svvv \
         -rs \
         --cov-report term-missing \
