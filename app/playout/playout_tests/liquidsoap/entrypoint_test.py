@@ -9,8 +9,8 @@ from playout.liquidsoap.entrypoint import generate_entrypoint
 from playout.liquidsoap.models import Info, StreamPreferences
 from playout.liquidsoap.version import get_liquidsoap_version
 
-from tests.liquidsoap.conftest import LIQ_VERSION
-from tests.liquidsoap.fixtures import (
+from .conftest import LIQ_VERSION
+from .fixtures import (
     TEST_STREAM_CONFIGS,
     make_config_with_stream,
 )

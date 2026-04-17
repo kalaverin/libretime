@@ -2,7 +2,7 @@ import pytest
 
 from analyzer.pipeline.analyze_replaygain import analyze_replaygain
 
-from tests.fixtures import FILES
+from ..fixtures import FILES
 
 
 @pytest.mark.parametrize(

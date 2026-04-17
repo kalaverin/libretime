@@ -6,7 +6,8 @@ import pytest
 
 from analyzer.pipeline import Pipeline, PipelineOptions
 
-from tests.conftest import AUDIO_FILENAME, AUDIO_IMPORT_DEST
+AUDIO_FILENAME = "s1-stereo-tagged.mp3"
+AUDIO_IMPORT_DEST = f"Test Artist/Test Album/{AUDIO_FILENAME}"
 
 
 def test_run_analysis(src_dir: Path, dest_dir: Path):

@@ -6,7 +6,7 @@ import pytest
 
 from sdk.logging import setup_logger
 
-from tests.fixtures import fixtures_path
+from .fixtures import fixtures_path
 
 setup_logger("debug")
 

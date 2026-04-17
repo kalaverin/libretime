@@ -6,7 +6,7 @@ import pytest
 
 from analyzer.pipeline.organise_file import organise_file
 
-from tests.conftest import AUDIO_FILENAME
+AUDIO_FILENAME = "s1-stereo-tagged.mp3"
 
 
 def organise_file_args_factory(filepath: Path, dest_dir: Path):

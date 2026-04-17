@@ -7,7 +7,7 @@ import pytest
 from playout.liquidsoap.client import LiquidsoapConnection
 from sdk.logging import setup_logger
 
-from tests.liquidsoap.conftest import LIQ_VERSION, LIQ_VERSION_STR
+from ..conftest import LIQ_VERSION, LIQ_VERSION_STR
 
 logger = logging.getLogger(__name__)
 
