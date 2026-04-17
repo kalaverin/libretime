@@ -8,7 +8,7 @@ from analyzer.pipeline._ffmpeg import (
     probe_replaygain,
 )
 
-from ..fixtures import FILES
+from analyzer_tests.fixtures import FILES
 
 
 @pytest.mark.skip(reason="fixtures files are missing replaygain metadata")
