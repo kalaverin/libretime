@@ -97,6 +97,7 @@ extension-pkg-whitelist = [
 DJANGO_SETTINGS_MODULE = "api.settings.testing"
 log_cli = true
 log_cli_level = "DEBUG"
+env_files = [".env"]
 
 [tool.refurb]
 ignore = [

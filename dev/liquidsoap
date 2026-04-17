@@ -1,0 +1,17 @@
+#!/bin/bash
+# Fake liquidsoap for testing
+
+if [[ "$1" == "--version" ]]; then
+    echo "Liquidsoap 2.2.5"
+    exit 0
+fi
+
+if [[ "$1" == "--no-stdlib" && "$2" == "--check" ]]; then
+    echo "2.2.5"
+    exit 0
+fi
+
+# For normal runs (e.g. --debug entrypoint.liq), keep alive
+while true; do
+    sleep 60
+done
