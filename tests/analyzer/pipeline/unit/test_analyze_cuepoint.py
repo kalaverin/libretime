@@ -5,7 +5,7 @@ from analyzer.pipeline.analyze_cuepoint import (
     analyze_duration,
 )
 
-from ..fixtures import FILES
+from analyzer_tests.fixtures import FILES
 
 
 @pytest.mark.parametrize(

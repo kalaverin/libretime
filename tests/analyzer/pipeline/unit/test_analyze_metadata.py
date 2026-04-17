@@ -4,7 +4,7 @@ import pytest
 
 from analyzer.pipeline.analyze_metadata import analyze_metadata
 
-from ..fixtures import FILE_INVALID_DRM, FILE_INVALID_TXT, FILES_TAGGED
+from analyzer_tests.fixtures import FILE_INVALID_DRM, FILE_INVALID_TXT, FILES_TAGGED
 
 
 @pytest.mark.parametrize(
@@ -26,6 +26,14 @@ def test_analyze_metadata(filepath: Path, metadata: dict):
     assert metadata["length"] in found["length"]
     del metadata["length"]
     del found["length"]
+
+    # Handle numeric fields with approx separately (approx does not work
+    # inside dict ==)
+    for key in ("length_seconds", "bit_rate"):
+        if key in found and key in metadata:
+            assert found[key] == metadata[key]
+            del found[key]
+            del metadata[key]
 
     # ogg,flac files does not support comments yet
     if not filepath.suffix == ".m4a" and not filepath.suffix == ".mp3":

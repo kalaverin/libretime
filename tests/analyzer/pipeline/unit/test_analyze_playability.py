@@ -8,7 +8,7 @@ from analyzer.pipeline.analyze_playability import (
     analyze_playability,
 )
 
-from ..fixtures import FILE_INVALID_DRM, FILES
+from analyzer_tests.fixtures import FILE_INVALID_DRM, FILES
 
 
 @pytest.mark.parametrize(

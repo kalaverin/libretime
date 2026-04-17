@@ -11,7 +11,18 @@ if [[ "$1" == "--no-stdlib" && "$2" == "--check" ]]; then
     exit 0
 fi
 
-# For normal runs (e.g. --debug entrypoint.liq), keep alive
-while true; do
-    sleep 60
+# Playability check: if called with -c and --, validate the audio file
+# Real liquidsoap would exit non-zero for invalid/missing files
+for arg in "$@"; do
+    if [[ "$arg" == "--" ]]; then
+        shift_while=1
+        continue
+    fi
+    if [[ -n "$shift_while" && ! -f "$arg" ]]; then
+        echo "Error: file does not exist: $arg" >&2
+        exit 1
+    fi
 done
+
+# Default: simulate success
+exit 0
