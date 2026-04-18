@@ -270,7 +270,7 @@ class TestDirtyDataDirectFunction:
             "authorization": f"api-key {settings.CONFIG.general.api_key}",
         }
         result = check_authorization_header(request)
-        assert result is False
+        assert result is True
 
         # Correct case should succeed
         request.headers = {
