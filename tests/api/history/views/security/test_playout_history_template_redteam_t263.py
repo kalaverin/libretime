@@ -17,7 +17,7 @@ class TestPlayoutHistoryTemplateRedTeamBOPLA:
 
     def test_bopla_create_mass_assignment_id(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_small_int,
     ):
@@ -34,7 +34,7 @@ class TestPlayoutHistoryTemplateRedTeamBOPLA:
             "type": "file",
         }
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-templates",
             data,
             format="json",
@@ -47,7 +47,7 @@ class TestPlayoutHistoryTemplateRedTeamBOPLA:
 
     def test_bopla_create_extra_fields_ignored(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -65,7 +65,7 @@ class TestPlayoutHistoryTemplateRedTeamBOPLA:
             "owner_id": 1,
         }
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-templates",
             data,
             format="json",
@@ -78,7 +78,7 @@ class TestPlayoutHistoryTemplateRedTeamBOPLA:
 
     def test_bopla_update_change_id(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
         fake_small_int,
@@ -99,7 +99,7 @@ class TestPlayoutHistoryTemplateRedTeamBOPLA:
             "type": template.type,
         }
 
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/playout-history-templates/{template.id}",
             data,
             format="json",
@@ -114,7 +114,7 @@ class TestPlayoutHistoryTemplateRedTeamBOPLA:
 
     def test_bopla_update_extra_fields_ignored(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
         fake_word,
@@ -135,7 +135,7 @@ class TestPlayoutHistoryTemplateRedTeamBOPLA:
             "system_field": "compromised",
         }
 
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/playout-history-templates/{template.id}",
             data,
             format="json",
@@ -146,7 +146,7 @@ class TestPlayoutHistoryTemplateRedTeamBOPLA:
 
     def test_bopla_patch_extra_fields_ignored(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -165,7 +165,7 @@ class TestPlayoutHistoryTemplateRedTeamBOPLA:
             "internal_flag": True,
         }
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/playout-history-templates/{template.id}",
             data,
             format="json",
@@ -179,7 +179,7 @@ class TestPlayoutHistoryTemplateRedTeamBOPLA:
 class TestPlayoutHistoryTemplateRedTeamBOLA:
     """API1:2023 Broken Object Level Authorization."""
 
-    def test_bola_no_owner_field_in_model(self, guest_client, admin_user):
+    def test_bola_no_owner_field_in_model(self, admin_client, admin_user):
         """
         BOLA: Template model has no owner field.
 
@@ -195,7 +195,7 @@ class TestPlayoutHistoryTemplateRedTeamBOLA:
 
     def test_bola_regular_user_can_modify_global_template(
         self,
-        guest_client,
+        admin_client,
         regular_user,
         fake_catch_phrase,
         fake_word,
@@ -213,14 +213,14 @@ class TestPlayoutHistoryTemplateRedTeamBOLA:
         )
 
         # Regular user tries to modify
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
 
         data = {
             "name": f"HACKED_{fake_word}",
             "type": "stream",
         }
 
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/playout-history-templates/{template.id}",
             data,
             format="json",
@@ -233,7 +233,7 @@ class TestPlayoutHistoryTemplateRedTeamBOLA:
 
     def test_bola_regular_user_can_delete_global_template(
         self,
-        guest_client,
+        admin_client,
         regular_user,
         fake_catch_phrase,
     ):
@@ -248,9 +248,9 @@ class TestPlayoutHistoryTemplateRedTeamBOLA:
             type="file",
         )
 
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
 
-        response = guest_client.delete(
+        response = admin_client.delete(
             f"/api/v2/playout-history-templates/{template.id}",
         )
 
@@ -261,7 +261,7 @@ class TestPlayoutHistoryTemplateRedTeamBOLA:
 
     def test_bola_guest_user_can_access_templates(
         self,
-        guest_client,
+        admin_client,
         guest_user,
     ):
         """
@@ -269,9 +269,9 @@ class TestPlayoutHistoryTemplateRedTeamBOLA:
 
         Templates should be admin/manager only.
         """
-        guest_client.force_authenticate(user=guest_user)
+        admin_client.force_authenticate(user=guest_user)
 
-        response = guest_client.get("/api/v2/playout-history-templates")
+        response = admin_client.get("/api/v2/playout-history-templates")
 
         if response.status_code == 200:
             pytest.xfail("T639: BFLA - Guest user can list templates")
@@ -281,7 +281,7 @@ class TestPlayoutHistoryTemplateRedTeamBOLA:
 class TestPlayoutHistoryTemplateRedTeamInjection:
     """Injection attacks on template endpoints."""
 
-    def test_sqli_in_name_field(self, guest_client, admin_user):
+    def test_sqli_in_name_field(self, admin_client, admin_user):
         """
         SQL Injection via name field.
         """
@@ -294,7 +294,7 @@ class TestPlayoutHistoryTemplateRedTeamInjection:
         for name in sqli_names:
             data = {"name": name, "type": "file"}
 
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/playout-history-templates",
                 data,
                 format="json",
@@ -309,7 +309,7 @@ class TestPlayoutHistoryTemplateRedTeamInjection:
 
     def test_sqli_in_type_field(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -324,7 +324,7 @@ class TestPlayoutHistoryTemplateRedTeamInjection:
         for type_val in sqli_types:
             data = {"name": fake_catch_phrase, "type": type_val}
 
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/playout-history-templates",
                 data,
                 format="json",
@@ -333,7 +333,7 @@ class TestPlayoutHistoryTemplateRedTeamInjection:
             if response.status_code == 500:
                 pytest.xfail("T640: SQLi in type causes 500")
 
-    def test_xss_in_name_field(self, guest_client, admin_user):
+    def test_xss_in_name_field(self, admin_client, admin_user):
         """
         XSS via name field - stored XSS.
         """
@@ -346,7 +346,7 @@ class TestPlayoutHistoryTemplateRedTeamInjection:
         for name in xss_names:
             data = {"name": name, "type": "file"}
 
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/playout-history-templates",
                 data,
                 format="json",
@@ -360,7 +360,7 @@ class TestPlayoutHistoryTemplateRedTeamInjection:
 
     def test_xss_in_type_field(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -371,7 +371,7 @@ class TestPlayoutHistoryTemplateRedTeamInjection:
 
         data = {"name": fake_catch_phrase, "type": xss_type}
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-templates",
             data,
             format="json",
@@ -663,13 +663,13 @@ class TestPlayoutHistoryTemplateRedTeamAuthentication:
         response = admin_client.get("/api/v2/playout-history-templates")
         assert response.status_code == 403
 
-    def test_unauthenticated_create(self, guest_client, fake_catch_phrase):
+    def test_unauthenticated_create(self, admin_client, fake_catch_phrase):
         """
         Auth: Unauthenticated CREATE should fail.
         """
-        guest_client.logout()
+        admin_client.logout()
         data = {"name": fake_catch_phrase, "type": "file"}
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-templates",
             data,
             format="json",
@@ -678,7 +678,7 @@ class TestPlayoutHistoryTemplateRedTeamAuthentication:
 
     def test_unauthenticated_update(
         self,
-        guest_client,
+        admin_client,
         fake_catch_phrase,
         fake_word,
     ):
@@ -691,16 +691,16 @@ class TestPlayoutHistoryTemplateRedTeamAuthentication:
             type="file",
         )
 
-        guest_client.logout()
+        admin_client.logout()
         data = {"name": fake_word, "type": "file"}
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/playout-history-templates/{template.id}",
             data,
             format="json",
         )
         assert response.status_code == 403
 
-    def test_unauthenticated_delete(self, guest_client, fake_catch_phrase):
+    def test_unauthenticated_delete(self, admin_client, fake_catch_phrase):
         """
         Auth: Unauthenticated DELETE should fail.
         """
@@ -710,25 +710,25 @@ class TestPlayoutHistoryTemplateRedTeamAuthentication:
             type="file",
         )
 
-        guest_client.logout()
-        response = guest_client.delete(
+        admin_client.logout()
+        response = admin_client.delete(
             f"/api/v2/playout-history-templates/{template.id}",
         )
         assert response.status_code == 403
 
     def test_guest_user_create(
         self,
-        guest_client,
+        admin_client,
         guest_user,
         fake_catch_phrase,
     ):
         """
         BFLA: Guest user CREATE should fail.
         """
-        guest_client.force_authenticate(user=guest_user)
+        admin_client.force_authenticate(user=guest_user)
 
         data = {"name": fake_catch_phrase, "type": "file"}
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-templates",
             data,
             format="json",
@@ -744,7 +744,7 @@ class TestPlayoutHistoryTemplateRedTeamIDEnumeration:
 
     def test_id_sequence_predictable(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):

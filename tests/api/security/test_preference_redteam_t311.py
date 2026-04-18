@@ -101,9 +101,9 @@ class TestPreferenceRaceCondition:
 class TestPreferenceSQLInjection:
     """SQL injection attempts via key/value fields."""
 
-    def test_sqli_in_key_field_union_select(self, guest_client, admin_user):
+    def test_sqli_in_key_field_union_select(self, admin_client, admin_user):
         """Try SQL injection in key field - UNION SELECT."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         sqli_payloads = [
             "key' UNION SELECT * FROM auth_user--",
@@ -116,7 +116,7 @@ class TestPreferenceSQLInjection:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/preferences",
                 {"key": payload, "value": "test", "user": admin_user.id},
                 format="json",
@@ -130,9 +130,9 @@ class TestPreferenceSQLInjection:
                 data = response.json()
                 assert payload in data["key"]  # Key stored literally
 
-    def test_sqli_in_value_field(self, guest_client, admin_user):
+    def test_sqli_in_value_field(self, admin_client, admin_user):
         """Try SQL injection in value field."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         sqli_payloads = [
             "value'; DELETE FROM cc_pref WHERE '1'='1",
@@ -141,7 +141,7 @@ class TestPreferenceSQLInjection:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/preferences",
                 {
                     "key": f"val_test_{hash(payload)}",
@@ -153,12 +153,12 @@ class TestPreferenceSQLInjection:
             # Should store value as-is without executing
             assert response.status_code in [201, 400]
 
-    def test_sqli_time_based_in_key(self, guest_client, admin_user):
+    def test_sqli_time_based_in_key(self, admin_client, admin_user):
         """Time-based SQL injection attempt in key."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         start = time.time()
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/preferences",
             {
                 "key": "key'||pg_sleep(5)||'",
@@ -177,15 +177,15 @@ class TestPreferenceSQLInjection:
 class TestPreferenceUnicodeBypass:
     """Unicode normalization bypass attempts."""
 
-    def test_unicode_normalized_same_key(self, guest_client, admin_user):
+    def test_unicode_normalized_same_key(self, admin_client, admin_user):
         """Try to bypass unique constraint with Unicode equivalent characters.
 
         Attack: Use visually similar Unicode characters that normalize to same value.
         """
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         # First create with normal 'test'
-        response1 = guest_client.post(
+        response1 = admin_client.post(
             "/api/v2/preferences",
             {"key": "test", "value": "value1", "user": admin_user.id},
             format="json",
@@ -203,7 +203,7 @@ class TestPreferenceUnicodeBypass:
         ]
 
         for variant in unicode_variants[1:]:  # Skip first (already created)
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/preferences",
                 {"key": variant, "value": "value", "user": admin_user.id},
                 format="json",
@@ -212,14 +212,14 @@ class TestPreferenceUnicodeBypass:
             # Or validation might catch some as duplicates
             assert response.status_code in [201, 400]
 
-    def test_null_byte_in_key(self, guest_client, admin_user):
+    def test_null_byte_in_key(self, admin_client, admin_user):
         """Null byte injection in key field.
 
         Attack: Use null byte to truncate key in C libraries.
         """
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/preferences",
             {"key": "test\x00hidden", "value": "value", "user": admin_user.id},
             format="json",
@@ -232,11 +232,11 @@ class TestPreferenceUnicodeBypass:
             # Verify full key stored, not truncated
             assert "\x00" in data["key"] or "hidden" in data["key"]
 
-    def test_newline_in_key(self, guest_client, admin_user):
+    def test_newline_in_key(self, admin_client, admin_user):
         """Newline injection in key field."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/preferences",
             {"key": "line1\nline2", "value": "value", "user": admin_user.id},
             format="json",
@@ -249,11 +249,11 @@ class TestPreferenceUnicodeBypass:
 class TestPreferenceMassAssignment:
     """Mass assignment vulnerability tests."""
 
-    def test_create_with_id_field(self, guest_client, admin_user):
+    def test_create_with_id_field(self, admin_client, admin_user):
         """Try to set id field manually (mass assignment)."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/preferences",
             {
                 "id": 999999,
@@ -270,11 +270,11 @@ class TestPreferenceMassAssignment:
             data = response.json()
             assert data["id"] != 999999  # ID should be auto-generated
 
-    def test_create_with_invalid_user_id(self, guest_client, admin_user):
+    def test_create_with_invalid_user_id(self, admin_client, admin_user):
         """Try to create preference for non-existent user (IDOR attempt)."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/preferences",
             {"key": "idor_test", "value": "value", "user": 999999},
             format="json",
@@ -283,11 +283,11 @@ class TestPreferenceMassAssignment:
         # Should fail with 400 (invalid user)
         assert response.status_code == 400
 
-    def test_create_for_other_user(self, guest_client, admin_user, regular_user):
+    def test_create_for_other_user(self, admin_client, admin_user, regular_user):
         """Try to create preference for another user (horizontal privilege escalation)."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/preferences",
             {
                 "key": "other_user_key",
@@ -308,23 +308,23 @@ class TestPreferenceMassAssignment:
 class TestPreferenceInformationDisclosure:
     """Information disclosure via error messages."""
 
-    def test_integrity_error_message_leakage(self, guest_client, admin_user):
+    def test_integrity_error_message_leakage(self, admin_client, admin_user):
         """Check if IntegrityError leaks database schema info.
 
         Create site pref (user=null) with key, then try to create another site pref
         with same key - this should fail due to partial index.
         """
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         # Create first site preference
-        response1 = guest_client.post(
+        response1 = admin_client.post(
             "/api/v2/preferences",
             {"key": "site_key_test", "value": "value1", "user": None},
             format="json",
         )
 
         # Create second site preference with same key
-        response2 = guest_client.post(
+        response2 = admin_client.post(
             "/api/v2/preferences",
             {"key": "site_key_test", "value": "value2", "user": None},
             format="json",
@@ -338,19 +338,19 @@ class TestPreferenceInformationDisclosure:
             # This leaks database constraint name - potential info disclosure
             pytest.fail("Error message leaks database constraint name")
 
-    def test_error_message_uniqueness(self, guest_client, admin_user):
+    def test_error_message_uniqueness(self, admin_client, admin_user):
         """Verify error messages don't reveal which field caused uniqueness violation."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         # Create first preference
-        guest_client.post(
+        admin_client.post(
             "/api/v2/preferences",
             {"key": "uniq_test", "value": "v1", "user": admin_user.id},
             format="json",
         )
 
         # Try to create duplicate
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/preferences",
             {"key": "uniq_test", "value": "v2", "user": admin_user.id},
             format="json",
@@ -364,12 +364,12 @@ class TestPreferenceInformationDisclosure:
 class TestPreferencePartialIndexBypass:
     """Attempts to bypass partial unique index constraints."""
 
-    def test_site_pref_then_user_pref_same_key(self, guest_client, admin_user):
+    def test_site_pref_then_user_pref_same_key(self, admin_client, admin_user):
         """Create site pref, then user pref with same key (should work)."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         # Site preference
-        response1 = guest_client.post(
+        response1 = admin_client.post(
             "/api/v2/preferences",
             {"key": "shared_key", "value": "site_value", "user": None},
             format="json",
@@ -377,7 +377,7 @@ class TestPreferencePartialIndexBypass:
         assert response1.status_code == 201
 
         # User preference with same key - should succeed
-        response2 = guest_client.post(
+        response2 = admin_client.post(
             "/api/v2/preferences",
             {
                 "key": "shared_key",
@@ -388,12 +388,12 @@ class TestPreferencePartialIndexBypass:
         )
         assert response2.status_code == 201
 
-    def test_user_pref_then_site_pref_same_key(self, guest_client, admin_user):
+    def test_user_pref_then_site_pref_same_key(self, admin_client, admin_user):
         """Create user pref, then site pref with same key (should work)."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         # User preference
-        response1 = guest_client.post(
+        response1 = admin_client.post(
             "/api/v2/preferences",
             {
                 "key": "shared_key2",
@@ -405,19 +405,19 @@ class TestPreferencePartialIndexBypass:
         assert response1.status_code == 201
 
         # Site preference with same key - should succeed
-        response2 = guest_client.post(
+        response2 = admin_client.post(
             "/api/v2/preferences",
             {"key": "shared_key2", "value": "site_value", "user": None},
             format="json",
         )
         assert response2.status_code == 201
 
-    def test_two_site_prefs_same_key_fails(self, guest_client, admin_user):
+    def test_two_site_prefs_same_key_fails(self, admin_client, admin_user):
         """Two site prefs with same key should fail (partial index)."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         # First site preference
-        response1 = guest_client.post(
+        response1 = admin_client.post(
             "/api/v2/preferences",
             {"key": "site_unique", "value": "v1", "user": None},
             format="json",
@@ -425,7 +425,7 @@ class TestPreferencePartialIndexBypass:
         assert response1.status_code == 201
 
         # Second site preference with same key
-        response2 = guest_client.post(
+        response2 = admin_client.post(
             "/api/v2/preferences",
             {"key": "site_unique", "value": "v2", "user": None},
             format="json",
@@ -438,13 +438,13 @@ class TestPreferencePartialIndexBypass:
 class TestPreferenceKeyLength:
     """Key length boundary tests."""
 
-    def test_very_long_key(self, guest_client, admin_user):
+    def test_very_long_key(self, admin_client, admin_user):
         """Try to create preference with very long key."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         long_key = "k" * 1000
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/preferences",
             {"key": long_key, "value": "test", "user": admin_user.id},
             format="json",
@@ -453,11 +453,11 @@ class TestPreferenceKeyLength:
         # Should either truncate or reject
         assert response.status_code in [201, 400]
 
-    def test_empty_key(self, guest_client, admin_user):
+    def test_empty_key(self, admin_client, admin_user):
         """Try to create preference with empty key."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/preferences",
             {"key": "", "value": "test", "user": admin_user.id},
             format="json",
@@ -469,11 +469,11 @@ class TestPreferenceKeyLength:
             data = response.json()
             assert data["key"] == ""
 
-    def test_whitespace_only_key(self, guest_client, admin_user):
+    def test_whitespace_only_key(self, admin_client, admin_user):
         """Try to create preference with whitespace-only key."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/preferences",
             {"key": "   ", "value": "test", "user": admin_user.id},
             format="json",

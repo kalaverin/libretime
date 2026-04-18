@@ -47,7 +47,7 @@ class TestPlaylistContentListRedTeam:
     @pytest.mark.xfail(
         reason="T420: BOLA - no owner filtering on playlist contents",
     )
-    def test_bola_list_other_users_contents(self, guest_client):
+    def test_bola_list_other_users_contents(self, admin_client):
         """BOLA: User should only see contents of their playlists."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -73,7 +73,7 @@ class TestPlaylistContentListRedTeam:
         )
 
         # Attacker lists all contents
-        response = guest_client.get("/api/v2/playlist-contents")
+        response = admin_client.get("/api/v2/playlist-contents")
         data = response.json()
 
         # Attacker should NOT see victim's content
@@ -83,7 +83,7 @@ class TestPlaylistContentListRedTeam:
         ), "BOLA: Attacker can see victim's playlist content"
 
     @pytest.mark.xfail(reason="T420: BOLA via playlist filter")
-    def test_bola_filter_by_other_users_playlist(self, guest_client):
+    def test_bola_filter_by_other_users_playlist(self, admin_client):
         """BOLA: Filter by other user's playlist ID should fail."""
         victim = baker.make(User, username="testred_victim")
 
@@ -107,7 +107,7 @@ class TestPlaylistContentListRedTeam:
         )
 
         # Attacker tries to filter by victim's playlist
-        response = guest_client.get(
+        response = admin_client.get(
             f"/api/v2/playlist-contents?playlist={victim_playlist.id}",
         )
         data = response.json()
@@ -118,7 +118,7 @@ class TestPlaylistContentListRedTeam:
         ), "BOLA: Filter by victim's playlist returned contents"
 
     @pytest.mark.xfail(reason="T420: IDOR - sequential ID exposure")
-    def test_idor_content_id_enumeration(self, guest_client):
+    def test_idor_content_id_enumeration(self, admin_client):
         """IDOR: Attacker can enumerate all contents by ID."""
         victim = baker.make(User, username="testred_victim")
 
@@ -142,7 +142,7 @@ class TestPlaylistContentListRedTeam:
             contents.append(c)
 
         # Attacker lists all - should not see victim's
-        response = guest_client.get("/api/v2/playlist-contents")
+        response = admin_client.get("/api/v2/playlist-contents")
         data = response.json()
 
         victim_ids = {c.id for c in contents}
@@ -157,7 +157,7 @@ class TestPlaylistContentListRedTeam:
     # API3:2023 - BOPLA (Broken Object Property Level Authorization)
     # ========================================================================
 
-    def test_bopla_field_exposure_in_list(self, guest_client):
+    def test_bopla_field_exposure_in_list(self, admin_client):
         """BOPLA: Check if sensitive fields are exposed in list view."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -176,7 +176,7 @@ class TestPlaylistContentListRedTeam:
             position=1,
         )
 
-        response = guest_client.get("/api/v2/playlist-contents")
+        response = admin_client.get("/api/v2/playlist-contents")
         data = response.json()
 
         # Check for sensitive field exposure
@@ -198,7 +198,7 @@ class TestPlaylistContentListRedTeam:
                         pattern not in field.lower()
                     ), f"BOPLA: Sensitive field '{field}' exposed in list"
 
-    def test_bopla_extra_fields_injection(self, guest_client):
+    def test_bopla_extra_fields_injection(self, admin_client):
         """BOPLA: Try to request extra fields via query params."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -226,7 +226,7 @@ class TestPlaylistContentListRedTeam:
         ]
 
         for attempt in injection_attempts:
-            response = guest_client.get(f"/api/v2/playlist-contents{attempt}")
+            response = admin_client.get(f"/api/v2/playlist-contents{attempt}")
             # Should not expose extra fields
             assert response.status_code in [
                 200,
@@ -237,7 +237,7 @@ class TestPlaylistContentListRedTeam:
     # API6:2023 - Unrestricted Resource Consumption
     # ========================================================================
 
-    def test_list_pagination_missing(self, guest_client):
+    def test_list_pagination_missing(self, admin_client):
         """Resource: List without pagination can cause DoS."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -259,7 +259,7 @@ class TestPlaylistContentListRedTeam:
             )
 
         start = time.time()
-        response = guest_client.get("/api/v2/playlist-contents")
+        response = admin_client.get("/api/v2/playlist-contents")
         elapsed = time.time() - start
 
         data = response.json()
@@ -271,7 +271,7 @@ class TestPlaylistContentListRedTeam:
         # Response should be reasonably fast
         assert elapsed < 5.0, f"DoS: 100 items took {elapsed}s"
 
-    def test_list_mass_content_creation(self, guest_client):
+    def test_list_mass_content_creation(self, admin_client):
         """Resource: Rapid listing during mass creation."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -287,7 +287,7 @@ class TestPlaylistContentListRedTeam:
                 position=1,
             )
             # List immediately
-            return guest_client.get("/api/v2/playlist-contents")
+            return admin_client.get("/api/v2/playlist-contents")
 
         # Rapid create + list cycles
         with ThreadPoolExecutor(max_workers=5) as executor:
@@ -299,7 +299,7 @@ class TestPlaylistContentListRedTeam:
             r.status_code == 200 for r in responses
         ), "Some list requests failed during mass creation"
 
-    def test_list_with_huge_offset(self, guest_client):
+    def test_list_with_huge_offset(self, admin_client):
         """Resource: Test with extremely large offset parameter."""
         # Try various large offsets
         huge_offsets = [
@@ -309,7 +309,7 @@ class TestPlaylistContentListRedTeam:
         ]
 
         for offset in huge_offsets:
-            response = guest_client.get(
+            response = admin_client.get(
                 f"/api/v2/playlist-contents?offset={offset}",
             )
             # Should handle gracefully
@@ -323,9 +323,9 @@ class TestPlaylistContentListRedTeam:
     # API8:2023 - Security Misconfiguration
     # ========================================================================
 
-    def test_list_http_method_override(self, guest_client):
+    def test_list_http_method_override(self, admin_client):
         """Security: Method override on list endpoint."""
-        response = guest_client.get(
+        response = admin_client.get(
             "/api/v2/playlist-contents",
             headers={"X-HTTP-Method-Override": "DELETE"},
         )
@@ -335,17 +335,17 @@ class TestPlaylistContentListRedTeam:
             405,
         ], f"Method override returned {response.status_code}"
 
-    def test_list_with_trace(self, guest_client):
+    def test_list_with_trace(self, admin_client):
         """Security: TRACE method should not work."""
-        response = guest_client.trace("/api/v2/playlist-contents")
+        response = admin_client.trace("/api/v2/playlist-contents")
         assert response.status_code in [
             405,
             501,
         ], f"TRACE returned {response.status_code}"
 
-    def test_list_cors_headers(self, guest_client):
+    def test_list_cors_headers(self, admin_client):
         """Security: Check CORS headers on list endpoint."""
-        response = guest_client.options(
+        response = admin_client.options(
             "/api/v2/playlist-contents",
             headers={
                 "Origin": "https://evil.com",
@@ -365,7 +365,7 @@ class TestPlaylistContentListRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T421: 500 error on invalid playlist filter")
-    def test_list_sql_injection_in_filter(self, guest_client):
+    def test_list_sql_injection_in_filter(self, admin_client):
         """SQLi: Injection in playlist filter parameter should return 400."""
         sqli_payloads = [
             "1' OR '1'='1",
@@ -376,7 +376,7 @@ class TestPlaylistContentListRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.get(
+            response = admin_client.get(
                 f"/api/v2/playlist-contents?playlist={payload}",
             )
             # Should return 400 (bad request) for invalid input
@@ -387,7 +387,7 @@ class TestPlaylistContentListRedTeam:
             ], f"SQLi payload '{payload}' caused {response.status_code}, expected 400/404"
 
     @pytest.mark.xfail(reason="T421: 500 error on invalid playlist filter")
-    def test_list_nosql_injection_in_filter(self, guest_client):
+    def test_list_nosql_injection_in_filter(self, admin_client):
         """NoSQLi: MongoDB operators in filter should return 400."""
         nosql_payloads = [
             '{"$ne": null}',
@@ -397,7 +397,7 @@ class TestPlaylistContentListRedTeam:
         ]
 
         for payload in nosql_payloads:
-            response = guest_client.get(
+            response = admin_client.get(
                 f"/api/v2/playlist-contents?playlist={payload}",
             )
             # Should return 400 (bad request) for invalid input
@@ -407,7 +407,7 @@ class TestPlaylistContentListRedTeam:
                 404,
             ], f"NoSQLi payload '{payload}' caused {response.status_code}, expected 400/404"
 
-    def test_list_order_by_injection(self, guest_client):
+    def test_list_order_by_injection(self, admin_client):
         """SQLi: Injection in ordering parameter."""
         order_payloads = [
             "position; DROP TABLE users;--",
@@ -417,7 +417,7 @@ class TestPlaylistContentListRedTeam:
         ]
 
         for payload in order_payloads:
-            response = guest_client.get(
+            response = admin_client.get(
                 f"/api/v2/playlist-contents?ordering={payload}",
             )
             assert response.status_code in [
@@ -430,7 +430,7 @@ class TestPlaylistContentListRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T421: 500 error exposes internal details")
-    def test_list_error_message_disclosure(self, guest_client):
+    def test_list_error_message_disclosure(self, admin_client):
         """Info: Error messages should not leak internal details."""
         # Trigger errors with invalid parameters
         invalid_params = [
@@ -440,7 +440,7 @@ class TestPlaylistContentListRedTeam:
         ]
 
         for param in invalid_params:
-            response = guest_client.get(f"/api/v2/playlist-contents{param}")
+            response = admin_client.get(f"/api/v2/playlist-contents{param}")
             # Should never get 500
             assert (
                 response.status_code != 500
@@ -454,11 +454,11 @@ class TestPlaylistContentListRedTeam:
                         leak not in content
                     ), f"Info leak: '{leak}' in error for '{param}'"
 
-    def test_list_timing_attack(self, guest_client):
+    def test_list_timing_attack(self, admin_client):
         """Timing: Response time should not reveal data existence."""
         # Time empty list
         start = time.time()
-        guest_client.get("/api/v2/playlist-contents")
+        admin_client.get("/api/v2/playlist-contents")
         time_empty = time.time() - start
 
         # Create content
@@ -475,7 +475,7 @@ class TestPlaylistContentListRedTeam:
 
         # Time non-empty list
         start = time.time()
-        guest_client.get("/api/v2/playlist-contents")
+        admin_client.get("/api/v2/playlist-contents")
         time_nonempty = time.time() - start
 
         diff = abs(time_empty - time_nonempty)
@@ -487,13 +487,13 @@ class TestPlaylistContentListRedTeam:
     # Business Logic
     # ========================================================================
 
-    def test_list_filter_by_nonexistent_playlist(self, guest_client):
+    def test_list_filter_by_nonexistent_playlist(self, admin_client):
         """Logic: Filter by non-existent playlist should return empty."""
-        response = guest_client.get("/api/v2/playlist-contents?playlist=999999")
+        response = admin_client.get("/api/v2/playlist-contents?playlist=999999")
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_list_filter_by_deleted_playlist(self, guest_client):
+    def test_list_filter_by_deleted_playlist(self, admin_client):
         """Logic: Filter by deleted playlist should return empty."""
         user = baker.make(User, username="testred_deleted")
         playlist = baker.make(Playlist, name="To Delete", owner=user)
@@ -511,7 +511,7 @@ class TestPlaylistContentListRedTeam:
         playlist.delete()
 
         # Try to filter by deleted playlist ID
-        response = guest_client.get(
+        response = admin_client.get(
             f"/api/v2/playlist-contents?playlist={playlist_id}",
         )
         assert response.status_code == 200
@@ -521,10 +521,10 @@ class TestPlaylistContentListRedTeam:
             c["id"] for c in data
         ], "Orphaned content visible after playlist deletion"
 
-    def test_list_multiple_filter_parameters(self, guest_client):
+    def test_list_multiple_filter_parameters(self, admin_client):
         """Logic: Multiple filter params should combine correctly."""
         # Try conflicting filters
-        response = guest_client.get(
+        response = admin_client.get(
             "/api/v2/playlist-contents?playlist=1&playlist=2",
         )
         # Should handle gracefully

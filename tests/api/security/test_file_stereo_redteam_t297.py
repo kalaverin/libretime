@@ -28,7 +28,7 @@ class TestStereoMonoBOLA:
     @pytest.mark.xfail(
         reason="BOLA: Can retrieve other user's file with channels - T892",
     )
-    def test_retrieve_other_users_file_channels(self, guest_client: APIClient):
+    def test_retrieve_other_users_file_channels(self, admin_client: APIClient):
         """
         Attacker retrieves victim's file to see channel info.
         API1:2023 - Broken Object Level Authorization.
@@ -47,8 +47,8 @@ class TestStereoMonoBOLA:
             sample_rate=44100,
         )
 
-        guest_client.force_authenticate(user=attacker)
-        response = guest_client.get(f"/api/v2/files/{victim_file.id}")
+        admin_client.force_authenticate(user=attacker)
+        response = admin_client.get(f"/api/v2/files/{victim_file.id}")
 
         assert (
             response.status_code == 404
@@ -57,7 +57,7 @@ class TestStereoMonoBOLA:
     @pytest.mark.xfail(
         reason="BOLA: LIST shows all users' files with channel info - T892",
     )
-    def test_list_shows_all_users_channel_info(self, guest_client: APIClient):
+    def test_list_shows_all_users_channel_info(self, admin_client: APIClient):
         """
         LIST endpoint returns all users' files with channel data.
         API1:2023 - Missing user isolation.
@@ -86,8 +86,8 @@ class TestStereoMonoBOLA:
             _quantity=3,
         )
 
-        guest_client.force_authenticate(user=user1)
-        response = guest_client.get("/api/v2/files")
+        admin_client.force_authenticate(user=user1)
+        response = admin_client.get("/api/v2/files")
 
         assert response.status_code == 200
         data = response.json()
@@ -103,7 +103,7 @@ class TestStereoMonoBOLA:
     @pytest.mark.xfail(
         reason="Auth bypass: Anonymous can access channel info - T892",
     )
-    def test_channel_info_not_leaked_to_anonymous(self, guest_client: APIClient):
+    def test_channel_info_not_leaked_to_anonymous(self, admin_client: APIClient):
         """Anonymous users cannot access channel information."""
         library = make_library(code="ANON", name="Anon Test")
         user = baker.make(User, username="channel_owner")
@@ -118,7 +118,7 @@ class TestStereoMonoBOLA:
         )
 
         # No authentication
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
 
         assert response.status_code in [
             401,
@@ -134,7 +134,7 @@ class TestStereoMonoMassAssignment:
     @pytest.mark.xfail(
         reason="BOPLA: Mass assignment allows changing channels - T893",
     )
-    def test_mass_assignment_channels_blocked(self, guest_client: APIClient):
+    def test_mass_assignment_channels_blocked(self, admin_client: APIClient):
         """
         Attempt to modify channels via PATCH/PUT.
         Channels should be read-only from audio analysis.
@@ -151,10 +151,10 @@ class TestStereoMonoMassAssignment:
             channels=1,
         )
 
-        guest_client.force_authenticate(user=user)
+        admin_client.force_authenticate(user=user)
 
         # Attempt to change mono to stereo
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/files/{file_obj.id}",
             {"channels": 2},
             format="json",
@@ -174,7 +174,7 @@ class TestStereoMonoMassAssignment:
             ], "Changing channels should be rejected"
 
     @pytest.mark.xfail(reason="BOPLA: Extreme channel values accepted - T894")
-    def test_extreme_channel_values_blocked(self, guest_client: APIClient):
+    def test_extreme_channel_values_blocked(self, admin_client: APIClient):
         """
         Attempt to set impossible channel values.
         API6:2023 - Unrestricted access to sensitive business flows.
@@ -191,7 +191,7 @@ class TestStereoMonoMassAssignment:
             channels=2,
         )
 
-        guest_client.force_authenticate(user=user)
+        admin_client.force_authenticate(user=user)
 
         extreme_values = [
             1000,  # Absurd channel count
@@ -202,7 +202,7 @@ class TestStereoMonoMassAssignment:
         ]
 
         for extreme in extreme_values:
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/files/{file_obj.id}",
                 {"channels": extreme},
                 format="json",
@@ -217,7 +217,7 @@ class TestStereoMonoMassAssignment:
     @pytest.mark.xfail(
         reason="BOPLA: Can modify sample_rate via mass assignment - T895",
     )
-    def test_mass_assignment_sample_rate_blocked(self, guest_client: APIClient):
+    def test_mass_assignment_sample_rate_blocked(self, admin_client: APIClient):
         """
         Attempt to change sample_rate which affects audio processing.
         """
@@ -234,9 +234,9 @@ class TestStereoMonoMassAssignment:
             sample_rate=44100,
         )
 
-        guest_client.force_authenticate(user=user)
+        admin_client.force_authenticate(user=user)
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/files/{file_obj.id}",
             {"sample_rate": 96000},
             format="json",
@@ -263,7 +263,7 @@ class TestStereoMonoSQLInjection:
     )
     def test_sqli_in_channel_filter_no_crash(
         self,
-        guest_client: APIClient,
+        admin_client: APIClient,
         filter_payload: str,
     ):
         """
@@ -283,10 +283,10 @@ class TestStereoMonoSQLInjection:
             _quantity=2,
         )
 
-        guest_client.force_authenticate(user=user)
+        admin_client.force_authenticate(user=user)
 
         # Django filter backend handles this safely
-        response = guest_client.get(f"/api/v2/files?{filter_payload}")
+        response = admin_client.get(f"/api/v2/files?{filter_payload}")
 
         # Should not crash with 500
         assert response.status_code in [
@@ -294,7 +294,7 @@ class TestStereoMonoSQLInjection:
             400,
         ], f"SQLi payload '{filter_payload}' caused error"
 
-    def test_sqli_in_channels_param_no_crash(self, guest_client: APIClient):
+    def test_sqli_in_channels_param_no_crash(self, admin_client: APIClient):
         """Test SQLi in channels query parameter."""
         user = baker.make(User, username="sqli_channels")
         library = make_library(code="SQLI2", name="SQLI Test")
@@ -308,7 +308,7 @@ class TestStereoMonoSQLInjection:
             channels=2,
         )
 
-        guest_client.force_authenticate(user=user)
+        admin_client.force_authenticate(user=user)
 
         payloads = [
             "1' OR '1'='1",
@@ -318,7 +318,7 @@ class TestStereoMonoSQLInjection:
         ]
 
         for payload in payloads:
-            response = guest_client.get(f"/api/v2/files?channels={payload}")
+            response = admin_client.get(f"/api/v2/files?channels={payload}")
             assert response.status_code in [
                 200,
                 400,
@@ -332,7 +332,7 @@ class TestStereoMonoFilterBypass:
     @pytest.mark.xfail(
         reason="BOLA: Filter by channels shows all users' files - T897",
     )
-    def test_filter_by_channels_cross_user(self, guest_client: APIClient):
+    def test_filter_by_channels_cross_user(self, admin_client: APIClient):
         """
         Filter by channels=2 returns stereo files from all users.
         API1:2023 - Missing authorization in filtered queries.
@@ -363,10 +363,10 @@ class TestStereoMonoFilterBypass:
             _quantity=2,
         )
 
-        guest_client.force_authenticate(user=attacker)
+        admin_client.force_authenticate(user=attacker)
 
         # Attacker filters for stereo files
-        response = guest_client.get("/api/v2/files?channels=2")
+        response = admin_client.get("/api/v2/files?channels=2")
 
         assert response.status_code == 200
         data = response.json()
@@ -378,7 +378,7 @@ class TestStereoMonoFilterBypass:
             len(victim_visible) == 0
         ), "Filter should not expose victim's stereo files"
 
-    def test_filter_by_invalid_channels_handled(self, guest_client: APIClient):
+    def test_filter_by_invalid_channels_handled(self, admin_client: APIClient):
         """Invalid channel filter values should be handled gracefully."""
         user = baker.make(User, username="filter_invalid")
         library = make_library(code="INVALID", name="Invalid Test")
@@ -392,7 +392,7 @@ class TestStereoMonoFilterBypass:
             channels=2,
         )
 
-        guest_client.force_authenticate(user=user)
+        admin_client.force_authenticate(user=user)
 
         invalid_values = [
             "abc",
@@ -403,14 +403,14 @@ class TestStereoMonoFilterBypass:
         ]
 
         for value in invalid_values:
-            response = guest_client.get(f"/api/v2/files?channels={value}")
+            response = admin_client.get(f"/api/v2/files?channels={value}")
             # Should not crash
             assert response.status_code in [
                 200,
                 400,
             ], f"Invalid channels='{value}' caused error"
 
-    def test_filter_channels_case_sensitivity(self, guest_client: APIClient):
+    def test_filter_channels_case_sensitivity(self, admin_client: APIClient):
         """Channel filter should handle case variations."""
         user = baker.make(User, username="case_test")
         library = make_library(code="CASE", name="Case Test")
@@ -424,12 +424,12 @@ class TestStereoMonoFilterBypass:
             channels=2,
         )
 
-        guest_client.force_authenticate(user=user)
+        admin_client.force_authenticate(user=user)
 
         variations = ["Channels=2", "CHANNELS=2", "channels=2"]
 
         for var in variations:
-            response = guest_client.get(f"/api/v2/files?{var}")
+            response = admin_client.get(f"/api/v2/files?{var}")
             assert response.status_code in [
                 200,
                 400,
@@ -445,7 +445,7 @@ class TestStereoMonoBusinessLogic:
     )
     def test_cannot_fake_channel_detection_on_create(
         self,
-        guest_client: APIClient,
+        admin_client: APIClient,
     ):
         """
         Creating a file with fake channels should be prevented or corrected.
@@ -454,10 +454,10 @@ class TestStereoMonoBusinessLogic:
         user = baker.make(User, username="fake_channels")
         library = make_library(code="FAKE", name="Fake Test")
 
-        guest_client.force_authenticate(user=user)
+        admin_client.force_authenticate(user=user)
 
         # Attempt to create with fabricated channel data
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/files",
             {
                 "name": "fake.mp3",
@@ -481,15 +481,15 @@ class TestStereoMonoBusinessLogic:
             pass
 
     @pytest.mark.xfail(reason="Inconsistent audio properties not validated")
-    def test_channel_consistency_validation(self, guest_client: APIClient):
+    def test_channel_consistency_validation(self, admin_client: APIClient):
         """Inconsistent channel/sample_rate combinations should be rejected."""
         user = baker.make(User, username="consistency_test")
         library = make_library(code="CONSISTENT", name="Consistent Test")
 
-        guest_client.force_authenticate(user=user)
+        admin_client.force_authenticate(user=user)
 
         # Mono file with stereo sample rate (unusual but possible)
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/files",
             {
                 "name": "weird.mp3",
@@ -515,7 +515,7 @@ class TestStereoMonoEnumeration:
     @pytest.mark.xfail(
         reason="Auth bypass: Anonymous can enumerate channels - T899",
     )
-    def test_channels_not_disclosed_to_anonymous(self, guest_client: APIClient):
+    def test_channels_not_disclosed_to_anonymous(self, admin_client: APIClient):
         """Anonymous users should not enumerate channel data."""
         library = make_library(code="ENUM", name="Enum Test")
         user = baker.make(User, username="enum_owner")
@@ -529,7 +529,7 @@ class TestStereoMonoEnumeration:
             channels=6,
         )
 
-        response = guest_client.get("/api/v2/files")
+        response = admin_client.get("/api/v2/files")
 
         # Should require auth
         assert response.status_code in [
@@ -540,7 +540,7 @@ class TestStereoMonoEnumeration:
     @pytest.mark.xfail(
         reason="IDOR: Can enumerate channels by iterating IDs - T899",
     )
-    def test_channel_enumeration_by_id_iteration(self, guest_client: APIClient):
+    def test_channel_enumeration_by_id_iteration(self, admin_client: APIClient):
         """
         Iterate through IDs to collect channel information.
         API1:2023 - Insecure direct object reference.
@@ -561,7 +561,7 @@ class TestStereoMonoEnumeration:
             )
             files.append(f)
 
-        guest_client.force_authenticate(user=user)
+        admin_client.force_authenticate(user=user)
 
         # Try to access by ID iteration
         found_channels = []
@@ -569,7 +569,7 @@ class TestStereoMonoEnumeration:
 
         for offset in range(-5, 10):
             try_id = base_id + offset
-            response = guest_client.get(f"/api/v2/files/{try_id}")
+            response = admin_client.get(f"/api/v2/files/{try_id}")
             if response.status_code == 200:
                 found_channels.append(response.json().get("channels"))
 
@@ -586,7 +586,7 @@ class TestStereoMonoDataIntegrity:
     @pytest.mark.xfail(
         reason="No validation: Negative channels accepted - T900",
     )
-    def test_negative_channels_rejected(self, guest_client: APIClient):
+    def test_negative_channels_rejected(self, admin_client: APIClient):
         """Negative channel values should be rejected."""
         user = baker.make(User, username="negative_test")
         library = make_library(code="NEG", name="Negative Test")
@@ -600,9 +600,9 @@ class TestStereoMonoDataIntegrity:
             channels=2,
         )
 
-        guest_client.force_authenticate(user=user)
+        admin_client.force_authenticate(user=user)
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/files/{file_obj.id}",
             {"channels": -1},
             format="json",
@@ -614,14 +614,14 @@ class TestStereoMonoDataIntegrity:
     @pytest.mark.xfail(
         reason="No validation: Zero channels not handled - T900",
     )
-    def test_zero_channels_handled(self, guest_client: APIClient):
+    def test_zero_channels_handled(self, admin_client: APIClient):
         """Zero channels should be handled (invalid audio)."""
         user = baker.make(User, username="zero_test")
         library = make_library(code="ZERO", name="Zero Test")
 
-        guest_client.force_authenticate(user=user)
+        admin_client.force_authenticate(user=user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/files",
             {
                 "name": "zero.mp3",
@@ -640,12 +640,12 @@ class TestStereoMonoDataIntegrity:
             ), "Zero channels should not be stored"
 
     @pytest.mark.xfail(reason="500 error on invalid channel type")
-    def test_channel_type_safety(self, guest_client: APIClient):
+    def test_channel_type_safety(self, admin_client: APIClient):
         """Non-integer channel values should be handled gracefully."""
         user = baker.make(User, username="type_test")
         library = make_library(code="TYPE", name="Type Test")
 
-        guest_client.force_authenticate(user=user)
+        admin_client.force_authenticate(user=user)
 
         # String values that could cause type confusion
         invalid_types = [
@@ -654,7 +654,7 @@ class TestStereoMonoDataIntegrity:
         ]
 
         for invalid in invalid_types:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/files",
                 {
                     "name": "type.mp3",
@@ -675,7 +675,7 @@ class TestStereoMonoDataIntegrity:
 class TestStereoMonoRateLimiting:
     """T901: Rate limiting for channel-related endpoints."""
 
-    def test_channel_filter_rate_limiting(self, guest_client: APIClient):
+    def test_channel_filter_rate_limiting(self, admin_client: APIClient):
         """Rapid channel filtering should be rate limited."""
         user = baker.make(User, username="rate_limit")
         library = make_library(code="RATE", name="Rate Test")
@@ -690,12 +690,12 @@ class TestStereoMonoRateLimiting:
             _quantity=5,
         )
 
-        guest_client.force_authenticate(user=user)
+        admin_client.force_authenticate(user=user)
 
         # Rapid requests
         responses = []
         for i in range(20):
-            response = guest_client.get(f"/api/v2/files?channels={i % 3 + 1}")
+            response = admin_client.get(f"/api/v2/files?channels={i % 3 + 1}")
             responses.append(response.status_code)
 
         # All should succeed or be rate limited

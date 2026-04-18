@@ -23,7 +23,7 @@ from api.storage.models import File, Library
 class TestTOCTOUAuthorization:
     """Time-of-check to time-of-use authorization bypass tests."""
 
-    def test_toctou_change_owner_during_update(self, guest_client, faker):
+    def test_toctou_change_owner_during_update(self, admin_client, faker):
         """Change owner between permission check and update."""
         user_a = baker.make(
             User,
@@ -60,7 +60,7 @@ class TestTOCTOUAuthorization:
             404,
         ], f"Expected 403/404, got {response.status_code}"
 
-    def test_toctou_delete_after_ownership_change(self, guest_client, faker):
+    def test_toctou_delete_after_ownership_change(self, admin_client, faker):
         """Delete after ownership transfer - should require re-auth."""
         user_a = baker.make(
             User,
@@ -104,7 +104,7 @@ class TestConcurrentBOLA:
         reason="Concurrent test - thread instability",
         strict=False,
     )
-    def test_concurrent_cross_user_update(self, guest_client, faker):
+    def test_concurrent_cross_user_update(self, admin_client, faker):
         """User A and User B update same object simultaneously (race test)."""
         from django.conf import settings
 
@@ -163,7 +163,7 @@ class TestConcurrentBOLA:
         reason="Concurrent test - thread instability",
         strict=False,
     )
-    def test_concurrent_same_user_updates(self, guest_client, faker):
+    def test_concurrent_same_user_updates(self, admin_client, faker):
         """Same user updates from two sessions concurrently."""
         from django.conf import settings
 
@@ -217,7 +217,7 @@ class TestConcurrentBOLA:
 class TestRaceConditionDelete:
     """Race conditions involving DELETE operations."""
 
-    def test_delete_during_update(self, guest_client, faker):
+    def test_delete_during_update(self, admin_client, faker):
         """DELETE while UPDATE in progress - consistency check."""
         from django.conf import settings
 
@@ -264,7 +264,7 @@ class TestRaceConditionDelete:
         assert resp_update.status_code in [200, 404]
         assert resp_delete.status_code in [204, 404]
 
-    def test_double_delete_idempotency(self, guest_client, faker):
+    def test_double_delete_idempotency(self, admin_client, faker):
         """Double DELETE should return consistent response."""
         from django.conf import settings
 
@@ -298,7 +298,7 @@ class TestRaceConditionDelete:
             204,
         ], f"Double delete returned {resp2.status_code}"
 
-    def test_cross_user_delete_race(self, guest_client, faker):
+    def test_cross_user_delete_race(self, admin_client, faker):
         """User B deletes while User A reads - data leak."""
         user_a = baker.make(
             User,
@@ -346,7 +346,7 @@ class TestRaceConditionDelete:
 class TestConcurrentMassAssignment:
     """Mass assignment via concurrent updates."""
 
-    def test_concurrent_mass_assignment_id(self, guest_client, faker):
+    def test_concurrent_mass_assignment_id(self, admin_client, faker):
         """Try to change ID via mass assignment."""
         from django.conf import settings
 
@@ -381,7 +381,7 @@ class TestConcurrentMassAssignment:
             playlist.id == original_id
         ), f"ID changed from {original_id} to {playlist.id}"
 
-    def test_concurrent_mass_assignment_owner(self, guest_client, faker):
+    def test_concurrent_mass_assignment_owner(self, admin_client, faker):
         """Try to change owner via mass assignment. (T880)"""
         from django.conf import settings
 
@@ -424,7 +424,7 @@ class TestConcurrentMassAssignment:
         reason="Concurrent test - thread instability",
         strict=False,
     )
-    def test_concurrent_legal_field_updates(self, guest_client, faker):
+    def test_concurrent_legal_field_updates(self, admin_client, faker):
         """Multiple legal field updates concurrently (race test)."""
         from django.conf import settings
 
@@ -485,7 +485,7 @@ class TestRaceConditionContentModification:
         reason="Concurrent test - thread instability",
         strict=False,
     )
-    def test_concurrent_content_add_same_position(self, guest_client, faker):
+    def test_concurrent_content_add_same_position(self, admin_client, faker):
         """Two contents added at same position concurrently (race test)."""
         user = baker.make(
             User,
@@ -544,7 +544,7 @@ class TestRaceConditionContentModification:
         count = PlaylistContent.objects.filter(playlist=playlist).count()
         assert count == 2
 
-    def test_concurrent_content_delete_and_update(self, guest_client, faker):
+    def test_concurrent_content_delete_and_update(self, admin_client, faker):
         """Delete content while updating it."""
         user = baker.make(
             User,
@@ -606,7 +606,7 @@ class TestRaceConditionContentModification:
 class TestLostUpdateProblem:
     """Lost update detection - when updates overwrite each other incorrectly."""
 
-    def test_lost_update_detection(self, guest_client, faker):
+    def test_lost_update_detection(self, admin_client, faker):
         """Detect if updates are lost without optimistic locking."""
         from django.conf import settings
 
@@ -655,7 +655,7 @@ class TestLostUpdateProblem:
         assert playlist.description == "Version 2"
 
     @pytest.mark.xfail(reason="ETag/Versioning: T881", strict=False)
-    def test_optimistic_locking_missing(self, guest_client, faker):
+    def test_optimistic_locking_missing(self, admin_client, faker):
         """Check if optimistic locking (ETag/If-Match) is implemented. (T881)
 
         Without optimistic locking, concurrent updates can cause data loss.
@@ -687,7 +687,7 @@ class TestLostUpdateProblem:
 class TestTransactionIsolation:
     """Database transaction isolation level tests."""
 
-    def test_read_committed_behavior(self, guest_client, faker):
+    def test_read_committed_behavior(self, admin_client, faker):
         """Verify READ COMMITTED isolation - read uncommitted not visible."""
         user = baker.make(
             User,
@@ -718,7 +718,7 @@ class TestTransactionIsolation:
 
         assert name2 == "Updated Name"
 
-    def test_concurrent_create_same_name(self, guest_client, faker):
+    def test_concurrent_create_same_name(self, admin_client, faker):
         """Create playlists with same name concurrently."""
         from django.conf import settings
 
@@ -766,7 +766,7 @@ class TestTransactionIsolation:
 class TestDeadlockPrevention:
     """Deadlock detection and prevention."""
 
-    def test_concurrent_updates_different_objects(self, guest_client, faker):
+    def test_concurrent_updates_different_objects(self, admin_client, faker):
         """Concurrent updates to different objects - no deadlock."""
         from django.conf import settings
 

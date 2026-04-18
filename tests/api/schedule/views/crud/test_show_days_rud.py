@@ -21,7 +21,7 @@ class TestShowDaysViewSetRUD:
 
     # ==================== RETRIEVE ====================
 
-    def test_retrieve_show_days_success(self, guest_client):
+    def test_retrieve_show_days_success(self, admin_client):
         """RETRIEVE should return show day details."""
         from datetime import date, time
 
@@ -33,11 +33,11 @@ class TestShowDaysViewSetRUD:
             start_time=time(14, 0),
         )
 
-        response = guest_client.get(f"/api/v2/show-days/{day.id}")
+        response = admin_client.get(f"/api/v2/show-days/{day.id}")
         assert response.status_code == 200
         assert response.json()["id"] == day.id
 
-    def test_retrieve_show_days_contains_all_fields(self, guest_client):
+    def test_retrieve_show_days_contains_all_fields(self, admin_client):
         """RETRIEVE should include all fields."""
         from datetime import date, time
 
@@ -56,7 +56,7 @@ class TestShowDaysViewSetRUD:
             repeat_next_on=date(2026, 4, 8),
         )
 
-        response = guest_client.get(f"/api/v2/show-days/{day.id}")
+        response = admin_client.get(f"/api/v2/show-days/{day.id}")
         result = response.json()
         assert result["show"] == show.id
         assert result["first_show_on"] == "2026-04-01"
@@ -69,9 +69,9 @@ class TestShowDaysViewSetRUD:
         assert result["record_enabled"] == Record.YES
         assert result["repeat_next_on"] == "2026-04-08"
 
-    def test_retrieve_show_days_not_found_returns_404(self, guest_client):
+    def test_retrieve_show_days_not_found_returns_404(self, admin_client):
         """RETRIEVE non-existent show day should return 404."""
-        response = guest_client.get("/api/v2/show-days/999999")
+        response = admin_client.get("/api/v2/show-days/999999")
         assert response.status_code == 404
 
     def test_retrieve_show_days_no_auth_fails(self, client):
@@ -91,7 +91,7 @@ class TestShowDaysViewSetRUD:
 
     # ==================== UPDATE ====================
 
-    def test_patch_update_start_time_success(self, guest_client):
+    def test_patch_update_start_time_success(self, admin_client):
         """PATCH should update start_time."""
         from datetime import date, time
 
@@ -103,7 +103,7 @@ class TestShowDaysViewSetRUD:
             start_time=time(14, 0),
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-days/{day.id}",
             json.dumps({"start_time": "16:30:00"}),
             content_type="application/json",
@@ -111,7 +111,7 @@ class TestShowDaysViewSetRUD:
         assert response.status_code == 200
         assert response.json()["start_time"] == "16:30:00"
 
-    def test_patch_update_duration_success(self, guest_client):
+    def test_patch_update_duration_success(self, admin_client):
         """PATCH should update duration."""
         from datetime import date, time
 
@@ -124,7 +124,7 @@ class TestShowDaysViewSetRUD:
             duration="01:00:00",
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-days/{day.id}",
             json.dumps({"duration": "02:00:00"}),
             content_type="application/json",
@@ -132,7 +132,7 @@ class TestShowDaysViewSetRUD:
         assert response.status_code == 200
         assert response.json()["duration"] == "02:00:00"
 
-    def test_patch_update_timezone_success(self, guest_client):
+    def test_patch_update_timezone_success(self, admin_client):
         """PATCH should update timezone."""
         from datetime import date, time
 
@@ -145,7 +145,7 @@ class TestShowDaysViewSetRUD:
             timezone="UTC",
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-days/{day.id}",
             json.dumps({"timezone": "Europe/London"}),
             content_type="application/json",
@@ -153,7 +153,7 @@ class TestShowDaysViewSetRUD:
         assert response.status_code == 200
         assert response.json()["timezone"] == "Europe/London"
 
-    def test_patch_update_week_day_success(self, guest_client):
+    def test_patch_update_week_day_success(self, admin_client):
         """PATCH should update week_day."""
         from datetime import date, time
 
@@ -166,7 +166,7 @@ class TestShowDaysViewSetRUD:
             week_day=ShowDays.WeekDay.MONDAY,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-days/{day.id}",
             json.dumps({"week_day": ShowDays.WeekDay.FRIDAY}),
             content_type="application/json",
@@ -174,7 +174,7 @@ class TestShowDaysViewSetRUD:
         assert response.status_code == 200
         assert response.json()["week_day"] == ShowDays.WeekDay.FRIDAY
 
-    def test_patch_update_repeat_kind_success(self, guest_client):
+    def test_patch_update_repeat_kind_success(self, admin_client):
         """PATCH should update repeat_kind."""
         from datetime import date, time
 
@@ -187,7 +187,7 @@ class TestShowDaysViewSetRUD:
             repeat_kind=ShowDays.RepeatKind.WEEKLY,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-days/{day.id}",
             json.dumps({"repeat_kind": ShowDays.RepeatKind.MONTHLY}),
             content_type="application/json",
@@ -195,7 +195,7 @@ class TestShowDaysViewSetRUD:
         assert response.status_code == 200
         assert response.json()["repeat_kind"] == ShowDays.RepeatKind.MONTHLY
 
-    def test_patch_update_last_show_on_success(self, guest_client):
+    def test_patch_update_last_show_on_success(self, admin_client):
         """PATCH should update last_show_on."""
         from datetime import date, time
 
@@ -208,7 +208,7 @@ class TestShowDaysViewSetRUD:
             last_show_on=None,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-days/{day.id}",
             json.dumps({"last_show_on": "2026-12-31"}),
             content_type="application/json",
@@ -216,9 +216,9 @@ class TestShowDaysViewSetRUD:
         assert response.status_code == 200
         assert response.json()["last_show_on"] == "2026-12-31"
 
-    def test_patch_not_found_returns_404(self, guest_client):
+    def test_patch_not_found_returns_404(self, admin_client):
         """PATCH non-existent show day should return 404."""
-        response = guest_client.patch(
+        response = admin_client.patch(
             "/api/v2/show-days/999999",
             json.dumps({"start_time": "16:00:00"}),
             content_type="application/json",
@@ -244,7 +244,7 @@ class TestShowDaysViewSetRUD:
         )
         assert response.status_code == 403
 
-    def test_patch_empty_body_no_change(self, guest_client):
+    def test_patch_empty_body_no_change(self, admin_client):
         """PATCH with empty body should not change anything."""
         from datetime import date, time
 
@@ -257,7 +257,7 @@ class TestShowDaysViewSetRUD:
             timezone="UTC",
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-days/{day.id}",
             json.dumps({}),
             content_type="application/json",
@@ -269,7 +269,7 @@ class TestShowDaysViewSetRUD:
 
     # ==================== DELETE ====================
 
-    def test_delete_show_days_success_returns_204(self, guest_client):
+    def test_delete_show_days_success_returns_204(self, admin_client):
         """DELETE should return 204 on successful deletion."""
         from datetime import date, time
 
@@ -281,10 +281,10 @@ class TestShowDaysViewSetRUD:
             start_time=time(14, 0),
         )
 
-        response = guest_client.delete(f"/api/v2/show-days/{day.id}")
+        response = admin_client.delete(f"/api/v2/show-days/{day.id}")
         assert response.status_code == 204
 
-    def test_delete_show_days_removes_from_db(self, guest_client):
+    def test_delete_show_days_removes_from_db(self, admin_client):
         """DELETE should remove show day from database."""
         from datetime import date, time
 
@@ -296,12 +296,12 @@ class TestShowDaysViewSetRUD:
             start_time=time(14, 0),
         )
 
-        guest_client.delete(f"/api/v2/show-days/{day.id}")
+        admin_client.delete(f"/api/v2/show-days/{day.id}")
         assert ShowDays.objects.filter(id=day.id).count() == 0
 
-    def test_delete_show_days_not_found_returns_404(self, guest_client):
+    def test_delete_show_days_not_found_returns_404(self, admin_client):
         """DELETE non-existent show day should return 404."""
-        response = guest_client.delete("/api/v2/show-days/999999")
+        response = admin_client.delete("/api/v2/show-days/999999")
         assert response.status_code == 404
 
     def test_delete_show_days_no_auth_fails(self, client):
@@ -319,7 +319,7 @@ class TestShowDaysViewSetRUD:
         response = client.delete(f"/api/v2/show-days/{day.id}")
         assert response.status_code == 403
 
-    def test_delete_show_days_double_delete_returns_404(self, guest_client):
+    def test_delete_show_days_double_delete_returns_404(self, admin_client):
         """DELETE already deleted show day should return 404."""
         from datetime import date, time
 
@@ -331,11 +331,11 @@ class TestShowDaysViewSetRUD:
             start_time=time(14, 0),
         )
 
-        guest_client.delete(f"/api/v2/show-days/{day.id}")
-        response = guest_client.delete(f"/api/v2/show-days/{day.id}")
+        admin_client.delete(f"/api/v2/show-days/{day.id}")
+        response = admin_client.delete(f"/api/v2/show-days/{day.id}")
         assert response.status_code == 404
 
-    def test_delete_show_days_returns_empty_body(self, guest_client):
+    def test_delete_show_days_returns_empty_body(self, admin_client):
         """DELETE should return empty response body."""
         from datetime import date, time
 
@@ -347,5 +347,5 @@ class TestShowDaysViewSetRUD:
             start_time=time(14, 0),
         )
 
-        response = guest_client.delete(f"/api/v2/show-days/{day.id}")
+        response = admin_client.delete(f"/api/v2/show-days/{day.id}")
         assert response.content == b""

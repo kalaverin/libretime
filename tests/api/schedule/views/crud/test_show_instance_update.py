@@ -22,7 +22,7 @@ class TestShowInstanceViewSetUpdate:
         ShowInstance.objects.all().delete()
         Show.objects.all().delete()
 
-    def test_patch_update_description_success(self, guest_client):
+    def test_patch_update_description_success(self, admin_client):
         """PATCH should update instance description."""
         show = baker.make(Show, name="Test Show")
         start_time = now()
@@ -34,7 +34,7 @@ class TestShowInstanceViewSetUpdate:
             description="Original description",
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps({"description": "Updated description"}),
             content_type="application/json",
@@ -46,7 +46,7 @@ class TestShowInstanceViewSetUpdate:
             start_time,
         )
 
-    def test_patch_update_mark_modified(self, guest_client):
+    def test_patch_update_mark_modified(self, admin_client):
         """PATCH should mark instance as modified."""
         show = baker.make(Show, name="Test Show")
         start_time = now()
@@ -58,7 +58,7 @@ class TestShowInstanceViewSetUpdate:
             modified=False,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps({"modified": True}),
             content_type="application/json",
@@ -70,7 +70,7 @@ class TestShowInstanceViewSetUpdate:
             start_time,
         )
 
-    def test_patch_update_unmark_modified(self, guest_client):
+    def test_patch_update_unmark_modified(self, admin_client):
         """PATCH should unmark instance as modified."""
         show = baker.make(Show, name="Test Show")
         start_time = now()
@@ -82,7 +82,7 @@ class TestShowInstanceViewSetUpdate:
             modified=True,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps({"modified": False}),
             content_type="application/json",
@@ -94,7 +94,7 @@ class TestShowInstanceViewSetUpdate:
             start_time,
         )
 
-    def test_patch_update_starts_at(self, guest_client):
+    def test_patch_update_starts_at(self, admin_client):
         """PATCH should update starts_at datetime."""
         show = baker.make(Show, name="Test Show")
         start_time = now().replace(microsecond=0)
@@ -106,7 +106,7 @@ class TestShowInstanceViewSetUpdate:
         )
 
         new_start = format_datetime(start_time + timedelta(hours=2))
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps({"starts_at": new_start}),
             content_type="application/json",
@@ -117,7 +117,7 @@ class TestShowInstanceViewSetUpdate:
             data = response.json()
             assert reformat_datetime(data["starts_at"]) == new_start
 
-    def test_patch_update_ends_at(self, guest_client):
+    def test_patch_update_ends_at(self, admin_client):
         """PATCH should update ends_at datetime."""
         show = baker.make(Show, name="Test Show")
         start_time = now().replace(microsecond=0)
@@ -129,7 +129,7 @@ class TestShowInstanceViewSetUpdate:
         )
 
         new_end = format_datetime(start_time + timedelta(hours=3))
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps({"ends_at": new_end}),
             content_type="application/json",
@@ -137,7 +137,7 @@ class TestShowInstanceViewSetUpdate:
         # May or may not allow updating ends_at
         assert response.status_code in [200, 400]
 
-    def test_patch_update_filled_time(self, guest_client):
+    def test_patch_update_filled_time(self, admin_client):
         """PATCH should update filled_time."""
         show = baker.make(Show, name="Test Show")
         start_time = now()
@@ -149,7 +149,7 @@ class TestShowInstanceViewSetUpdate:
             filled_time=None,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps({"filled_time": "00:45:00"}),
             content_type="application/json",
@@ -157,7 +157,7 @@ class TestShowInstanceViewSetUpdate:
         # May or may not allow updating filled_time
         assert response.status_code in [200, 400]
 
-    def test_patch_update_rebroadcast(self, guest_client):
+    def test_patch_update_rebroadcast(self, admin_client):
         """PATCH should update rebroadcast flag."""
         show = baker.make(Show, name="Test Show")
         start_time = now()
@@ -169,14 +169,14 @@ class TestShowInstanceViewSetUpdate:
             rebroadcast=0,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps({"rebroadcast": 1}),
             content_type="application/json",
         )
         assert response.status_code in [200, 400]
 
-    def test_patch_update_auto_playlist_built(self, guest_client):
+    def test_patch_update_auto_playlist_built(self, admin_client):
         """PATCH should update auto_playlist_built flag."""
         show = baker.make(Show, name="Test Show")
         start_time = now()
@@ -188,7 +188,7 @@ class TestShowInstanceViewSetUpdate:
             auto_playlist_built=False,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps({"auto_playlist_built": True}),
             content_type="application/json",
@@ -200,9 +200,9 @@ class TestShowInstanceViewSetUpdate:
             start_time,
         )
 
-    def test_patch_not_found_returns_404(self, guest_client):
+    def test_patch_not_found_returns_404(self, admin_client):
         """PATCH non-existent instance should return 404."""
-        response = guest_client.patch(
+        response = admin_client.patch(
             "/api/v2/show-instances/999999",
             json.dumps({"description": "Updated"}),
             content_type="application/json",
@@ -227,7 +227,7 @@ class TestShowInstanceViewSetUpdate:
         )
         assert response.status_code == 403
 
-    def test_patch_empty_body_no_change(self, guest_client):
+    def test_patch_empty_body_no_change(self, admin_client):
         """PATCH with empty body should not change anything."""
         show = baker.make(Show, name="Test Show")
         start_time = now()
@@ -239,7 +239,7 @@ class TestShowInstanceViewSetUpdate:
             description="Original",
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps({}),
             content_type="application/json",
@@ -251,7 +251,7 @@ class TestShowInstanceViewSetUpdate:
             start_time,
         )
 
-    def test_put_update_success(self, guest_client):
+    def test_put_update_success(self, admin_client):
         """PUT with all fields should succeed."""
         show = baker.make(Show, name="Test Show")
         start_time = now().replace(microsecond=0)
@@ -272,7 +272,7 @@ class TestShowInstanceViewSetUpdate:
             "modified": True,
             "auto_playlist_built": True,
         }
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps(data),
             content_type="application/json",
@@ -285,7 +285,7 @@ class TestShowInstanceViewSetUpdate:
                 start_time,
             )
 
-    def test_put_not_found_returns_404(self, guest_client):
+    def test_put_not_found_returns_404(self, admin_client):
         """PUT non-existent instance should return 404."""
         show = baker.make(Show, name="Test Show")
         start_time = now().replace(microsecond=0)
@@ -295,7 +295,7 @@ class TestShowInstanceViewSetUpdate:
             "ends_at": format_datetime(start_time + timedelta(hours=1)),
         }
 
-        response = guest_client.put(
+        response = admin_client.put(
             "/api/v2/show-instances/999999",
             json.dumps(data),
             content_type="application/json",

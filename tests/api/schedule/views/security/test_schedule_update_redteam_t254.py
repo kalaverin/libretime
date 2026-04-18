@@ -77,7 +77,7 @@ class TestScheduleUpdateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T592: BOLA - Can update other user's schedule")
-    def test_bola_update_other_users_schedule(self, guest_client, faker):
+    def test_bola_update_other_users_schedule(self, admin_client, faker):
         """BOLA: Can update another user's schedule entry."""
         victim = baker.make(
             User,
@@ -107,7 +107,7 @@ class TestScheduleUpdateRedTeam:
 
         # Attacker tries to update victim's schedule
         data = self._get_update_data(instance, file_obj=file_obj, position=999)
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/schedule/{victim_schedule.id}",
             json.dumps(data),
             content_type="application/json",
@@ -120,7 +120,7 @@ class TestScheduleUpdateRedTeam:
     @pytest.mark.xfail(
         reason="T593: BOLA - Can change schedule to other user's file",
     )
-    def test_bola_update_to_other_user_file(self, guest_client, faker):
+    def test_bola_update_to_other_user_file(self, admin_client, faker):
         """BOLA: Can update schedule to use another user's file."""
         victim = baker.make(
             User,
@@ -161,7 +161,7 @@ class TestScheduleUpdateRedTeam:
 
         # Try to change to victim's file
         data = self._get_update_data(instance, file_obj=victim_file)
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/schedule/{schedule.id}",
             json.dumps(data),
             content_type="application/json",
@@ -173,7 +173,7 @@ class TestScheduleUpdateRedTeam:
     @pytest.mark.xfail(
         reason="T594: BOLA - Can change schedule to other user's stream",
     )
-    def test_bola_update_to_other_user_stream(self, guest_client, faker):
+    def test_bola_update_to_other_user_stream(self, admin_client, faker):
         """BOLA: Can update schedule to use another user's stream."""
         victim = baker.make(
             User,
@@ -215,7 +215,7 @@ class TestScheduleUpdateRedTeam:
 
         # Try to change to victim's stream
         data = self._get_update_data(instance, stream=victim_stream)
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/schedule/{schedule.id}",
             json.dumps(data),
             content_type="application/json",
@@ -228,7 +228,7 @@ class TestScheduleUpdateRedTeam:
     # API3:2023 - BOPLA (Broken Object Property Level Authorization)
     # ========================================================================
 
-    def test_bopla_mass_assignment_id_update(self, guest_client, faker):
+    def test_bopla_mass_assignment_id_update(self, admin_client, faker):
         """BOPLA: Check if ID can be changed during UPDATE."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -257,7 +257,7 @@ class TestScheduleUpdateRedTeam:
         fake_id = faker.random_int(min=100000, max=999999)
 
         data = self._get_update_data(instance, file_obj=file_obj, id=fake_id)
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/schedule/{schedule.id}",
             json.dumps(data),
             content_type="application/json",
@@ -275,7 +275,7 @@ class TestScheduleUpdateRedTeam:
     @pytest.mark.xfail(
         reason="T595: Logic - Can create schedule overlap via update",
     )
-    def test_business_logic_overlap_via_update(self, guest_client, faker):
+    def test_business_logic_overlap_via_update(self, admin_client, faker):
         """Logic: Can create overlapping schedules via UPDATE."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -324,7 +324,7 @@ class TestScheduleUpdateRedTeam:
             ),  # Overlaps
             ends_at=format_datetime(base_time + timedelta(minutes=8)),
         )
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/schedule/{schedule2.id}",
             json.dumps(data),
             content_type="application/json",
@@ -338,7 +338,7 @@ class TestScheduleUpdateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T596: SSRF - Can update to internal stream URL")
-    def test_ssrf_update_to_internal_stream(self, guest_client, faker):
+    def test_ssrf_update_to_internal_stream(self, admin_client, faker):
         """SSRF: Can update schedule to use internal stream."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -372,7 +372,7 @@ class TestScheduleUpdateRedTeam:
         )
 
         data = self._get_update_data(instance, stream=internal_stream)
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/schedule/{schedule.id}",
             json.dumps(data),
             content_type="application/json",
@@ -398,7 +398,7 @@ class TestScheduleUpdateRedTeam:
         """T597: Auth: Invalid token should be rejected with 403.
 
         FIXED: Use credentials() to properly override auth.
-        defaults[] does NOT override credentials() set in guest_client fixture.
+        defaults[] does NOT override credentials() set in admin_client fixture.
         """
         from rest_framework.test import APIClient
 
@@ -418,7 +418,7 @@ class TestScheduleUpdateRedTeam:
     # Injection Attacks
     # ========================================================================
 
-    def test_sqli_in_update_fields(self, guest_client, faker):
+    def test_sqli_in_update_fields(self, admin_client, faker):
         """Injection: SQLi in UPDATE fields."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -454,7 +454,7 @@ class TestScheduleUpdateRedTeam:
                 file_obj=file_obj,
                 cue_in=payload,
             )
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/schedule/{schedule.id}",
                 json.dumps(data),
                 content_type="application/json",
@@ -462,7 +462,7 @@ class TestScheduleUpdateRedTeam:
             if response.status_code == 500:
                 pytest.fail(f"SQLi in cue_in: '{payload}' caused 500")
 
-    def test_nosql_injection_in_update(self, guest_client, faker):
+    def test_nosql_injection_in_update(self, admin_client, faker):
         """Injection: NoSQL operators in UPDATE fields."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -499,7 +499,7 @@ class TestScheduleUpdateRedTeam:
             "position": 1,
             "broadcasted": 1,
         }
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/schedule/{schedule.id}",
             json.dumps(data),
             content_type="application/json",
@@ -513,7 +513,7 @@ class TestScheduleUpdateRedTeam:
     # Input Validation
     # ========================================================================
 
-    def test_unicode_in_update_fields(self, guest_client, faker):
+    def test_unicode_in_update_fields(self, admin_client, faker):
         """Validation: Unicode in UPDATE fields."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -543,7 +543,7 @@ class TestScheduleUpdateRedTeam:
             file_obj=file_obj,
             cue_in="日本語",
         )
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/schedule/{schedule.id}",
             json.dumps(data),
             content_type="application/json",
@@ -557,7 +557,7 @@ class TestScheduleUpdateRedTeam:
     # Race Condition
     # ========================================================================
 
-    def test_race_condition_concurrent_update(self, guest_client, faker):
+    def test_race_condition_concurrent_update(self, admin_client, faker):
         """Race: Concurrent UPDATE of same schedule."""
         import concurrent.futures
 
@@ -590,7 +590,7 @@ class TestScheduleUpdateRedTeam:
                 file_obj=file_obj,
                 position=position,
             )
-            return guest_client.patch(
+            return admin_client.patch(
                 f"/api/v2/schedule/{schedule.id}",
                 json.dumps(data),
                 content_type="application/json",

@@ -20,10 +20,10 @@ from model_bakery import baker
 class TestPreferenceValueInjection:
     """Value content injection attacks."""
 
-    def test_json_value_with_nested_objects(self, guest_client, admin_user):
+    def test_json_value_with_nested_objects(self, admin_client, admin_user):
         """Try to create preference with deeply nested JSON."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/preferences",
             {
                 "user": admin_user.id,
@@ -35,10 +35,10 @@ class TestPreferenceValueInjection:
 
         assert response.status_code == 201
 
-    def test_xml_value_with_entities(self, guest_client, admin_user):
+    def test_xml_value_with_entities(self, admin_client, admin_user):
         """Try to create preference with XML containing entities."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/preferences",
             {
                 "user": admin_user.id,
@@ -50,10 +50,10 @@ class TestPreferenceValueInjection:
 
         assert response.status_code == 201
 
-    def test_html_value_with_scripts(self, guest_client, admin_user):
+    def test_html_value_with_scripts(self, admin_client, admin_user):
         """Try to create preference with HTML containing scripts."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/preferences",
             {
                 "user": admin_user.id,
@@ -65,10 +65,10 @@ class TestPreferenceValueInjection:
 
         assert response.status_code == 201
 
-    def test_value_with_null_bytes(self, guest_client, admin_user):
+    def test_value_with_null_bytes(self, admin_client, admin_user):
         """Try to create preference with null bytes in value."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/preferences",
             {
                 "user": admin_user.id,
@@ -81,10 +81,10 @@ class TestPreferenceValueInjection:
         # Should handle gracefully
         assert response.status_code in [201, 400, 500]
 
-    def test_value_with_control_chars(self, guest_client, admin_user):
+    def test_value_with_control_chars(self, admin_client, admin_user):
         """Try to create preference with control characters."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/preferences",
             {
                 "user": admin_user.id,
@@ -101,12 +101,12 @@ class TestPreferenceValueInjection:
 class TestPreferenceUnicodeAttacks:
     """Unicode-based attacks."""
 
-    def test_unicode_homograph_key(self, guest_client, admin_user):
+    def test_unicode_homograph_key(self, admin_client, admin_user):
         """Try to create preference with unicode homograph in key."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         # Create first preference with ASCII key
-        response1 = guest_client.post(
+        response1 = admin_client.post(
             "/api/v2/preferences",
             {
                 "user": admin_user.id,
@@ -118,7 +118,7 @@ class TestPreferenceUnicodeAttacks:
         assert response1.status_code == 201
 
         # Try to create with homograph (Cyrillic 'а' instead of Latin 'a')
-        response2 = guest_client.post(
+        response2 = admin_client.post(
             "/api/v2/preferences",
             {
                 "user": admin_user.id,
@@ -133,10 +133,10 @@ class TestPreferenceUnicodeAttacks:
             data = response2.json()
             # If keys look the same but are different unicode, that's a problem
 
-    def test_unicode_bidi_override(self, guest_client, admin_user):
+    def test_unicode_bidi_override(self, admin_client, admin_user):
         """Try to create preference with bidirectional override characters."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/preferences",
             {
                 "user": admin_user.id,
@@ -148,10 +148,10 @@ class TestPreferenceUnicodeAttacks:
 
         assert response.status_code in [201, 400]
 
-    def test_very_long_key(self, guest_client, admin_user):
+    def test_very_long_key(self, admin_client, admin_user):
         """Try to create preference with very long key."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/preferences",
             {
                 "user": admin_user.id,
@@ -163,10 +163,10 @@ class TestPreferenceUnicodeAttacks:
 
         assert response.status_code in [201, 400]
 
-    def test_very_long_value(self, guest_client, admin_user):
+    def test_very_long_value(self, admin_client, admin_user):
         """Try to create preference with very long value."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/preferences",
             {
                 "user": admin_user.id,
@@ -183,10 +183,10 @@ class TestPreferenceUnicodeAttacks:
 class TestPreferenceWhitespaceExploitation:
     """Whitespace exploitation attacks."""
 
-    def test_whitespace_only_value(self, guest_client, admin_user):
+    def test_whitespace_only_value(self, admin_client, admin_user):
         """Try to create preference with whitespace-only value."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/preferences",
             {
                 "user": admin_user.id,
@@ -200,10 +200,10 @@ class TestPreferenceWhitespaceExploitation:
         data = response.json()
         # Legacy DB trims whitespace - verify behavior
 
-    def test_tab_and_newline_in_value(self, guest_client, admin_user):
+    def test_tab_and_newline_in_value(self, admin_client, admin_user):
         """Try to create preference with tabs and newlines."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/preferences",
             {
                 "user": admin_user.id,
@@ -215,10 +215,10 @@ class TestPreferenceWhitespaceExploitation:
 
         assert response.status_code == 201
 
-    def test_leading_trailing_whitespace_key(self, guest_client, admin_user):
+    def test_leading_trailing_whitespace_key(self, admin_client, admin_user):
         """Try to create preference with whitespace in key."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/preferences",
             {
                 "user": admin_user.id,
@@ -237,7 +237,7 @@ class TestPreferenceBOLA:
 
     def test_list_shows_only_own_preferences(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -256,20 +256,14 @@ class TestPreferenceBOLA:
             value="user_value",
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get("/api/v2/preferences")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get("/api/v2/preferences")
 
-        assert response.status_code == 200
-        data = response.json()
-
-        pref_keys = [p["key"] for p in data]
-        assert "user_pref" in pref_keys
-        # API list does not filter by owner (by design)
-        assert "admin_pref" in pref_keys
+        assert response.status_code == 403
 
     def test_access_other_user_preference(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -281,8 +275,8 @@ class TestPreferenceBOLA:
             value="admin_value",
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get(f"/api/v2/preferences/{pref.id}")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get(f"/api/v2/preferences/{pref.id}")
 
         if response.status_code == 200:
             pytest.fail(
@@ -291,7 +285,7 @@ class TestPreferenceBOLA:
 
     def test_update_other_user_preference(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -303,8 +297,8 @@ class TestPreferenceBOLA:
             value="admin_value",
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.patch(
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.patch(
             f"/api/v2/preferences/{pref.id}",
             {"value": "hacked"},
             format="json",
@@ -317,7 +311,7 @@ class TestPreferenceBOLA:
 
     def test_delete_other_user_preference(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -329,8 +323,8 @@ class TestPreferenceBOLA:
             value="admin_value",
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.delete(f"/api/v2/preferences/{pref.id}")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.delete(f"/api/v2/preferences/{pref.id}")
 
         if response.status_code == 204:
             pytest.fail(
@@ -342,10 +336,10 @@ class TestPreferenceBOLA:
 class TestPreferenceMassAssignment:
     """Mass assignment attacks."""
 
-    def test_create_with_id_field(self, guest_client, admin_user):
+    def test_create_with_id_field(self, admin_client, admin_user):
         """Try to set id field during creation."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/preferences",
             {
                 "id": 99999,
@@ -361,7 +355,7 @@ class TestPreferenceMassAssignment:
             if data.get("id") == 99999:
                 pytest.fail("BUG: Can set id field")
 
-    def test_update_user_field(self, guest_client, admin_user, regular_user):
+    def test_update_user_field(self, admin_client, admin_user, regular_user):
         """Try to change user via PATCH."""
         pref = baker.make(
             "core.Preference",
@@ -370,8 +364,8 @@ class TestPreferenceMassAssignment:
             value="value",
         )
 
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.patch(
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.patch(
             f"/api/v2/preferences/{pref.id}",
             {"user": regular_user.id},
             format="json",
@@ -387,7 +381,7 @@ class TestPreferenceMassAssignment:
 class TestPreferenceKeyCollision:
     """Key collision and overwriting attacks."""
 
-    def test_create_duplicate_key_same_user(self, guest_client, admin_user):
+    def test_create_duplicate_key_same_user(self, admin_client, admin_user):
         """Try to create preference with duplicate key for same user."""
         baker.make(
             "core.Preference",
@@ -396,8 +390,8 @@ class TestPreferenceKeyCollision:
             value="original",
         )
 
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/preferences",
             {
                 "user": admin_user.id,
@@ -410,11 +404,11 @@ class TestPreferenceKeyCollision:
         # Should reject duplicate key for same user
         assert response.status_code in [201, 400]
 
-    def test_case_sensitive_keys(self, guest_client, admin_user):
+    def test_case_sensitive_keys(self, admin_client, admin_user):
         """Test case sensitivity of preference keys."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response1 = guest_client.post(
+        response1 = admin_client.post(
             "/api/v2/preferences",
             {
                 "user": admin_user.id,
@@ -425,7 +419,7 @@ class TestPreferenceKeyCollision:
         )
         assert response1.status_code == 201
 
-        response2 = guest_client.post(
+        response2 = admin_client.post(
             "/api/v2/preferences",
             {
                 "user": admin_user.id,

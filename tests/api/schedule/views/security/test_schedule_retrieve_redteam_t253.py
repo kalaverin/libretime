@@ -42,7 +42,7 @@ class TestScheduleRetrieveRedTeam:
     @pytest.mark.xfail(
         reason="T587: BOLA - Can retrieve other user's schedule",
     )
-    def test_bola_retrieve_other_users_schedule(self, guest_client, faker):
+    def test_bola_retrieve_other_users_schedule(self, admin_client, faker):
         """BOLA: Can retrieve another user's schedule entry."""
         victim = baker.make(
             User,
@@ -70,12 +70,12 @@ class TestScheduleRetrieveRedTeam:
             broadcasted=1,
         )
 
-        response = guest_client.get(f"/api/v2/schedule/{victim_schedule.id}")
+        response = admin_client.get(f"/api/v2/schedule/{victim_schedule.id}")
         assert (
             response.status_code == 403
         ), f"BOLA: Got {response.status_code}, expected 403 - can retrieve other's schedule"
 
-    def test_bola_id_enumeration_retrieve(self, guest_client, faker):
+    def test_bola_id_enumeration_retrieve(self, admin_client, faker):
         """BOLA: Sequential ID enumeration on retrieve."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -106,7 +106,7 @@ class TestScheduleRetrieveRedTeam:
         # Try to enumerate IDs
         found_count = 0
         for i in range(1, 50):
-            response = guest_client.get(f"/api/v2/schedule/{i}")
+            response = admin_client.get(f"/api/v2/schedule/{i}")
             if response.status_code == 200:
                 found_count += 1
 
@@ -127,7 +127,7 @@ class TestScheduleRetrieveRedTeam:
         """T589: Auth: Invalid token should be rejected with 403.
 
         FIXED: Use credentials() to properly override auth.
-        defaults[] does NOT override credentials() set in guest_client fixture.
+        defaults[] does NOT override credentials() set in admin_client fixture.
         """
         from rest_framework.test import APIClient
 
@@ -143,7 +143,7 @@ class TestScheduleRetrieveRedTeam:
     # API3:2023 - BOPLA (Broken Object Property Level Authorization)
     # ========================================================================
 
-    def test_bopla_sensitive_fields_exposed(self, guest_client, faker):
+    def test_bopla_sensitive_fields_exposed(self, admin_client, faker):
         """BOPLA: Check if sensitive fields are exposed in retrieve response."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -168,7 +168,7 @@ class TestScheduleRetrieveRedTeam:
             broadcasted=1,
         )
 
-        response = guest_client.get(f"/api/v2/schedule/{schedule.id}")
+        response = admin_client.get(f"/api/v2/schedule/{schedule.id}")
         data = response.json()
 
         # Check for sensitive fields that shouldn't be exposed
@@ -189,7 +189,7 @@ class TestScheduleRetrieveRedTeam:
     # API8:2023 - Security Misconfiguration
     # ========================================================================
 
-    def test_retrieve_http_method_override(self, guest_client, faker):
+    def test_retrieve_http_method_override(self, admin_client, faker):
         """Misconfig: HTTP method override on retrieve."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -215,7 +215,7 @@ class TestScheduleRetrieveRedTeam:
         )
 
         # Try to override GET with DELETE
-        response = guest_client.get(
+        response = admin_client.get(
             f"/api/v2/schedule/{schedule.id}",
             HTTP_X_HTTP_METHOD_OVERRIDE="DELETE",
         )
@@ -229,7 +229,7 @@ class TestScheduleRetrieveRedTeam:
     # Injection Attacks
     # ========================================================================
 
-    def test_sqli_in_retrieve_id(self, guest_client, faker):
+    def test_sqli_in_retrieve_id(self, admin_client, faker):
         """Injection: SQLi in retrieve path ID."""
         sqli_payloads = [
             "1 OR 1=1",
@@ -238,13 +238,13 @@ class TestScheduleRetrieveRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.get(f"/api/v2/schedule/{payload}")
+            response = admin_client.get(f"/api/v2/schedule/{payload}")
             assert response.status_code in [
                 400,
                 404,
             ], f"SQLi '{payload}' caused {response.status_code}"
 
-    def test_path_traversal_in_retrieve_id(self, guest_client, faker):
+    def test_path_traversal_in_retrieve_id(self, admin_client, faker):
         """Injection: Path traversal in retrieve ID."""
         traversal_ids = [
             "../../../etc/passwd",
@@ -253,7 +253,7 @@ class TestScheduleRetrieveRedTeam:
         ]
 
         for test_id in traversal_ids:
-            response = guest_client.get(f"/api/v2/schedule/{test_id}")
+            response = admin_client.get(f"/api/v2/schedule/{test_id}")
             assert response.status_code in [
                 400,
                 404,
@@ -263,17 +263,17 @@ class TestScheduleRetrieveRedTeam:
     # Input Validation
     # ========================================================================
 
-    def test_unicode_in_retrieve_id(self, guest_client, faker):
+    def test_unicode_in_retrieve_id(self, admin_client, faker):
         """Validation: Unicode in retrieve ID."""
-        response = guest_client.get("/api/v2/schedule/日本語")
+        response = admin_client.get("/api/v2/schedule/日本語")
         assert response.status_code in [
             400,
             404,
         ], f"Unicode ID caused {response.status_code}"
 
-    def test_negative_id_retrieve(self, guest_client, faker):
+    def test_negative_id_retrieve(self, admin_client, faker):
         """Validation: Negative ID in retrieve."""
-        response = guest_client.get("/api/v2/schedule/-1")
+        response = admin_client.get("/api/v2/schedule/-1")
         assert response.status_code == 404
 
     # ========================================================================
@@ -283,7 +283,7 @@ class TestScheduleRetrieveRedTeam:
     @pytest.mark.xfail(
         reason="T591: Info Leak - Error reveals if schedule exists",
     )
-    def test_error_message_leaks_existence_retrieve(self, guest_client, faker):
+    def test_error_message_leaks_existence_retrieve(self, admin_client, faker):
         """Info Leak: Error messages reveal schedule existence."""
         victim = baker.make(
             User,
@@ -312,10 +312,10 @@ class TestScheduleRetrieveRedTeam:
         )
 
         # Try to access existing vs non-existing
-        response_existing = guest_client.get(
+        response_existing = admin_client.get(
             f"/api/v2/schedule/{victim_schedule.id}",
         )
-        response_nonexistent = guest_client.get("/api/v2/schedule/999999")
+        response_nonexistent = admin_client.get("/api/v2/schedule/999999")
 
         if response_existing.status_code != response_nonexistent.status_code:
             pytest.fail(
@@ -323,7 +323,7 @@ class TestScheduleRetrieveRedTeam:
                 f"nonexistent={response_nonexistent.status_code}",
             )
 
-    def test_field_enumeration_via_response_retrieve(self, guest_client, faker):
+    def test_field_enumeration_via_response_retrieve(self, admin_client, faker):
         """Info Leak: Check response field structure."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -355,7 +355,7 @@ class TestScheduleRetrieveRedTeam:
             broadcasted=1,
         )
 
-        response = guest_client.get(f"/api/v2/schedule/{schedule.id}")
+        response = admin_client.get(f"/api/v2/schedule/{schedule.id}")
         data = response.json()
 
         # Verify expected fields

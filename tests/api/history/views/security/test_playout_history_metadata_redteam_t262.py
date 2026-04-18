@@ -707,38 +707,38 @@ class TestPlayoutHistoryMetadataRedTeamResourceConsumption:
 class TestPlayoutHistoryMetadataRedTeamAuthentication:
     """Authentication tests."""
 
-    def test_unauthenticated_list(self, guest_client):
+    def test_unauthenticated_list(self, admin_client):
         """
         Auth: Unauthenticated LIST should fail.
         """
-        guest_client.logout()
-        response = guest_client.get("/api/v2/playout-history-metadata")
+        admin_client.logout()
+        response = admin_client.get("/api/v2/playout-history-metadata")
         assert response.status_code == 403
 
-    def test_unauthenticated_create(self, guest_client):
+    def test_unauthenticated_create(self, admin_client):
         """
         Auth: Unauthenticated CREATE should fail.
         """
-        guest_client.logout()
-        response = guest_client.post(
+        admin_client.logout()
+        response = admin_client.post(
             "/api/v2/playout-history-metadata",
             {"key": "test", "value": "test"},
             format="json",
         )
         assert response.status_code == 403
 
-    def test_guest_user_create(self, guest_client, guest_user, faker):
+    def test_guest_user_create(self, admin_client, guest_user, faker):
         """
         BFLA: Guest user CREATE permissions.
         """
-        guest_client.force_authenticate(user=guest_user)
+        admin_client.force_authenticate(user=guest_user)
 
         data = {
             "key": "artist",
             "value": "Guest Artist",
         }
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-metadata",
             data,
             format="json",

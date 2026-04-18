@@ -39,7 +39,7 @@ class TestSmartBlockContentCreateRedTeam:
     @pytest.mark.xfail(
         reason="T475: BOLA - can create content in other user's block (API1:2023)",
     )
-    def test_bola_create_in_other_users_block(self, guest_client):
+    def test_bola_create_in_other_users_block(self, admin_client):
         """BOLA: Creating content in another user's block should fail."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -59,7 +59,7 @@ class TestSmartBlockContentCreateRedTeam:
         )
 
         # Attacker tries to create content in victim's block
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {
@@ -79,7 +79,7 @@ class TestSmartBlockContentCreateRedTeam:
     @pytest.mark.xfail(
         reason="T476: BOLA - can use other user's private file (API1:2023)",
     )
-    def test_bola_create_with_other_users_file(self, guest_client):
+    def test_bola_create_with_other_users_file(self, admin_client):
         """BOLA: Using other user's file should fail without revealing existence."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -98,7 +98,7 @@ class TestSmartBlockContentCreateRedTeam:
         )
 
         # Attacker tries to use victim's file
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {
@@ -122,7 +122,7 @@ class TestSmartBlockContentCreateRedTeam:
     @pytest.mark.xfail(
         reason="T477: BOPLA - mass assignment via id field (API3:2023)",
     )
-    def test_bopla_mass_assignment_id_field(self, guest_client):
+    def test_bopla_mass_assignment_id_field(self, admin_client):
         """BOPLA: Setting id field should be ignored or rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -140,7 +140,7 @@ class TestSmartBlockContentCreateRedTeam:
 
         # Try to set own ID (could overwrite existing record)
         forced_id = 99999
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {
@@ -162,7 +162,7 @@ class TestSmartBlockContentCreateRedTeam:
     @pytest.mark.xfail(
         reason="T478: BOPLA - extra fields silently ignored (API3:2023)",
     )
-    def test_bopla_extra_fields_rejected(self, guest_client):
+    def test_bopla_extra_fields_rejected(self, admin_client):
         """BOPLA: Extra/unknown fields should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -178,7 +178,7 @@ class TestSmartBlockContentCreateRedTeam:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {
@@ -201,7 +201,7 @@ class TestSmartBlockContentCreateRedTeam:
     # Injection Attacks
     # ========================================================================
 
-    def test_sqli_in_position_field(self, guest_client):
+    def test_sqli_in_position_field(self, admin_client):
         """Injection: SQLi attempts in position field."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -225,7 +225,7 @@ class TestSmartBlockContentCreateRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/smart-block-contents",
                 json.dumps(
                     {
@@ -242,7 +242,7 @@ class TestSmartBlockContentCreateRedTeam:
                 400,
             ], f"SQLi in position '{payload}' caused {response.status_code}"
 
-    def test_sqli_in_cue_fields(self, guest_client):
+    def test_sqli_in_cue_fields(self, admin_client):
         """Injection: SQLi in cue_in/cue_out fields."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -265,7 +265,7 @@ class TestSmartBlockContentCreateRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/smart-block-contents",
                 json.dumps(
                     {
@@ -284,7 +284,7 @@ class TestSmartBlockContentCreateRedTeam:
                 400,
             ], f"SQLi in cue field caused {response.status_code}"
 
-    def test_nosql_injection_block_field(self, guest_client):
+    def test_nosql_injection_block_field(self, admin_client):
         """Injection: NoSQL operators in block field."""
         user = baker.make(User, username="testred_user")
         file_obj = baker.make(
@@ -302,7 +302,7 @@ class TestSmartBlockContentCreateRedTeam:
         ]
 
         for payload in nosql_payloads:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/smart-block-contents",
                 json.dumps(
                     {
@@ -325,7 +325,7 @@ class TestSmartBlockContentCreateRedTeam:
     @pytest.mark.xfail(
         reason="T479: Path traversal in cue fields not validated",
     )
-    def test_path_traversal_in_cue_fields(self, guest_client):
+    def test_path_traversal_in_cue_fields(self, admin_client):
         """Validation: Path traversal in cue fields should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -348,7 +348,7 @@ class TestSmartBlockContentCreateRedTeam:
         ]
 
         for payload in path_traversal_payloads:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/smart-block-contents",
                 json.dumps(
                     {
@@ -365,7 +365,7 @@ class TestSmartBlockContentCreateRedTeam:
                 response.status_code == 400
             ), f"Path traversal '{payload}' accepted with {response.status_code}"
 
-    def test_overflow_position_value(self, guest_client):
+    def test_overflow_position_value(self, admin_client):
         """Validation: Very large position values."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -388,7 +388,7 @@ class TestSmartBlockContentCreateRedTeam:
         ]
 
         for value in overflow_values:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/smart-block-contents",
                 json.dumps(
                     {
@@ -405,7 +405,7 @@ class TestSmartBlockContentCreateRedTeam:
                 400,
             ], f"Overflow value {value} caused {response.status_code}"
 
-    def test_fuzzing_naughty_strings_position(self, guest_client):
+    def test_fuzzing_naughty_strings_position(self, admin_client):
         """Fuzzing: Naughty strings in position field."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -437,7 +437,7 @@ class TestSmartBlockContentCreateRedTeam:
         ]
 
         for string in naughty_strings:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/smart-block-contents",
                 json.dumps(
                     {
@@ -454,7 +454,7 @@ class TestSmartBlockContentCreateRedTeam:
                 400,
             ], f"Naughty string '{string}' caused {response.status_code}"
 
-    def test_unicode_injection_cue_fields(self, guest_client):
+    def test_unicode_injection_cue_fields(self, admin_client):
         """Validation: Unicode and special chars in cue fields."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -482,7 +482,7 @@ class TestSmartBlockContentCreateRedTeam:
         ]
 
         for payload in unicode_payloads:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/smart-block-contents",
                 json.dumps(
                     {
@@ -507,7 +507,7 @@ class TestSmartBlockContentCreateRedTeam:
     @pytest.mark.xfail(
         reason="T480: Duplicate position values allowed in same block",
     )
-    def test_duplicate_position_same_block(self, guest_client):
+    def test_duplicate_position_same_block(self, admin_client):
         """Logic: Duplicate positions in same block should be handled."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -530,7 +530,7 @@ class TestSmartBlockContentCreateRedTeam:
         )
 
         # First content at position 1
-        response1 = guest_client.post(
+        response1 = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {
@@ -544,7 +544,7 @@ class TestSmartBlockContentCreateRedTeam:
         assert response1.status_code == 201
 
         # Second content at same position
-        response2 = guest_client.post(
+        response2 = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {
@@ -563,7 +563,7 @@ class TestSmartBlockContentCreateRedTeam:
         ], f"Duplicate position caused {response2.status_code}"
 
     @pytest.mark.xfail(reason="T481: Negative offset value not validated")
-    def test_negative_offset_validation(self, guest_client):
+    def test_negative_offset_validation(self, admin_client):
         """Logic: Negative offset should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -579,7 +579,7 @@ class TestSmartBlockContentCreateRedTeam:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {
@@ -597,7 +597,7 @@ class TestSmartBlockContentCreateRedTeam:
         ), f"Negative offset accepted with {response.status_code}"
 
     @pytest.mark.xfail(reason="T482: cue_out before cue_in not validated")
-    def test_cue_out_before_cue_in(self, guest_client):
+    def test_cue_out_before_cue_in(self, admin_client):
         """Logic: cue_out before cue_in should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -613,7 +613,7 @@ class TestSmartBlockContentCreateRedTeam:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {
@@ -632,7 +632,7 @@ class TestSmartBlockContentCreateRedTeam:
         ), f"Invalid cue times accepted with {response.status_code}"
 
     @pytest.mark.xfail(reason="T483: Invalid cue time format accepted")
-    def test_invalid_cue_format(self, guest_client):
+    def test_invalid_cue_format(self, admin_client):
         """Validation: Invalid cue time format should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -659,7 +659,7 @@ class TestSmartBlockContentCreateRedTeam:
         ]
 
         for fmt in invalid_formats:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/smart-block-contents",
                 json.dumps(
                     {
@@ -699,7 +699,7 @@ class TestSmartBlockContentCreateRedTeam:
         """Auth: Invalid token format should fail with 403.
 
         FIXED: Use credentials() to properly override auth.
-        defaults[] does NOT override credentials() set in guest_client fixture.
+        defaults[] does NOT override credentials() set in admin_client fixture.
         """
         from rest_framework.test import APIClient
 
@@ -726,7 +726,7 @@ class TestSmartBlockContentCreateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T485: Wrong Content-Type not rejected with 415")
-    def test_create_wrong_content_type(self, guest_client):
+    def test_create_wrong_content_type(self, admin_client):
         """Validation: Wrong Content-Type should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -742,7 +742,7 @@ class TestSmartBlockContentCreateRedTeam:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             f"block={block.id}&file={file_obj.id}&position=1",  # Form data
             content_type="application/x-www-form-urlencoded",
@@ -760,7 +760,7 @@ class TestSmartBlockContentCreateRedTeam:
     @pytest.mark.xfail(
         reason="T486: Race condition in concurrent CREATE requests",
     )
-    def test_race_condition_concurrent_create(self, guest_client):
+    def test_race_condition_concurrent_create(self, admin_client):
         """Race: Concurrent creation with same data."""
         import concurrent.futures
 
@@ -781,7 +781,7 @@ class TestSmartBlockContentCreateRedTeam:
         results = []
 
         def create_content():
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/smart-block-contents",
                 json.dumps(
                     {
@@ -811,7 +811,7 @@ class TestSmartBlockContentCreateRedTeam:
     # ID Enumeration / Information Disclosure
     # ========================================================================
 
-    def test_error_message_enumeration_block(self, guest_client):
+    def test_error_message_enumeration_block(self, admin_client):
         """Info Leak: Error messages shouldn't reveal which IDs exist."""
         user = baker.make(User, username="testred_user")
         file_obj = baker.make(
@@ -822,7 +822,7 @@ class TestSmartBlockContentCreateRedTeam:
         )
 
         # Try with non-existent block
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {
@@ -840,7 +840,7 @@ class TestSmartBlockContentCreateRedTeam:
             "block" not in error_body or "invalid" in error_body
         ), "Error message may leak block existence information"
 
-    def test_error_message_enumeration_file(self, guest_client):
+    def test_error_message_enumeration_file(self, admin_client):
         """Info Leak: Error messages shouldn't reveal which file IDs exist."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -851,7 +851,7 @@ class TestSmartBlockContentCreateRedTeam:
         )
 
         # Try with non-existent file
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {
@@ -876,7 +876,7 @@ class TestSmartBlockContentCreateRedTeam:
     @pytest.mark.xfail(
         reason="T487: JSON Merge Patch accepted without validation",
     )
-    def test_json_merge_patch_mass_assignment(self, guest_client):
+    def test_json_merge_patch_mass_assignment(self, admin_client):
         """BOPLA: JSON Merge Patch for partial update on create."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -892,7 +892,7 @@ class TestSmartBlockContentCreateRedTeam:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {

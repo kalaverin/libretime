@@ -165,12 +165,12 @@ class TestFixturesBOLA:
 class TestFixturesPrivilegeEscalation:
     """Red team: Privilege escalation via fixture manipulation (API5:2023)."""
 
-    def test_cannot_escalate_via_user_update(self, regular_user, guest_client):
+    def test_cannot_escalate_via_user_update(self, regular_user, admin_client):
         """Regular user cannot escalate privileges via update."""
         from api.core.models import Role
 
         # Try to update own role to admin
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/users/{regular_user.id}",
             {"role": Role.ADMIN},
             content_type="application/json",
@@ -241,7 +241,7 @@ class TestFixturesDataIsolation:
             # Admin might have access, but check for proper auth
             assert response2.status_code in [200, 403, 404]
 
-    def test_api_key_sees_all_data(self, guest_client, regular_user):
+    def test_api_key_sees_all_data(self, admin_client, regular_user):
         """API key (service) should have system-level access."""
 
         # Create playlist as regular user
@@ -257,7 +257,7 @@ class TestFixturesDataIsolation:
             playlist_id = response1.json()["id"]
 
             # API key should access
-            response2 = guest_client.get(f"/api/v2/playlists/{playlist_id}")
+            response2 = admin_client.get(f"/api/v2/playlists/{playlist_id}")
 
             # API key has system access
             assert response2.status_code in [200, 404]
@@ -394,9 +394,9 @@ class TestFixturesSessionHandling:
 class TestFixturesMassAssignment:
     """Red team: Mass assignment via fixtures (API3:2023)."""
 
-    def test_cannot_mass_assign_is_superuser(self, guest_client):
+    def test_cannot_mass_assign_is_superuser(self, admin_client):
         """Prevent mass assignment of is_superuser field."""
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/users",
             {
                 "username": "test_superuser",
@@ -419,9 +419,9 @@ class TestFixturesMassAssignment:
             ), "Mass assignment vulnerability: is_superuser was set."
             assert data.get("is_staff") is not True
 
-    def test_cannot_mass_assign_id(self, guest_client):
+    def test_cannot_mass_assign_id(self, admin_client):
         """Prevent mass assignment of id field."""
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlists",
             {
                 "id": 999999,

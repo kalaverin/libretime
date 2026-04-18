@@ -16,7 +16,7 @@ class TestShowInstanceViewSetDelete:
         ShowInstance.objects.all().delete()
         Show.objects.all().delete()
 
-    def test_delete_instance_success_returns_204(self, guest_client):
+    def test_delete_instance_success_returns_204(self, admin_client):
         """DELETE should return 204 on successful deletion."""
         from datetime import timedelta
 
@@ -30,10 +30,10 @@ class TestShowInstanceViewSetDelete:
             ends_at=now() + timedelta(hours=1),
         )
 
-        response = guest_client.delete(f"/api/v2/show-instances/{instance.id}")
+        response = admin_client.delete(f"/api/v2/show-instances/{instance.id}")
         assert response.status_code == 204
 
-    def test_delete_instance_removes_from_db(self, guest_client):
+    def test_delete_instance_removes_from_db(self, admin_client):
         """DELETE should remove instance from database."""
         from datetime import timedelta
 
@@ -47,12 +47,12 @@ class TestShowInstanceViewSetDelete:
             ends_at=now() + timedelta(hours=1),
         )
 
-        guest_client.delete(f"/api/v2/show-instances/{instance.id}")
+        admin_client.delete(f"/api/v2/show-instances/{instance.id}")
         assert ShowInstance.objects.filter(id=instance.id).count() == 0
 
-    def test_delete_instance_not_found_returns_404(self, guest_client):
+    def test_delete_instance_not_found_returns_404(self, admin_client):
         """DELETE non-existent instance should return 404."""
-        response = guest_client.delete("/api/v2/show-instances/999999")
+        response = admin_client.delete("/api/v2/show-instances/999999")
         assert response.status_code == 404
 
     def test_delete_instance_no_auth_fails(self, client):
@@ -72,7 +72,7 @@ class TestShowInstanceViewSetDelete:
         response = client.delete(f"/api/v2/show-instances/{instance.id}")
         assert response.status_code == 403
 
-    def test_delete_instance_double_delete_returns_404(self, guest_client):
+    def test_delete_instance_double_delete_returns_404(self, admin_client):
         """DELETE already deleted instance should return 404."""
         from datetime import timedelta
 
@@ -86,11 +86,11 @@ class TestShowInstanceViewSetDelete:
             ends_at=now() + timedelta(hours=1),
         )
 
-        guest_client.delete(f"/api/v2/show-instances/{instance.id}")
-        response = guest_client.delete(f"/api/v2/show-instances/{instance.id}")
+        admin_client.delete(f"/api/v2/show-instances/{instance.id}")
+        response = admin_client.delete(f"/api/v2/show-instances/{instance.id}")
         assert response.status_code == 404
 
-    def test_delete_instance_returns_empty_body(self, guest_client):
+    def test_delete_instance_returns_empty_body(self, admin_client):
         """DELETE should return empty response body."""
         from datetime import timedelta
 
@@ -104,10 +104,10 @@ class TestShowInstanceViewSetDelete:
             ends_at=now() + timedelta(hours=1),
         )
 
-        response = guest_client.delete(f"/api/v2/show-instances/{instance.id}")
+        response = admin_client.delete(f"/api/v2/show-instances/{instance.id}")
         assert response.content == b""
 
-    def test_delete_single_instance_others_remain(self, guest_client):
+    def test_delete_single_instance_others_remain(self, admin_client):
         """DELETE single instance should leave other instances."""
         from datetime import timedelta
 
@@ -133,13 +133,13 @@ class TestShowInstanceViewSetDelete:
             ends_at=now() + timedelta(days=2, hours=1),
         )
 
-        guest_client.delete(f"/api/v2/show-instances/{instance2.id}")
+        admin_client.delete(f"/api/v2/show-instances/{instance2.id}")
 
         assert ShowInstance.objects.filter(id=instance1.id).exists()
         assert not ShowInstance.objects.filter(id=instance2.id).exists()
         assert ShowInstance.objects.filter(id=instance3.id).exists()
 
-    def test_delete_instance_modified_flag(self, guest_client):
+    def test_delete_instance_modified_flag(self, admin_client):
         """DELETE should work regardless of modified flag."""
         from datetime import timedelta
 
@@ -154,10 +154,10 @@ class TestShowInstanceViewSetDelete:
             modified=True,
         )
 
-        response = guest_client.delete(f"/api/v2/show-instances/{instance.id}")
+        response = admin_client.delete(f"/api/v2/show-instances/{instance.id}")
         assert response.status_code == 204
 
-    def test_delete_instance_with_description(self, guest_client):
+    def test_delete_instance_with_description(self, admin_client):
         """DELETE should work with instances that have descriptions."""
         from datetime import timedelta
 
@@ -172,10 +172,10 @@ class TestShowInstanceViewSetDelete:
             description="Special episode description",
         )
 
-        response = guest_client.delete(f"/api/v2/show-instances/{instance.id}")
+        response = admin_client.delete(f"/api/v2/show-instances/{instance.id}")
         assert response.status_code == 204
 
-    def test_delete_instance_with_filled_time(self, guest_client):
+    def test_delete_instance_with_filled_time(self, admin_client):
         """DELETE should work with instances that have filled_time."""
         from datetime import timedelta
 
@@ -190,10 +190,10 @@ class TestShowInstanceViewSetDelete:
             filled_time=timedelta(minutes=45),
         )
 
-        response = guest_client.delete(f"/api/v2/show-instances/{instance.id}")
+        response = admin_client.delete(f"/api/v2/show-instances/{instance.id}")
         assert response.status_code == 204
 
-    def test_delete_instance_with_record_enabled(self, guest_client):
+    def test_delete_instance_with_record_enabled(self, admin_client):
         """DELETE should work with instances that have record_enabled."""
         from datetime import timedelta
 
@@ -209,20 +209,20 @@ class TestShowInstanceViewSetDelete:
             record_enabled=Record.YES,
         )
 
-        response = guest_client.delete(f"/api/v2/show-instances/{instance.id}")
+        response = admin_client.delete(f"/api/v2/show-instances/{instance.id}")
         assert response.status_code == 204
 
-    def test_delete_instance_id_zero_returns_404(self, guest_client):
+    def test_delete_instance_id_zero_returns_404(self, admin_client):
         """DELETE with id=0 should return 404."""
-        response = guest_client.delete("/api/v2/show-instances/0")
+        response = admin_client.delete("/api/v2/show-instances/0")
         assert response.status_code == 404
 
-    def test_delete_instance_negative_id_returns_404(self, guest_client):
+    def test_delete_instance_negative_id_returns_404(self, admin_client):
         """DELETE with negative id should return 404."""
-        response = guest_client.delete("/api/v2/show-instances/-1")
+        response = admin_client.delete("/api/v2/show-instances/-1")
         assert response.status_code == 404
 
-    def test_delete_instance_sql_injection_attempt(self, guest_client):
+    def test_delete_instance_sql_injection_attempt(self, admin_client):
         """DELETE with SQL injection in id should be handled safely."""
-        response = guest_client.delete("/api/v2/show-instances/1 OR 1=1")
+        response = admin_client.delete("/api/v2/show-instances/1 OR 1=1")
         assert response.status_code == 404

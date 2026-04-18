@@ -35,7 +35,7 @@ class TestPlaylistContentRetrieveRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T420: BOLA - can view other's content")
-    def test_bola_retrieve_other_users_content(self, guest_client):
+    def test_bola_retrieve_other_users_content(self, admin_client):
         """BOLA: Should not retrieve another user's content."""
         victim = baker.make(User, username="testred_victim")
         victim_playlist = baker.make(Playlist, name="Victim", owner=victim)
@@ -53,7 +53,7 @@ class TestPlaylistContentRetrieveRedTeam:
             position=1,
         )
 
-        response = guest_client.get(f"/api/v2/playlist-contents/{content.id}")
+        response = admin_client.get(f"/api/v2/playlist-contents/{content.id}")
 
         assert response.status_code in [
             403,
@@ -61,7 +61,7 @@ class TestPlaylistContentRetrieveRedTeam:
         ], f"BOLA: Retrieved victim's content with {response.status_code}"
 
     @pytest.mark.xfail(reason="T420: IDOR - sequential ID enumeration")
-    def test_idor_enumerate_content_ids(self, guest_client):
+    def test_idor_enumerate_content_ids(self, admin_client):
         """IDOR: Enumerate content IDs to find victim's data."""
         victim = baker.make(User, username="testred_victim")
         victim_playlist = baker.make(Playlist, name="Victim", owner=victim)
@@ -87,7 +87,7 @@ class TestPlaylistContentRetrieveRedTeam:
         found = 0
         for offset in range(-2, 5):
             test_id = base_id + offset
-            r = guest_client.get(f"/api/v2/playlist-contents/{test_id}")
+            r = admin_client.get(f"/api/v2/playlist-contents/{test_id}")
             if r.status_code == 200:
                 found += 1
 
@@ -99,7 +99,7 @@ class TestPlaylistContentRetrieveRedTeam:
     # API3:2023 - BOPLA
     # ========================================================================
 
-    def test_bopla_field_exposure(self, guest_client):
+    def test_bopla_field_exposure(self, admin_client):
         """BOPLA: Check sensitive field exposure in retrieve."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -117,7 +117,7 @@ class TestPlaylistContentRetrieveRedTeam:
             position=1,
         )
 
-        response = guest_client.get(f"/api/v2/playlist-contents/{content.id}")
+        response = admin_client.get(f"/api/v2/playlist-contents/{content.id}")
         data = response.json()
 
         sensitive = ["password", "secret", "token", "internal"]
@@ -131,7 +131,7 @@ class TestPlaylistContentRetrieveRedTeam:
     # API6:2023 - Resource
     # ========================================================================
 
-    def test_retrieve_rapid_fire(self, guest_client):
+    def test_retrieve_rapid_fire(self, admin_client):
         """Resource: Rapid retrieve should be rate limited."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -151,7 +151,7 @@ class TestPlaylistContentRetrieveRedTeam:
 
         start = time.time()
         for _ in range(50):
-            guest_client.get(f"/api/v2/playlist-contents/{content.id}")
+            admin_client.get(f"/api/v2/playlist-contents/{content.id}")
         elapsed = time.time() - start
 
         if elapsed < 2:
@@ -161,17 +161,17 @@ class TestPlaylistContentRetrieveRedTeam:
     # Edge Cases
     # ========================================================================
 
-    def test_retrieve_nonexistent(self, guest_client):
+    def test_retrieve_nonexistent(self, admin_client):
         """Edge: Retrieve non-existent content."""
-        response = guest_client.get("/api/v2/playlist-contents/999999")
+        response = admin_client.get("/api/v2/playlist-contents/999999")
         assert response.status_code == 404
 
-    def test_retrieve_invalid_id(self, guest_client):
+    def test_retrieve_invalid_id(self, admin_client):
         """Edge: Invalid content ID formats."""
         invalid_ids = ["abc", "1.5", "-1", "1' OR '1'='1"]
 
         for invalid_id in invalid_ids:
-            response = guest_client.get(
+            response = admin_client.get(
                 f"/api/v2/playlist-contents/{invalid_id}",
             )
             assert response.status_code in [
@@ -179,11 +179,11 @@ class TestPlaylistContentRetrieveRedTeam:
                 404,
             ], f"Invalid id '{invalid_id}' caused {response.status_code}"
 
-    def test_retrieve_timing_attack(self, guest_client):
+    def test_retrieve_timing_attack(self, admin_client):
         """Timing: Response time should not reveal existence."""
         # Time non-existent
         start = time.time()
-        guest_client.get("/api/v2/playlist-contents/999999")
+        admin_client.get("/api/v2/playlist-contents/999999")
         time_missing = time.time() - start
 
         # Create and time existent
@@ -204,7 +204,7 @@ class TestPlaylistContentRetrieveRedTeam:
         )
 
         start = time.time()
-        guest_client.get(f"/api/v2/playlist-contents/{content.id}")
+        admin_client.get(f"/api/v2/playlist-contents/{content.id}")
         time_exists = time.time() - start
 
         diff = abs(time_missing - time_exists)

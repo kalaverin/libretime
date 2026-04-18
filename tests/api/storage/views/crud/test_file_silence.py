@@ -18,7 +18,7 @@ from api.storage.models import File, Library
 class TestFileForSilenceProcessing:
     """Test files ready for silence processing."""
 
-    def test_success_file_ready_for_processing(self, guest_client):
+    def test_success_file_ready_for_processing(self, admin_client):
         """Successfully imported file ready for silence analysis."""
         user = baker.make(User, username="silence_test")
         library = baker.make(
@@ -38,7 +38,7 @@ class TestFileForSilenceProcessing:
             filepath="/path/to/ready.mp3",
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
@@ -47,7 +47,7 @@ class TestFileForSilenceProcessing:
         assert data["filepath"] == "/path/to/ready.mp3"
         assert data["mime"] == "audio/mp3"
 
-    def test_pending_file_not_ready(self, guest_client):
+    def test_pending_file_not_ready(self, admin_client):
         """Pending file not yet ready for silence analysis."""
         user = baker.make(User, username="silence_test2")
         library = baker.make(
@@ -66,13 +66,13 @@ class TestFileForSilenceProcessing:
             import_status=File.ImportStatus.PENDING,
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["import_status"] == File.ImportStatus.PENDING
 
-    def test_failed_file_not_processed(self, guest_client):
+    def test_failed_file_not_processed(self, admin_client):
         """Failed import file not processed for silence."""
         user = baker.make(User, username="silence_test3")
         library = baker.make(
@@ -91,7 +91,7 @@ class TestFileForSilenceProcessing:
             import_status=File.ImportStatus.FAILED,
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
@@ -102,7 +102,7 @@ class TestFileForSilenceProcessing:
 class TestAudioFileProperties:
     """Test audio file properties for silence detection."""
 
-    def test_audio_file_channels(self, guest_client):
+    def test_audio_file_channels(self, admin_client):
         """Audio file with channel info."""
         user = baker.make(User, username="audio_test")
         library = baker.make(
@@ -122,14 +122,14 @@ class TestAudioFileProperties:
             sample_rate=44100,
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["channels"] == 2
         assert data["sample_rate"] == 44100
 
-    def test_audio_file_length(self, guest_client):
+    def test_audio_file_length(self, admin_client):
         """Audio file with length info."""
         from datetime import timedelta
 
@@ -150,13 +150,13 @@ class TestAudioFileProperties:
             length=timedelta(minutes=5),
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["length"] == "00:05:00"
 
-    def test_mono_audio_file(self, guest_client):
+    def test_mono_audio_file(self, admin_client):
         """Mono audio file properties."""
         user = baker.make(User, username="mono_test")
         library = baker.make(
@@ -175,7 +175,7 @@ class TestAudioFileProperties:
             channels=1,
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
@@ -186,7 +186,7 @@ class TestAudioFileProperties:
 class TestSilenceDetectionEdgeCases:
     """Test silence detection edge cases."""
 
-    def test_very_short_file(self, guest_client):
+    def test_very_short_file(self, admin_client):
         """Very short audio file."""
         from datetime import timedelta
 
@@ -207,13 +207,13 @@ class TestSilenceDetectionEdgeCases:
             length=timedelta(seconds=1),
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["length"] == "00:00:01"
 
-    def test_very_long_file(self, guest_client):
+    def test_very_long_file(self, admin_client):
         """Very long audio file."""
         from datetime import timedelta
 
@@ -234,13 +234,13 @@ class TestSilenceDetectionEdgeCases:
             length=timedelta(hours=2),
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["length"] == "02:00:00"
 
-    def test_various_mime_types(self, guest_client):
+    def test_various_mime_types(self, admin_client):
         """Various audio MIME types."""
         user = baker.make(User, username="mime_test")
         library = baker.make(
@@ -263,7 +263,7 @@ class TestSilenceDetectionEdgeCases:
             files.append(file_obj)
 
         for file_obj in files:
-            response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+            response = admin_client.get(f"/api/v2/files/{file_obj.id}")
             assert response.status_code == 200
 
 
@@ -271,7 +271,7 @@ class TestSilenceDetectionEdgeCases:
 class TestFileListForProcessing:
     """Test listing files for batch silence processing."""
 
-    def test_list_success_files(self, guest_client):
+    def test_list_success_files(self, admin_client):
         """List files ready for silence processing."""
         user = baker.make(User, username="list_test")
         library = baker.make(
@@ -292,7 +292,7 @@ class TestFileListForProcessing:
                 import_status=File.ImportStatus.SUCCESS,
             )
 
-        response = guest_client.get("/api/v2/files?import_status=0")
+        response = admin_client.get("/api/v2/files?import_status=0")
         assert response.status_code == 200
         data = response.json()
 

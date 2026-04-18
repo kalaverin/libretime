@@ -21,9 +21,9 @@ class TestPlaylistListAuthentication:
     """LIST authentication tests."""
 
     @pytest.mark.xfail(reason="T411: Anonymous LIST playlists allowed")
-    def test_list_without_auth(self, guest_client):
+    def test_list_without_auth(self, admin_client):
         """Anonymous LIST should fail."""
-        response = guest_client.get("/api/v2/playlists")
+        response = admin_client.get("/api/v2/playlists")
         assert response.status_code in [
             401,
             403,
@@ -37,7 +37,7 @@ class TestPlaylistListBOLA:
     @pytest.mark.xfail(reason="BOLA: LIST shows all users' playlists")
     def test_list_shows_only_own_playlists(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -53,8 +53,8 @@ class TestPlaylistListBOLA:
             owner=regular_user,
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get("/api/v2/playlists")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get("/api/v2/playlists")
 
         assert response.status_code == 200
         data = response.json()
@@ -66,7 +66,7 @@ class TestPlaylistListBOLA:
 
     @pytest.mark.xfail(reason="BOLA: Filter by owner does not scope to requesting user")
     def test_filter_by_other_owner_returns_only_own(
-        self, guest_client, admin_user, regular_user,
+        self, admin_client, admin_user, regular_user,
     ):
         """BOLA FIX: Filter by other owner only returns own playlists (T413)."""
         playlist = baker.make(
@@ -75,8 +75,8 @@ class TestPlaylistListBOLA:
             owner=admin_user,
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get(f"/api/v2/playlists?owner={admin_user.id}")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get(f"/api/v2/playlists?owner={admin_user.id}")
 
         assert response.status_code == 200
         data = response.json()
@@ -87,18 +87,18 @@ class TestPlaylistListBOLA:
 class TestPlaylistFilterInjection:
     """Filter parameter injection attacks."""
 
-    def test_filter_by_invalid_owner_id(self, guest_client, admin_user):
+    def test_filter_by_invalid_owner_id(self, admin_client, admin_user):
         """Try to filter by invalid owner_id."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.get("/api/v2/playlists?owner=invalid")
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.get("/api/v2/playlists?owner=invalid")
 
         if response.status_code == 500:
             pytest.fail("BUG: Filter crashes on invalid owner_id")
         assert response.status_code in [200, 400]
 
-    def test_filter_by_sql_injection(self, guest_client, admin_user):
+    def test_filter_by_sql_injection(self, admin_client, admin_user):
         """Try SQL injection in owner filter."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         sqli_payloads = [
             "1' OR '1'='1",
@@ -107,14 +107,14 @@ class TestPlaylistFilterInjection:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.get(f"/api/v2/playlists?owner={payload}")
+            response = admin_client.get(f"/api/v2/playlists?owner={payload}")
             if response.status_code == 500:
                 pytest.fail(f"BUG: SQL injection causes crash: {payload}")
 
-    def test_filter_by_negative_owner_id(self, guest_client, admin_user):
+    def test_filter_by_negative_owner_id(self, admin_client, admin_user):
         """Try to filter by negative owner_id."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.get("/api/v2/playlists?owner=-1")
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.get("/api/v2/playlists?owner=-1")
 
         assert response.status_code in [200, 400]
 
@@ -123,10 +123,10 @@ class TestPlaylistFilterInjection:
 class TestPlaylistListInformationDisclosure:
     """Information disclosure attacks."""
 
-    def test_error_message_on_invalid_filter(self, guest_client, admin_user):
+    def test_error_message_on_invalid_filter(self, admin_client, admin_user):
         """Check if error messages leak information."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.get("/api/v2/playlists?owner=invalid")
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.get("/api/v2/playlists?owner=invalid")
 
         if response.status_code == 400:
             content = response.content.decode()
@@ -140,9 +140,9 @@ class TestPlaylistListInformationDisclosure:
 class TestPlaylistUnicodeAbuse:
     """Unicode abuse tests."""
 
-    def test_list_with_unicode_filter(self, guest_client, admin_user):
+    def test_list_with_unicode_filter(self, admin_client, admin_user):
         """Try Unicode in filter parameters."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         unicode_values = [
             "\u0000",  # Null byte
@@ -152,7 +152,7 @@ class TestPlaylistUnicodeAbuse:
         ]
 
         for value in unicode_values:
-            response = guest_client.get(f"/api/v2/playlists?owner={value}")
+            response = admin_client.get(f"/api/v2/playlists?owner={value}")
             if response.status_code == 500:
                 pytest.fail(f"BUG: Unicode crash: {value[:30]}")
 
@@ -161,9 +161,9 @@ class TestPlaylistUnicodeAbuse:
 class TestPlaylistListMassAssignment:
     """Mass assignment via GET attacks."""
 
-    def test_get_with_extra_parameters(self, guest_client, admin_user):
+    def test_get_with_extra_parameters(self, admin_client, admin_user):
         """Try GET with extra/malicious parameters."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         malicious_params = [
             "?id=99999&admin=true",
@@ -172,5 +172,5 @@ class TestPlaylistListMassAssignment:
         ]
 
         for params in malicious_params:
-            response = guest_client.get(f"/api/v2/playlists{params}")
+            response = admin_client.get(f"/api/v2/playlists{params}")
             assert response.status_code in [200, 400]

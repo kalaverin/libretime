@@ -18,8 +18,8 @@ class TestScheduleViewSetOverbookedFilter:
     """Tests for Schedule overbooked filter."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, guest_client, admin_user):
-        self.guest_client = guest_client
+    def setup(self, admin_client, admin_user):
+        self.admin_client = admin_client
         self.user = admin_user
         show = baker.make("schedule.Show", name="Test Show")
         instance_start = now()
@@ -55,7 +55,7 @@ class TestScheduleViewSetOverbookedFilter:
             position=2,
             broadcasted=1,
         )
-        response = self.guest_client.get("/api/v2/schedule?overbooked=1")
+        response = self.admin_client.get("/api/v2/schedule?overbooked=1")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
@@ -85,7 +85,7 @@ class TestScheduleViewSetOverbookedFilter:
             position=2,
             broadcasted=1,
         )
-        response = self.guest_client.get("/api/v2/schedule?overbooked=0")
+        response = self.admin_client.get("/api/v2/schedule?overbooked=0")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
@@ -104,7 +104,7 @@ class TestScheduleViewSetOverbookedFilter:
             position=1,
             broadcasted=1,
         )
-        response = self.guest_client.get("/api/v2/schedule?overbooked=1")
+        response = self.admin_client.get("/api/v2/schedule?overbooked=1")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 0
@@ -133,7 +133,7 @@ class TestScheduleViewSetOverbookedFilter:
             position=2,
             broadcasted=1,
         )
-        response = self.guest_client.get(
+        response = self.admin_client.get(
             f"/api/v2/schedule?overbooked=1&starts_after={format_datetime(instance_start + timedelta(hours=2, minutes=10))}",
         )
         assert response.status_code == 200

@@ -17,13 +17,13 @@ class TestSmartBlockViewSetList:
         SmartBlock.objects.all().delete()
         User.objects.filter(username__startswith="testsb").delete()
 
-    def test_list_empty_returns_200(self, guest_client):
+    def test_list_empty_returns_200(self, admin_client):
         """LIST empty should return 200 with empty list."""
-        response = guest_client.get("/api/v2/smart-blocks")
+        response = admin_client.get("/api/v2/smart-blocks")
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_list_single_static_block(self, guest_client):
+    def test_list_single_static_block(self, admin_client):
         """LIST should return static block with correct fields."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -33,14 +33,14 @@ class TestSmartBlockViewSetList:
             owner=user,
         )
 
-        response = guest_client.get("/api/v2/smart-blocks")
+        response = admin_client.get("/api/v2/smart-blocks")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
         assert data[0]["name"] == "Static Block"
         assert data[0]["kind"] == SmartBlock.Kind.STATIC
 
-    def test_list_single_dynamic_block(self, guest_client):
+    def test_list_single_dynamic_block(self, admin_client):
         """LIST should return dynamic block with correct fields."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -50,14 +50,14 @@ class TestSmartBlockViewSetList:
             owner=user,
         )
 
-        response = guest_client.get("/api/v2/smart-blocks")
+        response = admin_client.get("/api/v2/smart-blocks")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
         assert data[0]["name"] == "Dynamic Block"
         assert data[0]["kind"] == SmartBlock.Kind.DYNAMIC
 
-    def test_list_multiple_blocks(self, guest_client):
+    def test_list_multiple_blocks(self, admin_client):
         """LIST should return multiple blocks."""
         user = baker.make(User, username="testsb_user")
         baker.make(
@@ -79,11 +79,11 @@ class TestSmartBlockViewSetList:
             owner=user,
         )
 
-        response = guest_client.get("/api/v2/smart-blocks")
+        response = admin_client.get("/api/v2/smart-blocks")
         assert response.status_code == 200
         assert len(response.json()) == 3
 
-    def test_list_filter_by_kind(self, guest_client):
+    def test_list_filter_by_kind(self, admin_client):
         """LIST should filter by kind parameter."""
         user = baker.make(User, username="testsb_user")
         baker.make(
@@ -99,7 +99,7 @@ class TestSmartBlockViewSetList:
             owner=user,
         )
 
-        response = guest_client.get(
+        response = admin_client.get(
             f"/api/v2/smart-blocks?kind={SmartBlock.Kind.STATIC}",
         )
         assert response.status_code == 200
@@ -112,7 +112,7 @@ class TestSmartBlockViewSetList:
         response = client.get("/api/v2/smart-blocks")
         assert response.status_code == 403
 
-    def test_list_returns_all_fields(self, guest_client):
+    def test_list_returns_all_fields(self, admin_client):
         """LIST should return all serializer fields."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -123,7 +123,7 @@ class TestSmartBlockViewSetList:
             owner=user,
         )
 
-        response = guest_client.get("/api/v2/smart-blocks")
+        response = admin_client.get("/api/v2/smart-blocks")
         assert response.status_code == 200
         data = response.json()[0]
         expected_fields = {
@@ -138,7 +138,7 @@ class TestSmartBlockViewSetList:
         }
         assert set(data.keys()) == expected_fields
 
-    def test_list_with_description(self, guest_client):
+    def test_list_with_description(self, admin_client):
         """LIST should include description field."""
         user = baker.make(User, username="testsb_user")
         baker.make(
@@ -149,11 +149,11 @@ class TestSmartBlockViewSetList:
             owner=user,
         )
 
-        response = guest_client.get("/api/v2/smart-blocks")
+        response = admin_client.get("/api/v2/smart-blocks")
         assert response.status_code == 200
         assert response.json()[0]["description"] == "My description"
 
-    def test_list_unicode_names(self, guest_client):
+    def test_list_unicode_names(self, admin_client):
         """LIST should handle unicode in block names."""
         user = baker.make(User, username="testsb_user")
         baker.make(
@@ -163,6 +163,6 @@ class TestSmartBlockViewSetList:
             owner=user,
         )
 
-        response = guest_client.get("/api/v2/smart-blocks")
+        response = admin_client.get("/api/v2/smart-blocks")
         assert response.status_code == 200
         assert response.json()[0]["name"] == "Блок с музыкой 🎵"

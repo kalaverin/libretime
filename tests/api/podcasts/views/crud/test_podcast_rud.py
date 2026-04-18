@@ -11,9 +11,9 @@ class TestPodcastViewSetRUD:
     """Test Podcast RUD endpoints."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, guest_client, admin_user):
+    def setup(self, admin_client, admin_user):
         """Set up test fixtures."""
-        self.guest_client = guest_client
+        self.admin_client = admin_client
         self.podcast = baker.make(
             Podcast,
             url="https://example.com/test.rss",
@@ -24,7 +24,7 @@ class TestPodcastViewSetRUD:
 
     def test_retrieve_podcast_success(self):
         """Successfully retrieve podcast."""
-        response = self.guest_client.get(f"/api/v2/podcasts/{self.podcast.id}")
+        response = self.admin_client.get(f"/api/v2/podcasts/{self.podcast.id}")
 
         assert response.status_code == 200
         data = response.json()
@@ -33,7 +33,7 @@ class TestPodcastViewSetRUD:
 
     def test_retrieve_not_found(self):
         """Return 404 for non-existent podcast."""
-        response = self.guest_client.get("/api/v2/podcasts/99999")
+        response = self.admin_client.get("/api/v2/podcasts/99999")
         assert response.status_code == 404
 
     def test_update_podcast_success(self):
@@ -45,7 +45,7 @@ class TestPodcastViewSetRUD:
             "description": self.podcast.description,
         }
 
-        response = self.guest_client.put(
+        response = self.admin_client.put(
             f"/api/v2/podcasts/{self.podcast.id}",
             data,
             format="json",
@@ -59,7 +59,7 @@ class TestPodcastViewSetRUD:
         """Partial update with PATCH."""
         data = {"title": "Patched Title"}
 
-        response = self.guest_client.patch(
+        response = self.admin_client.patch(
             f"/api/v2/podcasts/{self.podcast.id}",
             data,
             format="json",
@@ -71,7 +71,7 @@ class TestPodcastViewSetRUD:
 
     def test_delete_podcast_success(self):
         """Successfully delete podcast."""
-        response = self.guest_client.delete(
+        response = self.admin_client.delete(
             f"/api/v2/podcasts/{self.podcast.id}",
         )
 
@@ -80,12 +80,12 @@ class TestPodcastViewSetRUD:
 
     def test_delete_not_found(self):
         """Delete non-existent returns 404."""
-        response = self.guest_client.delete("/api/v2/podcasts/99999")
+        response = self.admin_client.delete("/api/v2/podcasts/99999")
         assert response.status_code == 404
 
     def test_no_auth_fails(self):
         """Operations without auth fail."""
-        self.guest_client.logout()
+        self.admin_client.logout()
 
-        response = self.guest_client.get(f"/api/v2/podcasts/{self.podcast.id}")
+        response = self.admin_client.get(f"/api/v2/podcasts/{self.podcast.id}")
         assert response.status_code == 403

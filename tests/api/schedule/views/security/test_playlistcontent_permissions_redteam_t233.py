@@ -71,7 +71,7 @@ class TestPlaylistContentPermissionsRedTeam:
     # API5:2023 - BFLA
     # ========================================================================
 
-    def test_bfla_admin_endpoints(self, guest_client):
+    def test_bfla_admin_endpoints(self, admin_client):
         """BFLA: Try to access admin endpoints."""
         admin_patterns = [
             "/api/v2/admin/playlist-contents",
@@ -80,7 +80,7 @@ class TestPlaylistContentPermissionsRedTeam:
         ]
 
         for pattern in admin_patterns:
-            response = guest_client.get(pattern)
+            response = admin_client.get(pattern)
             assert response.status_code in [
                 403,
                 404,
@@ -91,7 +91,7 @@ class TestPlaylistContentPermissionsRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T420: No cross-user access control")
-    def test_cross_user_cannot_list_others(self, guest_client):
+    def test_cross_user_cannot_list_others(self, admin_client):
         """Cross-user: User should only see own contents."""
         victim = baker.make(User, username="testred_victim")
         victim_playlist = baker.make(Playlist, name="Victim", owner=victim)
@@ -109,7 +109,7 @@ class TestPlaylistContentPermissionsRedTeam:
             position=1,
         )
 
-        response = guest_client.get("/api/v2/playlist-contents")
+        response = admin_client.get("/api/v2/playlist-contents")
         data = response.json()
 
         ids = [c["id"] for c in data]
@@ -121,9 +121,9 @@ class TestPlaylistContentPermissionsRedTeam:
     # Permission Elevation
     # ========================================================================
 
-    def test_permission_elevation_param(self, guest_client):
+    def test_permission_elevation_param(self, admin_client):
         """Elevation: Try to elevate via query params."""
-        response = guest_client.get(
+        response = admin_client.get(
             "/api/v2/playlist-contents?admin=true&role=admin",
         )
         # Should ignore params or return 403

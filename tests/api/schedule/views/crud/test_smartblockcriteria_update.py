@@ -20,7 +20,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
         SmartBlock.objects.all().delete()
         User.objects.filter(username__startswith="testsbcr").delete()
 
-    def test_patch_update_value_success(self, guest_client):
+    def test_patch_update_value_success(self, admin_client):
         """PATCH value should update criteria."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -37,7 +37,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
             value="Jazz",
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-block-criteria/{criteria.id}",
             json.dumps({"value": "Rock"}),
             content_type="application/json",
@@ -45,7 +45,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
         assert response.status_code == 200
         assert response.json()["value"] == "Rock"
 
-    def test_patch_update_condition(self, guest_client):
+    def test_patch_update_condition(self, admin_client):
         """PATCH condition should update criteria."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -62,7 +62,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
             value="Jazz",
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-block-criteria/{criteria.id}",
             json.dumps({"condition": "4"}),
             content_type="application/json",
@@ -70,7 +70,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
         assert response.status_code == 200
         assert response.json()["condition"] == "4"
 
-    def test_patch_update_criteria(self, guest_client):
+    def test_patch_update_criteria(self, admin_client):
         """PATCH criteria field should update."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -87,7 +87,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
             value="Jazz",
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-block-criteria/{criteria.id}",
             json.dumps({"criteria": "artist_name"}),
             content_type="application/json",
@@ -95,7 +95,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
         assert response.status_code == 200
         assert response.json()["criteria"] == "artist_name"
 
-    def test_patch_partial_does_not_affect_other_fields(self, guest_client):
+    def test_patch_partial_does_not_affect_other_fields(self, admin_client):
         """PATCH should only update specified fields."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -112,7 +112,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
             value="Jazz",
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-block-criteria/{criteria.id}",
             json.dumps({"value": "Rock"}),
             content_type="application/json",
@@ -123,7 +123,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
         assert data["criteria"] == "genre"
         assert data["condition"] == "0"
 
-    def test_put_full_update_success(self, guest_client):
+    def test_put_full_update_success(self, admin_client):
         """PUT should update all fields."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -140,7 +140,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
             value="Jazz",
         )
 
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/smart-block-criteria/{criteria.id}",
             json.dumps(
                 {
@@ -158,9 +158,9 @@ class TestSmartBlockCriteriaViewSetUpdate:
         assert data["condition"] == "4"
         assert data["value"] == "The"
 
-    def test_update_not_found_returns_404(self, guest_client):
+    def test_update_not_found_returns_404(self, admin_client):
         """UPDATE non-existent criteria should return 404."""
-        response = guest_client.patch(
+        response = admin_client.patch(
             "/api/v2/smart-block-criteria/999999",
             json.dumps({"value": "Rock"}),
             content_type="application/json",
@@ -176,7 +176,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
         )
         assert response.status_code == 403
 
-    def test_update_change_block(self, guest_client):
+    def test_update_change_block(self, admin_client):
         """PATCH to change block should work."""
         user = baker.make(User, username="testsbcr_user")
         block1 = baker.make(
@@ -199,7 +199,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
             value="Jazz",
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-block-criteria/{criteria.id}",
             json.dumps({"block": block2.id}),
             content_type="application/json",
@@ -207,7 +207,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
         assert response.status_code == 200
         assert response.json()["block"] == block2.id
 
-    def test_update_empty_value_fails(self, guest_client):
+    def test_update_empty_value_fails(self, admin_client):
         """UPDATE with empty value should fail."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -224,7 +224,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
             value="Jazz",
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-block-criteria/{criteria.id}",
             json.dumps({"value": ""}),
             content_type="application/json",

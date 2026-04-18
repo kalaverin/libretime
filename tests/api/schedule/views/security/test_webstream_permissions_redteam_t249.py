@@ -41,7 +41,7 @@ class TestWebstreamPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T562: BOLA - Any user can modify other user's webstream",
     )
-    def test_bola_modify_other_users_webstream(self, guest_client):
+    def test_bola_modify_other_users_webstream(self, admin_client):
         """BOLA: User can PATCH another user's webstream without permission check."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -53,7 +53,7 @@ class TestWebstreamPermissionsRedTeam:
             owner=victim,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{victim_stream.id}",
             json.dumps({"name": "Hacked by Attacker"}),
             content_type="application/json",
@@ -66,7 +66,7 @@ class TestWebstreamPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T563: BOLA - Any user can delete other user's webstream",
     )
-    def test_bola_delete_other_users_webstream(self, guest_client):
+    def test_bola_delete_other_users_webstream(self, admin_client):
         """BOLA: User can DELETE another user's webstream without permission check."""
         victim = baker.make(User, username="testred_victim")
 
@@ -77,13 +77,13 @@ class TestWebstreamPermissionsRedTeam:
             owner=victim,
         )
 
-        response = guest_client.delete(f"/api/v2/webstreams/{victim_stream.id}")
+        response = admin_client.delete(f"/api/v2/webstreams/{victim_stream.id}")
 
         assert (
             response.status_code == 403
         ), f"BOLA: Got {response.status_code}, expected 403 - any user can delete other's stream"
 
-    def test_bola_id_enumeration(self, guest_client):
+    def test_bola_id_enumeration(self, admin_client):
         """BOLA: Sequential ID enumeration allows accessing all webstreams."""
         # Create streams with predictable sequential IDs
         streams = []
@@ -100,7 +100,7 @@ class TestWebstreamPermissionsRedTeam:
         # Try to enumerate all IDs
         found_count = 0
         for i in range(1, 50):  # Try IDs 1-50
-            response = guest_client.get(f"/api/v2/webstreams/{i}")
+            response = admin_client.get(f"/api/v2/webstreams/{i}")
             if response.status_code == 200:
                 found_count += 1
 
@@ -112,7 +112,7 @@ class TestWebstreamPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T564: BOLA - Batch endpoint allows mass access to all streams",
     )
-    def test_bola_batch_access_all_streams(self, guest_client):
+    def test_bola_batch_access_all_streams(self, admin_client):
         """BOLA: Batch/List endpoint returns all users' streams without filtering."""
         # Create streams for multiple users
         for i in range(5):
@@ -125,7 +125,7 @@ class TestWebstreamPermissionsRedTeam:
                     owner=user,
                 )
 
-        response = guest_client.get("/api/v2/webstreams")
+        response = admin_client.get("/api/v2/webstreams")
         assert response.status_code == 200
 
         data = response.json()
@@ -173,7 +173,7 @@ class TestWebstreamPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="BUG: Authorization header case sensitivity - Api-Key works but api-key/API-KEY fails",
     )
-    def test_auth_case_sensitivity(self, guest_client):
+    def test_auth_case_sensitivity(self, admin_client):
         """Broken Auth: Authorization header case sensitivity bypass.
 
         RFC 7230 states header field names are case-insensitive.
@@ -182,7 +182,7 @@ class TestWebstreamPermissionsRedTeam:
         # FIXED: Use credentials() instead of defaults[] for proper auth control
         from rest_framework.test import APIClient
 
-        api_key = guest_client._credentials.get(
+        api_key = admin_client._credentials.get(
             "HTTP_AUTHORIZATION", "",
         ).replace("Api-Key ", "")
 
@@ -223,11 +223,11 @@ class TestWebstreamPermissionsRedTeam:
     # API3:2023 - BOPLA (Broken Object Property Level Authorization)
     # ========================================================================
 
-    def test_bopla_mass_assignment_owner_create(self, guest_client):
+    def test_bopla_mass_assignment_owner_create(self, admin_client):
         """BOPLA: Check if owner field can be mass assigned during CREATE."""
         victim = baker.make(User, username="testred_victim")
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/webstreams",
             json.dumps(
                 {
@@ -254,7 +254,7 @@ class TestWebstreamPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T567: BOPLA - Mass assignment via owner field in UPDATE",
     )
-    def test_bopla_mass_assignment_owner_update(self, guest_client):
+    def test_bopla_mass_assignment_owner_update(self, admin_client):
         """BOPLA: Can change owner to another user during UPDATE."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -266,7 +266,7 @@ class TestWebstreamPermissionsRedTeam:
             owner=attacker,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{attacker_stream.id}",
             json.dumps({"owner": victim.id}),
             content_type="application/json",
@@ -279,7 +279,7 @@ class TestWebstreamPermissionsRedTeam:
                     False
                 ), "BOPLA: Can change owner to another user during UPDATE"
 
-    def test_bopla_mass_assignment_readonly_fields(self, guest_client):
+    def test_bopla_mass_assignment_readonly_fields(self, admin_client):
         """BOPLA: Check if read-only fields can be mass assigned."""
         user = baker.make(User, username="testred_user")
         stream = baker.make(
@@ -291,7 +291,7 @@ class TestWebstreamPermissionsRedTeam:
 
         old_id = stream.id
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps(
                 {
@@ -315,7 +315,7 @@ class TestWebstreamPermissionsRedTeam:
     # API5:2023 - BFLA (Broken Function Level Authorization)
     # ========================================================================
 
-    def test_bfla_method_override_patch_to_delete(self, guest_client):
+    def test_bfla_method_override_patch_to_delete(self, admin_client):
         """BFLA: Check if HTTP method override bypasses permission checks."""
         user = baker.make(User, username="testred_user")
         stream = baker.make(
@@ -326,7 +326,7 @@ class TestWebstreamPermissionsRedTeam:
         )
 
         # Try to override PATCH with DELETE
-        guest_client.patch(
+        admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps({"name": "test"}),
             content_type="application/json",
@@ -339,7 +339,7 @@ class TestWebstreamPermissionsRedTeam:
                 "T569: BFLA - Method override allowed DELETE via PATCH",
             )
 
-    def test_bfla_admin_endpoint_access(self, guest_client):
+    def test_bfla_admin_endpoint_access(self, admin_client):
         """BFLA: Check if admin endpoints are accessible to regular users."""
         admin_endpoints = [
             "/api/v2/admin/webstreams",
@@ -348,7 +348,7 @@ class TestWebstreamPermissionsRedTeam:
         ]
 
         for endpoint in admin_endpoints:
-            response = guest_client.get(endpoint)
+            response = admin_client.get(endpoint)
             # Should return 404 (not found) or 403 (forbidden)
             assert response.status_code in [
                 404,
@@ -359,7 +359,7 @@ class TestWebstreamPermissionsRedTeam:
     # API6:2023 - Unsafe Business Flows
     # ========================================================================
 
-    def test_race_condition_ownership_change(self, guest_client):
+    def test_race_condition_ownership_change(self, admin_client):
         """Unsafe Flow: Check for race condition in concurrent operations."""
         import concurrent.futures
 
@@ -372,7 +372,7 @@ class TestWebstreamPermissionsRedTeam:
         )
 
         def update_stream(name):
-            return guest_client.patch(
+            return admin_client.patch(
                 f"/api/v2/webstreams/{stream.id}",
                 json.dumps({"name": name}),
                 content_type="application/json",
@@ -399,7 +399,7 @@ class TestWebstreamPermissionsRedTeam:
     # API7:2023 - SSRF via URL field
     # ========================================================================
 
-    def test_ssrf_cloud_metadata_in_url(self, guest_client):
+    def test_ssrf_cloud_metadata_in_url(self, admin_client):
         """SSRF: Check if cloud metadata URLs are accepted in webstream URL."""
         user = baker.make(User, username="testred_user")
 
@@ -413,7 +413,7 @@ class TestWebstreamPermissionsRedTeam:
 
         vulnerabilities = []
         for url, desc in ssrf_urls:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/webstreams",
                 json.dumps(
                     {
@@ -436,9 +436,9 @@ class TestWebstreamPermissionsRedTeam:
     # API8:2023 - Security Misconfiguration
     # ========================================================================
 
-    def test_security_headers_present(self, guest_client):
+    def test_security_headers_present(self, admin_client):
         """Misconfig: Check for security headers."""
-        response = guest_client.get("/api/v2/webstreams")
+        response = admin_client.get("/api/v2/webstreams")
 
         required_headers = [
             "X-Content-Type-Options",
@@ -454,9 +454,9 @@ class TestWebstreamPermissionsRedTeam:
         if missing:
             pytest.skip(f"Security headers missing: {missing}")
 
-    def test_cors_misconfiguration(self, guest_client):
+    def test_cors_misconfiguration(self, admin_client):
         """Misconfig: CORS allows arbitrary origins."""
-        response = guest_client.options(
+        response = admin_client.options(
             "/api/v2/webstreams",
             HTTP_ORIGIN="https://attacker.com",
             HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET",
@@ -466,10 +466,10 @@ class TestWebstreamPermissionsRedTeam:
         if allow_origin == "*" or allow_origin == "https://attacker.com":
             pytest.fail("CORS misconfiguration: allows arbitrary origin")
 
-    def test_verbose_error_messages(self, guest_client):
+    def test_verbose_error_messages(self, admin_client):
         """Misconfig: Error messages reveal implementation details."""
         # Trigger error with invalid input
-        response = guest_client.get("/api/v2/webstreams/invalid'union")
+        response = admin_client.get("/api/v2/webstreams/invalid'union")
 
         error_body = response.content.decode().lower()
 
@@ -495,7 +495,7 @@ class TestWebstreamPermissionsRedTeam:
     # Injection Attacks
     # ========================================================================
 
-    def test_nosql_injection_in_query(self, guest_client):
+    def test_nosql_injection_in_query(self, admin_client):
         """Injection: NoSQL operators in query parameters."""
         nosql_payloads = [
             "?owner__ne=1",
@@ -504,14 +504,14 @@ class TestWebstreamPermissionsRedTeam:
         ]
 
         for payload in nosql_payloads:
-            response = guest_client.get(f"/api/v2/webstreams{payload}")
+            response = admin_client.get(f"/api/v2/webstreams{payload}")
             # Should not cause 500 or unexpected behavior
             assert response.status_code in [
                 200,
                 400,
             ], f"NoSQLi '{payload}' caused {response.status_code}"
 
-    def test_sql_injection_in_filter(self, guest_client):
+    def test_sql_injection_in_filter(self, admin_client):
         """Injection: SQLi in filter parameters."""
         sqli_payloads = [
             "?name=' OR '1'='1",
@@ -520,7 +520,7 @@ class TestWebstreamPermissionsRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.get(f"/api/v2/webstreams{payload}")
+            response = admin_client.get(f"/api/v2/webstreams{payload}")
             # Should not cause 500
             assert (
                 response.status_code != 500
@@ -530,19 +530,19 @@ class TestWebstreamPermissionsRedTeam:
     # Rate Limiting Bypasses
     # ========================================================================
 
-    def test_rate_limit_bypass_via_headers(self, guest_client):
+    def test_rate_limit_bypass_via_headers(self, admin_client):
         """Rate Limit: Bypass via X-Forwarded-For header."""
         user = baker.make(User, username="testred_user")
 
         # Make requests with different X-Forwarded-For values
         for i in range(20):
-            response = guest_client.get(
+            response = admin_client.get(
                 "/api/v2/webstreams",
                 HTTP_X_FORWARDED_FOR=f"1.2.3.{i}",
             )
             assert response.status_code == 200
 
-    def test_rate_limit_bypass_via_user_agent(self, guest_client):
+    def test_rate_limit_bypass_via_user_agent(self, admin_client):
         """Rate Limit: Bypass via User-Agent rotation."""
         user_agents = [
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
@@ -553,7 +553,7 @@ class TestWebstreamPermissionsRedTeam:
         ]
 
         for i in range(25):
-            response = guest_client.get(
+            response = admin_client.get(
                 "/api/v2/webstreams",
                 HTTP_USER_AGENT=user_agents[i % len(user_agents)],
             )
@@ -563,7 +563,7 @@ class TestWebstreamPermissionsRedTeam:
     # Input Validation
     # ========================================================================
 
-    def test_unicode_injection_in_fields(self, guest_client):
+    def test_unicode_injection_in_fields(self, admin_client):
         """Validation: Unicode bypass in permission checks."""
         user = baker.make(User, username="testred_user")
 
@@ -576,7 +576,7 @@ class TestWebstreamPermissionsRedTeam:
         ]
 
         for payload in unicode_payloads:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/webstreams",
                 json.dumps(
                     {
@@ -593,7 +593,7 @@ class TestWebstreamPermissionsRedTeam:
                 400,
             ], f"Unicode '{repr(payload)}' caused unexpected {response.status_code}"
 
-    def test_path_traversal_in_id(self, guest_client):
+    def test_path_traversal_in_id(self, admin_client):
         """Validation: Path traversal in object ID."""
         traversal_ids = [
             "../../../etc/passwd",
@@ -602,7 +602,7 @@ class TestWebstreamPermissionsRedTeam:
         ]
 
         for test_id in traversal_ids:
-            response = guest_client.get(f"/api/v2/webstreams/{test_id}")
+            response = admin_client.get(f"/api/v2/webstreams/{test_id}")
             assert response.status_code in [
                 400,
                 404,
@@ -612,7 +612,7 @@ class TestWebstreamPermissionsRedTeam:
     # Information Disclosure
     # ========================================================================
 
-    def test_timing_attack_user_enumeration(self, guest_client):
+    def test_timing_attack_user_enumeration(self, admin_client):
         """Info Leak: Timing differences leak user existence."""
         # Time request for existing vs non-existing stream
         existing_times = []
@@ -629,13 +629,13 @@ class TestWebstreamPermissionsRedTeam:
 
         for _ in range(3):
             start = time.time()
-            guest_client.get(f"/api/v2/webstreams/{stream.id}")
+            admin_client.get(f"/api/v2/webstreams/{stream.id}")
             existing_times.append(time.time() - start)
 
         # Non-existing stream
         for _ in range(3):
             start = time.time()
-            guest_client.get("/api/v2/webstreams/999999")
+            admin_client.get("/api/v2/webstreams/999999")
             nonexistent_times.append(time.time() - start)
 
         avg_existing = sum(existing_times) / len(existing_times)
@@ -652,9 +652,9 @@ class TestWebstreamPermissionsRedTeam:
                     f"Timing leak: existing={avg_existing:.4f}s, nonexistent={avg_nonexistent:.4f}s (ratio {ratio:.1f})",
                 )
 
-    def test_field_enumeration_via_error(self, guest_client):
+    def test_field_enumeration_via_error(self, admin_client):
         """Info Leak: Error messages reveal valid field names."""
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/webstreams",
             json.dumps(
                 {

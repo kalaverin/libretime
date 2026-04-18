@@ -40,7 +40,7 @@ class TestScheduleDeleteRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T598: BOLA - Can delete other user's schedule")
-    def test_bola_delete_other_users_schedule(self, guest_client, faker):
+    def test_bola_delete_other_users_schedule(self, admin_client, faker):
         """BOLA: Can delete another user's schedule entry."""
         victim = baker.make(
             User,
@@ -68,7 +68,7 @@ class TestScheduleDeleteRedTeam:
             broadcasted=1,
         )
 
-        response = guest_client.delete(f"/api/v2/schedule/{victim_schedule.id}")
+        response = admin_client.delete(f"/api/v2/schedule/{victim_schedule.id}")
         assert (
             response.status_code == 403
         ), f"BOLA: Got {response.status_code}, expected 403 - can delete other's schedule"
@@ -76,7 +76,7 @@ class TestScheduleDeleteRedTeam:
     @pytest.mark.xfail(
         reason="T599: BOLA - DELETE returns wrong status for other's schedule",
     )
-    def test_bola_delete_other_users_schedule_status(self, guest_client, faker):
+    def test_bola_delete_other_users_schedule_status(self, admin_client, faker):
         """BOLA: DELETE of other's schedule returns wrong status code."""
         victim = baker.make(
             User,
@@ -104,7 +104,7 @@ class TestScheduleDeleteRedTeam:
             broadcasted=1,
         )
 
-        response = guest_client.delete(f"/api/v2/schedule/{victim_schedule.id}")
+        response = admin_client.delete(f"/api/v2/schedule/{victim_schedule.id}")
         if response.status_code == 204:
             pytest.fail(
                 "T599: BOLA - Successfully deleted other user's schedule!",
@@ -114,7 +114,7 @@ class TestScheduleDeleteRedTeam:
                 "T599: Info leak - 404 reveals schedule doesn't exist (should be 403)",
             )
 
-    def test_bola_batch_delete_scope(self, guest_client, faker):
+    def test_bola_batch_delete_scope(self, admin_client, faker):
         """BOLA: Batch delete scope verification."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -143,7 +143,7 @@ class TestScheduleDeleteRedTeam:
             schedules.append(schedule)
 
         initial_count = Schedule.objects.count()
-        guest_client.delete(f"/api/v2/schedule/{schedules[0].id}")
+        admin_client.delete(f"/api/v2/schedule/{schedules[0].id}")
         final_count = Schedule.objects.count()
 
         if initial_count - final_count > 1:
@@ -164,7 +164,7 @@ class TestScheduleDeleteRedTeam:
         """T600: Auth: Invalid token should be rejected with 403.
 
         FIXED: Use credentials() to properly override auth.
-        defaults[] does NOT override credentials() set in guest_client fixture.
+        defaults[] does NOT override credentials() set in admin_client fixture.
         """
         from rest_framework.test import APIClient
 
@@ -182,7 +182,7 @@ class TestScheduleDeleteRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="Race condition - multiple deletes can succeed")
-    def test_race_condition_concurrent_delete(self, guest_client, faker):
+    def test_race_condition_concurrent_delete(self, admin_client, faker):
         """Race: Concurrent delete of same schedule."""
         import concurrent.futures
 
@@ -210,7 +210,7 @@ class TestScheduleDeleteRedTeam:
         )
 
         def delete_schedule():
-            return guest_client.delete(
+            return admin_client.delete(
                 f"/api/v2/schedule/{schedule.id}",
             ).status_code
 
@@ -235,7 +235,7 @@ class TestScheduleDeleteRedTeam:
     @pytest.mark.xfail(
         reason="T601: Mass deletion - No rate limiting on delete",
     )
-    def test_mass_deletion_rate_limit(self, guest_client, faker):
+    def test_mass_deletion_rate_limit(self, admin_client, faker):
         """Unsafe Flow: Rate limiting on delete operations."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -266,7 +266,7 @@ class TestScheduleDeleteRedTeam:
         delete_count = 0
         rate_limited = False
         for schedule in schedules:
-            response = guest_client.delete(f"/api/v2/schedule/{schedule.id}")
+            response = admin_client.delete(f"/api/v2/schedule/{schedule.id}")
             if response.status_code == 204:
                 delete_count += 1
             elif response.status_code == 429:
@@ -280,7 +280,7 @@ class TestScheduleDeleteRedTeam:
     # API8:2023 - Security Misconfiguration
     # ========================================================================
 
-    def test_http_method_override_delete(self, guest_client, faker):
+    def test_http_method_override_delete(self, admin_client, faker):
         """Misconfig: HTTP method override may bypass delete restrictions."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -305,7 +305,7 @@ class TestScheduleDeleteRedTeam:
             broadcasted=1,
         )
 
-        guest_client.get(
+        admin_client.get(
             f"/api/v2/schedule/{schedule.id}",
             HTTP_X_HTTP_METHOD_OVERRIDE="DELETE",
         )
@@ -317,7 +317,7 @@ class TestScheduleDeleteRedTeam:
     # Injection Attacks
     # ========================================================================
 
-    def test_sqli_in_delete_id(self, guest_client, faker):
+    def test_sqli_in_delete_id(self, admin_client, faker):
         """Injection: SQLi in DELETE id path parameter."""
         sqli_payloads = [
             "1 OR 1=1",
@@ -327,13 +327,13 @@ class TestScheduleDeleteRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.delete(f"/api/v2/schedule/{payload}")
+            response = admin_client.delete(f"/api/v2/schedule/{payload}")
             assert response.status_code in [
                 400,
                 404,
             ], f"SQLi '{payload}' caused {response.status_code}"
 
-    def test_path_traversal_in_delete_id(self, guest_client, faker):
+    def test_path_traversal_in_delete_id(self, admin_client, faker):
         """Injection: Path traversal in DELETE id."""
         traversal_ids = [
             "../../../etc/passwd",
@@ -342,7 +342,7 @@ class TestScheduleDeleteRedTeam:
         ]
 
         for test_id in traversal_ids:
-            response = guest_client.delete(f"/api/v2/schedule/{test_id}")
+            response = admin_client.delete(f"/api/v2/schedule/{test_id}")
             assert response.status_code in [
                 400,
                 404,
@@ -352,19 +352,19 @@ class TestScheduleDeleteRedTeam:
     # Input Validation
     # ========================================================================
 
-    def test_unicode_in_delete_id(self, guest_client, faker):
+    def test_unicode_in_delete_id(self, admin_client, faker):
         """Validation: Unicode in DELETE id handled gracefully."""
-        response = guest_client.delete("/api/v2/schedule/日本語")
+        response = admin_client.delete("/api/v2/schedule/日本語")
         assert response.status_code in [400, 404]
 
-    def test_negative_id_delete(self, guest_client, faker):
+    def test_negative_id_delete(self, admin_client, faker):
         """Validation: Negative ID in DELETE."""
-        response = guest_client.delete("/api/v2/schedule/-1")
+        response = admin_client.delete("/api/v2/schedule/-1")
         assert response.status_code == 404
 
-    def test_null_bytes_in_delete_id(self, guest_client, faker):
+    def test_null_bytes_in_delete_id(self, admin_client, faker):
         """Validation: Null bytes in DELETE id."""
-        response = guest_client.delete("/api/v2/schedule/1%00test")
+        response = admin_client.delete("/api/v2/schedule/1%00test")
         assert response.status_code in [400, 404]
 
     # ========================================================================
@@ -374,7 +374,7 @@ class TestScheduleDeleteRedTeam:
     @pytest.mark.xfail(
         reason="T602: Info Leak - DELETE error reveals schedule existence",
     )
-    def test_error_message_leaks_existence_delete(self, guest_client, faker):
+    def test_error_message_leaks_existence_delete(self, admin_client, faker):
         """Info Leak: Error messages reveal if schedule exists."""
         victim = baker.make(
             User,
@@ -402,10 +402,10 @@ class TestScheduleDeleteRedTeam:
             broadcasted=1,
         )
 
-        response_existing = guest_client.delete(
+        response_existing = admin_client.delete(
             f"/api/v2/schedule/{victim_schedule.id}",
         )
-        response_nonexistent = guest_client.delete("/api/v2/schedule/999999")
+        response_nonexistent = admin_client.delete("/api/v2/schedule/999999")
 
         if response_existing.status_code != response_nonexistent.status_code:
             pytest.fail(
@@ -417,7 +417,7 @@ class TestScheduleDeleteRedTeam:
     # ID Enumeration
     # ========================================================================
 
-    def test_id_enumeration_timing_attack(self, guest_client, faker):
+    def test_id_enumeration_timing_attack(self, admin_client, faker):
         """Security: Timing difference between existing and non-existing IDs."""
         import time
 
@@ -445,11 +445,11 @@ class TestScheduleDeleteRedTeam:
         )
 
         start = time.time()
-        guest_client.delete(f"/api/v2/schedule/{schedule.id}")
+        admin_client.delete(f"/api/v2/schedule/{schedule.id}")
         time_existing = time.time() - start
 
         start = time.time()
-        guest_client.delete("/api/v2/schedule/999999")
+        admin_client.delete("/api/v2/schedule/999999")
         time_nonexistent = time.time() - start
 
         if time_existing > 0:
@@ -464,7 +464,7 @@ class TestScheduleDeleteRedTeam:
     # Business Logic
     # ========================================================================
 
-    def test_double_delete_returns_404(self, guest_client, faker):
+    def test_double_delete_returns_404(self, admin_client, faker):
         """Logic: Double delete should return 404."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -489,6 +489,6 @@ class TestScheduleDeleteRedTeam:
             broadcasted=1,
         )
 
-        guest_client.delete(f"/api/v2/schedule/{schedule.id}")
-        response = guest_client.delete(f"/api/v2/schedule/{schedule.id}")
+        admin_client.delete(f"/api/v2/schedule/{schedule.id}")
+        response = admin_client.delete(f"/api/v2/schedule/{schedule.id}")
         assert response.status_code == 404

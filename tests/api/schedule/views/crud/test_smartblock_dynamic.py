@@ -25,7 +25,7 @@ class TestSmartBlockDynamicQuery:
     def test_user(self):
         return baker.make(User, username="smartblock_test")
 
-    def test_dynamic_block_kind(self, guest_client, test_user):
+    def test_dynamic_block_kind(self, admin_client, test_user):
         """Dynamic block should have kind='dynamic'."""
         block = baker.make(
             SmartBlock,
@@ -34,13 +34,13 @@ class TestSmartBlockDynamicQuery:
             kind=SmartBlock.Kind.DYNAMIC,
         )
 
-        response = guest_client.get(f"/api/v2/smart-blocks/{block.id}")
+        response = admin_client.get(f"/api/v2/smart-blocks/{block.id}")
 
         assert response.status_code == 200
         data = response.json()
         assert data["kind"] == "dynamic"
 
-    def test_dynamic_block_has_criteria(self, guest_client, test_user):
+    def test_dynamic_block_has_criteria(self, admin_client, test_user):
         """Dynamic block can have criteria."""
         block = baker.make(
             SmartBlock,
@@ -56,13 +56,13 @@ class TestSmartBlockDynamicQuery:
             value="test",
         )
 
-        response = guest_client.get(f"/api/v2/smart-blocks/{block.id}")
+        response = admin_client.get(f"/api/v2/smart-blocks/{block.id}")
 
         assert response.status_code == 200
         data = response.json()
         assert data["kind"] == "dynamic"
 
-    def test_static_block_no_criteria_needed(self, guest_client, test_user):
+    def test_static_block_no_criteria_needed(self, admin_client, test_user):
         """Static block works without criteria."""
         block = baker.make(
             SmartBlock,
@@ -71,17 +71,17 @@ class TestSmartBlockDynamicQuery:
             kind=SmartBlock.Kind.STATIC,
         )
 
-        response = guest_client.get(f"/api/v2/smart-blocks/{block.id}")
+        response = admin_client.get(f"/api/v2/smart-blocks/{block.id}")
 
         assert response.status_code == 200
         data = response.json()
         assert data["kind"] == "static"
 
-    def test_create_dynamic_block(self, guest_client, test_user):
+    def test_create_dynamic_block(self, admin_client, test_user):
         """CREATE should support dynamic kind."""
         import json
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-blocks",
             json.dumps(
                 {
@@ -98,11 +98,11 @@ class TestSmartBlockDynamicQuery:
         data = response.json()
         assert data["kind"] == "dynamic"
 
-    def test_create_static_block(self, guest_client, test_user):
+    def test_create_static_block(self, admin_client, test_user):
         """CREATE should support static kind."""
         import json
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-blocks",
             json.dumps(
                 {
@@ -119,7 +119,7 @@ class TestSmartBlockDynamicQuery:
         data = response.json()
         assert data["kind"] == "static"
 
-    def test_update_block_kind(self, guest_client, test_user):
+    def test_update_block_kind(self, admin_client, test_user):
         """UPDATE should allow changing kind."""
         import json
 
@@ -130,7 +130,7 @@ class TestSmartBlockDynamicQuery:
             kind=SmartBlock.Kind.STATIC,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps(
                 {

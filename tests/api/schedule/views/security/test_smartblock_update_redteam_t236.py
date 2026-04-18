@@ -37,7 +37,7 @@ class TestSmartBlockUpdateRedTeam:
     @pytest.mark.xfail(
         reason="T434: BOLA - can update other user's block via PATCH",
     )
-    def test_bola_patch_other_users_block(self, guest_client):
+    def test_bola_patch_other_users_block(self, admin_client):
         """BOLA: Attacker should NOT be able to PATCH victim's block."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -50,7 +50,7 @@ class TestSmartBlockUpdateRedTeam:
         )
 
         # Attacker tries to update victim's block
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-blocks/{victim_block.id}",
             json.dumps({"name": "Hacked by Attacker"}),
             content_type="application/json",
@@ -63,7 +63,7 @@ class TestSmartBlockUpdateRedTeam:
     @pytest.mark.xfail(
         reason="T435: BOLA - can update other user's block via PUT",
     )
-    def test_bola_put_other_users_block(self, guest_client):
+    def test_bola_put_other_users_block(self, admin_client):
         """BOLA: Attacker should NOT be able to PUT victim's block."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -75,7 +75,7 @@ class TestSmartBlockUpdateRedTeam:
             owner=victim,
         )
 
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/smart-blocks/{victim_block.id}",
             json.dumps(
                 {
@@ -90,7 +90,7 @@ class TestSmartBlockUpdateRedTeam:
             response.status_code == 403
         ), f"BOLA: Attacker can PUT victim's block (got {response.status_code})"
 
-    def test_validation_put_null_required_fields(self, guest_client):
+    def test_validation_put_null_required_fields(self, admin_client):
         """Validation: PUT with null for required fields should fail.
 
         BUG T443: Currently returns 200 instead of 400.
@@ -103,7 +103,7 @@ class TestSmartBlockUpdateRedTeam:
             owner=user,
         )
 
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps({"name": None, "kind": None}),
             content_type="application/json",
@@ -117,7 +117,7 @@ class TestSmartBlockUpdateRedTeam:
     @pytest.mark.xfail(
         reason="T443: PUT with null required fields returns 200 instead of 400",
     )
-    def test_validation_put_null_required_fields_xfail(self, guest_client):
+    def test_validation_put_null_required_fields_xfail(self, admin_client):
         """Documenting actual buggy behavior for T443."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -127,7 +127,7 @@ class TestSmartBlockUpdateRedTeam:
             owner=user,
         )
 
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps({"name": None, "kind": None}),
             content_type="application/json",
@@ -140,7 +140,7 @@ class TestSmartBlockUpdateRedTeam:
     # API3:2023 - BOPLA (Mass Assignment via PATCH/PUT)
     # ========================================================================
 
-    def test_secure_id_cannot_be_changed_via_patch(self, guest_client):
+    def test_secure_id_cannot_be_changed_via_patch(self, admin_client):
         """Security: Block id cannot be changed via PATCH (Django protects id)."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -151,7 +151,7 @@ class TestSmartBlockUpdateRedTeam:
         )
         original_id = block.id
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps({"id": 99999}),
             content_type="application/json",
@@ -168,7 +168,7 @@ class TestSmartBlockUpdateRedTeam:
     @pytest.mark.xfail(
         reason="T438: BOPLA - can change owner via PATCH (account hijacking)",
     )
-    def test_bopla_patch_change_owner(self, guest_client):
+    def test_bopla_patch_change_owner(self, admin_client):
         """BOPLA: Should NOT be able to change owner (block hijacking)."""
         user = baker.make(User, username="testred_user")
         other_user = baker.make(User, username="testred_other")
@@ -179,7 +179,7 @@ class TestSmartBlockUpdateRedTeam:
             owner=user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps({"owner": other_user.id}),
             content_type="application/json",
@@ -194,7 +194,7 @@ class TestSmartBlockUpdateRedTeam:
     @pytest.mark.xfail(
         reason="T439: BOPLA - can backdate created_at via PATCH",
     )
-    def test_bopla_patch_backdate_created_at(self, guest_client):
+    def test_bopla_patch_backdate_created_at(self, admin_client):
         """BOPLA: Should NOT be able to manipulate created_at."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -204,7 +204,7 @@ class TestSmartBlockUpdateRedTeam:
             owner=user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps({"created_at": "2010-01-01T00:00:00Z"}),
             content_type="application/json",
@@ -222,7 +222,7 @@ class TestSmartBlockUpdateRedTeam:
     @pytest.mark.xfail(
         reason="T440: BOPLA - can set future updated_at via PATCH",
     )
-    def test_bopla_patch_future_updated_at(self, guest_client):
+    def test_bopla_patch_future_updated_at(self, admin_client):
         """BOPLA: Should NOT be able to set future updated_at."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -232,7 +232,7 @@ class TestSmartBlockUpdateRedTeam:
             owner=user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps({"updated_at": "2035-12-31T23:59:59Z"}),
             content_type="application/json",
@@ -247,7 +247,7 @@ class TestSmartBlockUpdateRedTeam:
     @pytest.mark.xfail(
         reason="T441: BOPLA - can change kind in unexpected ways",
     )
-    def test_bopla_patch_invalid_kind_values(self, guest_client):
+    def test_bopla_patch_invalid_kind_values(self, admin_client):
         """BOPLA: Should validate kind field properly."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -267,7 +267,7 @@ class TestSmartBlockUpdateRedTeam:
         ]
 
         for kind in invalid_kinds:
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/smart-blocks/{block.id}",
                 json.dumps({"kind": kind}),
                 content_type="application/json",
@@ -284,9 +284,9 @@ class TestSmartBlockUpdateRedTeam:
     # IDOR - ID Manipulation
     # ========================================================================
 
-    def test_idor_negative_id(self, guest_client):
+    def test_idor_negative_id(self, admin_client):
         """IDOR: Negative ID should return 404, not crash."""
-        response = guest_client.patch(
+        response = admin_client.patch(
             "/api/v2/smart-blocks/-1",
             json.dumps({"name": "Test"}),
             content_type="application/json",
@@ -296,9 +296,9 @@ class TestSmartBlockUpdateRedTeam:
             400,
         ], f"Negative ID returned {response.status_code}"
 
-    def test_idor_zero_id(self, guest_client):
+    def test_idor_zero_id(self, admin_client):
         """IDOR: Zero ID should return 404."""
-        response = guest_client.patch(
+        response = admin_client.patch(
             "/api/v2/smart-blocks/0",
             json.dumps({"name": "Test"}),
             content_type="application/json",
@@ -307,7 +307,7 @@ class TestSmartBlockUpdateRedTeam:
             response.status_code == 404
         ), f"Zero ID returned {response.status_code}"
 
-    def test_idor_sql_injection_in_path(self, guest_client):
+    def test_idor_sql_injection_in_path(self, admin_client):
         """IDOR: SQL injection in path parameter."""
         sqli_ids = [
             "1' OR '1'='1",
@@ -317,7 +317,7 @@ class TestSmartBlockUpdateRedTeam:
         ]
 
         for bad_id in sqli_ids:
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/smart-blocks/{bad_id}",
                 json.dumps({"name": "Test"}),
                 content_type="application/json",
@@ -328,7 +328,7 @@ class TestSmartBlockUpdateRedTeam:
                 400,
             ], f"SQLi in path '{bad_id}' caused {response.status_code}"
 
-    def test_idor_path_traversal(self, guest_client):
+    def test_idor_path_traversal(self, admin_client):
         """IDOR: Path traversal attempts."""
         traversal_paths = [
             "../../../etc/passwd",
@@ -338,7 +338,7 @@ class TestSmartBlockUpdateRedTeam:
         ]
 
         for path in traversal_paths:
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/smart-blocks/{path}",
                 json.dumps({"name": "Test"}),
                 content_type="application/json",
@@ -352,7 +352,7 @@ class TestSmartBlockUpdateRedTeam:
     # Injection Attacks in Update Payload
     # ========================================================================
 
-    def test_injection_xss_in_name_update(self, guest_client):
+    def test_injection_xss_in_name_update(self, admin_client):
         """Injection: XSS payloads in name update."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -371,7 +371,7 @@ class TestSmartBlockUpdateRedTeam:
         ]
 
         for payload in xss_payloads:
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/smart-blocks/{block.id}",
                 json.dumps({"name": payload}),
                 content_type="application/json",
@@ -382,7 +382,7 @@ class TestSmartBlockUpdateRedTeam:
                 400,
             ], f"XSS payload caused {response.status_code}"
 
-    def test_injection_sql_in_description_update(self, guest_client):
+    def test_injection_sql_in_description_update(self, admin_client):
         """Injection: SQLi in description field."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -400,7 +400,7 @@ class TestSmartBlockUpdateRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/smart-blocks/{block.id}",
                 json.dumps({"description": payload}),
                 content_type="application/json",
@@ -411,7 +411,7 @@ class TestSmartBlockUpdateRedTeam:
                 400,
             ], f"SQLi payload caused {response.status_code}"
 
-    def test_injection_command_in_name(self, guest_client):
+    def test_injection_command_in_name(self, admin_client):
         """Injection: Command injection attempts."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -430,7 +430,7 @@ class TestSmartBlockUpdateRedTeam:
         ]
 
         for payload in cmd_payloads:
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/smart-blocks/{block.id}",
                 json.dumps({"name": payload}),
                 content_type="application/json",
@@ -444,7 +444,7 @@ class TestSmartBlockUpdateRedTeam:
     # Race Conditions
     # ========================================================================
 
-    def test_concurrent_patch_same_block(self, guest_client):
+    def test_concurrent_patch_same_block(self, admin_client):
         """Stress: Concurrent PATCH on same block - Django handles concurrency well.
 
         NOTE: This test verifies that the system handles concurrent updates without
@@ -462,7 +462,7 @@ class TestSmartBlockUpdateRedTeam:
         names = ["Update1", "Update2", "Update3", "Update4", "Update5"]
 
         def patch_block(name):
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/smart-blocks/{block.id}",
                 json.dumps({"name": name}),
                 content_type="application/json",
@@ -496,7 +496,7 @@ class TestSmartBlockUpdateRedTeam:
     # HTTP Attacks
     # ========================================================================
 
-    def test_http_method_override_on_patch(self, guest_client):
+    def test_http_method_override_on_patch(self, admin_client):
         """HTTP: Method override header on PATCH."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -506,7 +506,7 @@ class TestSmartBlockUpdateRedTeam:
             owner=user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps({"name": "Hacked"}),
             content_type="application/json",
@@ -519,7 +519,7 @@ class TestSmartBlockUpdateRedTeam:
             405,
         ], f"Method override caused {response.status_code}"
 
-    def test_http_patch_with_query_params(self, guest_client):
+    def test_http_patch_with_query_params(self, admin_client):
         """HTTP: PATCH with unexpected query parameters."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -529,7 +529,7 @@ class TestSmartBlockUpdateRedTeam:
             owner=user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-blocks/{block.id}?name=Injected&kind=dynamic",
             json.dumps({"name": "Valid Update"}),
             content_type="application/json",
@@ -546,7 +546,7 @@ class TestSmartBlockUpdateRedTeam:
     # Validation Bypass
     # ========================================================================
 
-    def test_validation_patch_empty_name_variations(self, guest_client):
+    def test_validation_patch_empty_name_variations(self, admin_client):
         """Validation: Various empty name attempts via PATCH."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -570,7 +570,7 @@ class TestSmartBlockUpdateRedTeam:
         ]
 
         for name in empty_names:
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/smart-blocks/{block.id}",
                 json.dumps({"name": name}),
                 content_type="application/json",
@@ -579,7 +579,7 @@ class TestSmartBlockUpdateRedTeam:
                 response.status_code == 400
             ), f"Empty name '{repr(name)}' accepted via PATCH"
 
-    def test_validation_patch_name_too_long(self, guest_client):
+    def test_validation_patch_name_too_long(self, admin_client):
         """Validation: Extremely long name via PATCH."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -589,7 +589,7 @@ class TestSmartBlockUpdateRedTeam:
             owner=user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps({"name": "X" * 10000}),
             content_type="application/json",
@@ -599,7 +599,7 @@ class TestSmartBlockUpdateRedTeam:
             413,
         ], f"Long name accepted via PATCH: {response.status_code}"
 
-    def test_validation_patch_null_name(self, guest_client):
+    def test_validation_patch_null_name(self, admin_client):
         """Validation: Null name via PATCH should fail."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -609,7 +609,7 @@ class TestSmartBlockUpdateRedTeam:
             owner=user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps({"name": None}),
             content_type="application/json",
@@ -618,7 +618,7 @@ class TestSmartBlockUpdateRedTeam:
             response.status_code == 400
         ), f"Null name accepted via PATCH: {response.status_code}"
 
-    def test_validation_patch_with_only_id(self, guest_client):
+    def test_validation_patch_with_only_id(self, admin_client):
         """Validation: PATCH with only id should not change anything."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -628,7 +628,7 @@ class TestSmartBlockUpdateRedTeam:
             owner=user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps({"id": 99999}),
             content_type="application/json",
@@ -645,7 +645,7 @@ class TestSmartBlockUpdateRedTeam:
     # Fuzzing
     # ========================================================================
 
-    def test_fuzzing_naughty_strings_in_patch(self, guest_client):
+    def test_fuzzing_naughty_strings_in_patch(self, admin_client):
         """Fuzzing: SecLists naughty strings in PATCH."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -680,7 +680,7 @@ class TestSmartBlockUpdateRedTeam:
         ]
 
         for string in naughty_strings:
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/smart-blocks/{block.id}",
                 json.dumps({"name": string}),
                 content_type="application/json",
@@ -690,7 +690,7 @@ class TestSmartBlockUpdateRedTeam:
                 400,
             ], f"Naughty string '{string}' caused {response.status_code}"
 
-    def test_fuzzing_unicode_normalization(self, guest_client):
+    def test_fuzzing_unicode_normalization(self, admin_client):
         """Fuzzing: Unicode normalization attacks."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -710,7 +710,7 @@ class TestSmartBlockUpdateRedTeam:
         ]
 
         for variant in unicode_variants:
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/smart-blocks/{block.id}",
                 json.dumps({"name": variant}),
                 content_type="application/json",
@@ -724,7 +724,7 @@ class TestSmartBlockUpdateRedTeam:
     # JSON Attacks
     # ========================================================================
 
-    def test_json_deep_nesting_in_patch(self, guest_client):
+    def test_json_deep_nesting_in_patch(self, admin_client):
         """JSON: Deeply nested structure in PATCH."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -739,7 +739,7 @@ class TestSmartBlockUpdateRedTeam:
         for _ in range(50):
             nested = {"nested": nested}
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps(nested),
             content_type="application/json",
@@ -750,7 +750,7 @@ class TestSmartBlockUpdateRedTeam:
             413,
         ], f"Deep nesting caused {response.status_code}"
 
-    def test_json_array_instead_of_object(self, guest_client):
+    def test_json_array_instead_of_object(self, admin_client):
         """JSON: Array instead of object in PATCH."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -760,7 +760,7 @@ class TestSmartBlockUpdateRedTeam:
             owner=user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps([{"name": "Test"}]),
             content_type="application/json",
@@ -770,7 +770,7 @@ class TestSmartBlockUpdateRedTeam:
             415,
         ], f"Array body accepted: {response.status_code}"
 
-    def test_json_duplicate_keys_in_patch(self, guest_client):
+    def test_json_duplicate_keys_in_patch(self, admin_client):
         """JSON: Duplicate keys behavior in PATCH."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -781,7 +781,7 @@ class TestSmartBlockUpdateRedTeam:
         )
 
         # Raw JSON with duplicate keys
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             '{"name": "First", "name": "Second"}',
             content_type="application/json",

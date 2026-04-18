@@ -67,7 +67,7 @@ class TestPodcastCreateRedTeamBOPLA:
 
     def test_bopla_mass_assignment_owner_id(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
         fake_url,
@@ -79,7 +79,7 @@ class TestPodcastCreateRedTeamBOPLA:
         Should not allow setting owner to another user.
         """
         # Try to assign ownership to admin while being regular_user
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
 
         data = {
             "url": fake_url,
@@ -87,7 +87,7 @@ class TestPodcastCreateRedTeamBOPLA:
             "owner": admin_user.id,  # Try to assign to admin
         }
 
-        response = guest_client.post("/api/v2/podcasts", data, format="json")
+        response = admin_client.post("/api/v2/podcasts", data, format="json")
 
         if response.status_code == 201:
             result = response.json()
@@ -96,7 +96,7 @@ class TestPodcastCreateRedTeamBOPLA:
 
     def test_bopla_mass_assignment_own_user_id(
         self,
-        guest_client,
+        admin_client,
         regular_user,
         fake_url,
         fake_catch_phrase,
@@ -104,7 +104,7 @@ class TestPodcastCreateRedTeamBOPLA:
         """
         BOPLA: Try to set owner to self (should work or be auto-assigned).
         """
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
 
         data = {
             "url": fake_url,
@@ -112,7 +112,7 @@ class TestPodcastCreateRedTeamBOPLA:
             "owner": regular_user.id,
         }
 
-        response = guest_client.post("/api/v2/podcasts", data, format="json")
+        response = admin_client.post("/api/v2/podcasts", data, format="json")
 
         # If 201 and owner is set correctly, BOPLA may exist
         if response.status_code == 201:
@@ -121,7 +121,7 @@ class TestPodcastCreateRedTeamBOPLA:
 
     def test_bopla_mass_assignment_id_field(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -139,7 +139,7 @@ class TestPodcastCreateRedTeamBOPLA:
             "title": fake_catch_phrase,
         }
 
-        response = guest_client.post("/api/v2/podcasts", data, format="json")
+        response = admin_client.post("/api/v2/podcasts", data, format="json")
 
         if response.status_code == 201:
             result = response.json()
@@ -148,7 +148,7 @@ class TestPodcastCreateRedTeamBOPLA:
 
     def test_bopla_extra_fields_ignored(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -167,7 +167,7 @@ class TestPodcastCreateRedTeamBOPLA:
             "created_by_system": True,  # Unknown field
         }
 
-        response = guest_client.post("/api/v2/podcasts", data, format="json")
+        response = admin_client.post("/api/v2/podcasts", data, format="json")
 
         # Should reject with 400, not silently ignore
         if response.status_code == 201:
@@ -175,7 +175,7 @@ class TestPodcastCreateRedTeamBOPLA:
 
     def test_bopla_readonly_fields_in_create(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -189,7 +189,7 @@ class TestPodcastCreateRedTeamBOPLA:
             "created_at": "2020-01-01T00:00:00Z",  # Should be auto-set
         }
 
-        response = guest_client.post("/api/v2/podcasts", data, format="json")
+        response = admin_client.post("/api/v2/podcasts", data, format="json")
 
         if response.status_code == 201:
             result = response.json()
@@ -207,7 +207,7 @@ class TestPodcastCreateRedTeamBOPLA:
 class TestPodcastCreateRedTeamSSRF:
     """API7:2023 Server Side Request Forgery via URL field."""
 
-    def test_ssrf_internal_url_in_podcast_url(self, guest_client, admin_user):
+    def test_ssrf_internal_url_in_podcast_url(self, admin_client, admin_user):
         """
         SSRF: Try to create podcast with internal URL.
 
@@ -219,7 +219,7 @@ class TestPodcastCreateRedTeamSSRF:
                 "title": "SSRF Test",
             }
 
-            response = guest_client.post("/api/v2/podcasts", data, format="json")
+            response = admin_client.post("/api/v2/podcasts", data, format="json")
 
             # If response contains internal data or takes long time, SSRF exists
             if response.status_code == 500:
@@ -234,7 +234,7 @@ class TestPodcastCreateRedTeamSSRF:
                 ):
                     pytest.xfail(f"T705: SSRF via URL field: {url}")
 
-    def test_ssrf_url_with_credentials(self, guest_client, admin_user):
+    def test_ssrf_url_with_credentials(self, admin_client, admin_user):
         """
         SSRF: URL with embedded credentials.
         """
@@ -243,7 +243,7 @@ class TestPodcastCreateRedTeamSSRF:
             "title": "SSRF Credentials",
         }
 
-        response = guest_client.post("/api/v2/podcasts", data, format="json")
+        response = admin_client.post("/api/v2/podcasts", data, format="json")
 
         # Check if credentials are stored (info leak)
         if response.status_code == 201:
@@ -251,7 +251,7 @@ class TestPodcastCreateRedTeamSSRF:
             if "admin:secret" in str(result.get("url", "")):
                 pytest.xfail("T706: URL credentials stored in plaintext")
 
-    def test_ssrf_redirector_url(self, guest_client, admin_user):
+    def test_ssrf_redirector_url(self, admin_client, admin_user):
         """
         SSRF: URL that redirects to internal resources.
         """
@@ -267,7 +267,7 @@ class TestPodcastCreateRedTeamSSRF:
             }
 
             start = time.time()
-            response = guest_client.post("/api/v2/podcasts", data, format="json")
+            response = admin_client.post("/api/v2/podcasts", data, format="json")
             duration = time.time() - start
 
             # Time-based detection
@@ -286,7 +286,7 @@ class TestPodcastCreateRedTeamSSRF:
 class TestPodcastCreateRedTeamInjection:
     """Injection attacks via CREATE fields."""
 
-    def test_stored_xss_in_title(self, guest_client, admin_user):
+    def test_stored_xss_in_title(self, admin_client, admin_user):
         """
         XSS: Script in title field (Stored XSS).
         """
@@ -296,7 +296,7 @@ class TestPodcastCreateRedTeamInjection:
                 "title": payload,
             }
 
-            response = guest_client.post("/api/v2/podcasts", data, format="json")
+            response = admin_client.post("/api/v2/podcasts", data, format="json")
 
             if response.status_code == 201:
                 result = response.json()
@@ -304,7 +304,7 @@ class TestPodcastCreateRedTeamInjection:
                 if payload in str(result.get("title", "")):
                     pytest.xfail(f"T708: Stored XSS in title: {payload[:30]}")
 
-    def test_stored_xss_in_description(self, guest_client, admin_user):
+    def test_stored_xss_in_description(self, admin_client, admin_user):
         """
         XSS: Script in description field.
         """
@@ -316,14 +316,14 @@ class TestPodcastCreateRedTeamInjection:
             "description": payload,
         }
 
-        response = guest_client.post("/api/v2/podcasts", data, format="json")
+        response = admin_client.post("/api/v2/podcasts", data, format="json")
 
         if response.status_code == 201:
             result = response.json()
             if payload in str(result.get("description", "")):
                 pytest.xfail("T709: Stored XSS in description")
 
-    def test_stored_xss_in_itunes_fields(self, guest_client, admin_user):
+    def test_stored_xss_in_itunes_fields(self, admin_client, admin_user):
         """
         XSS: Script in iTunes metadata fields.
         """
@@ -335,7 +335,7 @@ class TestPodcastCreateRedTeamInjection:
             "itunes_subtitle": "<script>alert(1)</script>",
         }
 
-        response = guest_client.post("/api/v2/podcasts", data, format="json")
+        response = admin_client.post("/api/v2/podcasts", data, format="json")
 
         if response.status_code == 201:
             result = response.json()
@@ -346,7 +346,7 @@ class TestPodcastCreateRedTeamInjection:
                 ) or "onerror=" in str(result.get(field, "")):
                     pytest.xfail(f"T710: Stored XSS in {field}")
 
-    def test_sqli_in_title_field(self, guest_client, admin_user):
+    def test_sqli_in_title_field(self, admin_client, admin_user):
         """
         SQLi: SQL injection in title field.
         """
@@ -356,7 +356,7 @@ class TestPodcastCreateRedTeamInjection:
                 "title": payload,
             }
 
-            response = guest_client.post("/api/v2/podcasts", data, format="json")
+            response = admin_client.post("/api/v2/podcasts", data, format="json")
 
             if response.status_code == 500:
                 error_text = str(response.content).lower()
@@ -365,7 +365,7 @@ class TestPodcastCreateRedTeamInjection:
                         f"T711: SQLi in title causes 500: {payload[:30]}",
                     )
 
-    def test_command_injection_in_url(self, guest_client, admin_user):
+    def test_command_injection_in_url(self, admin_client, admin_user):
         """
         Command injection via URL field.
         """
@@ -382,7 +382,7 @@ class TestPodcastCreateRedTeamInjection:
                 "title": "CMD Injection",
             }
 
-            response = guest_client.post("/api/v2/podcasts", data, format="json")
+            response = admin_client.post("/api/v2/podcasts", data, format="json")
 
             if response.status_code == 500:
                 error_text = str(response.content).lower()
@@ -401,7 +401,7 @@ class TestPodcastCreateRedTeamResourceConsumption:
 
     def test_rapid_create_requests(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -415,14 +415,14 @@ class TestPodcastCreateRedTeamResourceConsumption:
                 "url": f"{fake_url}/rapid{i}",
                 "title": f"{fake_catch_phrase} {i}",
             }
-            response = guest_client.post("/api/v2/podcasts", data, format="json")
+            response = admin_client.post("/api/v2/podcasts", data, format="json")
             if response.status_code == 201:
                 success_count += 1
 
         if success_count == 30:
             pytest.xfail("T713: No rate limiting on Podcast CREATE (30 req/s)")
 
-    def test_very_long_title(self, guest_client, admin_user, fake_url):
+    def test_very_long_title(self, admin_client, admin_user, fake_url):
         """
         Resource consumption: Very long title (10K chars).
         """
@@ -431,13 +431,13 @@ class TestPodcastCreateRedTeamResourceConsumption:
             "title": "A" * 10000,
         }
 
-        response = guest_client.post("/api/v2/podcasts", data, format="json")
+        response = admin_client.post("/api/v2/podcasts", data, format="json")
 
         # Should reject or truncate, not cause memory issues
         if response.status_code == 500:
             pytest.xfail("T714: Very long title causes 500")
 
-    def test_very_long_url(self, guest_client, admin_user):
+    def test_very_long_url(self, admin_client, admin_user):
         """
         Resource consumption: URL beyond max length.
         """
@@ -446,12 +446,12 @@ class TestPodcastCreateRedTeamResourceConsumption:
             "title": "Long URL Test",
         }
 
-        response = guest_client.post("/api/v2/podcasts", data, format="json")
+        response = admin_client.post("/api/v2/podcasts", data, format="json")
 
         if response.status_code == 500:
             pytest.xfail("T715: Very long URL causes 500")
 
-    def test_deeply_nested_json(self, guest_client, admin_user):
+    def test_deeply_nested_json(self, admin_client, admin_user):
         """
         Resource consumption: Deeply nested JSON body.
         """
@@ -460,7 +460,7 @@ class TestPodcastCreateRedTeamResourceConsumption:
         for _ in range(100):
             nested = {"data": nested}
 
-        response = guest_client.post("/api/v2/podcasts", nested, format="json")
+        response = admin_client.post("/api/v2/podcasts", nested, format="json")
 
         if response.status_code == 500:
             pytest.xfail("T716: Deeply nested JSON causes 500")
@@ -475,23 +475,23 @@ class TestPodcastCreateRedTeamResourceConsumption:
 class TestPodcastCreateRedTeamAuthentication:
     """Authentication bypass tests."""
 
-    def test_create_no_auth(self, guest_client, fake_url, fake_catch_phrase):
+    def test_create_no_auth(self, admin_client, fake_url, fake_catch_phrase):
         """
         Unauthenticated CREATE should fail.
         """
-        guest_client.logout()
+        admin_client.logout()
 
         data = {
             "url": fake_url,
             "title": fake_catch_phrase,
         }
 
-        response = guest_client.post("/api/v2/podcasts", data, format="json")
+        response = admin_client.post("/api/v2/podcasts", data, format="json")
         assert response.status_code == 403
 
     def test_create_as_guest_user(
         self,
-        guest_client,
+        admin_client,
         guest_user,
         fake_url,
         fake_catch_phrase,
@@ -499,36 +499,36 @@ class TestPodcastCreateRedTeamAuthentication:
         """
         BFLA: Guest user should not be able to create podcasts.
         """
-        guest_client.force_authenticate(user=guest_user)
+        admin_client.force_authenticate(user=guest_user)
 
         data = {
             "url": fake_url,
             "title": fake_catch_phrase,
         }
 
-        response = guest_client.post("/api/v2/podcasts", data, format="json")
+        response = admin_client.post("/api/v2/podcasts", data, format="json")
 
         if response.status_code == 201:
             pytest.xfail("T717: BFLA - Guest user can create podcasts")
 
     def test_create_with_invalid_token(
         self,
-        guest_client,
+        admin_client,
         fake_url,
         fake_catch_phrase,
     ):
         """
         Invalid token should fail.
         """
-        guest_client.logout()
-        guest_client.credentials(HTTP_AUTHORIZATION="Bearer invalid_token_12345")
+        admin_client.logout()
+        admin_client.credentials(HTTP_AUTHORIZATION="Bearer invalid_token_12345")
 
         data = {
             "url": fake_url,
             "title": fake_catch_phrase,
         }
 
-        response = guest_client.post("/api/v2/podcasts", data, format="json")
+        response = admin_client.post("/api/v2/podcasts", data, format="json")
         assert response.status_code == 403
 
 
@@ -541,7 +541,7 @@ class TestPodcastCreateRedTeamAuthentication:
 class TestPodcastCreateRedTeamFuzzing:
     """Fuzzing and business logic tests."""
 
-    def test_naughty_strings_in_fields(self, guest_client, admin_user, fake_url):
+    def test_naughty_strings_in_fields(self, admin_client, admin_user, fake_url):
         """
         Fuzz all fields with naughty strings.
         """
@@ -552,14 +552,14 @@ class TestPodcastCreateRedTeamFuzzing:
                 "description": payload,
             }
 
-            response = guest_client.post("/api/v2/podcasts", data, format="json")
+            response = admin_client.post("/api/v2/podcasts", data, format="json")
 
             if response.status_code == 500:
                 pytest.xfail(
                     f"T718: Naughty string causes 500: {payload[:20]}",
                 )
 
-    def test_null_bytes_in_strings(self, guest_client, admin_user, fake_url):
+    def test_null_bytes_in_strings(self, admin_client, admin_user, fake_url):
         """
         Null byte injection in fields.
         """
@@ -568,12 +568,12 @@ class TestPodcastCreateRedTeamFuzzing:
             "title": "Test\x00",
         }
 
-        response = guest_client.post("/api/v2/podcasts", data, format="json")
+        response = admin_client.post("/api/v2/podcasts", data, format="json")
 
         if response.status_code == 500:
             pytest.xfail("T719: Null byte causes 500")
 
-    def test_crlf_injection_in_url(self, guest_client, admin_user):
+    def test_crlf_injection_in_url(self, admin_client, admin_user):
         """
         CRLF injection in URL field.
         """
@@ -582,13 +582,13 @@ class TestPodcastCreateRedTeamFuzzing:
             "title": "CRLF Test",
         }
 
-        response = guest_client.post("/api/v2/podcasts", data, format="json")
+        response = admin_client.post("/api/v2/podcasts", data, format="json")
 
         # Check if CRLF was accepted (response splitting potential)
         if "evil=true" in str(response.headers):
             pytest.xfail("T720: CRLF injection in URL (response splitting)")
 
-    def test_invalid_url_formats(self, guest_client, admin_user):
+    def test_invalid_url_formats(self, admin_client, admin_user):
         """
         Invalid URL formats should be rejected.
         """
@@ -606,13 +606,13 @@ class TestPodcastCreateRedTeamFuzzing:
                 "title": "Invalid URL Test",
             }
 
-            response = guest_client.post("/api/v2/podcasts", data, format="json")
+            response = admin_client.post("/api/v2/podcasts", data, format="json")
 
             # Some invalid URLs may be accepted (potential issue)
             if url == "javascript:alert(1)" and response.status_code == 201:
                 pytest.xfail("T721: JavaScript URL accepted (XSS vector)")
 
-    def test_unicode_normalization_in_url(self, guest_client, admin_user):
+    def test_unicode_normalization_in_url(self, admin_client, admin_user):
         """
         Unicode normalization attacks in URL.
         """
@@ -627,7 +627,7 @@ class TestPodcastCreateRedTeamFuzzing:
                 "title": "Homograph Test",
             }
 
-            response = guest_client.post("/api/v2/podcasts", data, format="json")
+            response = admin_client.post("/api/v2/podcasts", data, format="json")
 
             # If accepted, could be used for phishing
             if response.status_code == 201:
@@ -646,7 +646,7 @@ class TestPodcastCreateRedTeamFuzzing:
 class TestPodcastCreateRedTeamRaceConditions:
     """Race condition tests."""
 
-    def test_duplicate_creation_race(self, guest_client, admin_user, fake_url):
+    def test_duplicate_creation_race(self, admin_client, admin_user, fake_url):
         """
         Race condition: Creating same resource twice simultaneously.
 
@@ -661,7 +661,7 @@ class TestPodcastCreateRedTeamRaceConditions:
                 "url": fake_url,
                 "title": "Race Test",
             }
-            return guest_client.post(
+            return admin_client.post(
                 "/api/v2/podcasts",
                 data,
                 format="json",

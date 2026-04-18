@@ -22,7 +22,7 @@ class TestSmartBlockContentViewSetCreate:
         File.objects.all().delete()
         User.objects.filter(username__startswith="testsbc").delete()
 
-    def test_create_content_success(self, guest_client):
+    def test_create_content_success(self, admin_client):
         """CREATE content should return 201."""
         user = baker.make(User, username="testsbc_user")
         block = baker.make(
@@ -38,7 +38,7 @@ class TestSmartBlockContentViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {
@@ -56,7 +56,7 @@ class TestSmartBlockContentViewSetCreate:
         assert data["file"] == file_obj.id
         assert data["position"] == 1
 
-    def test_create_without_position_uses_null(self, guest_client):
+    def test_create_without_position_uses_null(self, admin_client):
         """CREATE without position should default to null."""
         user = baker.make(User, username="testsbc_user")
         block = baker.make(
@@ -72,7 +72,7 @@ class TestSmartBlockContentViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {
@@ -86,7 +86,7 @@ class TestSmartBlockContentViewSetCreate:
         assert response.status_code == 201
         assert response.json()["position"] is None
 
-    def test_create_with_cue_points(self, guest_client):
+    def test_create_with_cue_points(self, admin_client):
         """CREATE with cue points should succeed."""
         user = baker.make(User, username="testsbc_user")
         block = baker.make(
@@ -102,7 +102,7 @@ class TestSmartBlockContentViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {
@@ -121,7 +121,7 @@ class TestSmartBlockContentViewSetCreate:
         assert data["cue_in"] == "00:00:05"
         assert data["cue_out"] == "00:03:30"
 
-    def test_create_missing_block_fails(self, guest_client):
+    def test_create_missing_block_fails(self, admin_client):
         """CREATE without block should return 400."""
         user = baker.make(User, username="testsbc_user")
         file_obj = baker.make(
@@ -131,7 +131,7 @@ class TestSmartBlockContentViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {
@@ -144,7 +144,7 @@ class TestSmartBlockContentViewSetCreate:
         )
         assert response.status_code == 400
 
-    def test_create_missing_file_fails(self, guest_client):
+    def test_create_missing_file_fails(self, admin_client):
         """CREATE without file should return 400."""
         user = baker.make(User, username="testsbc_user")
         block = baker.make(
@@ -154,7 +154,7 @@ class TestSmartBlockContentViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {
@@ -167,7 +167,7 @@ class TestSmartBlockContentViewSetCreate:
         )
         assert response.status_code == 400
 
-    def test_create_invalid_block_fails(self, guest_client):
+    def test_create_invalid_block_fails(self, admin_client):
         """CREATE with non-existent block should return 400."""
         user = baker.make(User, username="testsbc_user")
         file_obj = baker.make(
@@ -177,7 +177,7 @@ class TestSmartBlockContentViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {
@@ -191,7 +191,7 @@ class TestSmartBlockContentViewSetCreate:
         )
         assert response.status_code == 400
 
-    def test_create_invalid_file_fails(self, guest_client):
+    def test_create_invalid_file_fails(self, admin_client):
         """CREATE with non-existent file should return 400."""
         user = baker.make(User, username="testsbc_user")
         block = baker.make(
@@ -201,7 +201,7 @@ class TestSmartBlockContentViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             json.dumps(
                 {

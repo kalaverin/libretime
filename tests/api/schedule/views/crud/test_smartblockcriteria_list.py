@@ -18,13 +18,13 @@ class TestSmartBlockCriteriaViewSetList:
         SmartBlock.objects.all().delete()
         User.objects.filter(username__startswith="testsbcr").delete()
 
-    def test_list_empty_returns_200(self, guest_client):
+    def test_list_empty_returns_200(self, admin_client):
         """LIST empty should return 200 with empty list."""
-        response = guest_client.get("/api/v2/smart-block-criteria")
+        response = admin_client.get("/api/v2/smart-block-criteria")
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_list_single_criteria(self, guest_client):
+    def test_list_single_criteria(self, admin_client):
         """LIST should return single criteria with correct fields."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -41,7 +41,7 @@ class TestSmartBlockCriteriaViewSetList:
             value="Jazz",
         )
 
-        response = guest_client.get("/api/v2/smart-block-criteria")
+        response = admin_client.get("/api/v2/smart-block-criteria")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
@@ -50,7 +50,7 @@ class TestSmartBlockCriteriaViewSetList:
         assert data[0]["condition"] == "contains"
         assert data[0]["value"] == "Jazz"
 
-    def test_list_multiple_criteria(self, guest_client):
+    def test_list_multiple_criteria(self, admin_client):
         """LIST should return multiple criteria."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -75,11 +75,11 @@ class TestSmartBlockCriteriaViewSetList:
             value="Miles",
         )
 
-        response = guest_client.get("/api/v2/smart-block-criteria")
+        response = admin_client.get("/api/v2/smart-block-criteria")
         assert response.status_code == 200
         assert len(response.json()) == 2
 
-    def test_list_filter_by_block(self, guest_client):
+    def test_list_filter_by_block(self, admin_client):
         """LIST should filter by block parameter."""
         user = baker.make(User, username="testsbcr_user")
         block1 = baker.make(
@@ -110,7 +110,7 @@ class TestSmartBlockCriteriaViewSetList:
             value="Rock",
         )
 
-        response = guest_client.get(
+        response = admin_client.get(
             f"/api/v2/smart-block-criteria?block={block1.id}",
         )
         assert response.status_code == 200
@@ -118,7 +118,7 @@ class TestSmartBlockCriteriaViewSetList:
         assert len(data) == 1
         assert data[0]["block"] == block1.id
 
-    def test_list_with_group(self, guest_client):
+    def test_list_with_group(self, admin_client):
         """LIST should include group field."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -137,11 +137,11 @@ class TestSmartBlockCriteriaViewSetList:
             group=1,
         )
 
-        response = guest_client.get("/api/v2/smart-block-criteria")
+        response = admin_client.get("/api/v2/smart-block-criteria")
         assert response.status_code == 200
         assert response.json()[0]["group"] == 1
 
-    def test_list_with_extra(self, guest_client):
+    def test_list_with_extra(self, admin_client):
         """LIST should include extra field."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -160,7 +160,7 @@ class TestSmartBlockCriteriaViewSetList:
             extra="extra data",
         )
 
-        response = guest_client.get("/api/v2/smart-block-criteria")
+        response = admin_client.get("/api/v2/smart-block-criteria")
         assert response.status_code == 200
         assert response.json()[0]["extra"] == "extra data"
 
@@ -169,7 +169,7 @@ class TestSmartBlockCriteriaViewSetList:
         response = client.get("/api/v2/smart-block-criteria")
         assert response.status_code == 403
 
-    def test_list_returns_all_fields(self, guest_client):
+    def test_list_returns_all_fields(self, admin_client):
         """LIST should return all serializer fields."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -189,7 +189,7 @@ class TestSmartBlockCriteriaViewSetList:
             extra="extra",
         )
 
-        response = guest_client.get("/api/v2/smart-block-criteria")
+        response = admin_client.get("/api/v2/smart-block-criteria")
         data = response.json()[0]
         expected_fields = {
             "id",

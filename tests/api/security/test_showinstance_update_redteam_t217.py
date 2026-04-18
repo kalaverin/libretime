@@ -23,13 +23,13 @@ class TestShowInstanceUpdateAuthentication:
     """UPDATE authentication tests."""
 
     @pytest.mark.xfail(reason="T401: Anonymous UPDATE show instances allowed")
-    def test_update_without_auth(self, guest_client):
+    def test_update_without_auth(self, admin_client):
         """Anonymous PATCH should fail."""
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
 
         data = {"description": "Hacked"}
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps(data),
             content_type="application/json",
@@ -40,7 +40,7 @@ class TestShowInstanceUpdateAuthentication:
         ], "Anonymous can update show instances"
 
     @pytest.mark.xfail(reason="T401: Anonymous PUT show instances allowed")
-    def test_put_without_auth(self, guest_client):
+    def test_put_without_auth(self, admin_client):
         """Anonymous PUT should fail."""
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
@@ -51,7 +51,7 @@ class TestShowInstanceUpdateAuthentication:
             "ends_at": "2026-04-01T15:00:00Z",
             "description": "Hacked",
         }
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps(data),
             content_type="application/json",
@@ -69,7 +69,7 @@ class TestShowInstanceUpdateBOLA:
     @pytest.mark.xfail(reason="T398: No owner filtering")
     def test_update_other_user_instance(
         self,
-        guest_client,
+        admin_client,
         regular_user,
         admin_user,
     ):
@@ -77,9 +77,9 @@ class TestShowInstanceUpdateBOLA:
         show = baker.make(Show, name="Admin Show")
         instance = baker.make(ShowInstance, show=show, description="Original")
 
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
         data = {"description": "Hacked by attacker"}
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps(data),
             content_type="application/json",
@@ -94,15 +94,15 @@ class TestShowInstanceUpdateBOLA:
 class TestShowInstanceUpdateMassAssignment:
     """UPDATE mass assignment tests."""
 
-    def test_update_id_field(self, guest_client):
+    def test_update_id_field(self, admin_client):
         """Try to change id via PATCH."""
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         original_id = instance.id
         data = {"id": 99999}
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps(data),
             content_type="application/json",
@@ -117,7 +117,7 @@ class TestShowInstanceUpdateTimeManipulation:
     """UPDATE time manipulation tests."""
 
     @pytest.mark.xfail(reason="ends_at before starts_at accepted")
-    def test_update_ends_at_before_starts_at(self, guest_client):
+    def test_update_ends_at_before_starts_at(self, admin_client):
         """Try to set ends_at before starts_at."""
         show = baker.make(Show, name="Test Show")
         instance = baker.make(
@@ -126,10 +126,10 @@ class TestShowInstanceUpdateTimeManipulation:
             starts_at="2026-04-01T14:00:00Z",
             ends_at="2026-04-01T15:00:00Z",
         )
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         data = {"ends_at": "2026-04-01T13:00:00Z"}  # Before starts_at
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps(data),
             content_type="application/json",
@@ -139,14 +139,14 @@ class TestShowInstanceUpdateTimeManipulation:
             pytest.fail("BUG: ends_at before starts_at accepted")
 
     @pytest.mark.xfail(reason="Negative filled_time accepted")
-    def test_negative_filled_time(self, guest_client):
+    def test_negative_filled_time(self, admin_client):
         """Try to set negative filled_time."""
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show, filled_time="00:30:00")
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         data = {"filled_time": "-01:00:00"}
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps(data),
             content_type="application/json",
@@ -161,11 +161,11 @@ class TestShowInstanceUpdateDescriptionInjection:
     """UPDATE description injection tests."""
 
     @pytest.mark.xfail(reason="T402: XSS stored unescaped in description")
-    def test_description_xss(self, guest_client):
+    def test_description_xss(self, admin_client):
         """Try XSS in description field."""
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         xss_payloads = [
             "<script>alert('XSS')</script>",
@@ -175,7 +175,7 @@ class TestShowInstanceUpdateDescriptionInjection:
 
         for payload in xss_payloads:
             data = {"description": payload}
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/show-instances/{instance.id}",
                 json.dumps(data),
                 content_type="application/json",
@@ -189,11 +189,11 @@ class TestShowInstanceUpdateDescriptionInjection:
                         f"BUG: XSS payload stored unescaped: {payload[:30]}",
                     )
 
-    def test_description_sqli(self, guest_client):
+    def test_description_sqli(self, admin_client):
         """Try SQL injection in description."""
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         sqli_payloads = [
             "'; DROP TABLE cc_show_instances;--",
@@ -202,7 +202,7 @@ class TestShowInstanceUpdateDescriptionInjection:
 
         for payload in sqli_payloads:
             data = {"description": payload}
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/show-instances/{instance.id}",
                 json.dumps(data),
                 content_type="application/json",
@@ -216,14 +216,14 @@ class TestShowInstanceUpdateDescriptionInjection:
 class TestShowInstanceUpdateFlagManipulation:
     """UPDATE flag manipulation tests."""
 
-    def test_modified_flag_manipulation(self, guest_client):
+    def test_modified_flag_manipulation(self, admin_client):
         """Try to manipulate modified flag."""
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show, modified=False)
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         data = {"modified": True}
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps(data),
             content_type="application/json",
@@ -232,14 +232,14 @@ class TestShowInstanceUpdateFlagManipulation:
         # modified flag should be manageable
         assert response.status_code in [200, 400]
 
-    def test_rebroadcast_flag_manipulation(self, guest_client):
+    def test_rebroadcast_flag_manipulation(self, admin_client):
         """Try to manipulate rebroadcast flag."""
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show, rebroadcast=False)
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         data = {"rebroadcast": True}
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-instances/{instance.id}",
             json.dumps(data),
             content_type="application/json",

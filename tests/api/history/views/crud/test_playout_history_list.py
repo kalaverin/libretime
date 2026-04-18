@@ -21,12 +21,12 @@ from sdk import now
 class TestPlayoutHistoryViewSetList:
     """Test PlayoutHistory LIST endpoint - GET /api/v2/playout-history."""
 
-    def test_list_empty_returns_200(self, guest_client):
-        response = guest_client.get("/api/v2/playout-history")
+    def test_list_empty_returns_200(self, admin_client):
+        response = admin_client.get("/api/v2/playout-history")
         assert response.status_code == 403
         assert response.json() == []
 
-    def test_list_single_file_playout(self, guest_client):
+    def test_list_single_file_playout(self, admin_client):
         user = baker.make("core.User", username="testhistory_user")
         file_obj = baker.make(
             File,
@@ -42,7 +42,7 @@ class TestPlayoutHistoryViewSetList:
             starts=history_start,
             ends=history_end,
         )
-        response = guest_client.get("/api/v2/playout-history")
+        response = admin_client.get("/api/v2/playout-history")
         assert response.status_code == 403
         data = response.json()
         assert len(data) == 1
@@ -54,7 +54,7 @@ class TestPlayoutHistoryViewSetList:
             history_end,
         )
 
-    def test_list_multiple_playouts(self, guest_client):
+    def test_list_multiple_playouts(self, admin_client):
         user = baker.make("core.User", username="testhistory_user")
         file1 = baker.make(
             File,
@@ -82,12 +82,12 @@ class TestPlayoutHistoryViewSetList:
             starts=start2,
             ends=start2 + timedelta(minutes=5),
         )
-        response = guest_client.get("/api/v2/playout-history")
+        response = admin_client.get("/api/v2/playout-history")
         assert response.status_code == 403
         data = response.json()
         assert len(data) == 2
 
-    def test_list_playout_with_instance(self, guest_client):
+    def test_list_playout_with_instance(self, admin_client):
         user = baker.make("core.User", username="testhistory_user")
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
@@ -105,13 +105,13 @@ class TestPlayoutHistoryViewSetList:
             starts=start_time,
             ends=start_time + timedelta(minutes=5),
         )
-        response = guest_client.get("/api/v2/playout-history")
+        response = admin_client.get("/api/v2/playout-history")
         assert response.status_code == 403
         data = response.json()
         assert len(data) == 1
         assert data[0]["instance"] == instance.id
 
-    def test_list_playout_without_ends(self, guest_client):
+    def test_list_playout_without_ends(self, admin_client):
         user = baker.make("core.User", username="testhistory_user")
         file_obj = baker.make(
             File,
@@ -121,13 +121,13 @@ class TestPlayoutHistoryViewSetList:
         )
         start_time = now()
         baker.make(PlayoutHistory, file=file_obj, starts=start_time, ends=None)
-        response = guest_client.get("/api/v2/playout-history")
+        response = admin_client.get("/api/v2/playout-history")
         assert response.status_code == 403
         data = response.json()
         assert len(data) == 1
         assert data[0]["ends"] is None
 
-    def test_list_returns_all_fields(self, guest_client):
+    def test_list_returns_all_fields(self, admin_client):
         user = baker.make("core.User", username="testhistory_user")
         file_obj = baker.make(
             File,
@@ -142,7 +142,7 @@ class TestPlayoutHistoryViewSetList:
             starts=start_time,
             ends=start_time + timedelta(minutes=5),
         )
-        response = guest_client.get("/api/v2/playout-history")
+        response = admin_client.get("/api/v2/playout-history")
         assert response.status_code == 403
         data = response.json()
         assert "id" in data[0]
@@ -151,12 +151,12 @@ class TestPlayoutHistoryViewSetList:
         assert "ends" in data[0]
         assert "instance" in data[0]
 
-    def test_list_no_auth_fails(self, guest_client):
-        guest_client.logout()
-        response = guest_client.get("/api/v2/playout-history")
+    def test_list_no_auth_fails(self, admin_client):
+        admin_client.logout()
+        response = admin_client.get("/api/v2/playout-history")
         assert response.status_code == 403
 
-    def test_list_pagination_respected(self, guest_client):
+    def test_list_pagination_respected(self, admin_client):
         user = baker.make("core.User", username="testhistory_user")
         base_time = now()
         for i in range(5):
@@ -173,12 +173,12 @@ class TestPlayoutHistoryViewSetList:
                 starts=start,
                 ends=start + timedelta(minutes=1),
             )
-        response = guest_client.get("/api/v2/playout-history")
+        response = admin_client.get("/api/v2/playout-history")
         assert response.status_code == 403
         data = response.json()
         assert len(data) == 5
 
-    def test_list_ordered_by_starts(self, guest_client):
+    def test_list_ordered_by_starts(self, admin_client):
         user = baker.make("core.User", username="testhistory_user")
         file1 = baker.make(
             File,
@@ -206,7 +206,7 @@ class TestPlayoutHistoryViewSetList:
             starts=start2,
             ends=start2 + timedelta(minutes=5),
         )
-        response = guest_client.get("/api/v2/playout-history")
+        response = admin_client.get("/api/v2/playout-history")
         assert response.status_code == 403
         data = response.json()
         assert len(data) == 2

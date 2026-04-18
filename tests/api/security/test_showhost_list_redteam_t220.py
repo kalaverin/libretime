@@ -21,9 +21,9 @@ class TestShowHostListAuthentication:
     """LIST authentication tests."""
 
     @pytest.mark.xfail(reason="T407: Anonymous LIST show hosts allowed")
-    def test_list_without_auth(self, guest_client):
+    def test_list_without_auth(self, admin_client):
         """Anonymous LIST should fail."""
-        response = guest_client.get("/api/v2/show-hosts")
+        response = admin_client.get("/api/v2/show-hosts")
         assert response.status_code in [
             401,
             403,
@@ -37,7 +37,7 @@ class TestShowHostListBOLA:
     @pytest.mark.xfail(reason="BOLA: LIST shows all show hosts")
     def test_list_shows_only_own_hosts(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -49,8 +49,8 @@ class TestShowHostListBOLA:
         baker.make(ShowHost, show=show1, user=admin_user)
         host2 = baker.make(ShowHost, show=show2, user=regular_user)
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get("/api/v2/show-hosts")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get("/api/v2/show-hosts")
 
         assert response.status_code == 200
         data = response.json()
@@ -70,7 +70,7 @@ class TestShowHostListUserEnumeration:
     @pytest.mark.xfail(reason="BOLA: Filter by user does not scope to requesting user")
     def test_filter_by_other_user_id_returns_only_own(
         self,
-        guest_client,
+        admin_client,
         regular_user,
         admin_user,
     ):
@@ -81,9 +81,9 @@ class TestShowHostListUserEnumeration:
         baker.make(ShowHost, show=admin_show, user=admin_user)
         baker.make(ShowHost, show=user_show, user=regular_user)
 
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
         # Try to filter by admin's user ID - should only see own assignments
-        response = guest_client.get(f"/api/v2/show-hosts?user={admin_user.id}")
+        response = admin_client.get(f"/api/v2/show-hosts?user={admin_user.id}")
 
         assert response.status_code == 200
         data = response.json()
@@ -92,11 +92,11 @@ class TestShowHostListUserEnumeration:
             len(data) == 1
         ), "Can enumerate other user's shows via filter (BOLA)"
 
-    def test_filter_by_invalid_user_id(self, guest_client, admin_user):
+    def test_filter_by_invalid_user_id(self, admin_client, admin_user):
         """Try filter by invalid user_id."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.get("/api/v2/show-hosts?user=invalid")
+        response = admin_client.get("/api/v2/show-hosts?user=invalid")
         if response.status_code == 500:
             pytest.fail("BUG: Filter crash on invalid user_id")
 
@@ -105,18 +105,18 @@ class TestShowHostListUserEnumeration:
 class TestShowHostFilterInjection:
     """Filter parameter injection attacks."""
 
-    def test_filter_by_invalid_show_id(self, guest_client, admin_user):
+    def test_filter_by_invalid_show_id(self, admin_client, admin_user):
         """Try to filter by invalid show_id."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.get("/api/v2/show-hosts?show=invalid")
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.get("/api/v2/show-hosts?show=invalid")
 
         if response.status_code == 500:
             pytest.fail("BUG: Filter crashes on invalid show_id")
         assert response.status_code in [200, 400]
 
-    def test_filter_by_sql_injection(self, guest_client, admin_user):
+    def test_filter_by_sql_injection(self, admin_client, admin_user):
         """Try SQL injection in show filter."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         sqli_payloads = [
             "1' OR '1'='1",
@@ -125,20 +125,20 @@ class TestShowHostFilterInjection:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.get(f"/api/v2/show-hosts?show={payload}")
+            response = admin_client.get(f"/api/v2/show-hosts?show={payload}")
             if response.status_code == 500:
                 pytest.fail(f"BUG: SQL injection causes crash: {payload}")
 
-    def test_filter_by_negative_show_id(self, guest_client, admin_user):
+    def test_filter_by_negative_show_id(self, admin_client, admin_user):
         """Try to filter by negative show_id."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.get("/api/v2/show-hosts?show=-1")
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.get("/api/v2/show-hosts?show=-1")
 
         assert response.status_code in [200, 400]
 
-    def test_filter_sqli_in_user_param(self, guest_client, admin_user):
+    def test_filter_sqli_in_user_param(self, admin_client, admin_user):
         """Try SQL injection in user filter."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         sqli_payloads = [
             "1' OR '1'='1",
@@ -146,7 +146,7 @@ class TestShowHostFilterInjection:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.get(f"/api/v2/show-hosts?user={payload}")
+            response = admin_client.get(f"/api/v2/show-hosts?user={payload}")
             if response.status_code == 500:
                 pytest.fail(f"BUG: SQLi in user filter: {payload}")
 
@@ -155,10 +155,10 @@ class TestShowHostFilterInjection:
 class TestShowHostListInformationDisclosure:
     """Information disclosure attacks."""
 
-    def test_error_message_on_invalid_filter(self, guest_client, admin_user):
+    def test_error_message_on_invalid_filter(self, admin_client, admin_user):
         """Check if error messages leak information."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.get("/api/v2/show-hosts?show=invalid")
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.get("/api/v2/show-hosts?show=invalid")
 
         if response.status_code == 400:
             content = response.content.decode()
@@ -172,9 +172,9 @@ class TestShowHostListInformationDisclosure:
 class TestShowHostListMassAssignment:
     """Mass assignment via GET attacks."""
 
-    def test_get_with_extra_parameters(self, guest_client, admin_user):
+    def test_get_with_extra_parameters(self, admin_client, admin_user):
         """Try GET with extra/malicious parameters."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         # Try various malicious query params
         malicious_params = [
@@ -183,5 +183,5 @@ class TestShowHostListMassAssignment:
         ]
 
         for params in malicious_params:
-            response = guest_client.get(f"/api/v2/show-hosts{params}")
+            response = admin_client.get(f"/api/v2/show-hosts{params}")
             assert response.status_code in [200, 400]

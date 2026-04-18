@@ -49,7 +49,7 @@ class TestReadWriteSerializerMixin:
 
     def test_get_uses_read_serializer_with_computed_cue_out(
         self,
-        guest_client,
+        admin_client,
         show_instance,
         test_file,
     ):
@@ -67,7 +67,7 @@ class TestReadWriteSerializerMixin:
             broadcasted=1,
         )
 
-        response = guest_client.get(f"/api/v2/schedule/{schedule.id}")
+        response = admin_client.get(f"/api/v2/schedule/{schedule.id}")
 
         assert response.status_code == 200
         data = response.json()
@@ -80,7 +80,7 @@ class TestReadWriteSerializerMixin:
 
     def test_post_uses_write_serializer_allows_cue_out(
         self,
-        guest_client,
+        admin_client,
         show_instance,
         test_file,
     ):
@@ -88,7 +88,7 @@ class TestReadWriteSerializerMixin:
         import json
 
         start_time = now()
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/schedule",
             json.dumps(
                 {
@@ -118,7 +118,7 @@ class TestReadWriteSerializerMixin:
 
     def test_list_uses_read_serializer(
         self,
-        guest_client,
+        admin_client,
         show_instance,
         test_file,
     ):
@@ -136,7 +136,7 @@ class TestReadWriteSerializerMixin:
             broadcasted=1,
         )
 
-        response = guest_client.get("/api/v2/schedule")
+        response = admin_client.get("/api/v2/schedule")
 
         assert response.status_code == 200
         data = response.json()
@@ -151,7 +151,7 @@ class TestReadWriteSerializerMixin:
 
     def test_patch_uses_write_serializer(
         self,
-        guest_client,
+        admin_client,
         show_instance,
         test_file,
     ):
@@ -171,7 +171,7 @@ class TestReadWriteSerializerMixin:
             broadcasted=1,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/schedule/{schedule.id}",
             json.dumps(
                 {

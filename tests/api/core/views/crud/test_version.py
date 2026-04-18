@@ -100,9 +100,9 @@ class TestVersionView:
         response = client.delete("/api/v2/version")
         assert response.status_code == 405
 
-    def test_version_with_api_key(self, guest_client):
+    def test_version_with_api_key(self, admin_client):
         """Version endpoint should work with API key authentication."""
-        response = guest_client.get("/api/v2/version")
+        response = admin_client.get("/api/v2/version")
         assert response.status_code == 200
         assert "api_version" in response.json()
 

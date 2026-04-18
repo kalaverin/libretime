@@ -25,7 +25,7 @@ class TestSmartBlockViewSetDelete:
         File.objects.all().delete()
         User.objects.filter(username__startswith="testsb").delete()
 
-    def test_delete_block_success_returns_204(self, guest_client):
+    def test_delete_block_success_returns_204(self, admin_client):
         """DELETE should return 204 on success."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -35,10 +35,10 @@ class TestSmartBlockViewSetDelete:
             owner=user,
         )
 
-        response = guest_client.delete(f"/api/v2/smart-blocks/{block.id}")
+        response = admin_client.delete(f"/api/v2/smart-blocks/{block.id}")
         assert response.status_code == 204
 
-    def test_delete_block_removes_from_db(self, guest_client):
+    def test_delete_block_removes_from_db(self, admin_client):
         """DELETE should remove block from database."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -48,12 +48,12 @@ class TestSmartBlockViewSetDelete:
             owner=user,
         )
 
-        guest_client.delete(f"/api/v2/smart-blocks/{block.id}")
+        admin_client.delete(f"/api/v2/smart-blocks/{block.id}")
         assert SmartBlock.objects.filter(id=block.id).count() == 0
 
-    def test_delete_block_not_found_returns_404(self, guest_client):
+    def test_delete_block_not_found_returns_404(self, admin_client):
         """DELETE non-existent block should return 404."""
-        response = guest_client.delete("/api/v2/smart-blocks/999999")
+        response = admin_client.delete("/api/v2/smart-blocks/999999")
         assert response.status_code == 404
 
     def test_delete_block_no_auth_fails(self, client):
@@ -61,7 +61,7 @@ class TestSmartBlockViewSetDelete:
         response = client.delete("/api/v2/smart-blocks/1")
         assert response.status_code == 403
 
-    def test_delete_block_double_delete_returns_404(self, guest_client):
+    def test_delete_block_double_delete_returns_404(self, admin_client):
         """DELETE already deleted block should return 404."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -71,11 +71,11 @@ class TestSmartBlockViewSetDelete:
             owner=user,
         )
 
-        guest_client.delete(f"/api/v2/smart-blocks/{block.id}")
-        response = guest_client.delete(f"/api/v2/smart-blocks/{block.id}")
+        admin_client.delete(f"/api/v2/smart-blocks/{block.id}")
+        response = admin_client.delete(f"/api/v2/smart-blocks/{block.id}")
         assert response.status_code == 404
 
-    def test_delete_block_returns_empty_body(self, guest_client):
+    def test_delete_block_returns_empty_body(self, admin_client):
         """DELETE should return empty response body."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -85,10 +85,10 @@ class TestSmartBlockViewSetDelete:
             owner=user,
         )
 
-        response = guest_client.delete(f"/api/v2/smart-blocks/{block.id}")
+        response = admin_client.delete(f"/api/v2/smart-blocks/{block.id}")
         assert response.content == b""
 
-    def test_delete_one_block_others_remain(self, guest_client):
+    def test_delete_one_block_others_remain(self, admin_client):
         """DELETE one block should leave others."""
         user = baker.make(User, username="testsb_user")
         block1 = baker.make(
@@ -110,13 +110,13 @@ class TestSmartBlockViewSetDelete:
             owner=user,
         )
 
-        guest_client.delete(f"/api/v2/smart-blocks/{block2.id}")
+        admin_client.delete(f"/api/v2/smart-blocks/{block2.id}")
 
         assert SmartBlock.objects.filter(id=block1.id).exists()
         assert not SmartBlock.objects.filter(id=block2.id).exists()
         assert SmartBlock.objects.filter(id=block3.id).exists()
 
-    def test_delete_block_with_content_cascade(self, guest_client):
+    def test_delete_block_with_content_cascade(self, admin_client):
         """DELETE static block should cascade delete contents."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -139,10 +139,10 @@ class TestSmartBlockViewSetDelete:
             offset=0,
         )
 
-        guest_client.delete(f"/api/v2/smart-blocks/{block.id}")
+        admin_client.delete(f"/api/v2/smart-blocks/{block.id}")
         assert not SmartBlockContent.objects.filter(id=content.id).exists()
 
-    def test_delete_block_with_criteria_cascade(self, guest_client):
+    def test_delete_block_with_criteria_cascade(self, admin_client):
         """DELETE dynamic block should cascade delete criteria."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -159,15 +159,15 @@ class TestSmartBlockViewSetDelete:
             value="Jazz",
         )
 
-        guest_client.delete(f"/api/v2/smart-blocks/{block.id}")
+        admin_client.delete(f"/api/v2/smart-blocks/{block.id}")
         assert not SmartBlockCriteria.objects.filter(id=criteria.id).exists()
 
-    def test_delete_block_id_zero_returns_404(self, guest_client):
+    def test_delete_block_id_zero_returns_404(self, admin_client):
         """DELETE with id=0 should return 404."""
-        response = guest_client.delete("/api/v2/smart-blocks/0")
+        response = admin_client.delete("/api/v2/smart-blocks/0")
         assert response.status_code == 404
 
-    def test_delete_block_negative_id_returns_404(self, guest_client):
+    def test_delete_block_negative_id_returns_404(self, admin_client):
         """DELETE with negative id should return 404."""
-        response = guest_client.delete("/api/v2/smart-blocks/-1")
+        response = admin_client.delete("/api/v2/smart-blocks/-1")
         assert response.status_code == 404

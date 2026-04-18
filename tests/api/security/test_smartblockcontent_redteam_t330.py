@@ -18,7 +18,7 @@ class TestSmartBlockContentIDOR:
 
     def test_list_content_shows_only_own_blocks(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -55,8 +55,8 @@ class TestSmartBlockContentIDOR:
             offset=0,
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get("/api/v2/smart-block-contents")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get("/api/v2/smart-block-contents")
 
         assert response.status_code == 200
         data = response.json()
@@ -70,7 +70,7 @@ class TestSmartBlockContentIDOR:
 
     def test_access_other_user_content(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -91,8 +91,8 @@ class TestSmartBlockContentIDOR:
             offset=0,
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get(
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get(
             f"/api/v2/smart-block-contents/{admin_content.id}",
         )
 
@@ -103,7 +103,7 @@ class TestSmartBlockContentIDOR:
 
     def test_create_content_in_other_user_block(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -117,8 +117,8 @@ class TestSmartBlockContentIDOR:
         )
         user_file = baker.make("storage.File", owner=regular_user)
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             {
                 "block": admin_block.id,
@@ -137,14 +137,14 @@ class TestSmartBlockContentIDOR:
 class TestSmartBlockContentSQLInjection:
     """SQL injection via content fields."""
 
-    def test_sqli_in_position_field(self, guest_client, admin_user):
+    def test_sqli_in_position_field(self, admin_client, admin_user):
         """Try SQL injection in position field."""
         from model_bakery import baker
 
         block = baker.make("schedule.SmartBlock", owner=admin_user)
         file_obj = baker.make("storage.File", owner=admin_user)
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         sqli_payloads = [
             "1 OR 1=1",
@@ -153,7 +153,7 @@ class TestSmartBlockContentSQLInjection:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/smart-block-contents",
                 {
                     "block": block.id,
@@ -167,16 +167,16 @@ class TestSmartBlockContentSQLInjection:
             # Should reject invalid position
             assert response.status_code in [201, 400]
 
-    def test_sqli_in_offset_field(self, guest_client, admin_user):
+    def test_sqli_in_offset_field(self, admin_client, admin_user):
         """Try SQL injection in offset field."""
         from model_bakery import baker
 
         block = baker.make("schedule.SmartBlock", owner=admin_user)
         file_obj = baker.make("storage.File", owner=admin_user)
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             {
                 "block": block.id,
@@ -194,16 +194,16 @@ class TestSmartBlockContentSQLInjection:
 class TestSmartBlockContentTypeConfusion:
     """Type confusion attacks on numeric fields."""
 
-    def test_position_as_string(self, guest_client, admin_user):
+    def test_position_as_string(self, admin_client, admin_user):
         """Try to pass position as string."""
         from model_bakery import baker
 
         block = baker.make("schedule.SmartBlock", owner=admin_user)
         file_obj = baker.make("storage.File", owner=admin_user)
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             {
                 "block": block.id,
@@ -217,16 +217,16 @@ class TestSmartBlockContentTypeConfusion:
         # Should reject invalid type
         assert response.status_code == 400
 
-    def test_position_as_float(self, guest_client, admin_user):
+    def test_position_as_float(self, admin_client, admin_user):
         """Try to pass position as float."""
         from model_bakery import baker
 
         block = baker.make("schedule.SmartBlock", owner=admin_user)
         file_obj = baker.make("storage.File", owner=admin_user)
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             {
                 "block": block.id,
@@ -240,16 +240,16 @@ class TestSmartBlockContentTypeConfusion:
         # May accept and truncate, or reject
         assert response.status_code in [201, 400]
 
-    def test_offset_as_string(self, guest_client, admin_user):
+    def test_offset_as_string(self, admin_client, admin_user):
         """Try to pass offset as string."""
         from model_bakery import baker
 
         block = baker.make("schedule.SmartBlock", owner=admin_user)
         file_obj = baker.make("storage.File", owner=admin_user)
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             {
                 "block": block.id,
@@ -267,16 +267,16 @@ class TestSmartBlockContentTypeConfusion:
 class TestSmartBlockContentBoundaryConditions:
     """Boundary condition attacks."""
 
-    def test_negative_position(self, guest_client, admin_user):
+    def test_negative_position(self, admin_client, admin_user):
         """Try to create content with negative position."""
         from model_bakery import baker
 
         block = baker.make("schedule.SmartBlock", owner=admin_user)
         file_obj = baker.make("storage.File", owner=admin_user)
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             {
                 "block": block.id,
@@ -290,16 +290,16 @@ class TestSmartBlockContentBoundaryConditions:
         # May accept or reject
         assert response.status_code in [201, 400]
 
-    def test_very_large_position(self, guest_client, admin_user):
+    def test_very_large_position(self, admin_client, admin_user):
         """Try to create content with very large position."""
         from model_bakery import baker
 
         block = baker.make("schedule.SmartBlock", owner=admin_user)
         file_obj = baker.make("storage.File", owner=admin_user)
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             {
                 "block": block.id,
@@ -312,16 +312,16 @@ class TestSmartBlockContentBoundaryConditions:
 
         assert response.status_code in [201, 400]
 
-    def test_negative_offset(self, guest_client, admin_user):
+    def test_negative_offset(self, admin_client, admin_user):
         """Try to create content with negative offset."""
         from model_bakery import baker
 
         block = baker.make("schedule.SmartBlock", owner=admin_user)
         file_obj = baker.make("storage.File", owner=admin_user)
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             {
                 "block": block.id,
@@ -339,15 +339,15 @@ class TestSmartBlockContentBoundaryConditions:
 class TestSmartBlockContentMissingFields:
     """T330/T331: Required field validation tests."""
 
-    def test_create_without_block(self, guest_client, admin_user):
+    def test_create_without_block(self, admin_client, admin_user):
         """T330: Create content without block field - should fail."""
         from model_bakery import baker
 
         file_obj = baker.make("storage.File", owner=admin_user)
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             {
                 "file": file_obj.id,
@@ -361,15 +361,15 @@ class TestSmartBlockContentMissingFields:
         assert response.status_code == 400
         assert "block" in str(response.content).lower()
 
-    def test_create_without_file(self, guest_client, admin_user):
+    def test_create_without_file(self, admin_client, admin_user):
         """T331: Create content without file field - should fail."""
         from model_bakery import baker
 
         block = baker.make("schedule.SmartBlock", owner=admin_user)
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             {
                 "block": block.id,
@@ -383,15 +383,15 @@ class TestSmartBlockContentMissingFields:
         assert response.status_code == 400
         assert "file" in str(response.content).lower()
 
-    def test_create_with_null_block(self, guest_client, admin_user):
+    def test_create_with_null_block(self, admin_client, admin_user):
         """T355: Try to create content with null block - should fail."""
         from model_bakery import baker
 
         file_obj = baker.make("storage.File", owner=admin_user)
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             {
                 "block": None,
@@ -406,15 +406,15 @@ class TestSmartBlockContentMissingFields:
         if response.status_code == 201:
             pytest.xfail("T355: API accepts null block (should reject)")
 
-    def test_create_with_null_file(self, guest_client, admin_user):
+    def test_create_with_null_file(self, admin_client, admin_user):
         """T355: Try to create content with null file - should fail."""
         from model_bakery import baker
 
         block = baker.make("schedule.SmartBlock", owner=admin_user)
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             {
                 "block": block.id,
@@ -434,15 +434,15 @@ class TestSmartBlockContentMissingFields:
 class TestSmartBlockContentInvalidReferences:
     """Invalid foreign key reference tests."""
 
-    def test_create_with_invalid_block_id(self, guest_client, admin_user):
+    def test_create_with_invalid_block_id(self, admin_client, admin_user):
         """Try to create content with non-existent block."""
         from model_bakery import baker
 
         file_obj = baker.make("storage.File", owner=admin_user)
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             {
                 "block": 999999,
@@ -455,15 +455,15 @@ class TestSmartBlockContentInvalidReferences:
 
         assert response.status_code == 400
 
-    def test_create_with_invalid_file_id(self, guest_client, admin_user):
+    def test_create_with_invalid_file_id(self, admin_client, admin_user):
         """Try to create content with non-existent file."""
         from model_bakery import baker
 
         block = baker.make("schedule.SmartBlock", owner=admin_user)
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             {
                 "block": block.id,
@@ -478,7 +478,7 @@ class TestSmartBlockContentInvalidReferences:
 
     def test_create_with_other_user_file(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -488,9 +488,9 @@ class TestSmartBlockContentInvalidReferences:
         block = baker.make("schedule.SmartBlock", owner=admin_user)
         other_file = baker.make("storage.File", owner=regular_user)
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-contents",
             {
                 "block": block.id,
@@ -512,7 +512,7 @@ class TestSmartBlockContentDelete:
     @pytest.mark.xfail(reason="BOLA: Can delete other user's smart block content")
     def test_delete_other_user_content(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -533,14 +533,14 @@ class TestSmartBlockContentDelete:
             offset=0,
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.delete(
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.delete(
             f"/api/v2/smart-block-contents/{admin_content.id}",
         )
 
         assert response.status_code in [403, 404]
 
-    def test_delete_without_auth(self, guest_client, admin_user):
+    def test_delete_without_auth(self, admin_client, admin_user):
         """Try to delete content without authentication."""
         from model_bakery import baker
 
@@ -554,7 +554,7 @@ class TestSmartBlockContentDelete:
             offset=0,
         )
 
-        response = guest_client.delete(
+        response = admin_client.delete(
             f"/api/v2/smart-block-contents/{content.id}",
         )
 

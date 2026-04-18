@@ -100,7 +100,7 @@ class TestPlaylistPermissionsRedTeam:
     # API5:2023 - Broken Function Level Authorization (BFLA)
     # ========================================================================
 
-    def test_bfla_admin_endpoints_user_access(self, guest_client):
+    def test_bfla_admin_endpoints_user_access(self, admin_client):
         """BFLA: Regular user should not access admin endpoints."""
         # Try common admin endpoint patterns
         admin_patterns = [
@@ -112,7 +112,7 @@ class TestPlaylistPermissionsRedTeam:
         ]
 
         for pattern in admin_patterns:
-            response = guest_client.get(pattern)
+            response = admin_client.get(pattern)
             # Should be 404 (not exist), 403 (forbidden), or 200 (if exists but auth ok)
             # 200 with admin=true is acceptable (param ignored)
             assert response.status_code in [
@@ -121,14 +121,14 @@ class TestPlaylistPermissionsRedTeam:
                 404,
             ], f"BFLA: Admin pattern '{pattern}' returned {response.status_code}"
 
-    def test_bfla_method_override_permission_bypass(self, guest_client):
+    def test_bfla_method_override_permission_bypass(self, admin_client):
         """BFLA: Test if method override bypasses permission checks."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
 
         # User with only view permission tries to delete via override
         # (Assuming we could set up a user with limited permissions)
-        response = guest_client.get(
+        response = admin_client.get(
             f"/api/v2/playlists/{playlist.id}",
             headers={
                 "X-HTTP-Method-Override": "DELETE",
@@ -145,12 +145,12 @@ class TestPlaylistPermissionsRedTeam:
             id=playlist.id,
         ).exists(), "BFLA: Playlist was deleted via method override"
 
-    def test_bfla_version_based_endpoint_bypass(self, guest_client):
+    def test_bfla_version_based_endpoint_bypass(self, admin_client):
         """BFLA: Test older API versions for permission bypasses."""
         versions = ["v1", "v3", "beta", "internal", "admin"]
 
         for version in versions:
-            response = guest_client.get(f"/api/{version}/playlists")
+            response = admin_client.get(f"/api/{version}/playlists")
             # Should be 404 (not exist) or properly protected
             assert response.status_code in [
                 403,
@@ -162,7 +162,7 @@ class TestPlaylistPermissionsRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T420: No role-based access control")
-    def test_permission_elevation_host_to_admin(self, guest_client):
+    def test_permission_elevation_host_to_admin(self, admin_client):
         """Elevation: HOST role should not have ADMIN permissions."""
         # Create a HOST user
         host_user = baker.make(
@@ -178,7 +178,7 @@ class TestPlaylistPermissionsRedTeam:
 
         # This test documents expected behavior
         # In current implementation, any auth user can delete
-        response = guest_client.delete(f"/api/v2/playlists/{playlist.id}")
+        response = admin_client.delete(f"/api/v2/playlists/{playlist.id}")
 
         # HOST should NOT be able to delete other's playlist
         assert response.status_code in [
@@ -186,7 +186,7 @@ class TestPlaylistPermissionsRedTeam:
             404,
         ], f"Elevation: HOST deleted other's playlist with {response.status_code}"
 
-    def test_permission_elevation_role_parameter_tampering(self, guest_client):
+    def test_permission_elevation_role_parameter_tampering(self, admin_client):
         """Elevation: Try to elevate role via request parameters."""
         # Try various ways to set role
         role_payloads = [
@@ -199,7 +199,7 @@ class TestPlaylistPermissionsRedTeam:
         ]
 
         for payload in role_payloads:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/playlists",
                 json.dumps({"name": "Test", **payload}),
                 content_type="application/json",
@@ -220,7 +220,7 @@ class TestPlaylistPermissionsRedTeam:
     # Missing Permission Tests
     # ========================================================================
 
-    def test_permission_without_view_playlist(self, guest_client):
+    def test_permission_without_view_playlist(self, admin_client):
         """Missing perm: User without view_playlist should be denied."""
         # This test requires a user specifically without the permission
         # For now, we document the behavior
@@ -230,7 +230,7 @@ class TestPlaylistPermissionsRedTeam:
         user = baker.make(User, username="testred_no_view")
         # Note: In current implementation, all users have all permissions
 
-        response = guest_client.get("/api/v2/playlists")
+        response = admin_client.get("/api/v2/playlists")
         # Current: 200 (all users have permissions)
         # Expected with RBAC: 403
         # Document current behavior
@@ -240,7 +240,7 @@ class TestPlaylistPermissionsRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T420: BOLA - no ownership verification")
-    def test_cross_user_list_filtering(self, guest_client):
+    def test_cross_user_list_filtering(self, admin_client):
         """BOLA: List should only show user's own playlists."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -252,7 +252,7 @@ class TestPlaylistPermissionsRedTeam:
         ]
 
         # Attacker lists playlists
-        response = guest_client.get("/api/v2/playlists")
+        response = admin_client.get("/api/v2/playlists")
         data = response.json()
 
         # Attacker should NOT see victim's playlists
@@ -263,7 +263,7 @@ class TestPlaylistPermissionsRedTeam:
             ), f"BOLA: Attacker can see victim's playlist '{vp.name}'"
 
     @pytest.mark.xfail(reason="T420: BOLA - IDOR vulnerability")
-    def test_idor_sequential_id_access(self, guest_client):
+    def test_idor_sequential_id_access(self, admin_client):
         """IDOR: Attacker can access victim's playlists by ID guessing."""
         victim = baker.make(User, username="testred_victim")
 
@@ -275,7 +275,7 @@ class TestPlaylistPermissionsRedTeam:
         )
 
         # Attacker tries to access by ID
-        response = guest_client.get(f"/api/v2/playlists/{victim_playlist.id}")
+        response = admin_client.get(f"/api/v2/playlists/{victim_playlist.id}")
 
         # Should be 403 or 404 (not visible to attacker)
         assert response.status_code in [
@@ -307,12 +307,12 @@ class TestPlaylistPermissionsRedTeam:
                 response.status_code == 403
             ), f"Token '{token}' should fail but got {response.status_code}"
 
-    def test_auth_session_vs_api_key_priority(self, guest_client, client):
+    def test_auth_session_vs_api_key_priority(self, admin_client, client):
         """Auth: Test session auth vs API key priority."""
         real_api_key = settings.CONFIG.general.api_key
 
-        # Request with both session (via guest_client) and API key
-        response = guest_client.get(
+        # Request with both session (via admin_client) and API key
+        response = admin_client.get(
             "/api/v2/playlists",
             headers={"Authorization": f"Api-Key {real_api_key}"},
         )
@@ -346,10 +346,10 @@ class TestPlaylistPermissionsRedTeam:
     # HTTP Parameter Pollution
     # ========================================================================
 
-    def test_http_parameter_pollution(self, guest_client):
+    def test_http_parameter_pollution(self, admin_client):
         """HPP: Test parameter pollution attacks."""
         # Try multiple values for same parameter
-        response = guest_client.get("/api/v2/playlists?id=1&id=2&id=3")
+        response = admin_client.get("/api/v2/playlists?id=1&id=2&id=3")
         # Should handle gracefully
         assert response.status_code in [
             200,
@@ -360,7 +360,7 @@ class TestPlaylistPermissionsRedTeam:
     # Cache Poisoning
     # ========================================================================
 
-    def test_cache_poisoning_via_headers(self, guest_client):
+    def test_cache_poisoning_via_headers(self, admin_client):
         """Cache: Test cache poisoning through headers."""
         # Headers that might affect caching
         cache_headers = [
@@ -372,7 +372,7 @@ class TestPlaylistPermissionsRedTeam:
         ]
 
         for headers in cache_headers:
-            response = guest_client.get("/api/v2/playlists", headers=headers)
+            response = admin_client.get("/api/v2/playlists", headers=headers)
             # Should not return cached data for different user
             # 400 is acceptable for invalid Host headers (Django protection)
             assert response.status_code in [

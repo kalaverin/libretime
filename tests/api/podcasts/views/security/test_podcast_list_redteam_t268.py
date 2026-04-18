@@ -144,7 +144,7 @@ class TestPodcastListRedTeamBOLA:
 
     def test_bola_t353_list_shows_all_users_podcasts(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
         fake_url,
@@ -170,7 +170,7 @@ class TestPodcastListRedTeamBOLA:
         )
 
         # Admin (or any user) requests LIST
-        response = guest_client.get("/api/v2/podcasts")
+        response = admin_client.get("/api/v2/podcasts")
 
         assert response.status_code == 200
         data = response.json()
@@ -184,7 +184,7 @@ class TestPodcastListRedTeamBOLA:
 
     def test_bola_t353_regular_user_sees_all_podcasts(
         self,
-        guest_client,
+        admin_client,
         regular_user,
         fake_url,
         fake_catch_phrase,
@@ -206,8 +206,8 @@ class TestPodcastListRedTeamBOLA:
         )
 
         # Regular user requests LIST
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get("/api/v2/podcasts")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get("/api/v2/podcasts")
 
         assert response.status_code == 200
         data = response.json()
@@ -220,7 +220,7 @@ class TestPodcastListRedTeamBOLA:
 
     def test_bola_t353_guest_user_can_list_podcasts(
         self,
-        guest_client,
+        admin_client,
         guest_user,
         fake_url,
         fake_catch_phrase,
@@ -230,15 +230,15 @@ class TestPodcastListRedTeamBOLA:
         """
         baker.make(Podcast, url=fake_url, title=fake_catch_phrase)
 
-        guest_client.force_authenticate(user=guest_user)
-        response = guest_client.get("/api/v2/podcasts")
+        admin_client.force_authenticate(user=guest_user)
+        response = admin_client.get("/api/v2/podcasts")
 
         if response.status_code == 200:
             pytest.xfail("T664: BFLA - Guest user can list podcasts")
 
     def test_bola_id_format_manipulation_numeric(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -257,25 +257,25 @@ class TestPodcastListRedTeamBOLA:
         ]
 
         for id_fmt in id_formats:
-            response = guest_client.get(f"/api/v2/podcasts/{id_fmt}")
+            response = admin_client.get(f"/api/v2/podcasts/{id_fmt}")
             # If any format works unexpectedly, document it
             if response.status_code == 200 and id_fmt != str(podcast.id):
                 pytest.xfail(f"T665: ID format confusion works: {id_fmt}")
 
-    def test_bola_negative_id_access(self, guest_client, admin_user):
+    def test_bola_negative_id_access(self, admin_client, admin_user):
         """
         BOLA: Negative ID may bypass access controls.
         """
-        response = guest_client.get("/api/v2/podcasts/-1")
+        response = admin_client.get("/api/v2/podcasts/-1")
         # Should be 404, but if 500 or other error, it's info leak
         if response.status_code == 500:
             pytest.xfail("T666: Negative ID causes 500 error")
 
-    def test_bola_zero_id_access(self, guest_client, admin_user):
+    def test_bola_zero_id_access(self, admin_client, admin_user):
         """
         BOLA: ID=0 may have special meaning or bypass.
         """
-        response = guest_client.get("/api/v2/podcasts/0")
+        response = admin_client.get("/api/v2/podcasts/0")
         if response.status_code == 200:
             pytest.xfail("T667: ID=0 returns data (potential bypass)")
 
@@ -291,7 +291,7 @@ class TestPodcastListRedTeamInjection:
 
     def test_sqli_in_search_param(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -299,7 +299,7 @@ class TestPodcastListRedTeamInjection:
         SQL Injection via search parameter - SecLists comprehensive.
         """
         for payload in SQLI_PAYLOADS[:10]:  # Sample for performance
-            response = guest_client.get(f"/api/v2/podcasts?search={payload}")
+            response = admin_client.get(f"/api/v2/podcasts?search={payload}")
 
             if response.status_code == 500:
                 pytest.xfail(
@@ -318,12 +318,12 @@ class TestPodcastListRedTeamInjection:
             if any(err in error_text for err in sql_errors):
                 pytest.xfail(f"T668: SQLi error disclosure: {payload[:30]}")
 
-    def test_sqli_in_title_filter(self, guest_client, admin_user):
+    def test_sqli_in_title_filter(self, admin_client, admin_user):
         """
         SQL Injection via title filter - comprehensive payloads.
         """
         for payload in SQLI_PAYLOADS[:8]:
-            response = guest_client.get(f"/api/v2/podcasts?title={payload}")
+            response = admin_client.get(f"/api/v2/podcasts?title={payload}")
 
             if response.status_code == 500:
                 pytest.xfail(f"T669: SQLi in title causes 500: {payload[:30]}")
@@ -334,7 +334,7 @@ class TestPodcastListRedTeamInjection:
             ):
                 pytest.xfail("T669: Potential SQLi info leak in title filter")
 
-    def test_sqli_in_ordering_param(self, guest_client, admin_user):
+    def test_sqli_in_ordering_param(self, admin_client, admin_user):
         """
         SQL Injection via ordering parameter - time-based detection.
         """
@@ -344,7 +344,7 @@ class TestPodcastListRedTeamInjection:
             "(SELECT CASE WHEN (1=1) THEN pg_sleep(2) ELSE pg_sleep(0) END)",
         ]:
             start = time.time()
-            response = guest_client.get(f"/api/v2/podcasts?ordering={payload}")
+            response = admin_client.get(f"/api/v2/podcasts?ordering={payload}")
             duration = time.time() - start
 
             if duration > 1.5:  # Time-based SQLi detected
@@ -355,7 +355,7 @@ class TestPodcastListRedTeamInjection:
             if response.status_code == 500:
                 pytest.xfail("T670: SQLi in ordering causes 500")
 
-    def test_sqli_union_based_injection(self, guest_client, admin_user):
+    def test_sqli_union_based_injection(self, admin_client, admin_user):
         """
         SQLi UNION-based injection in filters.
         """
@@ -366,13 +366,13 @@ class TestPodcastListRedTeamInjection:
         ]
 
         for payload in union_payloads:
-            response = guest_client.get(f"/api/v2/podcasts?search={payload}")
+            response = admin_client.get(f"/api/v2/podcasts?search={payload}")
             if "username" in str(response.content) or "password" in str(
                 response.content,
             ):
                 pytest.xfail("T671: UNION-based SQLi successful")
 
-    def test_nosql_injection_mongodb_operators(self, guest_client, admin_user):
+    def test_nosql_injection_mongodb_operators(self, admin_client, admin_user):
         """
         NoSQL injection attempts via JSON-like operators.
         """
@@ -384,18 +384,18 @@ class TestPodcastListRedTeamInjection:
         ]
 
         for payload in nosql_payloads:
-            response = guest_client.get(f"/api/v2/podcasts?title={payload}")
+            response = admin_client.get(f"/api/v2/podcasts?title={payload}")
             # If it doesn't error, might be vulnerable
             if response.status_code == 200 and len(response.json()) > 0:
                 # Check if filter was bypassed
                 pass
 
-    def test_command_injection_via_url_param(self, guest_client, admin_user):
+    def test_command_injection_via_url_param(self, admin_client, admin_user):
         """
         Command injection in URL parameter (potential SSRF/RCE vector).
         """
         for payload in COMMAND_INJECTION[:5]:
-            response = guest_client.get(f"/api/v2/podcasts?url={payload}")
+            response = admin_client.get(f"/api/v2/podcasts?url={payload}")
             if response.status_code == 500:
                 error_text = str(response.content).lower()
                 if any(
@@ -415,7 +415,7 @@ class TestPodcastListRedTeamInformationDisclosure:
 
     def test_list_includes_owner_id(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
         fake_url,
@@ -438,7 +438,7 @@ class TestPodcastListRedTeamInformationDisclosure:
             owner=victim,
         )
 
-        response = guest_client.get("/api/v2/podcasts")
+        response = admin_client.get("/api/v2/podcasts")
 
         assert response.status_code == 200
         data = response.json()
@@ -451,11 +451,11 @@ class TestPodcastListRedTeamInformationDisclosure:
                         "T673: Owner ID exposed in LIST (user enumeration)",
                     )
 
-    def test_error_message_leaks_db_structure(self, guest_client, admin_user):
+    def test_error_message_leaks_db_structure(self, admin_client, admin_user):
         """
         Error messages should not leak database structure.
         """
-        response = guest_client.get("/api/v2/podcasts?ordering=invalid')")
+        response = admin_client.get("/api/v2/podcasts?ordering=invalid')")
 
         if response.status_code == 500:
             error_text = str(response.content).lower()
@@ -472,7 +472,7 @@ class TestPodcastListRedTeamInformationDisclosure:
 
     def test_id_enumeration_via_404_403(
         self,
-        guest_client,
+        admin_client,
         regular_user,
         fake_url,
         fake_catch_phrase,
@@ -492,23 +492,23 @@ class TestPodcastListRedTeamInformationDisclosure:
             owner=admin,
         )
 
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
 
-        response_existing = guest_client.get(
+        response_existing = admin_client.get(
             f"/api/v2/podcasts/{admin_podcast.id}",
         )
-        response_nonexistent = guest_client.get("/api/v2/podcasts/999999")
+        response_nonexistent = admin_client.get("/api/v2/podcasts/999999")
 
         # If different status codes, ID enumeration is possible
         if response_existing.status_code != response_nonexistent.status_code:
             if response_existing.status_code == 200:
                 pytest.xfail("T675: BOLA confirmed - existing returns 200")
 
-    def test_verbose_error_on_invalid_json(self, guest_client, admin_user):
+    def test_verbose_error_on_invalid_json(self, admin_client, admin_user):
         """
         Invalid JSON body may trigger verbose error.
         """
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/podcasts",
             data="invalid json {",
             content_type="application/json",
@@ -518,11 +518,11 @@ class TestPodcastListRedTeamInformationDisclosure:
             if "traceback" in error_text or "django" in error_text:
                 pytest.xfail("T676: Verbose error on invalid JSON")
 
-    def test_stack_trace_in_debug_mode(self, guest_client, admin_user):
+    def test_stack_trace_in_debug_mode(self, admin_client, admin_user):
         """
         Check if debug mode exposes stack traces.
         """
-        response = guest_client.get("/api/v2/podcasts?search=\\x00")
+        response = admin_client.get("/api/v2/podcasts?search=\\x00")
         if response.status_code == 500:
             if (
                 b"Traceback" in response.content
@@ -540,13 +540,13 @@ class TestPodcastListRedTeamInformationDisclosure:
 class TestPodcastListRedTeamResourceConsumption:
     """API4:2023 Unrestricted Resource Consumption."""
 
-    def test_rapid_list_requests(self, guest_client, admin_user):
+    def test_rapid_list_requests(self, admin_client, admin_user):
         """
         Rate limiting: Rapid LIST requests (50 in 1 second).
         """
         success_count = 0
         for _ in range(50):
-            response = guest_client.get("/api/v2/podcasts")
+            response = admin_client.get("/api/v2/podcasts")
             if response.status_code == 200:
                 success_count += 1
 
@@ -557,7 +557,7 @@ class TestPodcastListRedTeamResourceConsumption:
 
     def test_bulk_podcast_list(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -573,7 +573,7 @@ class TestPodcastListRedTeamResourceConsumption:
                 title=f"Podcast {i} {fake_catch_phrase}",
             )
 
-        response = guest_client.get("/api/v2/podcasts")
+        response = admin_client.get("/api/v2/podcasts")
 
         if response.status_code == 200:
             data = response.json()
@@ -582,30 +582,30 @@ class TestPodcastListRedTeamResourceConsumption:
                     "T679: Large result set without pagination (100+ records)",
                 )
 
-    def test_large_page_size_abuse(self, guest_client, admin_user):
+    def test_large_page_size_abuse(self, admin_client, admin_user):
         """
         Pagination: Large page_size can exhaust resources.
         """
-        response = guest_client.get("/api/v2/podcasts?page_size=10000")
+        response = admin_client.get("/api/v2/podcasts?page_size=10000")
 
         if response.status_code == 200:
             data = response.json()
             if isinstance(data, list) and len(data) > 1000:
                 pytest.xfail("T680: No max_page_size limit (10K returned)")
 
-    def test_repeated_identical_requests(self, guest_client, admin_user):
+    def test_repeated_identical_requests(self, admin_client, admin_user):
         """
         Cache-based DoS via repeated identical requests.
         """
         for _ in range(100):
-            response = guest_client.get("/api/v2/podcasts")
+            response = admin_client.get("/api/v2/podcasts")
             if response.status_code != 200:
                 break
         else:
             # All 100 succeeded without throttling
             pass
 
-    def test_deeply_nested_filter_params(self, guest_client, admin_user):
+    def test_deeply_nested_filter_params(self, admin_client, admin_user):
         """
         Deeply nested filter parameters may cause CPU exhaustion.
         """
@@ -616,7 +616,7 @@ class TestPodcastListRedTeamResourceConsumption:
                 for i in range(50)
             ],
         )
-        response = guest_client.get(f"/api/v2/podcasts?{nested}")
+        response = admin_client.get(f"/api/v2/podcasts?{nested}")
 
         if response.status_code == 500:
             pytest.xfail("T681: Deeply nested params cause 500")
@@ -631,44 +631,44 @@ class TestPodcastListRedTeamResourceConsumption:
 class TestPodcastListRedTeamAuthentication:
     """Authentication tests."""
 
-    def test_unauthenticated_list(self, guest_client):
+    def test_unauthenticated_list(self, admin_client):
         """Unauthenticated LIST should fail."""
-        guest_client.logout()
-        response = guest_client.get("/api/v2/podcasts")
+        admin_client.logout()
+        response = admin_client.get("/api/v2/podcasts")
         assert response.status_code == 403
 
     def test_unauthenticated_retrieve(
         self,
-        guest_client,
+        admin_client,
         fake_url,
         fake_catch_phrase,
     ):
         """Unauthenticated RETRIEVE should fail."""
         podcast = baker.make(Podcast, url=fake_url, title=fake_catch_phrase)
 
-        guest_client.logout()
-        response = guest_client.get(f"/api/v2/podcasts/{podcast.id}")
+        admin_client.logout()
+        response = admin_client.get(f"/api/v2/podcasts/{podcast.id}")
         assert response.status_code == 403
 
-    def test_invalid_token_format(self, guest_client):
+    def test_invalid_token_format(self, admin_client):
         """Invalid token format should fail."""
-        guest_client.logout()
-        guest_client.credentials(HTTP_AUTHORIZATION="Bearer invalid_token_12345")
-        response = guest_client.get("/api/v2/podcasts")
+        admin_client.logout()
+        admin_client.credentials(HTTP_AUTHORIZATION="Bearer invalid_token_12345")
+        response = admin_client.get("/api/v2/podcasts")
         assert response.status_code == 403
 
-    def test_malformed_auth_header(self, guest_client):
+    def test_malformed_auth_header(self, admin_client):
         """Malformed Authorization header."""
-        guest_client.logout()
-        guest_client.credentials(HTTP_AUTHORIZATION="InvalidFormat token")
-        response = guest_client.get("/api/v2/podcasts")
+        admin_client.logout()
+        admin_client.credentials(HTTP_AUTHORIZATION="InvalidFormat token")
+        response = admin_client.get("/api/v2/podcasts")
         assert response.status_code == 403
 
-    def test_empty_auth_header(self, guest_client):
+    def test_empty_auth_header(self, admin_client):
         """Empty Authorization header."""
-        guest_client.logout()
-        guest_client.credentials(HTTP_AUTHORIZATION="")
-        response = guest_client.get("/api/v2/podcasts")
+        admin_client.logout()
+        admin_client.credentials(HTTP_AUTHORIZATION="")
+        response = admin_client.get("/api/v2/podcasts")
         assert response.status_code == 403
 
 
@@ -683,7 +683,7 @@ class TestPodcastEpisodeListRedTeamBOLA:
 
     def test_bola_episode_list_shows_all_episodes(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
         fake_url,
@@ -711,8 +711,8 @@ class TestPodcastEpisodeListRedTeamBOLA:
             published_at=now(),
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get("/api/v2/podcast-episodes")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get("/api/v2/podcast-episodes")
 
         assert response.status_code == 200
         data = response.json()
@@ -735,7 +735,7 @@ class TestPodcastStationListRedTeamBOLA:
 
     def test_bola_station_podcast_list_shows_all(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
         fake_url,
@@ -757,8 +757,8 @@ class TestPodcastStationListRedTeamBOLA:
         )
         station_podcast = baker.make(StationPodcast, podcast=victim_podcast)
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get("/api/v2/station-podcasts")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get("/api/v2/station-podcasts")
 
         if response.status_code == 403:
             pytest.skip("StationPodcast requires special permissions")
@@ -784,7 +784,7 @@ class TestImportedPodcastListRedTeamBOLA:
 
     def test_bola_imported_podcast_list_shows_all(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
         fake_url,
@@ -810,8 +810,8 @@ class TestImportedPodcastListRedTeamBOLA:
             override_album=False,
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get("/api/v2/imported-podcasts")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get("/api/v2/imported-podcasts")
 
         if response.status_code == 403:
             pytest.skip("ImportedPodcast requires special permissions")
@@ -837,7 +837,7 @@ class TestPodcastListRedTeamHTTPMethodTampering:
 
     def test_trace_method_disabled(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -845,12 +845,12 @@ class TestPodcastListRedTeamHTTPMethodTampering:
         """TRACE method should be disabled."""
         podcast = baker.make(Podcast, url=fake_url, title=fake_catch_phrase)
 
-        response = guest_client.trace(f"/api/v2/podcasts/{podcast.id}")
+        response = admin_client.trace(f"/api/v2/podcasts/{podcast.id}")
         assert response.status_code in [405, 403]
 
     def test_method_override_via_header(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -861,7 +861,7 @@ class TestPodcastListRedTeamHTTPMethodTampering:
         podcast = baker.make(Podcast, url=fake_url, title=fake_catch_phrase)
 
         # Try to GET via POST with override
-        response = guest_client.post(
+        response = admin_client.post(
             f"/api/v2/podcasts/{podcast.id}",
             {},
             HTTP_X_HTTP_METHOD_OVERRIDE="GET",
@@ -872,7 +872,7 @@ class TestPodcastListRedTeamHTTPMethodTampering:
 
     def test_method_override_via_query_param(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -882,7 +882,7 @@ class TestPodcastListRedTeamHTTPMethodTampering:
         """
         podcast = baker.make(Podcast, url=fake_url, title=fake_catch_phrase)
 
-        response = guest_client.post(
+        response = admin_client.post(
             f"/api/v2/podcasts/{podcast.id}?_method=DELETE",
             {},
         )
@@ -901,7 +901,7 @@ class TestPodcastListRedTeamBOPLA:
 
     def test_mass_assignment_via_list_endpoint(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -910,7 +910,7 @@ class TestPodcastListRedTeamBOPLA:
         Try to modify read-only fields via LIST (if PATCH on list is supported).
         """
         # Some DRF setups allow bulk update via list endpoint
-        response = guest_client.patch(
+        response = admin_client.patch(
             "/api/v2/podcasts",
             [{"id": 1, "owner_id": 999}],  # Try to change owner
             format="json",
@@ -921,7 +921,7 @@ class TestPodcastListRedTeamBOPLA:
 
     def test_field_selection_via_query_param(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -930,7 +930,7 @@ class TestPodcastListRedTeamBOPLA:
         Try to select specific fields via query param (may bypass field-level auth).
         """
         # Some APIs support ?fields= to limit returned fields
-        response = guest_client.get(
+        response = admin_client.get(
             "/api/v2/podcasts?fields=owner,password,secret",
         )
         if response.status_code == 200:
@@ -948,49 +948,49 @@ class TestPodcastListRedTeamBOPLA:
 class TestPodcastListRedTeamFuzzing:
     """Fuzzing tests using SecLists payloads."""
 
-    def test_naughty_strings_in_search(self, guest_client, admin_user):
+    def test_naughty_strings_in_search(self, admin_client, admin_user):
         """
         Fuzz search parameter with naughty strings.
         """
         for payload in NAUGHTY_STRINGS[:10]:
-            response = guest_client.get(f"/api/v2/podcasts?search={payload}")
+            response = admin_client.get(f"/api/v2/podcasts?search={payload}")
             # Should handle gracefully (200 or 400), not 500
             if response.status_code == 500:
                 pytest.xfail(
                     f"T689: Naughty string causes 500: {payload[:30]}",
                 )
 
-    def test_naughty_strings_in_title_filter(self, guest_client, admin_user):
+    def test_naughty_strings_in_title_filter(self, admin_client, admin_user):
         """
         Fuzz title filter with naughty strings.
         """
         for payload in NAUGHTY_STRINGS[:8]:
-            response = guest_client.get(f"/api/v2/podcasts?title={payload}")
+            response = admin_client.get(f"/api/v2/podcasts?title={payload}")
             if response.status_code == 500:
                 pytest.xfail("T690: Naughty string in title causes 500")
 
-    def test_xss_payloads_in_filters(self, guest_client, admin_user):
+    def test_xss_payloads_in_filters(self, admin_client, admin_user):
         """
         XSS payloads in filter parameters (stored XSS test).
         """
         for payload in XSS_PAYLOADS[:5]:
-            response = guest_client.get(f"/api/v2/podcasts?search={payload}")
+            response = admin_client.get(f"/api/v2/podcasts?search={payload}")
             # If payload is reflected without sanitization, it's XSS
             if payload in str(response.content):
                 pytest.xfail(f"T691: XSS payload reflected: {payload[:30]}")
 
-    def test_path_traversal_in_params(self, guest_client, admin_user):
+    def test_path_traversal_in_params(self, admin_client, admin_user):
         """
         Path traversal in query parameters.
         """
         for payload in PATH_TRAVERSAL[:5]:
-            response = guest_client.get(f"/api/v2/podcasts?file={payload}")
+            response = admin_client.get(f"/api/v2/podcasts?file={payload}")
             if "root:" in str(response.content) or "passwd" in str(
                 response.content,
             ):
                 pytest.xfail(f"T692: Path traversal works: {payload}")
 
-    def test_unicode_normalization_attacks(self, guest_client, admin_user):
+    def test_unicode_normalization_attacks(self, admin_client, admin_user):
         """
         Unicode normalization attacks (homograph, etc.).
         """
@@ -1001,7 +1001,7 @@ class TestPodcastListRedTeamFuzzing:
             "test\uffff",  # High Unicode
         ]
         for payload in unicode_attacks:
-            response = guest_client.get(f"/api/v2/podcasts?search={payload}")
+            response = admin_client.get(f"/api/v2/podcasts?search={payload}")
             if response.status_code == 500:
                 pytest.xfail("T693: Unicode attack causes 500")
 
@@ -1015,7 +1015,7 @@ class TestPodcastListRedTeamFuzzing:
 class TestPodcastListRedTeamSSRF:
     """SSRF tests for LIST endpoint (if URL parameters are fetched)."""
 
-    def test_ssrf_via_url_param_internal(self, guest_client, admin_user):
+    def test_ssrf_via_url_param_internal(self, admin_client, admin_user):
         """
         SSRF: Try to fetch internal URLs via url parameter.
         """
@@ -1029,7 +1029,7 @@ class TestPodcastListRedTeamSSRF:
         ]
 
         for url in internal_urls:
-            response = guest_client.get(f"/api/v2/podcasts?url={url}")
+            response = admin_client.get(f"/api/v2/podcasts?url={url}")
             # If internal content appears, SSRF exists
             content = str(response.content).lower()
             if any(
@@ -1038,7 +1038,7 @@ class TestPodcastListRedTeamSSRF:
             ):
                 pytest.xfail(f"T694: SSRF to {url} successful")
 
-    def test_ssrf_dns_rebinding(self, guest_client, admin_user):
+    def test_ssrf_dns_rebinding(self, admin_client, admin_user):
         """
         SSRF via DNS rebinding.
         """
@@ -1047,7 +1047,7 @@ class TestPodcastListRedTeamSSRF:
             "http://7f000001.nip.io/",
         ]
         for domain in rebinding_domains:
-            response = guest_client.get(f"/api/v2/podcasts?url={domain}")
+            response = admin_client.get(f"/api/v2/podcasts?url={domain}")
             if response.status_code == 200 and "json" in str(response.content):
                 pytest.xfail("T695: SSRF via DNS rebinding possible")
 
@@ -1061,11 +1061,11 @@ class TestPodcastListRedTeamSSRF:
 class TestPodcastListRedTeamHeaders:
     """Header injection and CORS tests."""
 
-    def test_cors_preflight_arbitrary_origin(self, guest_client, admin_user):
+    def test_cors_preflight_arbitrary_origin(self, admin_client, admin_user):
         """
         CORS: Check if arbitrary origins are allowed.
         """
-        response = guest_client.options(
+        response = admin_client.options(
             "/api/v2/podcasts",
             HTTP_ORIGIN="https://evil.com",
             HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET",
@@ -1075,11 +1075,11 @@ class TestPodcastListRedTeamHeaders:
         if allow_origin == "*" or allow_origin == "https://evil.com":
             pytest.xfail("T696: CORS allows arbitrary origin")
 
-    def test_host_header_poisoning(self, guest_client, admin_user):
+    def test_host_header_poisoning(self, admin_client, admin_user):
         """
         Host header poisoning test.
         """
-        response = guest_client.get(
+        response = admin_client.get(
             "/api/v2/podcasts",
             HTTP_HOST="evil.com",
             HTTP_X_FORWARDED_HOST="evil.com",
@@ -1088,17 +1088,17 @@ class TestPodcastListRedTeamHeaders:
         if "evil.com" in str(response.content):
             pytest.xfail("T697: Host header poisoning possible")
 
-    def test_cache_poisoning_via_headers(self, guest_client, admin_user):
+    def test_cache_poisoning_via_headers(self, admin_client, admin_user):
         """
         Cache poisoning via X-Forwarded-Host header.
         """
         # First request with poisoned header
-        response1 = guest_client.get(
+        response1 = admin_client.get(
             "/api/v2/podcasts",
             HTTP_X_FORWARDED_HOST="evil.com",
         )
         # Normal request
-        response2 = guest_client.get("/api/v2/podcasts")
+        response2 = admin_client.get("/api/v2/podcasts")
 
         if "evil.com" in str(response2.content):
             pytest.xfail("T698: Cache poisoning via X-Forwarded-Host")
@@ -1113,7 +1113,7 @@ class TestPodcastListRedTeamHeaders:
 class TestPodcastListRedTeamBusinessLogic:
     """Business logic abuse tests."""
 
-    def test_filter_bypass_via_encoding(self, guest_client, admin_user):
+    def test_filter_bypass_via_encoding(self, admin_client, admin_user):
         """
         Try to bypass filters via encoding.
         """
@@ -1125,11 +1125,11 @@ class TestPodcastListRedTeamBusinessLogic:
         ]
 
         for field, value in encodings:
-            response = guest_client.get(f"/api/v2/podcasts?{field}={value}")
+            response = admin_client.get(f"/api/v2/podcasts?{field}={value}")
             if response.status_code == 500:
                 pytest.xfail("T699: Encoding bypass causes 500")
 
-    def test_jsonp_callback_injection(self, guest_client, admin_user):
+    def test_jsonp_callback_injection(self, admin_client, admin_user):
         """
         JSONP callback parameter injection.
         """
@@ -1140,6 +1140,6 @@ class TestPodcastListRedTeamBusinessLogic:
         ]
 
         for callback in malicious_callbacks:
-            response = guest_client.get(f"/api/v2/podcasts?callback={callback}")
+            response = admin_client.get(f"/api/v2/podcasts?callback={callback}")
             if callback in str(response.content):
                 pytest.xfail("T700: JSONP callback injection possible")

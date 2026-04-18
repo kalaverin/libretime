@@ -18,18 +18,18 @@ from model_bakery import baker
 class TestShowDaysFilterInjection:
     """Filter parameter injection attacks."""
 
-    def test_filter_by_invalid_show_id(self, guest_client, admin_user):
+    def test_filter_by_invalid_show_id(self, admin_client, admin_user):
         """Try to filter by invalid show_id."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.get("/api/v2/show-days?show=invalid")
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.get("/api/v2/show-days?show=invalid")
 
         if response.status_code == 500:
             pytest.fail("BUG: Filter crashes on invalid show_id")
         assert response.status_code in [200, 400]
 
-    def test_filter_by_sql_injection(self, guest_client, admin_user):
+    def test_filter_by_sql_injection(self, admin_client, admin_user):
         """Try SQL injection in show filter."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         sqli_payloads = [
             "1' OR '1'='1",
@@ -38,14 +38,14 @@ class TestShowDaysFilterInjection:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.get(f"/api/v2/show-days?show={payload}")
+            response = admin_client.get(f"/api/v2/show-days?show={payload}")
             if response.status_code == 500:
                 pytest.fail(f"BUG: SQL injection causes crash: {payload}")
 
-    def test_filter_by_negative_show_id(self, guest_client, admin_user):
+    def test_filter_by_negative_show_id(self, admin_client, admin_user):
         """Try to filter by negative show_id."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.get("/api/v2/show-days?show=-1")
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.get("/api/v2/show-days?show=-1")
 
         assert response.status_code in [200, 400]
 
@@ -56,7 +56,7 @@ class TestShowDaysBOLA:
 
     def test_list_shows_only_own_days(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -67,8 +67,8 @@ class TestShowDaysBOLA:
         admin_day = baker.make("schedule.ShowDays", show=show1)
         user_day = baker.make("schedule.ShowDays", show=show2)
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get("/api/v2/show-days")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get("/api/v2/show-days")
 
         assert response.status_code == 200
         data = response.json()
@@ -80,7 +80,7 @@ class TestShowDaysBOLA:
 
     def test_filter_by_other_user_show(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -88,8 +88,8 @@ class TestShowDaysBOLA:
         show = baker.make("schedule.Show", name="Admin Show")
         day = baker.make("schedule.ShowDays", show=show)
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get(f"/api/v2/show-days?show={show.id}")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get(f"/api/v2/show-days?show={show.id}")
 
         assert response.status_code == 200
         data = response.json()
@@ -102,12 +102,12 @@ class TestShowDaysBOLA:
 class TestShowDaysTimeManipulation:
     """Time field manipulation attacks."""
 
-    def test_timezone_with_invalid_value(self, guest_client, admin_user):
+    def test_timezone_with_invalid_value(self, admin_client, admin_user):
         """Try to create show day with invalid timezone."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/show-days",
             {
                 "show": show.id,
@@ -122,12 +122,12 @@ class TestShowDaysTimeManipulation:
         # May accept or reject - documenting
         assert response.status_code in [201, 400]
 
-    def test_duration_with_negative_value(self, guest_client, admin_user):
+    def test_duration_with_negative_value(self, admin_client, admin_user):
         """Try to create with negative duration."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/show-days",
             {
                 "show": show.id,
@@ -143,12 +143,12 @@ class TestShowDaysTimeManipulation:
         if response.status_code == 201:
             pytest.fail("BUG: Accepts negative duration")
 
-    def test_week_day_out_of_range(self, guest_client, admin_user):
+    def test_week_day_out_of_range(self, admin_client, admin_user):
         """Try to create with invalid week_day."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/show-days",
             {
                 "show": show.id,
@@ -174,11 +174,11 @@ class TestShowDaysBusinessLogic:
 
         assert response.status_code in [403, 401]
 
-    def test_create_without_auth(self, guest_client):
+    def test_create_without_auth(self, admin_client):
         """Try to create without authentication."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-days",
             {
                 "show": show.id,
@@ -195,15 +195,15 @@ class TestShowDaysBusinessLogic:
 
     def test_create_for_other_user_show(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
         """Try to create show day for another user's show."""
         show = baker.make("schedule.Show", name="Admin Show")
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.post(
             "/api/v2/show-days",
             {
                 "show": show.id,
@@ -225,10 +225,10 @@ class TestShowDaysBusinessLogic:
 class TestShowDaysInformationDisclosure:
     """Information disclosure attacks."""
 
-    def test_error_message_on_invalid_filter(self, guest_client, admin_user):
+    def test_error_message_on_invalid_filter(self, admin_client, admin_user):
         """Check if error messages leak information."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.get("/api/v2/show-days?show=invalid")
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.get("/api/v2/show-days?show=invalid")
 
         if response.status_code == 400:
             content = response.content.decode()
@@ -242,12 +242,12 @@ class TestShowDaysInformationDisclosure:
 class TestShowDaysRepeatOptions:
     """Repeat option manipulation attacks."""
 
-    def test_invalid_repeat_kind(self, guest_client, admin_user):
+    def test_invalid_repeat_kind(self, admin_client, admin_user):
         """Try to create with invalid repeat_kind."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/show-days",
             {
                 "show": show.id,
@@ -263,12 +263,12 @@ class TestShowDaysRepeatOptions:
         # May accept or reject - documenting
         assert response.status_code in [201, 400]
 
-    def test_record_enabled_manipulation(self, guest_client, admin_user):
+    def test_record_enabled_manipulation(self, admin_client, admin_user):
         """Try to enable recording."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/show-days",
             {
                 "show": show.id,

@@ -40,7 +40,7 @@ class TestScheduleListRedTeam:
     # API1:2023 - BOLA (Broken Object Level Authorization)
     # ========================================================================
 
-    def test_bola_list_shows_only_own_schedule(self, guest_client):
+    def test_bola_list_shows_only_own_schedule(self, admin_client):
         """BOLA FIX: LIST endpoint only returns schedule entries for shows user hosts."""
         from api.schedule.models import ShowHost
 
@@ -76,9 +76,9 @@ class TestScheduleListRedTeam:
                 baker.make(ShowHost, show=show, user=host_user)
 
         # Authenticate as host_user
-        guest_client.force_authenticate(user=host_user)
+        admin_client.force_authenticate(user=host_user)
 
-        response = guest_client.get("/api/v2/schedule")
+        response = admin_client.get("/api/v2/schedule")
         assert response.status_code == 200
 
         data = response.json()
@@ -87,7 +87,7 @@ class TestScheduleListRedTeam:
             len(data) == 3
         ), f"VIEW: LIST returned {len(data)} entries, expected 3 (all schedules)"
 
-    def test_bola_id_enumeration(self, guest_client):
+    def test_bola_id_enumeration(self, admin_client):
         """BOLA: Sequential ID enumeration on schedule entries."""
         user = baker.make(User, username="testred_user")
         show = baker.make(Show, name="Test Show")
@@ -117,7 +117,7 @@ class TestScheduleListRedTeam:
         # Try to enumerate IDs directly
         found_count = 0
         for i in range(1, 50):
-            response = guest_client.get(f"/api/v2/schedule/{i}")
+            response = admin_client.get(f"/api/v2/schedule/{i}")
             if response.status_code == 200:
                 found_count += 1
 
@@ -129,7 +129,7 @@ class TestScheduleListRedTeam:
     @pytest.mark.xfail(
         reason="T569: BOLA - Can access other user's schedule by ID",
     )
-    def test_bola_access_other_users_schedule_by_id(self, guest_client):
+    def test_bola_access_other_users_schedule_by_id(self, admin_client):
         """BOLA: Can retrieve another user's schedule entry by ID."""
         victim = baker.make(User, username="testred_victim")
         show = baker.make(Show, name="Victim Show")
@@ -153,7 +153,7 @@ class TestScheduleListRedTeam:
             broadcasted=1,
         )
 
-        response = guest_client.get(f"/api/v2/schedule/{victim_schedule.id}")
+        response = admin_client.get(f"/api/v2/schedule/{victim_schedule.id}")
         assert (
             response.status_code == 403
         ), f"BOLA: Got {response.status_code}, expected 403 - can access other's schedule"
@@ -162,7 +162,7 @@ class TestScheduleListRedTeam:
     # API3:2023 - BOPLA (Filter Parameter Injection)
     # ========================================================================
 
-    def test_sqli_in_starts_after_filter(self, guest_client):
+    def test_sqli_in_starts_after_filter(self, admin_client):
         """Injection: SQLi in starts_after query parameter."""
         sqli_payloads = [
             "2026-04-09T00:00:00Z' OR '1'='1",
@@ -171,7 +171,7 @@ class TestScheduleListRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.get(
+            response = admin_client.get(
                 f"/api/v2/schedule?starts_after={payload}",
             )
             # Should return 400 or filter error, never 500
@@ -179,7 +179,7 @@ class TestScheduleListRedTeam:
             if response.status_code == 500:
                 pytest.fail(f"SQLi in starts_after: '{payload}' caused 500")
 
-    def test_sqli_in_instance_filter(self, guest_client):
+    def test_sqli_in_instance_filter(self, admin_client):
         """Injection: SQLi in instance_id filter parameter."""
         sqli_payloads = [
             "1 OR 1=1",
@@ -188,11 +188,11 @@ class TestScheduleListRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.get(f"/api/v2/schedule?instance={payload}")
+            response = admin_client.get(f"/api/v2/schedule?instance={payload}")
             if response.status_code == 500:
                 pytest.fail(f"SQLi in instance filter: '{payload}' caused 500")
 
-    def test_nosql_injection_in_filters(self, guest_client):
+    def test_nosql_injection_in_filters(self, admin_client):
         """Injection: NoSQL operators in filter parameters."""
         nosql_payloads = [
             {"instance__ne": "1"},
@@ -203,14 +203,14 @@ class TestScheduleListRedTeam:
         for payload in nosql_payloads:
             param = list(payload.keys())[0]
             value = payload[param]
-            response = guest_client.get(f"/api/v2/schedule?{param}={value}")
+            response = admin_client.get(f"/api/v2/schedule?{param}={value}")
             # Should handle gracefully
             assert response.status_code in [
                 200,
                 400,
             ], f"NoSQLi '{param}={value}' caused {response.status_code}"
 
-    def test_filter_bypass_with_null_values(self, guest_client):
+    def test_filter_bypass_with_null_values(self, admin_client):
         """BOPLA: Using null/undefined in filters should not bypass restrictions."""
         bypass_params = [
             "?instance=null",
@@ -220,7 +220,7 @@ class TestScheduleListRedTeam:
         ]
 
         for param in bypass_params:
-            response = guest_client.get(f"/api/v2/schedule{param}")
+            response = admin_client.get(f"/api/v2/schedule{param}")
             # PASS means filter handled gracefully without bypass
             # Should not cause 500 or unexpected data exposure
 
@@ -228,7 +228,7 @@ class TestScheduleListRedTeam:
     # API6:2023 - Unsafe Business Flows
     # ========================================================================
 
-    def test_mass_data_extraction(self, guest_client):
+    def test_mass_data_extraction(self, admin_client):
         """Unsafe Flow: Mass data extraction without pagination limits."""
         user = baker.make(User, username="testred_user")
         show = baker.make(Show, name="Test Show")
@@ -254,14 +254,14 @@ class TestScheduleListRedTeam:
                 broadcasted=1,
             )
 
-        response = guest_client.get("/api/v2/schedule")
+        response = admin_client.get("/api/v2/schedule")
         data = response.json()
 
         # Check if there's pagination or limit
         if isinstance(data, list) and len(data) > 50:
             pytest.skip(f"No pagination: returned {len(data)} items at once")
 
-    def test_filter_timing_attack(self, guest_client):
+    def test_filter_timing_attack(self, admin_client):
         """Unsafe Flow: Timing attack via filter parameters."""
         user = baker.make(User, username="testred_user")
         show = baker.make(Show, name="Test Show")
@@ -293,7 +293,7 @@ class TestScheduleListRedTeam:
             "?overbooked=true",
         ]:
             start = time.time()
-            guest_client.get(f"/api/v2/schedule{filter_param}")
+            admin_client.get(f"/api/v2/schedule{filter_param}")
             times.append(time.time() - start)
 
         # Times should be similar (within 3x factor)
@@ -306,9 +306,9 @@ class TestScheduleListRedTeam:
     # API8:2023 - Security Misconfiguration
     # ========================================================================
 
-    def test_cors_preflight_schedule(self, guest_client):
+    def test_cors_preflight_schedule(self, admin_client):
         """Misconfig: CORS preflight allows unauthorized origins."""
-        response = guest_client.options(
+        response = admin_client.options(
             "/api/v2/schedule",
             HTTP_ORIGIN="https://attacker.com",
             HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET",
@@ -318,10 +318,10 @@ class TestScheduleListRedTeam:
         if allow_origin in ["*", "https://attacker.com"]:
             pytest.fail("CORS misconfiguration: allows arbitrary origin")
 
-    def test_verbose_filter_errors(self, guest_client):
+    def test_verbose_filter_errors(self, admin_client):
         """Misconfig: Filter error messages reveal implementation details."""
         # Trigger filter error with invalid input
-        response = guest_client.get(
+        response = admin_client.get(
             "/api/v2/schedule?starts_after=invalid'union",
         )
 
@@ -342,7 +342,7 @@ class TestScheduleListRedTeam:
             if pattern in error_body:
                 pytest.fail(f"Verbose error leaks: '{pattern}'")
 
-    def test_http_method_on_list(self, guest_client):
+    def test_http_method_on_list(self, admin_client):
         """Misconfig: Test HTTP methods on LIST endpoint."""
         # Try PUT, DELETE, PATCH on LIST endpoint (POST is valid for ModelViewSet)
         methods = [
@@ -353,15 +353,15 @@ class TestScheduleListRedTeam:
 
         for method, data in methods:
             if method == "put":
-                response = guest_client.put(
+                response = admin_client.put(
                     "/api/v2/schedule",
                     json.dumps(data),
                     content_type="application/json",
                 )
             elif method == "delete":
-                response = guest_client.delete("/api/v2/schedule")
+                response = admin_client.delete("/api/v2/schedule")
             elif method == "patch":
-                response = guest_client.patch(
+                response = admin_client.patch(
                     "/api/v2/schedule",
                     json.dumps(data),
                     content_type="application/json",
@@ -377,7 +377,7 @@ class TestScheduleListRedTeam:
     # Information Disclosure
     # ========================================================================
 
-    def test_field_enumeration_via_response(self, guest_client):
+    def test_field_enumeration_via_response(self, admin_client):
         """Info Leak: Response fields reveal internal data structure."""
         user = baker.make(User, username="testred_user")
         show = baker.make(Show, name="Test Show")
@@ -401,7 +401,7 @@ class TestScheduleListRedTeam:
             broadcasted=1,
         )
 
-        response = guest_client.get("/api/v2/schedule")
+        response = admin_client.get("/api/v2/schedule")
         data = response.json()
 
         if data and len(data) > 0:
@@ -422,7 +422,7 @@ class TestScheduleListRedTeam:
     @pytest.mark.xfail(
         reason="T573: Info Leak - Error message reveals if schedule exists",
     )
-    def test_error_message_leaks_existence(self, guest_client):
+    def test_error_message_leaks_existence(self, admin_client):
         """Info Leak: Error messages reveal if schedule entry exists."""
         victim = baker.make(User, username="testred_victim")
         show = baker.make(Show, name="Victim Show")
@@ -447,10 +447,10 @@ class TestScheduleListRedTeam:
         )
 
         # Try to access existing vs non-existing
-        response_existing = guest_client.get(
+        response_existing = admin_client.get(
             f"/api/v2/schedule/{victim_schedule.id}",
         )
-        response_nonexistent = guest_client.get("/api/v2/schedule/999999")
+        response_nonexistent = admin_client.get("/api/v2/schedule/999999")
 
         # Both should return same status to not leak existence
         if response_existing.status_code != response_nonexistent.status_code:
@@ -472,7 +472,7 @@ class TestScheduleListRedTeam:
         """T575: Auth: Invalid token should be rejected with 403.
 
         FIXED: Use credentials() to properly override auth.
-        defaults[] does NOT override credentials() set in guest_client fixture.
+        defaults[] does NOT override credentials() set in admin_client fixture.
         """
         from rest_framework.test import APIClient
 
@@ -488,7 +488,7 @@ class TestScheduleListRedTeam:
     # Input Validation
     # ========================================================================
 
-    def test_unicode_in_filter_params(self, guest_client):
+    def test_unicode_in_filter_params(self, admin_client):
         """Validation: Unicode in filter parameters."""
         unicode_payloads = [
             "?instance=日本語",
@@ -498,7 +498,7 @@ class TestScheduleListRedTeam:
         ]
 
         for payload in unicode_payloads:
-            response = guest_client.get(f"/api/v2/schedule{payload}")
+            response = admin_client.get(f"/api/v2/schedule{payload}")
             # Should handle gracefully (400 or 200, not 500)
             assert response.status_code in [
                 200,
@@ -506,7 +506,7 @@ class TestScheduleListRedTeam:
                 404,
             ], f"Unicode '{repr(payload)}' caused {response.status_code}"
 
-    def test_path_traversal_in_id(self, guest_client):
+    def test_path_traversal_in_id(self, admin_client):
         """Validation: Path traversal in schedule ID."""
         traversal_ids = [
             "../../../etc/passwd",
@@ -515,13 +515,13 @@ class TestScheduleListRedTeam:
         ]
 
         for test_id in traversal_ids:
-            response = guest_client.get(f"/api/v2/schedule/{test_id}")
+            response = admin_client.get(f"/api/v2/schedule/{test_id}")
             assert response.status_code in [
                 400,
                 404,
             ], f"Path traversal '{test_id}' caused {response.status_code}"
 
-    def test_overbooked_filter_manipulation(self, guest_client):
+    def test_overbooked_filter_manipulation(self, admin_client):
         """Validation: Manipulate overbooked filter with various values."""
         test_values = [
             "true",
@@ -540,14 +540,14 @@ class TestScheduleListRedTeam:
         ]
 
         for value in test_values:
-            response = guest_client.get(f"/api/v2/schedule?overbooked={value}")
+            response = admin_client.get(f"/api/v2/schedule?overbooked={value}")
             # Should not crash
             assert response.status_code in [
                 200,
                 400,
             ], f"overbooked={value} caused {response.status_code}"
 
-    def test_date_format_injection(self, guest_client):
+    def test_date_format_injection(self, admin_client):
         """Validation: Various date formats in date filters."""
         date_payloads = [
             "2026-04-09",
@@ -561,7 +561,7 @@ class TestScheduleListRedTeam:
         ]
 
         for date in date_payloads:
-            response = guest_client.get(f"/api/v2/schedule?starts_after={date}")
+            response = admin_client.get(f"/api/v2/schedule?starts_after={date}")
             # Should handle gracefully
             assert response.status_code in [
                 200,
@@ -572,11 +572,11 @@ class TestScheduleListRedTeam:
     # Rate Limiting
     # ========================================================================
 
-    def test_rate_limit_list_requests(self, guest_client):
+    def test_rate_limit_list_requests(self, admin_client):
         """Rate Limit: Rapid sequential LIST requests."""
         responses = []
         for _ in range(50):
-            response = guest_client.get("/api/v2/schedule")
+            response = admin_client.get("/api/v2/schedule")
             responses.append(response.status_code)
 
         # Count rate limited responses
@@ -593,7 +593,7 @@ class TestScheduleListRedTeam:
     @pytest.mark.xfail(
         reason="T574: Logic - Filter combination bypasses ownership",
     )
-    def test_filter_combination_bypass(self, guest_client):
+    def test_filter_combination_bypass(self, admin_client):
         """Logic: Combining filters may bypass ownership checks."""
         victim = baker.make(User, username="testred_victim")
         show = baker.make(Show, name="Victim Show")
@@ -618,7 +618,7 @@ class TestScheduleListRedTeam:
         )
 
         # Try to access via filter combination
-        response = guest_client.get(
+        response = admin_client.get(
             f"/api/v2/schedule?instance={instance.id}&position=1&broadcasted=1",
         )
 

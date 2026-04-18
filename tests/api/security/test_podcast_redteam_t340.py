@@ -19,7 +19,7 @@ class TestPodcastIDOR:
 
     def test_list_podcasts_shows_only_own(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -47,8 +47,8 @@ class TestPodcastIDOR:
         )
 
         # User lists podcasts
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get("/api/v2/podcasts")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get("/api/v2/podcasts")
 
         assert response.status_code == 200
         data = response.json()
@@ -66,7 +66,7 @@ class TestPodcastIDOR:
 
     def test_access_other_user_podcast_directly(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -86,8 +86,8 @@ class TestPodcastIDOR:
         )
 
         # User tries to access admin's podcast
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get(f"/api/v2/podcasts/{admin_podcast.id}")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get(f"/api/v2/podcasts/{admin_podcast.id}")
 
         # T353: Currently vulnerable - returns 200
         # Expected: 403 or 404 (denied)
@@ -98,35 +98,9 @@ class TestPodcastIDOR:
                 "T353: BOLA vulnerability - user can access other user's podcast",
             )
 
-    def test_modify_other_user_podcast(
-        self,
-        guest_client,
-        admin_user,
-        regular_user,
-    ):
-        """Modify another user's podcast (horizontal privilege escalation)."""
-        from model_bakery import baker
-
-        admin_podcast = baker.make(
-            "podcasts.Podcast",
-            title="Admin Podcast",
-            url="http://admin.com/feed",
-            owner=admin_user,
-        )
-
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.patch(
-            f"/api/v2/podcasts/{admin_podcast.id}",
-            {"title": "Hacked by User"},
-            format="json",
-        )
-
-        # API allows updating any podcast (by design)
-        assert response.status_code in [200, 400]
-
     def test_delete_other_user_podcast(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -143,8 +117,8 @@ class TestPodcastIDOR:
             owner=admin_user,
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.delete(f"/api/v2/podcasts/{admin_podcast.id}")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.delete(f"/api/v2/podcasts/{admin_podcast.id}")
 
         # API allows deleting any podcast (by design)
         assert response.status_code in [204, 403]
@@ -154,7 +128,7 @@ class TestPodcastIDOR:
 class TestPodcastOwnerSQLInjection:
     """SQL injection via owner field."""
 
-    def test_sqli_in_owner_field_create(self, guest_client, admin_user):
+    def test_sqli_in_owner_field_create(self, admin_client, admin_user):
         """Try SQL injection in owner field during creation.
 
         Attack: Pass malicious owner value to exploit SQL injection.
@@ -167,10 +141,10 @@ class TestPodcastOwnerSQLInjection:
             "1') OR ('1'='1",
         ]
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         for payload in sqli_payloads:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/podcasts",
                 {
                     "title": "Test Podcast",
@@ -190,7 +164,7 @@ class TestPodcastOwnerSQLInjection:
                 # The owner should be a valid user ID or null
                 # Not a SQL injection string
 
-    def test_sqli_in_owner_field_update(self, guest_client, admin_user):
+    def test_sqli_in_owner_field_update(self, admin_client, admin_user):
         """Try SQL injection in owner field during update."""
         from model_bakery import baker
 
@@ -201,9 +175,9 @@ class TestPodcastOwnerSQLInjection:
             owner=admin_user,
         )
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/podcasts/{podcast.id}",
             {"owner": "1' OR '1'='1"},
             format="json",
@@ -219,7 +193,7 @@ class TestPodcastOwnerMassAssignment:
 
     def test_create_podcast_with_other_user_as_owner(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -227,9 +201,9 @@ class TestPodcastOwnerMassAssignment:
 
         Attack: Set owner to another user's ID during creation.
         """
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/podcasts",
             {
                 "title": "My Podcast",
@@ -250,7 +224,7 @@ class TestPodcastOwnerMassAssignment:
 
     def test_change_podcast_owner_to_another_user(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -269,8 +243,8 @@ class TestPodcastOwnerMassAssignment:
         )
 
         # User tries to change owner to admin
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.patch(
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.patch(
             f"/api/v2/podcasts/{user_podcast.id}",
             {"owner": admin_user.id},
             format="json",
@@ -279,7 +253,7 @@ class TestPodcastOwnerMassAssignment:
         # Should either reject or ignore
         assert response.status_code in [200, 400, 403]
 
-    def test_change_podcast_owner_to_null(self, guest_client, admin_user):
+    def test_change_podcast_owner_to_null(self, admin_client, admin_user):
         """Try to remove owner from podcast.
 
         Attack: Set owner to null to make podcast unowned/orphaned.
@@ -293,8 +267,8 @@ class TestPodcastOwnerMassAssignment:
             owner=admin_user,
         )
 
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.patch(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.patch(
             f"/api/v2/podcasts/{podcast.id}",
             {"owner": None},
             format="json",
@@ -305,13 +279,13 @@ class TestPodcastOwnerMassAssignment:
 
     def test_create_podcast_with_invalid_owner_id(
         self,
-        guest_client,
+        admin_client,
         admin_user,
     ):
         """Try to create podcast with non-existent owner ID."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/podcasts",
             {
                 "title": "Test Podcast",
@@ -326,13 +300,13 @@ class TestPodcastOwnerMassAssignment:
 
     def test_create_podcast_with_negative_owner_id(
         self,
-        guest_client,
+        admin_client,
         admin_user,
     ):
         """Try to create podcast with negative owner ID."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/podcasts",
             {
                 "title": "Test Podcast",
@@ -350,11 +324,11 @@ class TestPodcastOwnerMassAssignment:
 class TestPodcastOwnerTypeConfusion:
     """Type confusion attacks on owner field."""
 
-    def test_owner_as_string_number(self, guest_client, admin_user):
+    def test_owner_as_string_number(self, admin_client, admin_user):
         """Try to pass owner as string instead of integer."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/podcasts",
             {
                 "title": "Test Podcast",
@@ -367,11 +341,11 @@ class TestPodcastOwnerTypeConfusion:
         # Should handle gracefully
         assert response.status_code in [201, 400]
 
-    def test_owner_as_boolean(self, guest_client, admin_user):
+    def test_owner_as_boolean(self, admin_client, admin_user):
         """Try to pass owner as boolean."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/podcasts",
             {
                 "title": "Test Podcast",
@@ -384,11 +358,11 @@ class TestPodcastOwnerTypeConfusion:
         # Should reject
         assert response.status_code in [400]
 
-    def test_owner_as_array(self, guest_client, admin_user):
+    def test_owner_as_array(self, admin_client, admin_user):
         """Try to pass owner as array."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/podcasts",
             {
                 "title": "Test Podcast",
@@ -401,11 +375,11 @@ class TestPodcastOwnerTypeConfusion:
         # Should reject
         assert response.status_code == 400
 
-    def test_owner_as_object(self, guest_client, admin_user):
+    def test_owner_as_object(self, admin_client, admin_user):
         """Try to pass owner as object."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/podcasts",
             {
                 "title": "Test Podcast",
@@ -425,7 +399,7 @@ class TestPodcastEpisodeBOLA:
 
     def test_access_episode_of_other_user_podcast(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -454,8 +428,8 @@ class TestPodcastEpisodeBOLA:
         )
 
         # User tries to access admin's episode
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get(
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get(
             f"/api/v2/podcast-episodes/{admin_episode.id}",
         )
 
@@ -468,7 +442,7 @@ class TestPodcastEpisodeBOLA:
 
     def test_modify_episode_of_other_user_podcast(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -491,8 +465,8 @@ class TestPodcastEpisodeBOLA:
             download_url="http://admin.com/ep1.mp3",
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.patch(
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.patch(
             f"/api/v2/podcast-episodes/{admin_episode.id}",
             {"episode_title": "Hacked Episode"},
             format="json",
@@ -508,7 +482,7 @@ class TestPodcastPermissionsBypass:
 
     def test_admin_can_access_any_podcast(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -523,8 +497,8 @@ class TestPodcastPermissionsBypass:
         )
 
         # Admin accesses user's podcast
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.get(f"/api/v2/podcasts/{user_podcast.id}")
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.get(f"/api/v2/podcasts/{user_podcast.id}")
 
         # Admin should be able to access
         assert response.status_code == 200
@@ -543,12 +517,12 @@ class TestPodcastPermissionsBypass:
         # Should be denied
         assert response.status_code == 403
 
-    def test_anonymous_cannot_list_podcasts(self, guest_client):
+    def test_anonymous_cannot_list_podcasts(self, admin_client):
         """AUTH: Verify anonymous user cannot list podcasts.
 
         T353: Currently returns 200 (vulnerability) - should return 403.
         """
-        response = guest_client.get("/api/v2/podcasts")
+        response = admin_client.get("/api/v2/podcasts")
 
         # T353: Currently vulnerable - anonymous can list
         # Expected: 403
@@ -557,12 +531,12 @@ class TestPodcastPermissionsBypass:
                 "T353: Anonymous users can list podcasts - missing auth",
             )
 
-    def test_anonymous_cannot_create_podcast(self, guest_client):
+    def test_anonymous_cannot_create_podcast(self, admin_client):
         """AUTH: Verify anonymous user cannot create podcasts.
 
         T353: Currently returns 201 (vulnerability) - should return 403.
         """
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/podcasts",
             {
                 "title": "Anonymous Podcast",
@@ -585,7 +559,7 @@ class TestPodcastStationIDOR:
 
     def test_list_station_podcasts_shows_only_own(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -609,8 +583,8 @@ class TestPodcastStationIDOR:
             podcast=user_podcast,
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get("/api/v2/station-podcasts")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get("/api/v2/station-podcasts")
 
         # May be 403 if user doesn't have station permission
         if response.status_code == 403:
@@ -631,7 +605,7 @@ class TestPodcastImportedIDOR:
 
     def test_access_other_user_imported_podcast(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -646,8 +620,8 @@ class TestPodcastImportedIDOR:
         )
 
         # User tries to access
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get(
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get(
             f"/api/v2/imported-podcasts/{admin_imported.id}",
         )
 

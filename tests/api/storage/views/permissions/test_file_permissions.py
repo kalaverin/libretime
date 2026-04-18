@@ -16,7 +16,7 @@ from api.storage.models import File
 class TestFileViewSetPermissions:
     """Test Files permissions - owner vs admin vs other users."""
 
-    def test_list_files_visible_to_all(self, guest_client):
+    def test_list_files_visible_to_all(self, admin_client):
         """LIST should show all files regardless of owner."""
         # Create files with different owners
         user1 = baker.make(User, username="perm_user1")
@@ -47,7 +47,7 @@ class TestFileViewSetPermissions:
             accessed=0,
         )
 
-        response = guest_client.get("/api/v2/files")
+        response = admin_client.get("/api/v2/files")
         data = response.json()
         ids = {item["id"] for item in data}
 
@@ -56,7 +56,7 @@ class TestFileViewSetPermissions:
         assert other_file.id in ids
         assert no_owner_file.id in ids
 
-    def test_retrieve_file_visible_to_all(self, guest_client):
+    def test_retrieve_file_visible_to_all(self, admin_client):
         """RETRIEVE should work for any file with API key."""
         user = baker.make(User, username="perm_user3")
         file = baker.make(
@@ -67,11 +67,11 @@ class TestFileViewSetPermissions:
             size=1000,
             accessed=0,
         )
-        response = guest_client.get(f"/api/v2/files/{file.id}")
+        response = admin_client.get(f"/api/v2/files/{file.id}")
         assert response.status_code == 200
         assert response.json()["name"] == "Test File"
 
-    def test_update_with_api_key_succeeds(self, guest_client):
+    def test_update_with_api_key_succeeds(self, admin_client):
         """UPDATE with API key should succeed (no per-object permission check)."""
         user = baker.make(User, username="perm_user4")
         file = baker.make(
@@ -82,7 +82,7 @@ class TestFileViewSetPermissions:
             size=1000,
             accessed=0,
         )
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/files/{file.id}",
             json.dumps({"name": "Updated"}),
             content_type="application/json",
@@ -91,7 +91,7 @@ class TestFileViewSetPermissions:
         assert response.status_code == 200
         assert response.json()["name"] == "Updated"
 
-    def test_delete_with_api_key_succeeds(self, guest_client):
+    def test_delete_with_api_key_succeeds(self, admin_client):
         """DELETE with API key is not allowed - returns 409."""
         user = baker.make(User, username="perm_user5")
         file = baker.make(
@@ -103,11 +103,11 @@ class TestFileViewSetPermissions:
             accessed=0,
             filepath="audio/delete.mp3",
         )
-        response = guest_client.delete(f"/api/v2/files/{file.id}")
+        response = admin_client.delete(f"/api/v2/files/{file.id}")
         # File deletion is not allowed for anyone (409 Conflict)
         assert response.status_code == 409
 
-    def test_create_file_with_api_key(self, guest_client):
+    def test_create_file_with_api_key(self, admin_client):
         """CREATE with API key should succeed."""
         data = {
             "name": "New File",
@@ -115,14 +115,14 @@ class TestFileViewSetPermissions:
             "size": 1000,
             "accessed": 0,
         }
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/files",
             json.dumps(data),
             content_type="application/json",
         )
         assert response.status_code == 201
 
-    def test_download_with_api_key(self, guest_client):
+    def test_download_with_api_key(self, admin_client):
         """DOWNLOAD with API key should succeed."""
         user = baker.make(User, username="perm_user6")
         file = baker.make(
@@ -134,11 +134,11 @@ class TestFileViewSetPermissions:
             accessed=0,
             filepath="audio/download.mp3",
         )
-        response = guest_client.get(f"/api/v2/files/{file.id}/download")
+        response = admin_client.get(f"/api/v2/files/{file.id}/download")
         assert response.status_code == 200
         assert "X-Accel-Redirect" in response
 
-    def test_file_without_owner_retrievable(self, guest_client):
+    def test_file_without_owner_retrievable(self, admin_client):
         """Files without owner should be retrievable."""
         file = baker.make(
             File,
@@ -148,11 +148,11 @@ class TestFileViewSetPermissions:
             size=1000,
             accessed=0,
         )
-        response = guest_client.get(f"/api/v2/files/{file.id}")
+        response = admin_client.get(f"/api/v2/files/{file.id}")
         assert response.status_code == 200
         assert response.json()["owner"] is None
 
-    def test_file_without_owner_updatable(self, guest_client):
+    def test_file_without_owner_updatable(self, admin_client):
         """Files without owner should be updatable with API key."""
         file = baker.make(
             File,
@@ -162,7 +162,7 @@ class TestFileViewSetPermissions:
             size=1000,
             accessed=0,
         )
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/files/{file.id}",
             json.dumps({"name": "Updated Orphan"}),
             content_type="application/json",
@@ -170,7 +170,7 @@ class TestFileViewSetPermissions:
         assert response.status_code == 200
         assert response.json()["name"] == "Updated Orphan"
 
-    def test_guest_user_can_view(self, guest_client):
+    def test_guest_user_can_view(self, admin_client):
         """Guest user (via API) should be able to view files."""
         # API key auth is system-level, not user-level
         file = baker.make(
@@ -181,7 +181,7 @@ class TestFileViewSetPermissions:
             accessed=0,
         )
         # With API key, can view
-        response = guest_client.get(f"/api/v2/files/{file.id}")
+        response = admin_client.get(f"/api/v2/files/{file.id}")
         assert response.status_code == 200
 
     def test_no_auth_fails(self, client):
@@ -210,7 +210,7 @@ class TestFileViewSetPermissions:
         response = client.get(f"/api/v2/files/{file.id}/download")
         assert response.status_code == 403
 
-    def test_owner_field_in_response(self, guest_client):
+    def test_owner_field_in_response(self, admin_client):
         """Owner field should be present in responses."""
         user = baker.make(User, username="perm_owner")
         file = baker.make(
@@ -221,7 +221,7 @@ class TestFileViewSetPermissions:
             size=1000,
             accessed=0,
         )
-        response = guest_client.get(f"/api/v2/files/{file.id}")
+        response = admin_client.get(f"/api/v2/files/{file.id}")
         data = response.json()
         assert "owner" in data
         assert data["owner"] == user.id

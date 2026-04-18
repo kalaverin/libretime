@@ -33,7 +33,7 @@ class TestSmartBlockListRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T425: BOLA - no owner filtering on SmartBlocks")
-    def test_bola_list_other_users_blocks(self, guest_client):
+    def test_bola_list_other_users_blocks(self, admin_client):
         """BOLA: Should only see own smart blocks."""
         victim = baker.make(User, username="testred_victim")
         victim_block = baker.make(
@@ -43,7 +43,7 @@ class TestSmartBlockListRedTeam:
             owner=victim,
         )
 
-        response = guest_client.get("/api/v2/smart-blocks")
+        response = admin_client.get("/api/v2/smart-blocks")
         data = response.json()
 
         block_names = [b["name"] for b in data]
@@ -52,7 +52,7 @@ class TestSmartBlockListRedTeam:
         ), "BOLA: Attacker sees victim's block"
 
     @pytest.mark.xfail(reason="T425: BOLA via kind filter")
-    def test_bola_filter_kind_shows_others(self, guest_client):
+    def test_bola_filter_kind_shows_others(self, admin_client):
         """BOLA: Kind filter should not expose other's blocks."""
         victim = baker.make(User, username="testred_victim")
         baker.make(
@@ -62,7 +62,7 @@ class TestSmartBlockListRedTeam:
             owner=victim,
         )
 
-        response = guest_client.get(
+        response = admin_client.get(
             f"/api/v2/smart-blocks?kind={SmartBlock.Kind.DYNAMIC}",
         )
         data = response.json()
@@ -76,7 +76,7 @@ class TestSmartBlockListRedTeam:
     # API3:2023 - BOPLA
     # ========================================================================
 
-    def test_bopla_field_exposure(self, guest_client):
+    def test_bopla_field_exposure(self, admin_client):
         """BOPLA: Check for sensitive field exposure."""
         user = baker.make(User, username="testred_user")
         baker.make(
@@ -86,7 +86,7 @@ class TestSmartBlockListRedTeam:
             owner=user,
         )
 
-        response = guest_client.get("/api/v2/smart-blocks")
+        response = admin_client.get("/api/v2/smart-blocks")
         data = response.json()
 
         sensitive = ["password", "secret", "token", "internal"]
@@ -101,7 +101,7 @@ class TestSmartBlockListRedTeam:
     # API6:2023 - Resource
     # ========================================================================
 
-    def test_list_pagination_check(self, guest_client):
+    def test_list_pagination_check(self, admin_client):
         """Resource: Check for pagination on large lists."""
         user = baker.make(User, username="testred_user")
 
@@ -115,7 +115,7 @@ class TestSmartBlockListRedTeam:
             )
 
         start = time.time()
-        response = guest_client.get("/api/v2/smart-blocks")
+        response = admin_client.get("/api/v2/smart-blocks")
         elapsed = time.time() - start
 
         data = response.json()
@@ -129,7 +129,7 @@ class TestSmartBlockListRedTeam:
     # Injection
     # ========================================================================
 
-    def test_filter_sql_injection_kind(self, guest_client):
+    def test_filter_sql_injection_kind(self, admin_client):
         """SQLi: Injection in kind filter."""
         sqli_payloads = [
             "0' OR '1'='1",
@@ -138,14 +138,14 @@ class TestSmartBlockListRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.get(f"/api/v2/smart-blocks?kind={payload}")
+            response = admin_client.get(f"/api/v2/smart-blocks?kind={payload}")
             assert response.status_code in [
                 200,
                 400,
                 404,
             ], f"SQLi '{payload}' caused {response.status_code}"
 
-    def test_ordering_sql_injection(self, guest_client):
+    def test_ordering_sql_injection(self, admin_client):
         """SQLi: Injection in ordering param."""
         payloads = [
             "name; DROP TABLE users;--",
@@ -153,7 +153,7 @@ class TestSmartBlockListRedTeam:
         ]
 
         for payload in payloads:
-            response = guest_client.get(
+            response = admin_client.get(
                 f"/api/v2/smart-blocks?ordering={payload}",
             )
             assert response.status_code in [
@@ -165,9 +165,9 @@ class TestSmartBlockListRedTeam:
     # Edge Cases
     # ========================================================================
 
-    def test_list_invalid_kind(self, guest_client):
+    def test_list_invalid_kind(self, admin_client):
         """Edge: Invalid kind value."""
-        response = guest_client.get("/api/v2/smart-blocks?kind=invalid")
+        response = admin_client.get("/api/v2/smart-blocks?kind=invalid")
         assert response.status_code in [
             200,
             400,

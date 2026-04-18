@@ -48,7 +48,7 @@ class TestPlaylistContentCreateRedTeam:
     @pytest.mark.xfail(
         reason="T420: BOLA - can create content in other's playlist",
     )
-    def test_bola_create_in_other_users_playlist(self, guest_client):
+    def test_bola_create_in_other_users_playlist(self, admin_client):
         """BOLA: Should not create content in another user's playlist."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -65,7 +65,7 @@ class TestPlaylistContentCreateRedTeam:
             owner=attacker,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -85,7 +85,7 @@ class TestPlaylistContentCreateRedTeam:
         ], f"BOLA: Created in victim's playlist with {response.status_code}"
 
     @pytest.mark.xfail(reason="T420: BOLA - playlist ownership not verified")
-    def test_bola_mass_create_in_victim_playlist(self, guest_client):
+    def test_bola_mass_create_in_victim_playlist(self, admin_client):
         """BOLA: Mass create content in victim's playlist."""
         victim = baker.make(User, username="testred_victim")
         victim_playlist = baker.make(
@@ -103,7 +103,7 @@ class TestPlaylistContentCreateRedTeam:
                 mime="audio/mp3",
                 owner=victim,
             )
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/playlist-contents",
                 json.dumps(
                     {
@@ -127,7 +127,7 @@ class TestPlaylistContentCreateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T422: Mass assignment - id field accepted")
-    def test_bopla_mass_assignment_id_field(self, guest_client):
+    def test_bopla_mass_assignment_id_field(self, admin_client):
         """BOPLA: Setting id field should be rejected."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -138,7 +138,7 @@ class TestPlaylistContentCreateRedTeam:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -157,7 +157,7 @@ class TestPlaylistContentCreateRedTeam:
             assert data.get("id") != 99999, "BOPLA: Custom ID was accepted"
 
     @pytest.mark.xfail(reason="T423: No validation of file ownership")
-    def test_bopla_create_with_other_users_file(self, guest_client):
+    def test_bopla_create_with_other_users_file(self, admin_client):
         """BOPLA: Should not use another user's file."""
         user = baker.make(User, username="testred_user")
         other = baker.make(User, username="testred_other")
@@ -170,7 +170,7 @@ class TestPlaylistContentCreateRedTeam:
             owner=other,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -193,7 +193,7 @@ class TestPlaylistContentCreateRedTeam:
     # Injection Attacks
     # ========================================================================
 
-    def test_create_sql_injection_in_string_fields(self, guest_client):
+    def test_create_sql_injection_in_string_fields(self, admin_client):
         """SQLi: Injection attempts in string fields."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -212,7 +212,7 @@ class TestPlaylistContentCreateRedTeam:
         ]
 
         for payload in sql_payloads:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/playlist-contents",
                 json.dumps(
                     {
@@ -232,7 +232,7 @@ class TestPlaylistContentCreateRedTeam:
                 400,
             ], f"SQLi in fields caused {response.status_code}"
 
-    def test_create_no_sql_injection_kind_field(self, guest_client):
+    def test_create_no_sql_injection_kind_field(self, admin_client):
         """NoSQLi: Try MongoDB operators in fields."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -248,7 +248,7 @@ class TestPlaylistContentCreateRedTeam:
                 "playlist": playlist.id,
                 **payload,
             }
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/playlist-contents",
                 json.dumps(data),
                 content_type="application/json",
@@ -264,7 +264,7 @@ class TestPlaylistContentCreateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T423: No validation of negative position")
-    def test_create_negative_position(self, guest_client):
+    def test_create_negative_position(self, admin_client):
         """Validation: Negative position should be rejected."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -275,7 +275,7 @@ class TestPlaylistContentCreateRedTeam:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -293,7 +293,7 @@ class TestPlaylistContentCreateRedTeam:
             400,
         ], f"Negative position accepted with {response.status_code}"
 
-    def test_create_invalid_kind_value(self, guest_client):
+    def test_create_invalid_kind_value(self, admin_client):
         """Validation: Invalid kind value should be rejected."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -313,7 +313,7 @@ class TestPlaylistContentCreateRedTeam:
         ]
 
         for kind in invalid_kinds:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/playlist-contents",
                 json.dumps(
                     {
@@ -329,7 +329,7 @@ class TestPlaylistContentCreateRedTeam:
                 400,
             ], f"Invalid kind {kind} accepted with {response.status_code}"
 
-    def test_create_nonexistent_playlist(self, guest_client):
+    def test_create_nonexistent_playlist(self, admin_client):
         """Validation: Non-existent playlist should return 400/404."""
         user = baker.make(User, username="testred_user")
         file_obj = baker.make(
@@ -339,7 +339,7 @@ class TestPlaylistContentCreateRedTeam:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -357,12 +357,12 @@ class TestPlaylistContentCreateRedTeam:
             404,
         ], f"Non-existent playlist returned {response.status_code}"
 
-    def test_create_nonexistent_file(self, guest_client):
+    def test_create_nonexistent_file(self, admin_client):
         """Validation: Non-existent file should return 400."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -385,7 +385,7 @@ class TestPlaylistContentCreateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T424: No rate limiting on creation")
-    def test_create_rapid_fire(self, guest_client):
+    def test_create_rapid_fire(self, admin_client):
         """Resource: Rapid content creation should be rate limited."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -397,7 +397,7 @@ class TestPlaylistContentCreateRedTeam:
                 mime="audio/mp3",
                 owner=user,
             )
-            return guest_client.post(
+            return admin_client.post(
                 "/api/v2/playlist-contents",
                 json.dumps(
                     {
@@ -422,7 +422,7 @@ class TestPlaylistContentCreateRedTeam:
         if elapsed < 2.0 and success_count == 20:
             pass  # Document: no rate limiting detected
 
-    def test_create_huge_payload(self, guest_client):
+    def test_create_huge_payload(self, admin_client):
         """Resource: Huge payload should be rejected.""
 
         Note: Currently creates successfully, may need size limit."""
@@ -444,7 +444,7 @@ class TestPlaylistContentCreateRedTeam:
             "extra": "X" * 1000000,  # 1MB of extra data
         }
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(huge_data),
             content_type="application/json",
@@ -462,7 +462,7 @@ class TestPlaylistContentCreateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T424: No duplicate position check")
-    def test_create_duplicate_position(self, guest_client):
+    def test_create_duplicate_position(self, admin_client):
         """Logic: Same position in playlist should be rejected."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -480,7 +480,7 @@ class TestPlaylistContentCreateRedTeam:
         )
 
         # Create first content at position 1
-        response1 = guest_client.post(
+        response1 = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -495,7 +495,7 @@ class TestPlaylistContentCreateRedTeam:
         assert response1.status_code == 201
 
         # Try to create second content at same position
-        response2 = guest_client.post(
+        response2 = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -514,7 +514,7 @@ class TestPlaylistContentCreateRedTeam:
         ), f"Duplicate position accepted with {response2.status_code}"
 
     @pytest.mark.xfail(reason="T422: IntegrityError on validation failure")
-    def test_create_wrong_kind_for_file(self, guest_client):
+    def test_create_wrong_kind_for_file(self, admin_client):
         """Logic: STREAM kind with file ID should fail with validation error."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -525,7 +525,7 @@ class TestPlaylistContentCreateRedTeam:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -547,7 +547,7 @@ class TestPlaylistContentCreateRedTeam:
     # Edge Cases
     # ========================================================================
 
-    def test_create_unicode_in_fields(self, guest_client):
+    def test_create_unicode_in_fields(self, admin_client):
         """Edge case: Unicode in various fields."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -567,7 +567,7 @@ class TestPlaylistContentCreateRedTeam:
         ]
 
         for unicode_str in unicode_strings:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/playlist-contents",
                 json.dumps(
                     {
@@ -589,7 +589,7 @@ class TestPlaylistContentCreateRedTeam:
     @pytest.mark.xfail(
         reason="T422: IntegrityError instead of validation error",
     )
-    def test_create_null_in_required_fields(self, guest_client):
+    def test_create_null_in_required_fields(self, admin_client):
         """Edge case: Null in required fields should return 400 not 500."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -614,7 +614,7 @@ class TestPlaylistContentCreateRedTeam:
                 "position": 1,
                 **null_field,
             }
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/playlist-contents",
                 json.dumps(data),
                 content_type="application/json",

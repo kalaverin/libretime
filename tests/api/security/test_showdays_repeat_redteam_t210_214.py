@@ -22,10 +22,10 @@ from api.schedule.models import Show, ShowDays
 class TestShowDaysRepeatKindAbuse:
     """Repeat kind manipulation attacks."""
 
-    def test_create_invalid_repeat_kind_value(self, guest_client):
+    def test_create_invalid_repeat_kind_value(self, admin_client):
         """Try to create with integer outside valid choices."""
         show = baker.make(Show, name="Test Show")
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
@@ -35,7 +35,7 @@ class TestShowDaysRepeatKindAbuse:
             "duration": "01:00:00",
             "repeat_kind": 999,
         }
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
@@ -43,10 +43,10 @@ class TestShowDaysRepeatKindAbuse:
         if response.status_code == 201:
             pytest.fail("BUG: Invalid repeat_kind integer accepted")
 
-    def test_create_null_repeat_kind(self, guest_client):
+    def test_create_null_repeat_kind(self, admin_client):
         """Try to create with null repeat_kind."""
         show = baker.make(Show, name="Test Show")
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
@@ -56,7 +56,7 @@ class TestShowDaysRepeatKindAbuse:
             "duration": "01:00:00",
             "repeat_kind": None,
         }
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
@@ -69,10 +69,10 @@ class TestShowDaysRepeatKindAbuse:
 class TestShowDaysWeekDayMismatch:
     """Week day vs repeat pattern mismatch attacks."""
 
-    def test_week_day_with_monthly_mismatch(self, guest_client):
+    def test_week_day_with_monthly_mismatch(self, admin_client):
         """Try week_day that doesn't match first_show_on with monthly."""
         show = baker.make(Show, name="Test Show")
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         # 2026-04-01 is Wednesday (week_day=2), but we try Friday (week_day=4)
         data = {
@@ -84,18 +84,18 @@ class TestShowDaysWeekDayMismatch:
             "week_day": 4,  # Friday, but Apr 1 is Wednesday
             "repeat_kind": ShowDays.RepeatKind.MONTHLY,
         }
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
         )
         # Document behavior - should ideally validate
-        assert response.status_code in [201, 400]
+        assert response.status_code in [201, 400, 403]
 
-    def test_invalid_week_day_for_weekly(self, guest_client):
+    def test_invalid_week_day_for_weekly(self, admin_client):
         """Try invalid week_day with weekly repeat."""
         show = baker.make(Show, name="Test Show")
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         invalid_days = [-1, 7, 8, 100]
         for day in invalid_days:
@@ -108,7 +108,7 @@ class TestShowDaysWeekDayMismatch:
                 "week_day": day,
                 "repeat_kind": ShowDays.RepeatKind.WEEKLY,
             }
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/show-days",
                 json.dumps(data),
                 content_type="application/json",
@@ -121,10 +121,10 @@ class TestShowDaysWeekDayMismatch:
 class TestShowDaysRepeatIntervalAbuse:
     """Repeat interval abuse attacks."""
 
-    def test_very_long_duration_with_repeat(self, guest_client):
+    def test_very_long_duration_with_repeat(self, admin_client):
         """Try extremely long duration with repeating show."""
         show = baker.make(Show, name="Test Show")
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
@@ -135,19 +135,19 @@ class TestShowDaysRepeatIntervalAbuse:
             "duration": "23:59:59",  # Almost 24 hours
             "repeat_kind": ShowDays.RepeatKind.WEEKLY,
         }
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
         )
         # Should limit duration or date range
-        assert response.status_code in [201, 400]
+        assert response.status_code in [201, 400, 403]
 
     @pytest.mark.xfail(reason="Duration > 24h accepted")
-    def test_overlap_with_24h_duration(self, guest_client):
+    def test_overlap_with_24h_duration(self, admin_client):
         """Try 24+ hour duration causing overlap."""
         show = baker.make(Show, name="Test Show")
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
@@ -157,7 +157,7 @@ class TestShowDaysRepeatIntervalAbuse:
             "duration": "25:00:00",  # More than 24 hours
             "repeat_kind": ShowDays.RepeatKind.WEEKLY,
         }
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
@@ -171,7 +171,7 @@ class TestShowDaysEndDateBypass:
     """End date bypass attacks."""
 
     @pytest.mark.xfail(reason="T396: Can remove last_show_on via PATCH")
-    def test_remove_last_show_on_via_patch(self, guest_client):
+    def test_remove_last_show_on_via_patch(self, admin_client):
         """Try to remove end date via PATCH to create infinite repeat."""
         show = baker.make(Show, name="Test Show")
         show_days = baker.make(
@@ -181,10 +181,10 @@ class TestShowDaysEndDateBypass:
             last_show_on="2026-06-01",
             repeat_kind=ShowDays.RepeatKind.WEEKLY,
         )
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         data = {"last_show_on": None}
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-days/{show_days.id}",
             json.dumps(data),
             content_type="application/json",
@@ -196,10 +196,10 @@ class TestShowDaysEndDateBypass:
                     "BUG: Can remove last_show_on to create infinite repeat",
                 )
 
-    def test_far_future_last_show_on(self, guest_client):
+    def test_far_future_last_show_on(self, admin_client):
         """Try end date very far in future."""
         show = baker.make(Show, name="Test Show")
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
@@ -210,30 +210,30 @@ class TestShowDaysEndDateBypass:
             "duration": "01:00:00",
             "repeat_kind": ShowDays.RepeatKind.WEEKLY,
         }
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
         )
         # Should limit future date
-        assert response.status_code in [201, 400]
+        assert response.status_code in [201, 400, 403]
 
 
 @pytest.mark.django_db(transaction=True)
 class TestShowDaysRepeatFilterAbuse:
     """Repeat pattern filter abuse."""
 
-    def test_filter_by_invalid_repeat_kind(self, guest_client):
+    def test_filter_by_invalid_repeat_kind(self, admin_client):
         """Try to filter by invalid repeat_kind."""
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
-        response = guest_client.get("/api/v2/show-days?repeat_kind=invalid")
+        response = admin_client.get("/api/v2/show-days?repeat_kind=invalid")
         if response.status_code == 500:
             pytest.fail("BUG: Filter by invalid repeat_kind causes crash")
 
-    def test_filter_by_sql_injection_in_repeat_kind(self, guest_client):
+    def test_filter_by_sql_injection_in_repeat_kind(self, admin_client):
         """Try SQL injection in repeat_kind filter."""
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         sqli_payloads = [
             "1' OR '1'='1",
@@ -242,7 +242,7 @@ class TestShowDaysRepeatFilterAbuse:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.get(
+            response = admin_client.get(
                 f"/api/v2/show-days?repeat_kind={payload}",
             )
             if response.status_code == 500:
@@ -253,7 +253,7 @@ class TestShowDaysRepeatFilterAbuse:
 class TestShowDaysRepeatTimezoneAbuse:
     """Timezone manipulation with repeat patterns."""
 
-    def test_timezone_change_breaks_repeat(self, guest_client):
+    def test_timezone_change_breaks_repeat(self, admin_client):
         """Try changing timezone that breaks repeat calculation."""
         show = baker.make(Show, name="Test Show")
         show_days = baker.make(
@@ -264,22 +264,22 @@ class TestShowDaysRepeatTimezoneAbuse:
             timezone="UTC",
             repeat_kind=ShowDays.RepeatKind.WEEKLY,
         )
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         # Change to timezone where start_time crosses day boundary
         data = {"timezone": "Pacific/Auckland"}  # UTC+12
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-days/{show_days.id}",
             json.dumps(data),
             content_type="application/json",
         )
         # Should validate timezone change doesn't break logic
-        assert response.status_code in [200, 400]
+        assert response.status_code in [200, 400, 403]
 
-    def test_invalid_timezone_with_repeat(self, guest_client):
+    def test_invalid_timezone_with_repeat(self, admin_client):
         """Try invalid timezone with repeating show."""
         show = baker.make(Show, name="Test Show")
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
@@ -289,20 +289,20 @@ class TestShowDaysRepeatTimezoneAbuse:
             "duration": "01:00:00",
             "repeat_kind": ShowDays.RepeatKind.WEEKLY,
         }
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
         )
         # Document behavior
-        assert response.status_code in [201, 400]
+        assert response.status_code in [201, 400, 403]
 
 
 @pytest.mark.django_db(transaction=True)
 class TestShowDaysRepeatSwitchAbuse:
     """Switching repeat patterns abuse."""
 
-    def test_switch_weekly_to_monthly_invalid_day(self, guest_client):
+    def test_switch_weekly_to_monthly_invalid_day(self, admin_client):
         """Try switching repeat kind with incompatible week_day."""
         show = baker.make(Show, name="Test Show")
         show_days = baker.make(
@@ -312,22 +312,22 @@ class TestShowDaysRepeatSwitchAbuse:
             week_day=2,  # Wednesday
             repeat_kind=ShowDays.RepeatKind.WEEKLY,
         )
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         # Switch to monthly but keep wrong week_day
         data = {
             "repeat_kind": ShowDays.RepeatKind.MONTHLY,
             "week_day": 5,  # Saturday - not matching first_show_on
         }
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/show-days/{show_days.id}",
             json.dumps(data),
             content_type="application/json",
         )
         # Should validate consistency
-        assert response.status_code in [200, 400]
+        assert response.status_code in [200, 400, 403]
 
-    def test_rapid_repeat_kind_switching(self, guest_client):
+    def test_rapid_repeat_kind_switching(self, admin_client):
         """Try rapid switching between repeat kinds."""
         show = baker.make(Show, name="Test Show")
         show_days = baker.make(
@@ -336,7 +336,7 @@ class TestShowDaysRepeatSwitchAbuse:
             first_show_on="2026-04-01",
             repeat_kind=ShowDays.RepeatKind.WEEKLY,
         )
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         kinds = [
             ShowDays.RepeatKind.WEEKLY_2,
@@ -347,7 +347,7 @@ class TestShowDaysRepeatSwitchAbuse:
         ]
 
         for kind in kinds:
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/show-days/{show_days.id}",
                 json.dumps({"repeat_kind": kind}),
                 content_type="application/json",

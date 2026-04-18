@@ -16,13 +16,13 @@ class TestShowInstanceViewSetList:
         ShowInstance.objects.all().delete()
         Show.objects.all().delete()
 
-    def test_list_instances_empty_returns_200(self, guest_client):
+    def test_list_instances_empty_returns_200(self, admin_client):
         """LIST with no instances should return empty array."""
-        response = guest_client.get("/api/v2/show-instances")
+        response = admin_client.get("/api/v2/show-instances")
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_list_instances_returns_all(self, guest_client):
+    def test_list_instances_returns_all(self, admin_client):
         """LIST should return all instances."""
         from datetime import timedelta
 
@@ -42,12 +42,12 @@ class TestShowInstanceViewSetList:
             ends_at=now() + timedelta(days=1, hours=1),
         )
 
-        response = guest_client.get("/api/v2/show-instances")
+        response = admin_client.get("/api/v2/show-instances")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 2
 
-    def test_list_instances_returns_json(self, guest_client):
+    def test_list_instances_returns_json(self, admin_client):
         """LIST should return JSON response."""
         from datetime import timedelta
 
@@ -61,10 +61,10 @@ class TestShowInstanceViewSetList:
             ends_at=now() + timedelta(hours=1),
         )
 
-        response = guest_client.get("/api/v2/show-instances")
+        response = admin_client.get("/api/v2/show-instances")
         assert response["Content-Type"] == "application/json"
 
-    def test_list_instances_contains_id(self, guest_client):
+    def test_list_instances_contains_id(self, admin_client):
         """LIST should include instance id."""
         from datetime import timedelta
 
@@ -78,12 +78,12 @@ class TestShowInstanceViewSetList:
             ends_at=now() + timedelta(hours=1),
         )
 
-        response = guest_client.get("/api/v2/show-instances")
+        response = admin_client.get("/api/v2/show-instances")
         data = response.json()
         assert len(data) == 1
         assert data[0]["id"] == instance.id
 
-    def test_list_instances_contains_show(self, guest_client):
+    def test_list_instances_contains_show(self, admin_client):
         """LIST should include show reference."""
         from datetime import timedelta
 
@@ -97,11 +97,11 @@ class TestShowInstanceViewSetList:
             ends_at=now() + timedelta(hours=1),
         )
 
-        response = guest_client.get("/api/v2/show-instances")
+        response = admin_client.get("/api/v2/show-instances")
         data = response.json()
         assert data[0]["show"] == show.id
 
-    def test_list_instances_contains_starts_at(self, guest_client):
+    def test_list_instances_contains_starts_at(self, admin_client):
         """LIST should include starts_at datetime."""
         from datetime import timedelta
 
@@ -116,11 +116,11 @@ class TestShowInstanceViewSetList:
             ends_at=start_time + timedelta(hours=1),
         )
 
-        response = guest_client.get("/api/v2/show-instances")
+        response = admin_client.get("/api/v2/show-instances")
         data = response.json()
         assert "starts_at" in data[0]
 
-    def test_list_instances_contains_ends_at(self, guest_client):
+    def test_list_instances_contains_ends_at(self, admin_client):
         """LIST should include ends_at datetime."""
         from datetime import timedelta
 
@@ -135,11 +135,11 @@ class TestShowInstanceViewSetList:
             ends_at=start_time + timedelta(hours=1),
         )
 
-        response = guest_client.get("/api/v2/show-instances")
+        response = admin_client.get("/api/v2/show-instances")
         data = response.json()
         assert "ends_at" in data[0]
 
-    def test_list_instances_contains_filled_time(self, guest_client):
+    def test_list_instances_contains_filled_time(self, admin_client):
         """LIST should include filled_time."""
         from datetime import timedelta
 
@@ -154,11 +154,11 @@ class TestShowInstanceViewSetList:
             filled_time=timedelta(minutes=30),
         )
 
-        response = guest_client.get("/api/v2/show-instances")
+        response = admin_client.get("/api/v2/show-instances")
         data = response.json()
         assert "filled_time" in data[0]
 
-    def test_list_instances_null_filled_time(self, guest_client):
+    def test_list_instances_null_filled_time(self, admin_client):
         """LIST should handle null filled_time."""
         from datetime import timedelta
 
@@ -173,12 +173,12 @@ class TestShowInstanceViewSetList:
             filled_time=None,
         )
 
-        response = guest_client.get("/api/v2/show-instances")
+        response = admin_client.get("/api/v2/show-instances")
         assert response.status_code == 200
         data = response.json()
         assert data[0]["filled_time"] is None
 
-    def test_list_instances_contains_description(self, guest_client):
+    def test_list_instances_contains_description(self, admin_client):
         """LIST should include description."""
         from datetime import timedelta
 
@@ -193,11 +193,11 @@ class TestShowInstanceViewSetList:
             description="Instance description",
         )
 
-        response = guest_client.get("/api/v2/show-instances")
+        response = admin_client.get("/api/v2/show-instances")
         data = response.json()
         assert data[0]["description"] == "Instance description"
 
-    def test_list_instances_contains_modified(self, guest_client):
+    def test_list_instances_contains_modified(self, admin_client):
         """LIST should include modified flag."""
         from datetime import timedelta
 
@@ -212,11 +212,11 @@ class TestShowInstanceViewSetList:
             modified=True,
         )
 
-        response = guest_client.get("/api/v2/show-instances")
+        response = admin_client.get("/api/v2/show-instances")
         data = response.json()
         assert data[0]["modified"] is True
 
-    def test_list_instances_contains_rebroadcast(self, guest_client):
+    def test_list_instances_contains_rebroadcast(self, admin_client):
         """LIST should include rebroadcast flag."""
         from datetime import timedelta
 
@@ -231,11 +231,11 @@ class TestShowInstanceViewSetList:
             rebroadcast=1,
         )
 
-        response = guest_client.get("/api/v2/show-instances")
+        response = admin_client.get("/api/v2/show-instances")
         data = response.json()
         assert "rebroadcast" in data[0]
 
-    def test_list_instances_contains_auto_playlist_built(self, guest_client):
+    def test_list_instances_contains_auto_playlist_built(self, admin_client):
         """LIST should include auto_playlist_built flag."""
         from datetime import timedelta
 
@@ -250,11 +250,11 @@ class TestShowInstanceViewSetList:
             auto_playlist_built=True,
         )
 
-        response = guest_client.get("/api/v2/show-instances")
+        response = admin_client.get("/api/v2/show-instances")
         data = response.json()
         assert data[0]["auto_playlist_built"] is True
 
-    def test_list_instances_filter_by_show(self, guest_client):
+    def test_list_instances_filter_by_show(self, admin_client):
         """LIST should support filtering by show."""
         from datetime import timedelta
 
@@ -276,7 +276,7 @@ class TestShowInstanceViewSetList:
             ends_at=now() + timedelta(hours=1),
         )
 
-        response = guest_client.get(f"/api/v2/show-instances?show={show1.id}")
+        response = admin_client.get(f"/api/v2/show-instances?show={show1.id}")
         # Filtering may or may not be supported
         assert response.status_code in [200, 400]
 

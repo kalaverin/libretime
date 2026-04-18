@@ -105,7 +105,7 @@ class TestWebstreamUpdateRedTeam:
     # IDOR / ID Enumeration
     # ========================================================================
 
-    def test_idor_stream_enumeration(self, guest_client):
+    def test_idor_stream_enumeration(self, admin_client):
         """Security: Stream ID enumeration mitigated."""
         user = baker.make(User, username="testred_user")
         stream = baker.make(
@@ -117,7 +117,7 @@ class TestWebstreamUpdateRedTeam:
 
         # Try to access with sequential IDs
         for test_id in range(1, 10):
-            response = guest_client.get(f"/api/v2/webstreams/{test_id}")
+            response = admin_client.get(f"/api/v2/webstreams/{test_id}")
             # Should get 404 for non-existent or 403 for unauthorized
             assert response.status_code in [
                 200,
@@ -126,7 +126,7 @@ class TestWebstreamUpdateRedTeam:
             ], f"ID {test_id} returned {response.status_code}"
 
     @pytest.mark.xfail(reason="T543: Error message leaks stream existence")
-    def test_error_message_leaks_existence(self, guest_client):
+    def test_error_message_leaks_existence(self, admin_client):
         """Info Leak: Error messages reveal if stream exists."""
         victim = baker.make(User, username="testred_victim")
         victim_stream = baker.make(
@@ -137,10 +137,10 @@ class TestWebstreamUpdateRedTeam:
         )
 
         # Try to access existing vs non-existing
-        response_existing = guest_client.delete(
+        response_existing = admin_client.delete(
             f"/api/v2/webstreams/{victim_stream.id}",
         )
-        response_nonexistent = guest_client.delete("/api/v2/webstreams/999999")
+        response_nonexistent = admin_client.delete("/api/v2/webstreams/999999")
 
         # Both should return same status to not leak existence
         if response_existing.status_code != response_nonexistent.status_code:
@@ -155,7 +155,7 @@ class TestWebstreamUpdateRedTeam:
     @pytest.mark.xfail(
         reason="T544: SSRF - can update URL to internal address",
     )
-    def test_ssrf_url_update_to_internal(self, guest_client):
+    def test_ssrf_url_update_to_internal(self, admin_client):
         """SSRF: Updating URL to internal network should be rejected."""
         user = baker.make(User, username="testred_user")
         stream = baker.make(
@@ -173,7 +173,7 @@ class TestWebstreamUpdateRedTeam:
         ]
 
         for url in internal_urls:
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/webstreams/{stream.id}",
                 json.dumps({"url": url}),
                 content_type="application/json",
@@ -183,7 +183,7 @@ class TestWebstreamUpdateRedTeam:
             ), f"SSRF: Internal URL '{url}' accepted with {response.status_code}"
 
     @pytest.mark.xfail(reason="T545: SSRF - can update URL to cloud metadata")
-    def test_ssrf_url_update_to_metadata(self, guest_client):
+    def test_ssrf_url_update_to_metadata(self, admin_client):
         """SSRF: Updating URL to cloud metadata should be rejected."""
         user = baker.make(User, username="testred_user")
         stream = baker.make(
@@ -193,7 +193,7 @@ class TestWebstreamUpdateRedTeam:
             owner=user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps({"url": "http://169.254.169.254/latest/meta-data/"}),
             content_type="application/json",
@@ -207,7 +207,7 @@ class TestWebstreamUpdateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T546: BOPLA - can change owner on update")
-    def test_bopla_change_owner_on_update(self, guest_client):
+    def test_bopla_change_owner_on_update(self, admin_client):
         """BOPLA: Changing owner field should be rejected."""
         user = baker.make(User, username="testred_user")
         victim = baker.make(User, username="testred_victim")
@@ -219,7 +219,7 @@ class TestWebstreamUpdateRedTeam:
         )
 
         # Try to change owner to victim
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps({"owner": victim.id}),
             content_type="application/json",
@@ -232,7 +232,7 @@ class TestWebstreamUpdateRedTeam:
             ), "BOPLA: Owner changed to victim via PATCH"
 
     @pytest.mark.xfail(reason="T547: BOPLA - can modify id field on update")
-    def test_bopla_modify_id_on_update(self, guest_client):
+    def test_bopla_modify_id_on_update(self, admin_client):
         """BOPLA: Modifying id field on update should be rejected."""
         user = baker.make(User, username="testred_user")
         stream = baker.make(
@@ -243,7 +243,7 @@ class TestWebstreamUpdateRedTeam:
         )
         original_id = stream.id
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps({"id": 99999}),
             content_type="application/json",
@@ -256,7 +256,7 @@ class TestWebstreamUpdateRedTeam:
             ), "BOPLA: ID was modified via PATCH"
 
     @pytest.mark.xfail(reason="T548: BOPLA - can set created_at on update")
-    def test_bopla_set_created_at_on_update(self, guest_client):
+    def test_bopla_set_created_at_on_update(self, admin_client):
         """BOPLA: Setting created_at on update should be ignored."""
         user = baker.make(User, username="testred_user")
         stream = baker.make(
@@ -267,7 +267,7 @@ class TestWebstreamUpdateRedTeam:
         )
 
         fake_time = "2020-01-01T00:00:00Z"
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps({"created_at": fake_time}),
             content_type="application/json",
@@ -284,7 +284,7 @@ class TestWebstreamUpdateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T549: XSS - can update name with script tags")
-    def test_xss_update_name(self, guest_client):
+    def test_xss_update_name(self, admin_client):
         """XSS: Updating name with script tags should be sanitized."""
         user = baker.make(User, username="testred_user")
         stream = baker.make(
@@ -295,7 +295,7 @@ class TestWebstreamUpdateRedTeam:
         )
 
         xss_payload = "<script>alert(1)</script>"
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps({"name": xss_payload}),
             content_type="application/json",
@@ -311,7 +311,7 @@ class TestWebstreamUpdateRedTeam:
     @pytest.mark.xfail(
         reason="T550: XSS - can update description with script tags",
     )
-    def test_xss_update_description(self, guest_client):
+    def test_xss_update_description(self, admin_client):
         """XSS: Updating description with script tags should be sanitized."""
         user = baker.make(User, username="testred_user")
         stream = baker.make(
@@ -323,7 +323,7 @@ class TestWebstreamUpdateRedTeam:
         )
 
         xss_payload = "<img src=x onerror=alert(1)>"
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps({"description": xss_payload}),
             content_type="application/json",
@@ -340,7 +340,7 @@ class TestWebstreamUpdateRedTeam:
     # Injection Attacks
     # ========================================================================
 
-    def test_sqli_in_update_name(self, guest_client):
+    def test_sqli_in_update_name(self, admin_client):
         """Injection: SQLi in PATCH name field."""
         user = baker.make(User, username="testred_user")
         stream = baker.make(
@@ -357,7 +357,7 @@ class TestWebstreamUpdateRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/webstreams/{stream.id}",
                 json.dumps({"name": payload}),
                 content_type="application/json",
@@ -367,7 +367,7 @@ class TestWebstreamUpdateRedTeam:
                 400,
             ], f"SQLi '{payload}' caused {response.status_code}"
 
-    def test_sqli_in_update_url(self, guest_client):
+    def test_sqli_in_update_url(self, admin_client):
         """Injection: SQLi in PATCH URL field."""
         user = baker.make(User, username="testred_user")
         stream = baker.make(
@@ -383,7 +383,7 @@ class TestWebstreamUpdateRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/webstreams/{stream.id}",
                 json.dumps({"url": payload}),
                 content_type="application/json",
@@ -398,7 +398,7 @@ class TestWebstreamUpdateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T551: PUT allows dangerous URL update")
-    def test_put_full_update_ssrf(self, guest_client):
+    def test_put_full_update_ssrf(self, admin_client):
         """SSRF: PUT full update with internal URL."""
         user = baker.make(User, username="testred_user")
         stream = baker.make(
@@ -409,7 +409,7 @@ class TestWebstreamUpdateRedTeam:
         )
 
         # PUT full update with internal URL
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps(
                 {
@@ -426,7 +426,7 @@ class TestWebstreamUpdateRedTeam:
         ], f"PUT SSRF: internal URL accepted with {response.status_code}"
 
     @pytest.mark.xfail(reason="T552: PUT allows owner change")
-    def test_put_full_update_owner_change(self, guest_client):
+    def test_put_full_update_owner_change(self, admin_client):
         """BOPLA: PUT full update with different owner."""
         user = baker.make(User, username="testred_user")
         victim = baker.make(User, username="testred_victim")
@@ -438,7 +438,7 @@ class TestWebstreamUpdateRedTeam:
         )
 
         # PUT full update with victim as owner
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps(
                 {
@@ -461,7 +461,7 @@ class TestWebstreamUpdateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T553: Empty name accepted on update")
-    def test_update_empty_name(self, guest_client):
+    def test_update_empty_name(self, admin_client):
         """Validation: Empty name on update should be rejected."""
         user = baker.make(User, username="testred_user")
         stream = baker.make(
@@ -471,7 +471,7 @@ class TestWebstreamUpdateRedTeam:
             owner=user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps({"name": ""}),
             content_type="application/json",
@@ -481,7 +481,7 @@ class TestWebstreamUpdateRedTeam:
         ), f"Empty name accepted with {response.status_code}"
 
     @pytest.mark.xfail(reason="T554: Invalid URL format accepted on update")
-    def test_update_invalid_url_format(self, guest_client):
+    def test_update_invalid_url_format(self, admin_client):
         """Validation: Invalid URL format on update should be rejected."""
         user = baker.make(User, username="testred_user")
         stream = baker.make(
@@ -498,7 +498,7 @@ class TestWebstreamUpdateRedTeam:
         ]
 
         for url in invalid_urls:
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/webstreams/{stream.id}",
                 json.dumps({"url": url}),
                 content_type="application/json",
@@ -511,18 +511,18 @@ class TestWebstreamUpdateRedTeam:
     # Invalid ID Handling
     # ========================================================================
 
-    def test_update_nonexistent_stream(self, guest_client):
+    def test_update_nonexistent_stream(self, admin_client):
         """Validation: Update non-existent stream returns 404."""
-        response = guest_client.patch(
+        response = admin_client.patch(
             "/api/v2/webstreams/999999",
             json.dumps({"name": "New Name"}),
             content_type="application/json",
         )
         assert response.status_code == 404
 
-    def test_update_invalid_id_format(self, guest_client):
+    def test_update_invalid_id_format(self, admin_client):
         """Validation: Invalid ID format handled gracefully."""
-        response = guest_client.patch(
+        response = admin_client.patch(
             "/api/v2/webstreams/invalid",
             json.dumps({"name": "New Name"}),
             content_type="application/json",
@@ -555,7 +555,7 @@ class TestWebstreamUpdateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T555: Race condition in concurrent update")
-    def test_race_condition_concurrent_update(self, guest_client):
+    def test_race_condition_concurrent_update(self, admin_client):
         """Race: Concurrent update of same stream."""
         import concurrent.futures
 
@@ -568,7 +568,7 @@ class TestWebstreamUpdateRedTeam:
         )
 
         def update_stream(name):
-            return guest_client.patch(
+            return admin_client.patch(
                 f"/api/v2/webstreams/{stream.id}",
                 json.dumps({"name": name}),
                 content_type="application/json",

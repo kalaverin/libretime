@@ -20,7 +20,7 @@ class TestWebstreamViewSetUpdate:
         Webstream.objects.all().delete()
         User.objects.filter(username__startswith="testws").delete()
 
-    def test_patch_update_name_success(self, guest_client):
+    def test_patch_update_name_success(self, admin_client):
         """PATCH name should update webstream."""
         user = baker.make(User, username="testws_user")
         stream = baker.make(
@@ -30,7 +30,7 @@ class TestWebstreamViewSetUpdate:
             owner=user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps({"name": "New Name"}),
             content_type="application/json",
@@ -42,7 +42,7 @@ class TestWebstreamViewSetUpdate:
         assert "updated_at" in data
         assert reformat_datetime(data["updated_at"]) is not None
 
-    def test_patch_update_url(self, guest_client):
+    def test_patch_update_url(self, admin_client):
         """PATCH URL should update webstream."""
         user = baker.make(User, username="testws_user")
         stream = baker.make(
@@ -52,7 +52,7 @@ class TestWebstreamViewSetUpdate:
             owner=user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps({"url": "http://new.com/stream"}),
             content_type="application/json",
@@ -64,7 +64,7 @@ class TestWebstreamViewSetUpdate:
         assert "updated_at" in data
         assert reformat_datetime(data["updated_at"]) is not None
 
-    def test_patch_update_description(self, guest_client):
+    def test_patch_update_description(self, admin_client):
         """PATCH description should update webstream."""
         user = baker.make(User, username="testws_user")
         stream = baker.make(
@@ -75,7 +75,7 @@ class TestWebstreamViewSetUpdate:
             owner=user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps({"description": "New description"}),
             content_type="application/json",
@@ -87,7 +87,7 @@ class TestWebstreamViewSetUpdate:
         assert "updated_at" in data
         assert reformat_datetime(data["updated_at"]) is not None
 
-    def test_patch_partial_does_not_affect_other_fields(self, guest_client):
+    def test_patch_partial_does_not_affect_other_fields(self, admin_client):
         """PATCH should only update specified fields."""
         user = baker.make(User, username="testws_user")
         stream = baker.make(
@@ -98,7 +98,7 @@ class TestWebstreamViewSetUpdate:
             owner=user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps({"name": "Updated"}),
             content_type="application/json",
@@ -112,7 +112,7 @@ class TestWebstreamViewSetUpdate:
         assert "updated_at" in data
         assert reformat_datetime(data["updated_at"]) is not None
 
-    def test_put_full_update_success(self, guest_client):
+    def test_put_full_update_success(self, admin_client):
         """PUT should update all fields."""
         user = baker.make(User, username="testws_user")
         stream = baker.make(
@@ -122,7 +122,7 @@ class TestWebstreamViewSetUpdate:
             owner=user,
         )
 
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps(
                 {
@@ -139,9 +139,9 @@ class TestWebstreamViewSetUpdate:
         assert data["url"] == "http://updated.com/stream"
         assert data["description"] == "Updated desc"
 
-    def test_update_not_found_returns_404(self, guest_client):
+    def test_update_not_found_returns_404(self, admin_client):
         """UPDATE non-existent webstream should return 404."""
-        response = guest_client.patch(
+        response = admin_client.patch(
             "/api/v2/webstreams/999999",
             json.dumps({"name": "New"}),
             content_type="application/json",
@@ -157,7 +157,7 @@ class TestWebstreamViewSetUpdate:
         )
         assert response.status_code == 403
 
-    def test_update_empty_name_fails(self, guest_client):
+    def test_update_empty_name_fails(self, admin_client):
         """UPDATE with empty name should fail."""
         user = baker.make(User, username="testws_user")
         stream = baker.make(
@@ -167,14 +167,14 @@ class TestWebstreamViewSetUpdate:
             owner=user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps({"name": ""}),
             content_type="application/json",
         )
         assert response.status_code == 400
 
-    def test_update_unicode_values(self, guest_client):
+    def test_update_unicode_values(self, admin_client):
         """UPDATE with unicode values should succeed."""
         user = baker.make(User, username="testws_user")
         stream = baker.make(
@@ -184,7 +184,7 @@ class TestWebstreamViewSetUpdate:
             owner=user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps(
                 {

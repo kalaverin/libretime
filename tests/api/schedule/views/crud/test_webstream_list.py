@@ -17,13 +17,13 @@ class TestWebstreamViewSetList:
         Webstream.objects.all().delete()
         User.objects.filter(username__startswith="testws").delete()
 
-    def test_list_empty_returns_200(self, guest_client):
+    def test_list_empty_returns_200(self, admin_client):
         """LIST empty should return 200 with empty list."""
-        response = guest_client.get("/api/v2/webstreams")
+        response = admin_client.get("/api/v2/webstreams")
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_list_single_webstream(self, guest_client):
+    def test_list_single_webstream(self, admin_client):
         """LIST should return single webstream with correct fields."""
         user = baker.make(User, username="testws_user")
         stream = baker.make(
@@ -34,7 +34,7 @@ class TestWebstreamViewSetList:
             owner=user,
         )
 
-        response = guest_client.get("/api/v2/webstreams")
+        response = admin_client.get("/api/v2/webstreams")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
@@ -42,7 +42,7 @@ class TestWebstreamViewSetList:
         assert data[0]["url"] == "http://example.com/stream.mp3"
         assert data[0]["description"] == "Test description"
 
-    def test_list_multiple_webstreams(self, guest_client):
+    def test_list_multiple_webstreams(self, admin_client):
         """LIST should return multiple webstreams."""
         user = baker.make(User, username="testws_user")
         baker.make(
@@ -64,11 +64,11 @@ class TestWebstreamViewSetList:
             owner=user,
         )
 
-        response = guest_client.get("/api/v2/webstreams")
+        response = admin_client.get("/api/v2/webstreams")
         assert response.status_code == 200
         assert len(response.json()) == 3
 
-    def test_list_returns_all_fields(self, guest_client):
+    def test_list_returns_all_fields(self, admin_client):
         """LIST should return all serializer fields."""
         user = baker.make(User, username="testws_user")
         baker.make(
@@ -80,7 +80,7 @@ class TestWebstreamViewSetList:
             owner=user,
         )
 
-        response = guest_client.get("/api/v2/webstreams")
+        response = admin_client.get("/api/v2/webstreams")
         assert response.status_code == 200
         data = response.json()[0]
         expected_fields = {
@@ -102,7 +102,7 @@ class TestWebstreamViewSetList:
         response = client.get("/api/v2/webstreams")
         assert response.status_code == 403
 
-    def test_list_with_mime_type(self, guest_client):
+    def test_list_with_mime_type(self, admin_client):
         """LIST should include mime type field."""
         user = baker.make(User, username="testws_user")
         baker.make(
@@ -113,11 +113,11 @@ class TestWebstreamViewSetList:
             owner=user,
         )
 
-        response = guest_client.get("/api/v2/webstreams")
+        response = admin_client.get("/api/v2/webstreams")
         assert response.status_code == 200
         assert response.json()[0]["mime"] == "audio/mpeg"
 
-    def test_list_unicode_names(self, guest_client):
+    def test_list_unicode_names(self, admin_client):
         """LIST should handle unicode in stream names."""
         user = baker.make(User, username="testws_user")
         baker.make(
@@ -127,16 +127,16 @@ class TestWebstreamViewSetList:
             owner=user,
         )
 
-        response = guest_client.get("/api/v2/webstreams")
+        response = admin_client.get("/api/v2/webstreams")
         assert response.status_code == 200
         assert response.json()[0]["name"] == "Радио поток 🎵"
 
-    def test_list_long_url(self, guest_client):
+    def test_list_long_url(self, admin_client):
         """LIST should handle long URLs."""
         user = baker.make(User, username="testws_user")
         long_url = "http://example.com/" + "a" * 400
         baker.make(Webstream, name="Test", url=long_url, owner=user)
 
-        response = guest_client.get("/api/v2/webstreams")
+        response = admin_client.get("/api/v2/webstreams")
         assert response.status_code == 200
         assert response.json()[0]["url"] == long_url

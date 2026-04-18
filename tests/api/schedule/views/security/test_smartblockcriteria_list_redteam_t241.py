@@ -36,7 +36,7 @@ class TestSmartBlockCriteriaListRedTeam:
     @pytest.mark.xfail(
         reason="T488: BOLA - LIST shows all users' criteria without filtering",
     )
-    def test_bola_list_shows_all_users_criteria(self, guest_client):
+    def test_bola_list_shows_all_users_criteria(self, admin_client):
         """BOLA: LIST should only show criteria from user's own blocks."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -57,7 +57,7 @@ class TestSmartBlockCriteriaListRedTeam:
         )
 
         # Attacker lists all criteria
-        response = guest_client.get("/api/v2/smart-block-criteria")
+        response = admin_client.get("/api/v2/smart-block-criteria")
         assert response.status_code == 200
 
         data = response.json()
@@ -72,7 +72,7 @@ class TestSmartBlockCriteriaListRedTeam:
     @pytest.mark.xfail(
         reason="T489: BOLA - filter by block ID bypasses ownership",
     )
-    def test_bola_filter_by_other_users_block(self, guest_client):
+    def test_bola_filter_by_other_users_block(self, admin_client):
         """BOLA: Should not be able to filter by other user's block ID."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -93,7 +93,7 @@ class TestSmartBlockCriteriaListRedTeam:
         )
 
         # Attacker filters by victim's block ID
-        response = guest_client.get(
+        response = admin_client.get(
             f"/api/v2/smart-block-criteria?block={victim_block.id}",
         )
         assert response.status_code == 200
@@ -103,7 +103,7 @@ class TestSmartBlockCriteriaListRedTeam:
             len(data) == 0
         ), f"BOLA: Filter by victim's block returned {len(data)} items"
 
-    def test_criteria_id_enumeration_mitigated(self, guest_client):
+    def test_criteria_id_enumeration_mitigated(self, admin_client):
         """Security: Criteria ID enumeration mitigated by owner filtering."""
         user = baker.make(User, username="testred_enum")
         for i in range(5):
@@ -121,7 +121,7 @@ class TestSmartBlockCriteriaListRedTeam:
                 value=f"Genre {i}",
             )
 
-        response = guest_client.get("/api/v2/smart-block-criteria")
+        response = admin_client.get("/api/v2/smart-block-criteria")
         data = response.json()
 
         assert isinstance(data, list), "Response should be a list"
@@ -133,7 +133,7 @@ class TestSmartBlockCriteriaListRedTeam:
     @pytest.mark.xfail(
         reason="T490: Filter bypass - SQL injection in block parameter",
     )
-    def test_filter_sql_injection_block_param(self, guest_client):
+    def test_filter_sql_injection_block_param(self, admin_client):
         """Injection: SQLi in block filter parameter."""
         sqli_payloads = [
             "1' OR '1'='1",
@@ -143,7 +143,7 @@ class TestSmartBlockCriteriaListRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.get(
+            response = admin_client.get(
                 f"/api/v2/smart-block-criteria?block={payload}",
             )
             assert response.status_code in [
@@ -152,35 +152,35 @@ class TestSmartBlockCriteriaListRedTeam:
                 404,
             ], f"SQLi payload '{payload}' caused {response.status_code}"
 
-    def test_filter_negative_block_id_handled(self, guest_client):
+    def test_filter_negative_block_id_handled(self, admin_client):
         """Validation: Negative block ID handled gracefully."""
-        response = guest_client.get("/api/v2/smart-block-criteria?block=-1")
+        response = admin_client.get("/api/v2/smart-block-criteria?block=-1")
         assert response.status_code in [
             200,
             400,
         ], f"Negative block ID caused {response.status_code}"
 
-    def test_filter_zero_block_id_handled(self, guest_client):
+    def test_filter_zero_block_id_handled(self, admin_client):
         """Validation: Zero block ID handled gracefully."""
-        response = guest_client.get("/api/v2/smart-block-criteria?block=0")
+        response = admin_client.get("/api/v2/smart-block-criteria?block=0")
         assert response.status_code in [
             200,
             400,
         ], f"Zero block ID caused {response.status_code}"
 
     @pytest.mark.xfail(reason="T491: 500 error on non-numeric block_id filter")
-    def test_filter_non_numeric_block_id(self, guest_client):
+    def test_filter_non_numeric_block_id(self, admin_client):
         """Validation: Non-numeric block ID in filter - BUG T491."""
-        response = guest_client.get("/api/v2/smart-block-criteria?block=abc")
+        response = admin_client.get("/api/v2/smart-block-criteria?block=abc")
         assert response.status_code in [
             400,
             404,
         ], f"BUG T491: Non-numeric block ID caused {response.status_code}"
 
     @pytest.mark.xfail(reason="T492: 500 error on unicode block_id filter")
-    def test_filter_unicode_block_id(self, guest_client):
+    def test_filter_unicode_block_id(self, admin_client):
         """Validation: Unicode in block filter - BUG T492."""
-        response = guest_client.get("/api/v2/smart-block-criteria?block=日本語")
+        response = admin_client.get("/api/v2/smart-block-criteria?block=日本語")
         assert response.status_code in [
             400,
             404,
@@ -190,7 +190,7 @@ class TestSmartBlockCriteriaListRedTeam:
     # Sorting / Ordering Attacks
     # ========================================================================
 
-    def test_sorting_arbitrary_field_rejected(self, guest_client):
+    def test_sorting_arbitrary_field_rejected(self, admin_client):
         """Security: Arbitrary ordering fields are rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -213,7 +213,7 @@ class TestSmartBlockCriteriaListRedTeam:
         ]
 
         for ordering in malicious_orderings:
-            response = guest_client.get(
+            response = admin_client.get(
                 f"/api/v2/smart-block-criteria?ordering={ordering}",
             )
             assert response.status_code in [
@@ -225,7 +225,7 @@ class TestSmartBlockCriteriaListRedTeam:
     # Pagination Abuse
     # ========================================================================
 
-    def test_pagination_page_size_limited(self, guest_client):
+    def test_pagination_page_size_limited(self, admin_client):
         """Security: Page size is properly limited."""
         user = baker.make(User, username="testred_user")
 
@@ -244,16 +244,16 @@ class TestSmartBlockCriteriaListRedTeam:
                 value=f"Genre {i}",
             )
 
-        response = guest_client.get(
+        response = admin_client.get(
             "/api/v2/smart-block-criteria?page_size=999999",
         )
         assert (
             response.status_code == 200
         ), f"Large page size caused {response.status_code}"
 
-    def test_pagination_negative_page(self, guest_client):
+    def test_pagination_negative_page(self, admin_client):
         """Validation: Negative page number."""
-        response = guest_client.get("/api/v2/smart-block-criteria?page=-1")
+        response = admin_client.get("/api/v2/smart-block-criteria?page=-1")
         assert response.status_code in [
             200,
             400,
@@ -263,7 +263,7 @@ class TestSmartBlockCriteriaListRedTeam:
     # Field Exposure
     # ========================================================================
 
-    def test_field_exposure_no_internal_fields(self, guest_client):
+    def test_field_exposure_no_internal_fields(self, admin_client):
         """Security: Internal fields are not exposed."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -280,7 +280,7 @@ class TestSmartBlockCriteriaListRedTeam:
             value="Jazz",
         )
 
-        response = guest_client.get("/api/v2/smart-block-criteria")
+        response = admin_client.get("/api/v2/smart-block-criteria")
         data = response.json()
 
         if len(data) > 0:
@@ -295,7 +295,7 @@ class TestSmartBlockCriteriaListRedTeam:
             leaked = fields & forbidden_fields
             assert len(leaked) == 0, f"Internal fields leaked: {leaked}"
 
-    def test_field_exposure_related_objects_are_ids(self, guest_client):
+    def test_field_exposure_related_objects_are_ids(self, admin_client):
         """Security: Related objects are returned as IDs only."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -312,7 +312,7 @@ class TestSmartBlockCriteriaListRedTeam:
             value="Jazz",
         )
 
-        response = guest_client.get("/api/v2/smart-block-criteria")
+        response = admin_client.get("/api/v2/smart-block-criteria")
         data = response.json()
 
         if len(data) > 0:
@@ -324,9 +324,9 @@ class TestSmartBlockCriteriaListRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T493: Error message leaks query structure")
-    def test_error_message_leaks_structure(self, guest_client):
+    def test_error_message_leaks_structure(self, admin_client):
         """Info Leak: Error messages reveal database structure."""
-        response = guest_client.get(
+        response = admin_client.get(
             "/api/v2/smart-block-criteria?block=invalid'union",
         )
 
@@ -348,7 +348,7 @@ class TestSmartBlockCriteriaListRedTeam:
     # HPP (HTTP Parameter Pollution)
     # ========================================================================
 
-    def test_hpp_duplicate_filter_params(self, guest_client):
+    def test_hpp_duplicate_filter_params(self, admin_client):
         """HPP: Duplicate block filter parameters."""
         user = baker.make(User, username="testred_user")
         block1 = baker.make(
@@ -379,7 +379,7 @@ class TestSmartBlockCriteriaListRedTeam:
             value="Rock",
         )
 
-        response = guest_client.get(
+        response = admin_client.get(
             f"/api/v2/smart-block-criteria?block={block1.id}&block={block2.id}",
         )
         assert (
@@ -390,9 +390,9 @@ class TestSmartBlockCriteriaListRedTeam:
     # CORS and Headers
     # ========================================================================
 
-    def test_cors_preflight_list(self, guest_client):
+    def test_cors_preflight_list(self, admin_client):
         """CORS: Preflight request for LIST."""
-        response = guest_client.options(
+        response = admin_client.options(
             "/api/v2/smart-block-criteria",
             HTTP_ORIGIN="https://evil.com",
             HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET",
@@ -408,7 +408,7 @@ class TestSmartBlockCriteriaListRedTeam:
     @pytest.mark.xfail(
         reason="T494: 500 error on special query params (undefined, null)",
     )
-    def test_fuzzing_query_params(self, guest_client):
+    def test_fuzzing_query_params(self, admin_client):
         """Fuzzing: Naughty strings in query parameters - BUG T494."""
         naughty_params = [
             "undefined",
@@ -417,7 +417,7 @@ class TestSmartBlockCriteriaListRedTeam:
         ]
 
         for param in naughty_params:
-            response = guest_client.get(
+            response = admin_client.get(
                 f"/api/v2/smart-block-criteria?block={param}",
             )
             assert response.status_code in [
@@ -430,7 +430,7 @@ class TestSmartBlockCriteriaListRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T495: Criteria values leak block information")
-    def test_criteria_value_leaks_block_info(self, guest_client):
+    def test_criteria_value_leaks_block_info(self, admin_client):
         """Info Leak: Criteria values may reveal sensitive block configuration."""
         victim = baker.make(User, username="testred_victim")
 
@@ -450,7 +450,7 @@ class TestSmartBlockCriteriaListRedTeam:
         )
 
         # Attacker lists criteria and sees the value
-        response = guest_client.get("/api/v2/smart-block-criteria")
+        response = admin_client.get("/api/v2/smart-block-criteria")
         data = response.json()
 
         for criteria in data:

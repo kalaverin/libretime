@@ -21,7 +21,7 @@ class TestPodcastRUDRedTeamBOLA:
 
     def test_bola_update_other_users_podcast(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
         fake_url,
@@ -41,14 +41,14 @@ class TestPodcastRUDRedTeamBOLA:
         )
 
         # Regular user tries to update
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
         data = {
             "url": admin_podcast.url,
             "title": "HACKED BY REGULAR USER",
             "creator": "Attacker",
         }
 
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/podcasts/{admin_podcast.id}",
             data,
             format="json",
@@ -61,7 +61,7 @@ class TestPodcastRUDRedTeamBOLA:
 
     def test_bola_patch_other_users_podcast(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
         fake_url,
@@ -77,10 +77,10 @@ class TestPodcastRUDRedTeamBOLA:
             owner=admin_user,
         )
 
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
         data = {"title": "Patched by regular user"}
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/podcasts/{admin_podcast.id}",
             data,
             format="json",
@@ -91,7 +91,7 @@ class TestPodcastRUDRedTeamBOLA:
 
     def test_bola_delete_other_users_podcast(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
         fake_url,
@@ -109,8 +109,8 @@ class TestPodcastRUDRedTeamBOLA:
             owner=admin_user,
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.delete(f"/api/v2/podcasts/{admin_podcast.id}")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.delete(f"/api/v2/podcasts/{admin_podcast.id}")
 
         if response.status_code == 204:
             pytest.xfail(
@@ -119,7 +119,7 @@ class TestPodcastRUDRedTeamBOLA:
 
     def test_bola_guest_user_update_podcast(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         guest_user,
         fake_url,
@@ -135,13 +135,13 @@ class TestPodcastRUDRedTeamBOLA:
             owner=admin_user,
         )
 
-        guest_client.force_authenticate(user=guest_user)
+        admin_client.force_authenticate(user=guest_user)
         data = {
             "url": podcast.url,
             "title": "Guest user hacked this",
         }
 
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/podcasts/{podcast.id}",
             data,
             format="json",
@@ -152,7 +152,7 @@ class TestPodcastRUDRedTeamBOLA:
 
     def test_bola_retrieve_other_users_private_podcast(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
         fake_url,
@@ -171,8 +171,8 @@ class TestPodcastRUDRedTeamBOLA:
             owner=admin_user,
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get(f"/api/v2/podcasts/{admin_podcast.id}")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get(f"/api/v2/podcasts/{admin_podcast.id}")
 
         if response.status_code == 200:
             data = response.json()
@@ -193,7 +193,7 @@ class TestPodcastRUDRedTeamBOPLA:
 
     def test_bopla_update_change_owner(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
         fake_url,
@@ -211,14 +211,14 @@ class TestPodcastRUDRedTeamBOPLA:
             owner=admin_user,
         )
 
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
         data = {
             "url": admin_podcast.url,
             "title": admin_podcast.title,
             "owner": regular_user.id,  # Try to change owner
         }
 
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/podcasts/{admin_podcast.id}",
             data,
             format="json",
@@ -233,7 +233,7 @@ class TestPodcastRUDRedTeamBOPLA:
 
     def test_bopla_patch_change_owner(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
         fake_url,
@@ -249,10 +249,10 @@ class TestPodcastRUDRedTeamBOPLA:
             owner=admin_user,
         )
 
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
         data = {"owner": regular_user.id}
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/podcasts/{admin_podcast.id}",
             data,
             format="json",
@@ -265,7 +265,7 @@ class TestPodcastRUDRedTeamBOPLA:
 
     def test_bopla_patch_extra_fields(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -286,7 +286,7 @@ class TestPodcastRUDRedTeamBOPLA:
             "internal_id": 12345,  # Unknown field
         }
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/podcasts/{podcast.id}",
             data,
             format="json",
@@ -297,7 +297,7 @@ class TestPodcastRUDRedTeamBOPLA:
 
     def test_bopla_update_id_field(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -318,7 +318,7 @@ class TestPodcastRUDRedTeamBOPLA:
             "title": podcast.title,
         }
 
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/podcasts/{podcast.id}",
             data,
             format="json",
@@ -341,7 +341,7 @@ class TestPodcastRUDRedTeamInjection:
 
     def test_xss_via_update_title(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -361,7 +361,7 @@ class TestPodcastRUDRedTeamInjection:
             "title": "<script>alert('XSS')</script>",
         }
 
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/podcasts/{podcast.id}",
             data,
             format="json",
@@ -374,7 +374,7 @@ class TestPodcastRUDRedTeamInjection:
 
     def test_xss_via_patch_description(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -391,7 +391,7 @@ class TestPodcastRUDRedTeamInjection:
 
         data = {"description": "<img src=x onerror=alert(1)>"}
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/podcasts/{podcast.id}",
             data,
             format="json",
@@ -404,7 +404,7 @@ class TestPodcastRUDRedTeamInjection:
 
     def test_sqli_via_update_fields(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -424,7 +424,7 @@ class TestPodcastRUDRedTeamInjection:
             "title": "'; DROP TABLE podcast--",
         }
 
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/podcasts/{podcast.id}",
             data,
             format="json",
@@ -447,7 +447,7 @@ class TestPodcastRUDRedTeamResourceConsumption:
 
     def test_rapid_update_requests(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -465,7 +465,7 @@ class TestPodcastRUDRedTeamResourceConsumption:
         success_count = 0
         for i in range(30):
             data = {"title": f"Update {i}"}
-            response = guest_client.patch(
+            response = admin_client.patch(
                 f"/api/v2/podcasts/{podcast.id}",
                 data,
                 format="json",
@@ -478,7 +478,7 @@ class TestPodcastRUDRedTeamResourceConsumption:
 
     def test_rapid_delete_requests(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -495,7 +495,7 @@ class TestPodcastRUDRedTeamResourceConsumption:
                 title=f"{fake_catch_phrase} {i}",
                 owner=admin_user,
             )
-            response = guest_client.delete(f"/api/v2/podcasts/{podcast.id}")
+            response = admin_client.delete(f"/api/v2/podcasts/{podcast.id}")
             if response.status_code == 204:
                 success_count += 1
 
@@ -514,7 +514,7 @@ class TestPodcastRUDRedTeamIDOR:
 
     def test_idor_sequential_id_access(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
         fake_url,
@@ -532,12 +532,12 @@ class TestPodcastRUDRedTeamIDOR:
                 owner=admin_user,
             )
 
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
 
         # Try to access sequential IDs
         accessible_count = 0
         for i in range(1, 10):
-            response = guest_client.get(f"/api/v2/podcasts/{i}")
+            response = admin_client.get(f"/api/v2/podcasts/{i}")
             if response.status_code == 200:
                 accessible_count += 1
 
@@ -546,16 +546,16 @@ class TestPodcastRUDRedTeamIDOR:
                 f"T737: IDOR - Sequential access to {accessible_count} podcasts",
             )
 
-    def test_error_message_enumeration(self, guest_client, regular_user):
+    def test_error_message_enumeration(self, admin_client, regular_user):
         """
         Information disclosure: Different errors for existent vs non-existent.
         """
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
 
         # Non-existent ID
-        response_fake = guest_client.get("/api/v2/podcasts/999999")
+        response_fake = admin_client.get("/api/v2/podcasts/999999")
         # ID 0 (unlikely to exist)
-        response_zero = guest_client.get("/api/v2/podcasts/0")
+        response_zero = admin_client.get("/api/v2/podcasts/0")
 
         # If different status codes, enumeration is possible
         if response_fake.status_code != response_zero.status_code:
@@ -573,7 +573,7 @@ class TestPodcastRUDRedTeamAuthentication:
 
     def test_update_without_auth(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -588,10 +588,10 @@ class TestPodcastRUDRedTeamAuthentication:
             owner=admin_user,
         )
 
-        guest_client.logout()
+        admin_client.logout()
         data = {"title": "Hacked"}
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/podcasts/{podcast.id}",
             data,
             format="json",
@@ -601,7 +601,7 @@ class TestPodcastRUDRedTeamAuthentication:
 
     def test_delete_without_auth(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -616,14 +616,14 @@ class TestPodcastRUDRedTeamAuthentication:
             owner=admin_user,
         )
 
-        guest_client.logout()
-        response = guest_client.delete(f"/api/v2/podcasts/{podcast.id}")
+        admin_client.logout()
+        response = admin_client.delete(f"/api/v2/podcasts/{podcast.id}")
 
         assert response.status_code == 403
 
     def test_method_override_to_bypass_auth(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         fake_url,
         fake_catch_phrase,
@@ -638,11 +638,11 @@ class TestPodcastRUDRedTeamAuthentication:
             owner=admin_user,
         )
 
-        guest_client.logout()
+        admin_client.logout()
         data = {"title": "Hacked via override"}
 
         # Try to PATCH via GET with override header
-        response = guest_client.get(
+        response = admin_client.get(
             f"/api/v2/podcasts/{podcast.id}",
             HTTP_X_HTTP_METHOD_OVERRIDE="PATCH",
         )

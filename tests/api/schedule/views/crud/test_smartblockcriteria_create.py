@@ -20,7 +20,7 @@ class TestSmartBlockCriteriaViewSetCreate:
         SmartBlock.objects.all().delete()
         User.objects.filter(username__startswith="testsbcr").delete()
 
-    def test_create_criteria_success(self, guest_client):
+    def test_create_criteria_success(self, admin_client):
         """CREATE criteria should return 201."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -30,7 +30,7 @@ class TestSmartBlockCriteriaViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-criteria",
             json.dumps(
                 {
@@ -49,7 +49,7 @@ class TestSmartBlockCriteriaViewSetCreate:
         assert data["condition"] == "0"
         assert data["value"] == "Jazz"
 
-    def test_create_with_group(self, guest_client):
+    def test_create_with_group(self, admin_client):
         """CREATE with group should succeed."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -59,7 +59,7 @@ class TestSmartBlockCriteriaViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-criteria",
             json.dumps(
                 {
@@ -75,7 +75,7 @@ class TestSmartBlockCriteriaViewSetCreate:
         assert response.status_code == 201
         assert response.json()["group"] == 1
 
-    def test_create_with_extra(self, guest_client):
+    def test_create_with_extra(self, admin_client):
         """CREATE with extra should succeed."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -85,7 +85,7 @@ class TestSmartBlockCriteriaViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-criteria",
             json.dumps(
                 {
@@ -101,9 +101,9 @@ class TestSmartBlockCriteriaViewSetCreate:
         assert response.status_code == 201
         assert response.json()["extra"] == "additional info"
 
-    def test_create_missing_block_fails(self, guest_client):
+    def test_create_missing_block_fails(self, admin_client):
         """CREATE without block should return 400."""
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-criteria",
             json.dumps(
                 {
@@ -116,7 +116,7 @@ class TestSmartBlockCriteriaViewSetCreate:
         )
         assert response.status_code == 400
 
-    def test_create_missing_criteria_fails(self, guest_client):
+    def test_create_missing_criteria_fails(self, admin_client):
         """CREATE without criteria should return 400."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -126,7 +126,7 @@ class TestSmartBlockCriteriaViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-criteria",
             json.dumps(
                 {
@@ -139,7 +139,7 @@ class TestSmartBlockCriteriaViewSetCreate:
         )
         assert response.status_code == 400
 
-    def test_create_missing_condition_fails(self, guest_client):
+    def test_create_missing_condition_fails(self, admin_client):
         """CREATE without condition should return 400."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -149,7 +149,7 @@ class TestSmartBlockCriteriaViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-criteria",
             json.dumps(
                 {
@@ -162,7 +162,7 @@ class TestSmartBlockCriteriaViewSetCreate:
         )
         assert response.status_code == 400
 
-    def test_create_missing_value_fails(self, guest_client):
+    def test_create_missing_value_fails(self, admin_client):
         """CREATE without value should return 400."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -172,7 +172,7 @@ class TestSmartBlockCriteriaViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-criteria",
             json.dumps(
                 {
@@ -185,9 +185,9 @@ class TestSmartBlockCriteriaViewSetCreate:
         )
         assert response.status_code == 400
 
-    def test_create_invalid_block_fails(self, guest_client):
+    def test_create_invalid_block_fails(self, admin_client):
         """CREATE with non-existent block should return 400."""
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-block-criteria",
             json.dumps(
                 {
@@ -210,7 +210,7 @@ class TestSmartBlockCriteriaViewSetCreate:
         )
         assert response.status_code == 403
 
-    def test_create_various_criteria_types(self, guest_client):
+    def test_create_various_criteria_types(self, admin_client):
         """CREATE with various criteria types should succeed."""
         user = baker.make(User, username="testsbcr_user")
         block = baker.make(
@@ -228,7 +228,7 @@ class TestSmartBlockCriteriaViewSetCreate:
         ]
 
         for crit, cond, val in criteria_types:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/smart-block-criteria",
                 json.dumps(
                     {

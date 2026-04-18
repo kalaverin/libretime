@@ -10,13 +10,13 @@ from model_bakery import baker
 class TestPodcastViewSetList:
     """Test Podcast LIST endpoint - GET /api/v2/podcasts."""
 
-    def test_list_empty_returns_200(self, guest_client):
+    def test_list_empty_returns_200(self, admin_client):
         """LIST empty should return 200 with empty list."""
-        response = guest_client.get("/api/v2/podcasts")
+        response = admin_client.get("/api/v2/podcasts")
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_list_single_podcast(self, guest_client):
+    def test_list_single_podcast(self, admin_client):
         """LIST should return single podcast with all iTunes metadata."""
         podcast = baker.make(
             Podcast,
@@ -35,7 +35,7 @@ class TestPodcastViewSetList:
             itunes_explicit="clean",
         )
 
-        response = guest_client.get("/api/v2/podcasts")
+        response = admin_client.get("/api/v2/podcasts")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
@@ -53,18 +53,18 @@ class TestPodcastViewSetList:
         assert data[0]["itunes_category"] == "Technology"
         assert data[0]["itunes_explicit"] == "clean"
 
-    def test_list_multiple_podcasts(self, guest_client):
+    def test_list_multiple_podcasts(self, admin_client):
         """LIST should return multiple podcasts."""
         baker.make(Podcast, url="https://example.com/1.rss", title="Podcast 1")
         baker.make(Podcast, url="https://example.com/2.rss", title="Podcast 2")
         baker.make(Podcast, url="https://example.com/3.rss", title="Podcast 3")
 
-        response = guest_client.get("/api/v2/podcasts")
+        response = admin_client.get("/api/v2/podcasts")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 3
 
-    def test_list_podcast_nullable_fields(self, guest_client):
+    def test_list_podcast_nullable_fields(self, admin_client):
         """LIST should handle podcasts with nullable fields."""
         podcast = baker.make(
             Podcast,
@@ -77,18 +77,18 @@ class TestPodcastViewSetList:
             link=None,
         )
 
-        response = guest_client.get("/api/v2/podcasts")
+        response = admin_client.get("/api/v2/podcasts")
         assert response.status_code == 200
         data = response.json()
         assert data[0]["title"] == "Minimal"
         assert data[0]["creator"] is None
         assert data[0]["description"] is None
 
-    def test_list_returns_all_fields(self, guest_client):
+    def test_list_returns_all_fields(self, admin_client):
         """LIST should return all podcast fields."""
         baker.make(Podcast, url="https://example.com/test.rss", title="Test")
 
-        response = guest_client.get("/api/v2/podcasts")
+        response = admin_client.get("/api/v2/podcasts")
         assert response.status_code == 200
         data = response.json()
 
@@ -108,13 +108,13 @@ class TestPodcastViewSetList:
         assert "itunes_category" in data[0]
         assert "itunes_explicit" in data[0]
 
-    def test_list_no_auth_fails(self, guest_client):
+    def test_list_no_auth_fails(self, admin_client):
         """LIST without authentication should fail."""
-        guest_client.logout()
-        response = guest_client.get("/api/v2/podcasts")
+        admin_client.logout()
+        response = admin_client.get("/api/v2/podcasts")
         assert response.status_code == 403
 
-    def test_list_pagination_respected(self, guest_client):
+    def test_list_pagination_respected(self, admin_client):
         """LIST should respect pagination if configured."""
         for i in range(5):
             baker.make(
@@ -123,12 +123,12 @@ class TestPodcastViewSetList:
                 title=f"Podcast {i}",
             )
 
-        response = guest_client.get("/api/v2/podcasts")
+        response = admin_client.get("/api/v2/podcasts")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 5
 
-    def test_list_unicode_fields(self, guest_client):
+    def test_list_unicode_fields(self, admin_client):
         """LIST should handle unicode in all fields."""
         podcast = baker.make(
             Podcast,
@@ -138,24 +138,24 @@ class TestPodcastViewSetList:
             itunes_author="Автор Имя",
         )
 
-        response = guest_client.get("/api/v2/podcasts")
+        response = admin_client.get("/api/v2/podcasts")
         assert response.status_code == 200
         data = response.json()
         assert data[0]["title"] == "Подкаст на русском"
         assert data[0]["description"] == "Описание с эмодзи 🎧"
         assert data[0]["itunes_author"] == "Автор Имя"
 
-    def test_list_long_url_field(self, guest_client):
+    def test_list_long_url_field(self, admin_client):
         """LIST should handle very long URLs (max 4096 chars)."""
         long_url = "https://example.com/" + "a" * 4000
         podcast = baker.make(Podcast, url=long_url, title="Long URL")
 
-        response = guest_client.get("/api/v2/podcasts")
+        response = admin_client.get("/api/v2/podcasts")
         assert response.status_code == 200
         data = response.json()
         assert data[0]["url"] == long_url
 
-    def test_list_podcast_with_owner(self, guest_client, admin_user):
+    def test_list_podcast_with_owner(self, admin_client, admin_user):
         """LIST should show podcast owner."""
         # This test documents T340 - owner field doesn't work
         pytest.skip("T340: owner field DB schema mismatch")

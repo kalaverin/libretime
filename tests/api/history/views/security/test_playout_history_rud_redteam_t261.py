@@ -39,7 +39,7 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
 
     def test_bola_retrieve_other_users_playout(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         victim_playout,
         faker,
@@ -51,7 +51,7 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
         Test what happens with other users.
         """
         # Admin can retrieve victim's playout
-        response = guest_client.get(
+        response = admin_client.get(
             f"/api/v2/playout-history/{victim_playout.id}",
         )
 
@@ -62,7 +62,7 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
 
     def test_bola_update_other_users_playout(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         victim_playout,
         faker,
@@ -80,7 +80,7 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
             "ends": format_datetime(now() + timedelta(minutes=5)),
         }
 
-        response = guest_client.put(
+        response = admin_client.put(
             f"/api/v2/playout-history/{victim_playout.id}",
             data,
             format="json",
@@ -93,7 +93,7 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
 
     def test_bola_patch_other_users_playout(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         victim_playout,
     ):
@@ -106,7 +106,7 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
             "ends": format_datetime(now() + timedelta(minutes=10)),
         }
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/playout-history/{victim_playout.id}",
             data,
             format="json",
@@ -118,7 +118,7 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
 
     def test_bola_delete_other_users_playout(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         victim_playout,
     ):
@@ -127,7 +127,7 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
 
         Critical data loss vulnerability if allowed inappropriately.
         """
-        response = guest_client.delete(
+        response = admin_client.delete(
             f"/api/v2/playout-history/{victim_playout.id}",
         )
 

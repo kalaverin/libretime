@@ -20,10 +20,10 @@ from model_bakery import baker
 class TestShowCreateMassAssignment:
     """Mass assignment attacks on Show CREATE."""
 
-    def test_create_with_id_field(self, guest_client, admin_user):
+    def test_create_with_id_field(self, admin_client, admin_user):
         """Try to set id field during show creation."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/shows",
             {
                 "id": 99999,
@@ -43,10 +43,10 @@ class TestShowCreateMassAssignment:
             if data.get("id") == 99999:
                 pytest.fail("BUG: Can set id field during creation")
 
-    def test_create_with_created_at(self, guest_client, admin_user):
+    def test_create_with_created_at(self, admin_client, admin_user):
         """Try to set created_at timestamp."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/shows",
             {
                 "name": "Test Show",
@@ -71,10 +71,10 @@ class TestShowCreateMassAssignment:
 class TestShowCreateColorInjection:
     """Color field injection attacks."""
 
-    def test_color_with_hash_prefix(self, guest_client, admin_user):
+    def test_color_with_hash_prefix(self, admin_client, admin_user):
         """Try to create with #FFFFFF format."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/shows",
             {
                 "name": "Test Show",
@@ -93,10 +93,10 @@ class TestShowCreateColorInjection:
         # May accept or reject - documenting
         assert response.status_code in [201, 400]
 
-    def test_color_with_short_hex(self, guest_client, admin_user):
+    def test_color_with_short_hex(self, admin_client, admin_user):
         """Try to create with short hex (FFF)."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/shows",
             {
                 "name": "Test Show",
@@ -113,10 +113,10 @@ class TestShowCreateColorInjection:
 
         assert response.status_code in [201, 400]
 
-    def test_color_with_invalid_chars(self, guest_client, admin_user):
+    def test_color_with_invalid_chars(self, admin_client, admin_user):
         """Try to create with invalid color characters."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/shows",
             {
                 "name": "Test Show",
@@ -135,10 +135,10 @@ class TestShowCreateColorInjection:
         if response.status_code == 201:
             pytest.fail("BUG: Accepts invalid color format")
 
-    def test_color_with_sql_injection(self, guest_client, admin_user):
+    def test_color_with_sql_injection(self, admin_client, admin_user):
         """Try SQL injection in color field."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/shows",
             {
                 "name": "Test Show",
@@ -161,10 +161,10 @@ class TestShowCreateColorInjection:
 class TestShowCreateURLAttacks:
     """URL field attacks."""
 
-    def test_url_with_javascript_protocol(self, guest_client, admin_user):
+    def test_url_with_javascript_protocol(self, admin_client, admin_user):
         """Try javascript: protocol in URL."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/shows",
             {
                 "name": "Test Show",
@@ -182,10 +182,10 @@ class TestShowCreateURLAttacks:
         if response.status_code == 201:
             pytest.fail("BUG: Accepts javascript: protocol URL (XSS risk)")
 
-    def test_url_with_data_protocol(self, guest_client, admin_user):
+    def test_url_with_data_protocol(self, admin_client, admin_user):
         """Try data: protocol in URL."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/shows",
             {
                 "name": "Test Show",
@@ -203,10 +203,10 @@ class TestShowCreateURLAttacks:
         if response.status_code == 201:
             pytest.fail("BUG: Accepts data: protocol URL")
 
-    def test_url_with_file_protocol(self, guest_client, admin_user):
+    def test_url_with_file_protocol(self, admin_client, admin_user):
         """Try file: protocol in URL."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/shows",
             {
                 "name": "Test Show",
@@ -229,10 +229,10 @@ class TestShowCreateURLAttacks:
 class TestShowCreateDescriptionAttacks:
     """Description field attacks."""
 
-    def test_description_with_html_script(self, guest_client, admin_user):
+    def test_description_with_html_script(self, admin_client, admin_user):
         """Try HTML script tags in description."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/shows",
             {
                 "name": "Test Show",
@@ -254,10 +254,10 @@ class TestShowCreateDescriptionAttacks:
         if "<script>" in str(data.get("description", "")):
             pytest.fail("BUG: HTML script stored without sanitization")
 
-    def test_description_with_event_handlers(self, guest_client, admin_user):
+    def test_description_with_event_handlers(self, admin_client, admin_user):
         """Try event handlers in description."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/shows",
             {
                 "name": "Test Show",
@@ -278,10 +278,10 @@ class TestShowCreateDescriptionAttacks:
         if "onerror=" in str(data.get("description", "")):
             pytest.fail("BUG: Event handlers stored without sanitization")
 
-    def test_very_long_description(self, guest_client, admin_user):
+    def test_very_long_description(self, admin_client, admin_user):
         """Try description over 8192 chars."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/shows",
             {
                 "name": "Test Show",
@@ -304,12 +304,12 @@ class TestShowCreateDescriptionAttacks:
 class TestShowCreateUnicodeAttacks:
     """Unicode-based attacks."""
 
-    def test_unicode_homograph_show_name(self, guest_client, admin_user):
+    def test_unicode_homograph_show_name(self, admin_client, admin_user):
         """Try to create show with unicode homograph name."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         # Create first show with ASCII name
-        response1 = guest_client.post(
+        response1 = admin_client.post(
             "/api/v2/shows",
             {
                 "name": "Popular Show",  # ASCII
@@ -325,7 +325,7 @@ class TestShowCreateUnicodeAttacks:
         assert response1.status_code == 201
 
         # Try to create with visually similar homograph
-        response2 = guest_client.post(
+        response2 = admin_client.post(
             "/api/v2/shows",
             {
                 "name": "Populаr Show",  # Cyrillic 'а' (U+0430)
@@ -342,10 +342,10 @@ class TestShowCreateUnicodeAttacks:
         # Both may succeed - documenting potential for visual spoofing
         assert response2.status_code == 201
 
-    def test_rtl_override_in_name(self, guest_client, admin_user):
+    def test_rtl_override_in_name(self, admin_client, admin_user):
         """Try RTL override characters in show name."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/shows",
             {
                 "name": "Good Show\u202eBad\u202c",  # RTL override
@@ -366,15 +366,15 @@ class TestShowCreateUnicodeAttacks:
 class TestShowCreateDuplicateBypass:
     """Duplicate name bypass attacks."""
 
-    def test_create_duplicate_with_whitespace(self, guest_client, admin_user):
+    def test_create_duplicate_with_whitespace(self, admin_client, admin_user):
         """Try to bypass duplicate check with whitespace."""
         # Create first show
         baker.make("schedule.Show", name="Unique Show")
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         # Try with leading/trailing whitespace
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/shows",
             {
                 "name": " Unique Show ",
@@ -391,12 +391,12 @@ class TestShowCreateDuplicateBypass:
         # Should reject or trim whitespace
         assert response.status_code in [201, 400]
 
-    def test_create_duplicate_different_case(self, guest_client, admin_user):
+    def test_create_duplicate_different_case(self, admin_client, admin_user):
         """Try case variation of existing show name."""
         baker.make("schedule.Show", name="Unique Show")
 
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/shows",
             {
                 "name": "unique show",  # lowercase
@@ -439,10 +439,10 @@ class TestShowCreateBusinessLogic:
             response.status_code == 403
         ), f"Expected 403, got {response.status_code}"
 
-    def test_create_with_empty_name(self, guest_client, admin_user):
+    def test_create_with_empty_name(self, admin_client, admin_user):
         """Try to create show with empty name."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/shows",
             {
                 "name": "",
@@ -460,10 +460,10 @@ class TestShowCreateBusinessLogic:
         if response.status_code == 201:
             pytest.fail("BUG: Accepts empty show name")
 
-    def test_create_with_whitespace_only_name(self, guest_client, admin_user):
+    def test_create_with_whitespace_only_name(self, admin_client, admin_user):
         """Try to create show with whitespace-only name."""
-        guest_client.force_authenticate(user=admin_user)
-        response = guest_client.post(
+        admin_client.force_authenticate(user=admin_user)
+        response = admin_client.post(
             "/api/v2/shows",
             {
                 "name": "   ",

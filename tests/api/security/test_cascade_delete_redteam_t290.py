@@ -31,7 +31,7 @@ class TestCascadeDeleteBOLA:
     @pytest.mark.xfail(
         reason="T863: BOLA - attacker can delete victim's show (flaky: passes alone, fails in suite)",
     )
-    def test_bola_delete_show_cascades_to_instances(self, guest_client, faker):
+    def test_bola_delete_show_cascades_to_instances(self, admin_client, faker):
         """Attacker deleting victim's show cascades to all instances."""
         victim = baker.make(User, username=f"victim_{faker.user_name()}")
         attacker = baker.make(User, username=f"attacker_{faker.user_name()}")
@@ -58,7 +58,7 @@ class TestCascadeDeleteBOLA:
     )
     def test_bola_delete_playlist_cascades_to_contents(
         self,
-        guest_client,
+        admin_client,
         faker,
     ):
         """Attacker deleting victim's playlist is blocked."""
@@ -90,7 +90,7 @@ class TestCascadeDeleteBOLA:
     )
     def test_bola_delete_smartblock_cascades_to_contents(
         self,
-        guest_client,
+        admin_client,
         faker,
     ):
         """Attacker deleting victim's smartblock cascades to contents."""
@@ -124,7 +124,7 @@ class TestCascadeDeleteBOLA:
     @pytest.mark.xfail(
         reason="T866: BOLA - attacker can delete victim's library (flaky: state-dependent)",
     )
-    def test_bola_delete_library_with_files(self, guest_client, faker):
+    def test_bola_delete_library_with_files(self, admin_client, faker):
         """Attacker deleting victim's library is blocked."""
         victim = baker.make(User, username=f"victim_{faker.user_name()}")
         attacker = baker.make(User, username=f"attacker_{faker.user_name()}")
@@ -168,7 +168,7 @@ class TestCascadeDeleteDoS:
     @pytest.mark.django_db
     def test_mass_cascade_delete_show_instances(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -193,7 +193,7 @@ class TestCascadeDeleteDoS:
     @pytest.mark.django_db
     def test_mass_cascade_delete_playlist_contents(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -225,7 +225,7 @@ class TestCascadeDeleteDoS:
     @pytest.mark.xfail(reason="T869: No rate limiting on cascade delete")
     def test_rapid_cascade_delete_requests(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -258,7 +258,7 @@ class TestCascadeDeleteRaceCondition:
     )
     def test_race_condition_concurrent_show_delete(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -298,7 +298,7 @@ class TestCascadeDeleteRaceCondition:
     @pytest.mark.django_db
     def test_race_condition_delete_while_adding_content_safe(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -357,7 +357,7 @@ class TestCascadeDeleteFKConstraintBypass:
     )
     def test_fk_bypass_nullify_before_delete(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -403,7 +403,7 @@ class TestCascadeDeleteFKConstraintBypass:
     @pytest.mark.xfail(reason="T873: FK constraint violation causes 500 error")
     def test_delete_with_active_references_blocked(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -442,7 +442,7 @@ class TestCascadeDeleteInjection:
     @pytest.mark.django_db
     def test_sqli_in_delete_cascade_trigger(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -461,7 +461,7 @@ class TestCascadeDeleteInjection:
             pytest.fail("T874: SQLi in name caused 500 during cascade delete")
 
     @pytest.mark.django_db
-    def test_sqli_in_filter_before_delete(self, guest_client, admin_user, faker):
+    def test_sqli_in_filter_before_delete(self, admin_client, admin_user, faker):
         """SQL injection in filter before mass delete."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -484,7 +484,7 @@ class TestCascadeDeleteDataLeakage:
     """Information disclosure via cascade operations."""
 
     @pytest.mark.django_db
-    def test_cascade_count_enumeration(self, guest_client, admin_user, faker):
+    def test_cascade_count_enumeration(self, admin_client, admin_user, faker):
         """Enumerate number of child entities via timing or error messages."""
         show = baker.make(Show, name="Enumeration Show")
 
@@ -507,7 +507,7 @@ class TestCascadeDeleteDataLeakage:
     @pytest.mark.django_db
     def test_error_message_leaks_child_count(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -541,7 +541,7 @@ class TestCascadeDeleteOrphanedData:
     @pytest.mark.django_db
     def test_interrupted_cascade_no_orphans(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -569,7 +569,7 @@ class TestCascadeDeleteOrphanedData:
     @pytest.mark.django_db
     def test_cascade_vs_manual_delete_consistency(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -597,7 +597,7 @@ class TestCascadeDeleteAPIPermissions:
     """API permission checks during cascade delete."""
 
     @pytest.mark.django_db
-    def test_delete_without_auth(self, guest_client, faker):
+    def test_delete_without_auth(self, admin_client, faker):
         """Delete without authentication should fail."""
         show = baker.make(Show, name="Auth Test Show")
 
@@ -611,7 +611,7 @@ class TestCascadeDeleteAPIPermissions:
         ], f"T877: Delete without auth succeeded: {response.status_code}"
 
     @pytest.mark.django_db
-    def test_delete_with_invalid_token(self, guest_client, faker):
+    def test_delete_with_invalid_token(self, admin_client, faker):
         """Delete with invalid token should fail."""
         show = baker.make(Show, name="Token Test Show")
 
@@ -628,7 +628,7 @@ class TestCascadeDeleteAPIPermissions:
     @pytest.mark.django_db
     def test_cascade_deletes_children_with_parent_permission(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):

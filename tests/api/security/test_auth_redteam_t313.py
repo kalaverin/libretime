@@ -324,7 +324,7 @@ class TestAuthBusinessLogic:
             pytest.fail("CRITICAL BUG: Anonymous can create token")
 
     @pytest.mark.xfail(reason="Anonymous can list tokens")
-    def test_list_tokens_without_auth(self, guest_client):
+    def test_list_tokens_without_auth(self, admin_client):
         """Try to list tokens without authentication."""
         response = session_client.get("/api/v2/user-tokens")
 

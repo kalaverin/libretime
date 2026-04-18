@@ -27,7 +27,7 @@ class TestPlaylistContentViewSetRetrieve:
         SmartBlock.objects.all().delete()
         User.objects.filter(username__startswith="testpc").delete()
 
-    def test_retrieve_file_content_success(self, guest_client):
+    def test_retrieve_file_content_success(self, admin_client):
         """RETRIEVE file content should return 200 with all fields."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -50,7 +50,7 @@ class TestPlaylistContentViewSetRetrieve:
             fade_out="00:00:03",
         )
 
-        response = guest_client.get(f"/api/v2/playlist-contents/{content.id}")
+        response = admin_client.get(f"/api/v2/playlist-contents/{content.id}")
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == content.id
@@ -64,7 +64,7 @@ class TestPlaylistContentViewSetRetrieve:
         assert data["fade_in"] == "00:00:02"
         assert data["fade_out"] == "00:00:03"
 
-    def test_retrieve_stream_content_success(self, guest_client):
+    def test_retrieve_stream_content_success(self, admin_client):
         """RETRIEVE stream content should return 200."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -83,7 +83,7 @@ class TestPlaylistContentViewSetRetrieve:
             offset=0,
         )
 
-        response = guest_client.get(f"/api/v2/playlist-contents/{content.id}")
+        response = admin_client.get(f"/api/v2/playlist-contents/{content.id}")
         assert response.status_code == 200
         data = response.json()
         assert data["kind"] == PlaylistContent.Kind.STREAM
@@ -91,7 +91,7 @@ class TestPlaylistContentViewSetRetrieve:
         assert data["file"] is None
         assert data["block"] is None
 
-    def test_retrieve_block_content_success(self, guest_client):
+    def test_retrieve_block_content_success(self, admin_client):
         """RETRIEVE block content should return 200."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -105,7 +105,7 @@ class TestPlaylistContentViewSetRetrieve:
             offset=0,
         )
 
-        response = guest_client.get(f"/api/v2/playlist-contents/{content.id}")
+        response = admin_client.get(f"/api/v2/playlist-contents/{content.id}")
         assert response.status_code == 200
         data = response.json()
         assert data["kind"] == PlaylistContent.Kind.BLOCK
@@ -113,9 +113,9 @@ class TestPlaylistContentViewSetRetrieve:
         assert data["file"] is None
         assert data["stream"] is None
 
-    def test_retrieve_not_found_returns_404(self, guest_client):
+    def test_retrieve_not_found_returns_404(self, admin_client):
         """RETRIEVE non-existent content should return 404."""
-        response = guest_client.get("/api/v2/playlist-contents/999999")
+        response = admin_client.get("/api/v2/playlist-contents/999999")
         assert response.status_code == 404
 
     def test_retrieve_no_auth_fails(self, client):
@@ -123,7 +123,7 @@ class TestPlaylistContentViewSetRetrieve:
         response = client.get("/api/v2/playlist-contents/1")
         assert response.status_code == 403
 
-    def test_retrieve_returns_all_fields(self, guest_client):
+    def test_retrieve_returns_all_fields(self, admin_client):
         """RETRIEVE should return all serializer fields."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -142,7 +142,7 @@ class TestPlaylistContentViewSetRetrieve:
             offset=0,
         )
 
-        response = guest_client.get(f"/api/v2/playlist-contents/{content.id}")
+        response = admin_client.get(f"/api/v2/playlist-contents/{content.id}")
         data = response.json()
         expected_fields = {
             "id",
@@ -161,17 +161,17 @@ class TestPlaylistContentViewSetRetrieve:
         }
         assert set(data.keys()) == expected_fields
 
-    def test_retrieve_id_zero_returns_404(self, guest_client):
+    def test_retrieve_id_zero_returns_404(self, admin_client):
         """RETRIEVE with id=0 should return 404."""
-        response = guest_client.get("/api/v2/playlist-contents/0")
+        response = admin_client.get("/api/v2/playlist-contents/0")
         assert response.status_code == 404
 
-    def test_retrieve_negative_id_returns_404(self, guest_client):
+    def test_retrieve_negative_id_returns_404(self, admin_client):
         """RETRIEVE with negative id should return 404."""
-        response = guest_client.get("/api/v2/playlist-contents/-1")
+        response = admin_client.get("/api/v2/playlist-contents/-1")
         assert response.status_code == 404
 
-    def test_retrieve_sql_injection_attempt(self, guest_client):
+    def test_retrieve_sql_injection_attempt(self, admin_client):
         """RETRIEVE with SQL injection in id should be handled safely."""
-        response = guest_client.get("/api/v2/playlist-contents/1 OR 1=1")
+        response = admin_client.get("/api/v2/playlist-contents/1 OR 1=1")
         assert response.status_code == 404

@@ -62,48 +62,48 @@ class TestPlaylistViewSetPermissions:
 
     # === AUTHORIZED USERS CAN ACCESS ===
 
-    def test_list_with_auth_returns_200(self, guest_client):
+    def test_list_with_auth_returns_200(self, admin_client):
         """LIST with auth should return 200."""
-        response = guest_client.get("/api/v2/playlists")
+        response = admin_client.get("/api/v2/playlists")
         assert response.status_code == 200
 
-    def test_retrieve_with_auth_returns_200(self, guest_client):
+    def test_retrieve_with_auth_returns_200(self, admin_client):
         """RETRIEVE with auth should return 200."""
         user = baker.make(User, username="testplaylist_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        response = guest_client.get(f"/api/v2/playlists/{playlist.id}")
+        response = admin_client.get(f"/api/v2/playlists/{playlist.id}")
         assert response.status_code == 200
 
-    def test_create_with_auth_returns_201(self, guest_client):
+    def test_create_with_auth_returns_201(self, admin_client):
         """CREATE with auth should return 201."""
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlists",
             json.dumps({"name": "Test"}),
             content_type="application/json",
         )
         assert response.status_code == 201
 
-    def test_update_with_auth_returns_200(self, guest_client):
+    def test_update_with_auth_returns_200(self, admin_client):
         """UPDATE with auth should return 200."""
         user = baker.make(User, username="testplaylist_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/playlists/{playlist.id}",
             json.dumps({"name": "New"}),
             content_type="application/json",
         )
         assert response.status_code == 200
 
-    def test_delete_with_auth_returns_204(self, guest_client):
+    def test_delete_with_auth_returns_204(self, admin_client):
         """DELETE with auth should return 204."""
         user = baker.make(User, username="testplaylist_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        response = guest_client.delete(f"/api/v2/playlists/{playlist.id}")
+        response = admin_client.delete(f"/api/v2/playlists/{playlist.id}")
         assert response.status_code == 204
 
     # === CROSS-USER ACCESS ===
 
-    def test_user_can_view_other_users_playlists(self, guest_client):
+    def test_user_can_view_other_users_playlists(self, admin_client):
         """Any authenticated user can view any playlist (no owner isolation)."""
         other_user = baker.make(User, username="testplaylist_other")
         playlist = baker.make(
@@ -112,11 +112,11 @@ class TestPlaylistViewSetPermissions:
             owner=other_user,
         )
 
-        response = guest_client.get(f"/api/v2/playlists/{playlist.id}")
+        response = admin_client.get(f"/api/v2/playlists/{playlist.id}")
         assert response.status_code == 200
         assert response.json()["name"] == "Other Playlist"
 
-    def test_user_can_update_other_users_playlists(self, guest_client):
+    def test_user_can_update_other_users_playlists(self, admin_client):
         """Any authenticated user can update any playlist."""
         other_user = baker.make(User, username="testplaylist_other")
         playlist = baker.make(
@@ -125,7 +125,7 @@ class TestPlaylistViewSetPermissions:
             owner=other_user,
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/playlists/{playlist.id}",
             json.dumps({"name": "Modified by other"}),
             content_type="application/json",
@@ -133,7 +133,7 @@ class TestPlaylistViewSetPermissions:
         assert response.status_code == 200
         assert response.json()["name"] == "Modified by other"
 
-    def test_user_can_delete_other_users_playlists(self, guest_client):
+    def test_user_can_delete_other_users_playlists(self, admin_client):
         """Any authenticated user can delete any playlist."""
         other_user = baker.make(User, username="testplaylist_other")
         playlist = baker.make(
@@ -142,6 +142,6 @@ class TestPlaylistViewSetPermissions:
             owner=other_user,
         )
 
-        response = guest_client.delete(f"/api/v2/playlists/{playlist.id}")
+        response = admin_client.delete(f"/api/v2/playlists/{playlist.id}")
         assert response.status_code == 204
         assert not Playlist.objects.filter(id=playlist.id).exists()

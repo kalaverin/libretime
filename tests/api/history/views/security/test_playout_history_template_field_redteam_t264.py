@@ -893,20 +893,20 @@ class TestPlayoutHistoryTemplateFieldRedTeamResourceConsumption:
 class TestPlayoutHistoryTemplateFieldRedTeamAuthentication:
     """Authentication tests."""
 
-    def test_unauthenticated_list(self, guest_client):
+    def test_unauthenticated_list(self, admin_client):
         """Unauthenticated LIST should fail."""
-        guest_client.logout()
-        response = guest_client.get("/api/v2/playout-history-template-fields")
+        admin_client.logout()
+        response = admin_client.get("/api/v2/playout-history-template-fields")
         assert response.status_code == 403
 
     def test_unauthenticated_create(
         self,
-        guest_client,
+        admin_client,
         fake_word,
         fake_catch_phrase,
     ):
         """Unauthenticated CREATE should fail."""
-        guest_client.logout()
+        admin_client.logout()
         data = {
             "template": 1,
             "name": fake_word,
@@ -915,7 +915,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamAuthentication:
             "is_file_md": False,
             "position": 1,
         }
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -924,7 +924,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamAuthentication:
 
     def test_guest_user_create(
         self,
-        guest_client,
+        admin_client,
         guest_user,
         fake_word,
         fake_catch_phrase,
@@ -936,7 +936,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamAuthentication:
             type="file",
         )
 
-        guest_client.force_authenticate(user=guest_user)
+        admin_client.force_authenticate(user=guest_user)
 
         data = {
             "template": template.id,
@@ -947,7 +947,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamAuthentication:
             "position": 1,
         }
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",

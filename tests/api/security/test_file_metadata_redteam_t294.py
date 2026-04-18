@@ -113,7 +113,7 @@ class TestMetadataMassAssignment:
         self,
         field,
         value,
-        guest_client,
+        admin_client,
         faker,
     ):
         """Read-only fields should not be modifiable via PATCH."""
@@ -161,7 +161,7 @@ class TestMetadataMassAssignment:
                 file_obj.filepath == original_filepath
             ), "filepath was changed!"
 
-    def test_mass_assignment_owner_field(self, guest_client, faker):
+    def test_mass_assignment_owner_field(self, admin_client, faker):
         """Owner field should not be modifiable via metadata PATCH. (T882)"""
         user_a = baker.make(
             User,
@@ -207,7 +207,7 @@ class TestMetadataMassAssignment:
         ), f"Owner changed to {file_obj.owner_id}"
 
     @pytest.mark.xfail(reason="T885: created_at mass assignment", strict=False)
-    def test_mass_assignment_created_at_blocked(self, guest_client, faker):
+    def test_mass_assignment_created_at_blocked(self, admin_client, faker):
         """created_at should be read-only. (T885)"""
         user = baker.make(
             User,
@@ -296,7 +296,7 @@ class TestMetadataXSSInjection:
         self,
         payload,
         test_name,
-        guest_client,
+        admin_client,
         faker,
     ):
         """XSS payloads in track_title should be sanitized or rejected."""
@@ -386,7 +386,7 @@ class TestMetadataXSSInjection:
         self,
         payload,
         test_name,
-        guest_client,
+        admin_client,
         faker,
     ):
         """XSS payloads in artist_name should be sanitized."""
@@ -475,7 +475,7 @@ class TestMetadataXSSInjection:
         self,
         payload,
         test_name,
-        guest_client,
+        admin_client,
         faker,
     ):
         """XSS payloads in album_title should be sanitized."""
@@ -526,7 +526,7 @@ class TestMetadataSQLInjection:
         self,
         payload,
         test_name,
-        guest_client,
+        admin_client,
         faker,
     ):
         """SQLi in metadata fields should not cause 500 error."""
@@ -575,7 +575,7 @@ class TestMetadataSQLInjection:
                 response.status_code != 500
             ), f"SQLi caused 500 in {field}: {test_name}"
 
-    def test_sqli_in_filter_params(self, guest_client, faker):
+    def test_sqli_in_filter_params(self, admin_client, faker):
         """SQLi via filter/search parameters."""
         user = baker.make(
             User,
@@ -603,7 +603,7 @@ class TestMetadataSQLInjection:
         ]
 
         for filter_param in sqli_filters:
-            response = guest_client.get(f"/api/v2/files?{filter_param}")
+            response = admin_client.get(f"/api/v2/files?{filter_param}")
             # Should not crash
             assert response.status_code in [
                 200,
@@ -654,7 +654,7 @@ class TestMetadataPathTraversal:
         self,
         payload,
         test_name,
-        guest_client,
+        admin_client,
         faker,
     ):
         """Path traversal in filepath should be blocked."""
@@ -699,7 +699,7 @@ class TestMetadataPathTraversal:
             ), f"Path traversal accepted: {test_name}"
 
     @pytest.mark.xfail(reason="T886: Path traversal in directory", strict=False)
-    def test_directory_traversal_in_metadata(self, guest_client, faker):
+    def test_directory_traversal_in_metadata(self, admin_client, faker):
         """Directory field path traversal. (T886)"""
         user = baker.make(
             User,
@@ -743,7 +743,7 @@ class TestMetadataPathTraversal:
 class TestMetadataDataExfiltration:
     """Data exfiltration via metadata fields."""
 
-    def test_metadata_length_limits(self, guest_client, faker):
+    def test_metadata_length_limits(self, admin_client, faker):
         """Very long metadata should be rejected or truncated."""
         user = baker.make(
             User,
@@ -790,7 +790,7 @@ class TestMetadataDataExfiltration:
                 413,
             ], f"Long string caused error: {test_name}"
 
-    def test_binary_data_in_metadata(self, guest_client, faker):
+    def test_binary_data_in_metadata(self, admin_client, faker):
         """Binary data in metadata fields."""
         user = baker.make(
             User,
@@ -847,7 +847,7 @@ class TestMetadataSSRF:
         self,
         payload,
         test_name,
-        guest_client,
+        admin_client,
         faker,
     ):
         """SSRF payloads in URL-like metadata fields."""
@@ -897,7 +897,7 @@ class TestMetadataUnicodeAttacks:
         self,
         payload,
         test_name,
-        guest_client,
+        admin_client,
         faker,
     ):
         """Unicode should be handled properly in metadata."""
@@ -936,7 +936,7 @@ class TestMetadataUnicodeAttacks:
             400,
         ], f"Unicode caused error: {test_name}"
 
-    def test_unicode_normalization_security(self, guest_client, faker):
+    def test_unicode_normalization_security(self, admin_client, faker):
         """Unicode normalization could bypass filters."""
         # Different unicode representations of similar characters
         homographs = [
@@ -982,7 +982,7 @@ class TestMetadataUnicodeAttacks:
 class TestMetadataNumericOverflow:
     """Numeric overflow and type confusion attacks."""
 
-    def test_integer_overflow_in_numeric_fields(self, guest_client, faker):
+    def test_integer_overflow_in_numeric_fields(self, admin_client, faker):
         """Integer overflow in numeric metadata fields."""
         user = baker.make(
             User,
@@ -1033,7 +1033,7 @@ class TestMetadataNumericOverflow:
                 400,
             ], f"Overflow caused error: {value}"
 
-    def test_float_precision_issues(self, guest_client, faker):
+    def test_float_precision_issues(self, admin_client, faker):
         """Float precision edge cases."""
         user = baker.make(
             User,
@@ -1084,7 +1084,7 @@ class TestMetadataNumericOverflow:
 class TestMetadataSensitiveDataExposure:
     """Sensitive data exposure via metadata."""
 
-    def test_no_internal_paths_in_response(self, guest_client, faker):
+    def test_no_internal_paths_in_response(self, admin_client, faker):
         """Internal file paths should not be exposed."""
         user = baker.make(
             User,
@@ -1106,7 +1106,7 @@ class TestMetadataSensitiveDataExposure:
             filepath="/internal/storage/path/secret/file.mp3",
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
 
         data = response.json()
@@ -1117,7 +1117,7 @@ class TestMetadataSensitiveDataExposure:
             assert "/etc/" not in filepath, "System path exposed"
             assert "/root/" not in filepath, "Root path exposed"
 
-    def test_no_md5_of_sensitive_files(self, guest_client, faker):
+    def test_no_md5_of_sensitive_files(self, admin_client, faker):
         """MD5 hashes could be used for malicious purposes."""
         user = baker.make(
             User,
@@ -1139,7 +1139,7 @@ class TestMetadataSensitiveDataExposure:
             md5="d41d8cd98f00b204e9800998ecf8427e",  # Empty file MD5
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
 
         # MD5 is generally OK to expose, but verify it's handled correctly
@@ -1151,7 +1151,7 @@ class TestMetadataSensitiveDataExposure:
 class TestMetadataContentTypeAttacks:
     """Content-Type confusion attacks."""
 
-    def test_wrong_content_type_rejected(self, guest_client, faker):
+    def test_wrong_content_type_rejected(self, admin_client, faker):
         """PATCH with wrong Content-Type should be rejected."""
         user = baker.make(
             User,
@@ -1182,7 +1182,7 @@ class TestMetadataContentTypeAttacks:
         # Should reject or handle gracefully
         assert response.status_code in [200, 400, 415]
 
-    def test_json_merge_patch_handled(self, guest_client, faker):
+    def test_json_merge_patch_handled(self, admin_client, faker):
         """JSON Merge Patch should be handled correctly."""
         user = baker.make(
             User,

@@ -29,7 +29,7 @@ class TestPlaylistContentViewSetCreate:
         SmartBlock.objects.all().delete()
         User.objects.filter(username__startswith="testpc").delete()
 
-    def test_create_file_content_success(self, guest_client):
+    def test_create_file_content_success(self, admin_client):
         """CREATE file content should return 201."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -40,7 +40,7 @@ class TestPlaylistContentViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -59,7 +59,7 @@ class TestPlaylistContentViewSetCreate:
         assert data["file"] == file_obj.id
         assert data["playlist"] == playlist.id
 
-    def test_create_stream_content_success(self, guest_client):
+    def test_create_stream_content_success(self, admin_client):
         """CREATE stream content should return 201."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -70,7 +70,7 @@ class TestPlaylistContentViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -88,13 +88,13 @@ class TestPlaylistContentViewSetCreate:
         assert data["kind"] == PlaylistContent.Kind.STREAM
         assert data["stream"] == stream.id
 
-    def test_create_block_content_success(self, guest_client):
+    def test_create_block_content_success(self, admin_client):
         """CREATE block content should return 201."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
         block = baker.make(SmartBlock, name="Test Block", owner=user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -112,7 +112,7 @@ class TestPlaylistContentViewSetCreate:
         assert data["kind"] == PlaylistContent.Kind.BLOCK
         assert data["block"] == block.id
 
-    def test_create_without_position_uses_null(self, guest_client):
+    def test_create_without_position_uses_null(self, admin_client):
         """CREATE without position should default to null."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -123,7 +123,7 @@ class TestPlaylistContentViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -138,7 +138,7 @@ class TestPlaylistContentViewSetCreate:
         assert response.status_code == 201
         assert response.json()["position"] is None
 
-    def test_create_with_cue_points(self, guest_client):
+    def test_create_with_cue_points(self, admin_client):
         """CREATE with cue_in/cue_out should succeed."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -149,7 +149,7 @@ class TestPlaylistContentViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -169,7 +169,7 @@ class TestPlaylistContentViewSetCreate:
         assert data["cue_in"] == "00:00:05"
         assert data["cue_out"] == "00:03:30"
 
-    def test_create_with_offset(self, guest_client):
+    def test_create_with_offset(self, admin_client):
         """CREATE with offset should succeed."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -180,7 +180,7 @@ class TestPlaylistContentViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -196,7 +196,7 @@ class TestPlaylistContentViewSetCreate:
         assert response.status_code == 201
         assert response.json()["offset"] == 0.5
 
-    def test_create_with_fade_in_out(self, guest_client):
+    def test_create_with_fade_in_out(self, admin_client):
         """CREATE with fade_in/fade_out should succeed."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -207,7 +207,7 @@ class TestPlaylistContentViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -227,7 +227,7 @@ class TestPlaylistContentViewSetCreate:
         assert data["fade_in"] == "00:00:02"
         assert data["fade_out"] == "00:00:03"
 
-    def test_create_missing_playlist_fails(self, guest_client):
+    def test_create_missing_playlist_fails(self, admin_client):
         """CREATE without playlist should return 400."""
         user = baker.make(User, username="testpc_user")
         file_obj = baker.make(
@@ -237,7 +237,7 @@ class TestPlaylistContentViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -251,7 +251,7 @@ class TestPlaylistContentViewSetCreate:
         )
         assert response.status_code == 400
 
-    def test_create_missing_kind_fails(self, guest_client):
+    def test_create_missing_kind_fails(self, admin_client):
         """CREATE without kind should return 400."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -262,7 +262,7 @@ class TestPlaylistContentViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -276,12 +276,12 @@ class TestPlaylistContentViewSetCreate:
         )
         assert response.status_code == 400
 
-    def test_create_file_without_file_id_fails(self, guest_client):
+    def test_create_file_without_file_id_fails(self, admin_client):
         """CREATE FILE kind without file ID should return 400."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -295,7 +295,7 @@ class TestPlaylistContentViewSetCreate:
         )
         assert response.status_code == 400
 
-    def test_create_invalid_playlist_fails(self, guest_client):
+    def test_create_invalid_playlist_fails(self, admin_client):
         """CREATE with non-existent playlist should return 400."""
         user = baker.make(User, username="testpc_user")
         file_obj = baker.make(
@@ -305,7 +305,7 @@ class TestPlaylistContentViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -320,12 +320,12 @@ class TestPlaylistContentViewSetCreate:
         )
         assert response.status_code == 400
 
-    def test_create_invalid_file_fails(self, guest_client):
+    def test_create_invalid_file_fails(self, admin_client):
         """CREATE with non-existent file should return 400."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -349,7 +349,7 @@ class TestPlaylistContentViewSetCreate:
         )
         assert response.status_code == 403
 
-    def test_create_unicode_in_metadata(self, guest_client):
+    def test_create_unicode_in_metadata(self, admin_client):
         """CREATE with unicode should succeed."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -360,7 +360,7 @@ class TestPlaylistContentViewSetCreate:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {

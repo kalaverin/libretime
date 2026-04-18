@@ -26,30 +26,30 @@ class TestFileViewSetCreate:
             "accessed": 0,
         }
 
-    def test_create_file_endpoint_available(self, guest_client):
+    def test_create_file_endpoint_available(self, admin_client):
         """CREATE endpoint should be accessible with API key."""
         data = self.get_minimal_file_data()
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/files",
             json.dumps(data),
             content_type="application/json",
         )
         assert response.status_code == 201
 
-    def test_create_file_returns_json(self, guest_client):
+    def test_create_file_returns_json(self, admin_client):
         """CREATE should return JSON response."""
         data = self.get_minimal_file_data()
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/files",
             json.dumps(data),
             content_type="application/json",
         )
         assert response["Content-Type"] == "application/json"
 
-    def test_create_file_minimal_data(self, guest_client):
+    def test_create_file_minimal_data(self, admin_client):
         """CREATE with minimal data should succeed."""
         data = self.get_minimal_file_data()
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/files",
             json.dumps(data),
             content_type="application/json",
@@ -62,14 +62,14 @@ class TestFileViewSetCreate:
         assert result["size"] == 10_000_000
         assert result["accessed"] == 0
 
-    def test_create_file_missing_required_name(self, guest_client):
+    def test_create_file_missing_required_name(self, admin_client):
         """CREATE without name should fail with 400."""
         data = {
             "mime": "audio/mpeg",
             "size": 10_000_000,
             "accessed": 0,
         }
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/files",
             json.dumps(data),
             content_type="application/json",
@@ -77,14 +77,14 @@ class TestFileViewSetCreate:
         assert response.status_code == 400
         assert "name" in response.json()
 
-    def test_create_file_missing_required_mime(self, guest_client):
+    def test_create_file_missing_required_mime(self, admin_client):
         """CREATE without mime should fail with 400."""
         data = {
             "name": "Test Track",
             "size": 10_000_000,
             "accessed": 0,
         }
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/files",
             json.dumps(data),
             content_type="application/json",
@@ -92,14 +92,14 @@ class TestFileViewSetCreate:
         assert response.status_code == 400
         assert "mime" in response.json()
 
-    def test_create_file_missing_required_size(self, guest_client):
+    def test_create_file_missing_required_size(self, admin_client):
         """CREATE without size should fail with 400."""
         data = {
             "name": "Test Track",
             "mime": "audio/mpeg",
             "accessed": 0,
         }
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/files",
             json.dumps(data),
             content_type="application/json",
@@ -107,14 +107,14 @@ class TestFileViewSetCreate:
         assert response.status_code == 400
         assert "size" in response.json()
 
-    def test_create_file_missing_required_accessed(self, guest_client):
+    def test_create_file_missing_required_accessed(self, admin_client):
         """CREATE without accessed should fail with 400."""
         data = {
             "name": "Test Track",
             "mime": "audio/mpeg",
             "size": 10_000_000,
         }
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/files",
             json.dumps(data),
             content_type="application/json",
@@ -122,7 +122,7 @@ class TestFileViewSetCreate:
         assert response.status_code == 400
         assert "accessed" in response.json()
 
-    def test_create_file_with_metadata(self, guest_client):
+    def test_create_file_with_metadata(self, admin_client):
         """CREATE with full metadata should succeed."""
         data = {
             "name": "Full Metadata Track",
@@ -142,7 +142,7 @@ class TestFileViewSetCreate:
             "channels": 2,
             "import_status": File.ImportStatus.SUCCESS,
         }
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/files",
             json.dumps(data),
             content_type="application/json",
@@ -157,7 +157,7 @@ class TestFileViewSetCreate:
         assert result["track_number"] == 5
         assert result["bit_rate"] == 1411
 
-    def test_create_file_with_library(self, guest_client):
+    def test_create_file_with_library(self, admin_client):
         """CREATE with library reference should succeed."""
         library = baker.make(
             Library,
@@ -172,7 +172,7 @@ class TestFileViewSetCreate:
             "accessed": 0,
             "library": library.id,
         }
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/files",
             json.dumps(data),
             content_type="application/json",
@@ -180,10 +180,10 @@ class TestFileViewSetCreate:
         assert response.status_code == 201
         assert response.json()["library"] == library.id
 
-    def test_create_file_default_import_status(self, guest_client):
+    def test_create_file_default_import_status(self, admin_client):
         """CREATE without import_status should use default (PENDING=1)."""
         data = self.get_minimal_file_data()
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/files",
             json.dumps(data),
             content_type="application/json",
@@ -192,11 +192,11 @@ class TestFileViewSetCreate:
         # Default is PENDING=1 per model
         assert result["import_status"] == File.ImportStatus.PENDING
 
-    def test_create_file_explicit_import_status(self, guest_client):
+    def test_create_file_explicit_import_status(self, admin_client):
         """CREATE with explicit import_status should use provided value."""
         data = self.get_minimal_file_data()
         data["import_status"] = File.ImportStatus.SUCCESS
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/files",
             json.dumps(data),
             content_type="application/json",
@@ -204,14 +204,14 @@ class TestFileViewSetCreate:
         result = response.json()
         assert result["import_status"] == File.ImportStatus.SUCCESS
 
-    def test_create_file_all_import_statuses(self, guest_client):
+    def test_create_file_all_import_statuses(self, admin_client):
         """CREATE with all import_status values should work."""
         for status_val, status_name in File.ImportStatus.choices:
             File.objects.all().delete()
             data = self.get_minimal_file_data()
             data["name"] = f"Track {status_name}"
             data["import_status"] = status_val
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/files",
                 json.dumps(data),
                 content_type="application/json",
@@ -229,10 +229,10 @@ class TestFileViewSetCreate:
         )
         assert response.status_code == 403
 
-    def test_create_file_generates_id(self, guest_client):
+    def test_create_file_generates_id(self, admin_client):
         """CREATE should generate a unique id for the file."""
         data = self.get_minimal_file_data()
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/files",
             json.dumps(data),
             content_type="application/json",
@@ -242,12 +242,12 @@ class TestFileViewSetCreate:
         assert isinstance(result["id"], int)
         assert result["id"] > 0
 
-    def test_create_file_response_has_all_fields(self, guest_client):
+    def test_create_file_response_has_all_fields(self, admin_client):
         """CREATE response should include all model fields."""
         data = self.get_minimal_file_data()
         data["artist_name"] = "Artist"
         data["track_title"] = "Title"
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/files",
             json.dumps(data),
             content_type="application/json",

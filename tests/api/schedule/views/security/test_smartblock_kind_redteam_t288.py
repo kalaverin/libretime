@@ -80,7 +80,7 @@ class TestSmartBlockKindBOLA:
     @pytest.mark.xfail(
         reason="T829: BOLA - no ownership check in SmartBlockViewSet",
     )
-    def test_bola_retrieve_other_users_smartblock(self, guest_client, faker):
+    def test_bola_retrieve_other_users_smartblock(self, admin_client, faker):
         """Attacker can retrieve victim's smart block including kind field."""
         victim = baker.make(User, username=f"victim_{faker.user_name()}")
         attacker = baker.make(User, username=f"attacker_{faker.user_name()}")
@@ -103,7 +103,7 @@ class TestSmartBlockKindBOLA:
 
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T830: BOLA - LIST shows all smart blocks")
-    def test_bola_list_shows_all_smartblocks(self, guest_client, faker):
+    def test_bola_list_shows_all_smartblocks(self, admin_client, faker):
         """LIST returns all smart blocks regardless of owner."""
         victim = baker.make(User, username=f"victim_{faker.user_name()}")
         attacker = baker.make(User, username=f"attacker_{faker.user_name()}")
@@ -131,7 +131,7 @@ class TestSmartBlockKindBOLA:
     @pytest.mark.xfail(
         reason="T831: BOLA - attacker can update victim's smart block kind",
     )
-    def test_bola_update_other_users_smartblock_kind(self, guest_client, faker):
+    def test_bola_update_other_users_smartblock_kind(self, admin_client, faker):
         """Attacker can change victim's smart block kind."""
         victim = baker.make(User, username=f"victim_{faker.user_name()}")
         attacker = baker.make(User, username=f"attacker_{faker.user_name()}")
@@ -161,7 +161,7 @@ class TestSmartBlockKindBOLA:
     @pytest.mark.xfail(
         reason="T832: BOLA - attacker can delete victim's smart block",
     )
-    def test_bola_delete_other_users_smartblock(self, guest_client, faker):
+    def test_bola_delete_other_users_smartblock(self, admin_client, faker):
         """Attacker can delete victim's smart block."""
         victim = baker.make(User, username=f"victim_{faker.user_name()}")
         attacker = baker.make(User, username=f"attacker_{faker.user_name()}")
@@ -190,7 +190,7 @@ class TestSmartBlockKindBOPLA:
     @pytest.mark.django_db
     def test_bopla_mass_assignment_id_field(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -223,7 +223,7 @@ class TestSmartBlockKindBOPLA:
     )
     def test_bopla_mass_assignment_created_at(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -254,7 +254,7 @@ class TestSmartBlockKindBOPLA:
     @pytest.mark.xfail(reason="T835: BOPLA - owner change via PATCH allowed")
     def test_bopla_change_owner_via_update(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
         faker,
@@ -286,7 +286,7 @@ class TestSmartBlockKindBOPLA:
     @pytest.mark.xfail(reason="T836: BOPLA - extra fields silently accepted")
     def test_bopla_extra_fields_not_rejected(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -319,7 +319,7 @@ class TestSmartBlockKindValidation:
 
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T837: Invalid kind values accepted")
-    def test_invalid_kind_values_rejected(self, guest_client, admin_user, faker):
+    def test_invalid_kind_values_rejected(self, admin_client, admin_user, faker):
         """Invalid kind values should be rejected."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -351,7 +351,7 @@ class TestSmartBlockKindValidation:
             ), f"T837: Invalid kind '{kind}' accepted"
 
     @pytest.mark.django_db
-    def test_kind_case_sensitivity(self, guest_client, admin_user, faker):
+    def test_kind_case_sensitivity(self, admin_client, admin_user, faker):
         """Kind values should be case-sensitive."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -376,7 +376,7 @@ class TestSmartBlockKindValidation:
             ), "T838: Uppercase kind not normalized"
 
     @pytest.mark.django_db
-    def test_kind_with_whitespace(self, guest_client, admin_user, faker):
+    def test_kind_with_whitespace(self, admin_client, admin_user, faker):
         """Kind values with whitespace should be handled."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -400,7 +400,7 @@ class TestSmartBlockKindValidation:
             ), "T839: Whitespace not trimmed from kind"
 
     @pytest.mark.django_db
-    def test_kind_null_bytes(self, guest_client, admin_user, faker):
+    def test_kind_null_bytes(self, admin_client, admin_user, faker):
         """Null bytes in kind should be rejected."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -425,7 +425,7 @@ class TestSmartBlockKindInjection:
     """Injection vulnerability tests in kind field."""
 
     @pytest.mark.django_db
-    def test_sqli_in_kind_field_create(self, guest_client, admin_user):
+    def test_sqli_in_kind_field_create(self, admin_client, admin_user):
         """SQL injection in kind field during CREATE."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -459,7 +459,7 @@ class TestSmartBlockKindInjection:
                     pytest.fail(f"T841: SQL error disclosed: {err}")
 
     @pytest.mark.django_db
-    def test_sqli_in_kind_filter(self, guest_client, admin_user):
+    def test_sqli_in_kind_filter(self, admin_client, admin_user):
         """SQL injection in kind query parameter."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -471,7 +471,7 @@ class TestSmartBlockKindInjection:
                 pytest.fail(f"T842: SQLi in kind filter causes 500: {payload}")
 
     @pytest.mark.django_db
-    def test_nosql_injection_kind_field(self, guest_client, admin_user):
+    def test_nosql_injection_kind_field(self, admin_client, admin_user):
         """NoSQL injection attempts in kind field."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -501,7 +501,7 @@ class TestSmartBlockKindLogic:
     @pytest.mark.django_db
     def test_change_kind_with_criteria_static_to_dynamic(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -537,7 +537,7 @@ class TestSmartBlockKindLogic:
     @pytest.mark.django_db
     def test_change_kind_dynamic_to_static_with_criteria(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -576,7 +576,7 @@ class TestSmartBlockKindLogic:
     @pytest.mark.django_db
     def test_create_dynamic_without_criteria(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -604,7 +604,7 @@ class TestSmartBlockKindFuzzing:
     """Fuzzing tests for kind field."""
 
     @pytest.mark.django_db
-    def test_fuzzing_kind_field_create(self, guest_client, admin_user):
+    def test_fuzzing_kind_field_create(self, admin_client, admin_user):
         """Fuzz kind field with various payloads."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -628,7 +628,7 @@ class TestSmartBlockKindFuzzing:
                 )
 
     @pytest.mark.django_db
-    def test_fuzzing_kind_filter(self, guest_client, admin_user):
+    def test_fuzzing_kind_filter(self, admin_client, admin_user):
         """Fuzz kind query parameter."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -646,7 +646,7 @@ class TestSmartBlockKindDoS:
     """Denial of Service tests."""
 
     @pytest.mark.django_db
-    def test_very_long_kind_string(self, guest_client, admin_user):
+    def test_very_long_kind_string(self, admin_client, admin_user):
         """Very long kind string should be rejected."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -670,7 +670,7 @@ class TestSmartBlockKindDoS:
 
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T847: No rate limiting on smart-block CREATE")
-    def test_rapid_create_requests(self, guest_client, admin_user):
+    def test_rapid_create_requests(self, admin_client, admin_user):
         """Rapid CREATE requests should be rate limited."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -703,7 +703,7 @@ class TestSmartBlockKindFilter:
     """Kind filter parameter tests."""
 
     @pytest.mark.django_db
-    def test_filter_by_kind_static(self, guest_client, admin_user, faker):
+    def test_filter_by_kind_static(self, admin_client, admin_user, faker):
         """Filter smart blocks by static kind."""
         baker.make(
             SmartBlock,
@@ -729,7 +729,7 @@ class TestSmartBlockKindFilter:
             assert block["kind"] == "static"
 
     @pytest.mark.django_db
-    def test_filter_by_kind_dynamic(self, guest_client, admin_user, faker):
+    def test_filter_by_kind_dynamic(self, admin_client, admin_user, faker):
         """Filter smart blocks by dynamic kind."""
         baker.make(
             SmartBlock,
@@ -755,7 +755,7 @@ class TestSmartBlockKindFilter:
             assert block["kind"] == "dynamic"
 
     @pytest.mark.django_db
-    def test_filter_by_invalid_kind(self, guest_client, admin_user, faker):
+    def test_filter_by_invalid_kind(self, admin_client, admin_user, faker):
         """Filter by invalid kind should return empty or error."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -770,7 +770,7 @@ class TestSmartBlockKindFilter:
             ), "T848: Invalid kind filter returns non-empty results"
 
     @pytest.mark.django_db
-    def test_filter_by_empty_kind(self, guest_client, admin_user, faker):
+    def test_filter_by_empty_kind(self, admin_client, admin_user, faker):
         """Filter by empty kind parameter."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -786,7 +786,7 @@ class TestSmartBlockKindInfoDisclosure:
 
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T849: Error message leaks table name cc_block")
-    def test_error_message_leaks_structure(self, guest_client, admin_user):
+    def test_error_message_leaks_structure(self, admin_client, admin_user):
         """Error messages should not leak database structure."""
         client = APIClient()
         client.force_authenticate(user=admin_user)

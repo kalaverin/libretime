@@ -22,8 +22,8 @@ class TestScheduleViewSetUpdate:
     """Tests for Schedule update endpoint."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, guest_client, admin_user):
-        self.guest_client = guest_client
+    def setup(self, admin_client, admin_user):
+        self.admin_client = admin_client
         self.user = admin_user
         show = baker.make("schedule.Show", name="Test Show")
         start_time = now()
@@ -72,7 +72,7 @@ class TestScheduleViewSetUpdate:
             "position": 1,
             "broadcasted": 1,
         }
-        response = self.guest_client.put(
+        response = self.admin_client.put(
             f"/api/v2/schedule/{self.schedule.id}",
             data,
             format="json",
@@ -110,7 +110,7 @@ class TestScheduleViewSetUpdate:
             "position": 2,
             "broadcasted": 1,
         }
-        response = self.guest_client.put(
+        response = self.admin_client.put(
             f"/api/v2/schedule/{stream_schedule.id}",
             data,
             format="json",
@@ -143,7 +143,7 @@ class TestScheduleViewSetUpdate:
             "position": 1,
             "broadcasted": 1,
         }
-        response = self.guest_client.put(
+        response = self.admin_client.put(
             f"/api/v2/schedule/{self.schedule.id}",
             data,
             format="json",
@@ -167,7 +167,7 @@ class TestScheduleViewSetUpdate:
             "position": 1,
             "broadcasted": 1,
         }
-        response = self.guest_client.put(
+        response = self.admin_client.put(
             f"/api/v2/schedule/{self.schedule.id}",
             data,
             format="json",
@@ -204,7 +204,7 @@ class TestScheduleViewSetUpdate:
             "position": 2,
             "broadcasted": 1,
         }
-        response = self.guest_client.put(
+        response = self.admin_client.put(
             f"/api/v2/schedule/{stream_schedule.id}",
             data,
             format="json",
@@ -215,7 +215,7 @@ class TestScheduleViewSetUpdate:
 
     def test_update_partial_change_position(self):
         data = {"position": 5}
-        response = self.guest_client.patch(
+        response = self.admin_client.patch(
             f"/api/v2/schedule/{self.schedule.id}",
             data,
             format="json",
@@ -226,7 +226,7 @@ class TestScheduleViewSetUpdate:
 
     def test_update_partial_change_broadcasted(self):
         data = {"broadcasted": 0}
-        response = self.guest_client.patch(
+        response = self.admin_client.patch(
             f"/api/v2/schedule/{self.schedule.id}",
             data,
             format="json",
@@ -253,7 +253,7 @@ class TestScheduleViewSetUpdate:
             "position": 1,
             "broadcasted": 1,
         }
-        response = self.guest_client.put(
+        response = self.admin_client.put(
             f"/api/v2/schedule/{self.schedule.id}",
             data,
             format="json",
@@ -275,7 +275,7 @@ class TestScheduleViewSetUpdate:
             "position": 1,
             "broadcasted": 1,
         }
-        response = self.guest_client.put(
+        response = self.admin_client.put(
             f"/api/v2/schedule/{self.schedule.id}",
             data,
             format="json",
@@ -294,7 +294,7 @@ class TestScheduleViewSetUpdate:
             "position": 1,
             "broadcasted": 1,
         }
-        response = self.guest_client.put(
+        response = self.admin_client.put(
             "/api/v2/schedule/99999",
             data,
             format="json",
@@ -302,7 +302,7 @@ class TestScheduleViewSetUpdate:
         assert response.status_code == 404
 
     def test_update_no_auth_fails(self):
-        self.guest_client.logout()
+        self.admin_client.logout()
         data = {
             "instance": self.show_instance.id,
             "file": self.file.id,
@@ -314,7 +314,7 @@ class TestScheduleViewSetUpdate:
             "position": 1,
             "broadcasted": 1,
         }
-        response = self.guest_client.put(
+        response = self.admin_client.put(
             f"/api/v2/schedule/{self.schedule.id}",
             data,
             format="json",
@@ -335,7 +335,7 @@ class TestScheduleViewSetUpdate:
             "position": 1,
             "broadcasted": 1,
         }
-        response = self.guest_client.put(
+        response = self.admin_client.put(
             f"/api/v2/schedule/{self.schedule.id}",
             data,
             format="json",

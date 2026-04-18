@@ -56,12 +56,12 @@ class TestSmartBlockViewSetPermissions:
 
     # === AUTHORIZED USERS CAN ACCESS ===
 
-    def test_list_with_auth_returns_200(self, guest_client):
+    def test_list_with_auth_returns_200(self, admin_client):
         """LIST with auth should return 200."""
-        response = guest_client.get("/api/v2/smart-blocks")
+        response = admin_client.get("/api/v2/smart-blocks")
         assert response.status_code == 200
 
-    def test_retrieve_with_auth_returns_200(self, guest_client):
+    def test_retrieve_with_auth_returns_200(self, admin_client):
         """RETRIEVE with auth should return 200."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -70,19 +70,19 @@ class TestSmartBlockViewSetPermissions:
             kind=SmartBlock.Kind.STATIC,
             owner=user,
         )
-        response = guest_client.get(f"/api/v2/smart-blocks/{block.id}")
+        response = admin_client.get(f"/api/v2/smart-blocks/{block.id}")
         assert response.status_code == 200
 
-    def test_create_with_auth_returns_201(self, guest_client):
+    def test_create_with_auth_returns_201(self, admin_client):
         """CREATE with auth should return 201."""
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/smart-blocks",
             json.dumps({"name": "Test", "kind": SmartBlock.Kind.STATIC}),
             content_type="application/json",
         )
         assert response.status_code == 201
 
-    def test_update_with_auth_returns_200(self, guest_client):
+    def test_update_with_auth_returns_200(self, admin_client):
         """UPDATE with auth should return 200."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -91,14 +91,14 @@ class TestSmartBlockViewSetPermissions:
             kind=SmartBlock.Kind.STATIC,
             owner=user,
         )
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps({"name": "New"}),
             content_type="application/json",
         )
         assert response.status_code == 200
 
-    def test_delete_with_auth_returns_204(self, guest_client):
+    def test_delete_with_auth_returns_204(self, admin_client):
         """DELETE with auth should return 204."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -107,12 +107,12 @@ class TestSmartBlockViewSetPermissions:
             kind=SmartBlock.Kind.STATIC,
             owner=user,
         )
-        response = guest_client.delete(f"/api/v2/smart-blocks/{block.id}")
+        response = admin_client.delete(f"/api/v2/smart-blocks/{block.id}")
         assert response.status_code == 204
 
     # === CROSS-USER ACCESS ===
 
-    def test_user_can_view_other_users_blocks(self, guest_client):
+    def test_user_can_view_other_users_blocks(self, admin_client):
         """Any authenticated user can view any block."""
         other_user = baker.make(User, username="testsb_other")
         block = baker.make(
@@ -122,6 +122,6 @@ class TestSmartBlockViewSetPermissions:
             owner=other_user,
         )
 
-        response = guest_client.get(f"/api/v2/smart-blocks/{block.id}")
+        response = admin_client.get(f"/api/v2/smart-blocks/{block.id}")
         assert response.status_code == 200
         assert response.json()["name"] == "Other Block"

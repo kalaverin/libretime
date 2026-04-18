@@ -11,9 +11,9 @@ class TestImportedPodcastViewSet:
     """Test ImportedPodcast LIST/CREATE/RETRIEVE/UPDATE/DELETE."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, guest_client, admin_user):
+    def setup(self, admin_client, admin_user):
         """Set up test fixtures."""
-        self.guest_client = guest_client
+        self.admin_client = admin_client
         self.user = admin_user
         self.podcast = baker.make(
             Podcast,
@@ -29,7 +29,7 @@ class TestImportedPodcastViewSet:
 
     def test_list_imported_podcasts(self):
         """LIST imported podcasts."""
-        response = self.guest_client.get("/api/v2/imported-podcasts")
+        response = self.admin_client.get("/api/v2/imported-podcasts")
         assert response.status_code == 200
         data = response.json()
         assert len(data) >= 1
@@ -47,7 +47,7 @@ class TestImportedPodcastViewSet:
             "auto_ingest": False,
         }
 
-        response = self.guest_client.post(
+        response = self.admin_client.post(
             "/api/v2/imported-podcasts",
             data,
             format="json",
@@ -59,7 +59,7 @@ class TestImportedPodcastViewSet:
 
     def test_retrieve_imported_podcast(self):
         """RETRIEVE imported podcast."""
-        response = self.guest_client.get(
+        response = self.admin_client.get(
             f"/api/v2/imported-podcasts/{self.imported.id}",
         )
         assert response.status_code == 200
@@ -75,7 +75,7 @@ class TestImportedPodcastViewSet:
             "auto_ingest": False,
         }
 
-        response = self.guest_client.put(
+        response = self.admin_client.put(
             f"/api/v2/imported-podcasts/{self.imported.id}",
             data,
             format="json",
@@ -86,7 +86,7 @@ class TestImportedPodcastViewSet:
 
     def test_delete_imported_podcast(self):
         """DELETE imported podcast."""
-        response = self.guest_client.delete(
+        response = self.admin_client.delete(
             f"/api/v2/imported-podcasts/{self.imported.id}",
         )
         assert response.status_code == 204
@@ -94,6 +94,6 @@ class TestImportedPodcastViewSet:
 
     def test_no_auth_fails(self):
         """Operations without auth fail."""
-        self.guest_client.logout()
-        response = self.guest_client.get("/api/v2/imported-podcasts")
+        self.admin_client.logout()
+        response = self.admin_client.get("/api/v2/imported-podcasts")
         assert response.status_code == 403

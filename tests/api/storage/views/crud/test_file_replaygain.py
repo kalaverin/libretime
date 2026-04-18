@@ -18,7 +18,7 @@ from api.storage.models import File, Library
 class TestReplayGainStorage:
     """Test replay gain value storage."""
 
-    def test_positive_replay_gain(self, guest_client):
+    def test_positive_replay_gain(self, admin_client):
         """Store positive replay gain value."""
         user = baker.make(User, username="replay_test")
         library = baker.make(
@@ -37,13 +37,13 @@ class TestReplayGainStorage:
             replay_gain=Decimal("3.50"),
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert Decimal(data["replay_gain"]) == Decimal("3.50")
 
-    def test_negative_replay_gain(self, guest_client):
+    def test_negative_replay_gain(self, admin_client):
         """Store negative replay gain value."""
         user = baker.make(User, username="replay_test2")
         library = baker.make(
@@ -62,13 +62,13 @@ class TestReplayGainStorage:
             replay_gain=Decimal("-8.25"),
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert Decimal(data["replay_gain"]) == Decimal("-8.25")
 
-    def test_zero_replay_gain(self, guest_client):
+    def test_zero_replay_gain(self, admin_client):
         """Store zero replay gain value."""
         user = baker.make(User, username="replay_test3")
         library = baker.make(
@@ -87,13 +87,13 @@ class TestReplayGainStorage:
             replay_gain=Decimal("0.00"),
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert Decimal(data["replay_gain"]) == Decimal("0.00")
 
-    def test_null_replay_gain(self, guest_client):
+    def test_null_replay_gain(self, admin_client):
         """Null replay gain when not calculated."""
         user = baker.make(User, username="replay_test4")
         library = baker.make(
@@ -112,13 +112,13 @@ class TestReplayGainStorage:
             replay_gain=None,
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["replay_gain"] is None
 
-    def test_high_precision_replay_gain(self, guest_client):
+    def test_high_precision_replay_gain(self, admin_client):
         """Replay gain with 2 decimal precision."""
         user = baker.make(User, username="replay_test5")
         library = baker.make(
@@ -137,7 +137,7 @@ class TestReplayGainStorage:
             replay_gain=Decimal("-4.99"),
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
@@ -148,7 +148,7 @@ class TestReplayGainStorage:
 class TestReplayGainUpdate:
     """Test replay gain value updates."""
 
-    def test_update_replay_gain(self, guest_client):
+    def test_update_replay_gain(self, admin_client):
         """Update replay gain value."""
         import json
 
@@ -169,7 +169,7 @@ class TestReplayGainUpdate:
             replay_gain=Decimal("-2.00"),
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/files/{file_obj.id}",
             json.dumps({"replay_gain": "-5.50"}),
             content_type="application/json",
@@ -179,7 +179,7 @@ class TestReplayGainUpdate:
         data = response.json()
         assert Decimal(data["replay_gain"]) == Decimal("-5.50")
 
-    def test_clear_replay_gain(self, guest_client):
+    def test_clear_replay_gain(self, admin_client):
         """Clear replay gain value."""
         import json
 
@@ -200,7 +200,7 @@ class TestReplayGainUpdate:
             replay_gain=Decimal("-3.00"),
         )
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/files/{file_obj.id}",
             json.dumps({"replay_gain": None}),
             content_type="application/json",
@@ -215,7 +215,7 @@ class TestReplayGainUpdate:
 class TestReplayGainInList:
     """Test replay gain in list responses."""
 
-    def test_list_includes_replay_gain(self, guest_client):
+    def test_list_includes_replay_gain(self, admin_client):
         """LIST includes replay gain field."""
         user = baker.make(User, username="replay_list")
         library = baker.make(
@@ -234,13 +234,13 @@ class TestReplayGainInList:
             replay_gain=Decimal("-1.50"),
         )
 
-        response = guest_client.get("/api/v2/files")
+        response = admin_client.get("/api/v2/files")
         assert response.status_code == 200
         data = response.json()
         assert len(data) > 0
         assert "replay_gain" in data[0]
 
-    def test_list_shows_null_replay_gain(self, guest_client):
+    def test_list_shows_null_replay_gain(self, admin_client):
         """LIST shows null replay gain for uncalculated files."""
         user = baker.make(User, username="replay_list2")
         library = baker.make(
@@ -259,7 +259,7 @@ class TestReplayGainInList:
             replay_gain=None,
         )
 
-        response = guest_client.get("/api/v2/files")
+        response = admin_client.get("/api/v2/files")
         assert response.status_code == 200
         data = response.json()
         file_data = next(f for f in data if f.get("replay_gain") is None)
@@ -270,7 +270,7 @@ class TestReplayGainInList:
 class TestReplayGainFiltering:
     """Test filtering by replay gain."""
 
-    def test_filter_files_with_replay_gain(self, guest_client):
+    def test_filter_files_with_replay_gain(self, admin_client):
         """Filter files that have replay gain calculated."""
         user = baker.make(User, username="replay_filter")
         library = baker.make(
@@ -302,7 +302,7 @@ class TestReplayGainFiltering:
                 replay_gain=None,
             )
 
-        response = guest_client.get("/api/v2/files")
+        response = admin_client.get("/api/v2/files")
         assert response.status_code == 200
         data = response.json()
 
@@ -318,7 +318,7 @@ class TestReplayGainFiltering:
 class TestReplayGainEdgeCases:
     """Test replay gain edge cases."""
 
-    def test_very_large_negative_replay_gain(self, guest_client):
+    def test_very_large_negative_replay_gain(self, admin_client):
         """Very quiet file with large negative replay gain."""
         user = baker.make(User, username="replay_edge")
         library = baker.make(
@@ -337,12 +337,12 @@ class TestReplayGainEdgeCases:
             replay_gain=Decimal("-20.00"),
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
         assert Decimal(data["replay_gain"]) == Decimal("-20.00")
 
-    def test_very_large_positive_replay_gain(self, guest_client):
+    def test_very_large_positive_replay_gain(self, admin_client):
         """Very loud file with large positive replay gain."""
         user = baker.make(User, username="replay_edge2")
         library = baker.make(
@@ -361,12 +361,12 @@ class TestReplayGainEdgeCases:
             replay_gain=Decimal("15.00"),
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
         assert Decimal(data["replay_gain"]) == Decimal("15.00")
 
-    def test_replay_gain_with_trailing_zeros(self, guest_client):
+    def test_replay_gain_with_trailing_zeros(self, admin_client):
         """Replay gain value with trailing zeros."""
         user = baker.make(User, username="replay_edge3")
         library = baker.make(
@@ -385,7 +385,7 @@ class TestReplayGainEdgeCases:
             replay_gain=Decimal("-5.50"),
         )
 
-        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
+        response = admin_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
         # Value should be preserved or normalized

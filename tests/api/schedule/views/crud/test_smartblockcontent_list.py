@@ -20,13 +20,13 @@ class TestSmartBlockContentViewSetList:
         File.objects.all().delete()
         User.objects.filter(username__startswith="testsbc").delete()
 
-    def test_list_empty_returns_200(self, guest_client):
+    def test_list_empty_returns_200(self, admin_client):
         """LIST empty should return 200 with empty list."""
-        response = guest_client.get("/api/v2/smart-block-contents")
+        response = admin_client.get("/api/v2/smart-block-contents")
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_list_single_content(self, guest_client):
+    def test_list_single_content(self, admin_client):
         """LIST should return single content with correct fields."""
         user = baker.make(User, username="testsbc_user")
         block = baker.make(
@@ -49,7 +49,7 @@ class TestSmartBlockContentViewSetList:
             offset=0,
         )
 
-        response = guest_client.get("/api/v2/smart-block-contents")
+        response = admin_client.get("/api/v2/smart-block-contents")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
@@ -57,7 +57,7 @@ class TestSmartBlockContentViewSetList:
         assert data[0]["file"] == file_obj.id
         assert data[0]["position"] == 1
 
-    def test_list_multiple_contents(self, guest_client):
+    def test_list_multiple_contents(self, admin_client):
         """LIST should return multiple contents."""
         user = baker.make(User, username="testsbc_user")
         block = baker.make(
@@ -94,11 +94,11 @@ class TestSmartBlockContentViewSetList:
             offset=0,
         )
 
-        response = guest_client.get("/api/v2/smart-block-contents")
+        response = admin_client.get("/api/v2/smart-block-contents")
         assert response.status_code == 200
         assert len(response.json()) == 2
 
-    def test_list_filter_by_block(self, guest_client):
+    def test_list_filter_by_block(self, admin_client):
         """LIST should filter by block parameter."""
         user = baker.make(User, username="testsbc_user")
         block1 = baker.make(
@@ -141,7 +141,7 @@ class TestSmartBlockContentViewSetList:
             offset=0,
         )
 
-        response = guest_client.get(
+        response = admin_client.get(
             f"/api/v2/smart-block-contents?block={block1.id}",
         )
         assert response.status_code == 200
@@ -149,7 +149,7 @@ class TestSmartBlockContentViewSetList:
         assert len(data) == 1
         assert data[0]["block"] == block1.id
 
-    def test_list_contents_ordered_by_position(self, guest_client):
+    def test_list_contents_ordered_by_position(self, admin_client):
         """LIST should be ordered by position."""
         user = baker.make(User, username="testsbc_user")
         block = baker.make(
@@ -199,7 +199,7 @@ class TestSmartBlockContentViewSetList:
             offset=0,
         )
 
-        response = guest_client.get("/api/v2/smart-block-contents")
+        response = admin_client.get("/api/v2/smart-block-contents")
         assert response.status_code == 200
         positions = [item["position"] for item in response.json()]
         assert positions == [1, 2, 3]
@@ -209,7 +209,7 @@ class TestSmartBlockContentViewSetList:
         response = client.get("/api/v2/smart-block-contents")
         assert response.status_code == 403
 
-    def test_list_returns_all_fields(self, guest_client):
+    def test_list_returns_all_fields(self, admin_client):
         """LIST should return all serializer fields."""
         user = baker.make(User, username="testsbc_user")
         block = baker.make(
@@ -235,7 +235,7 @@ class TestSmartBlockContentViewSetList:
             cue_out="00:03:30",
         )
 
-        response = guest_client.get("/api/v2/smart-block-contents")
+        response = admin_client.get("/api/v2/smart-block-contents")
         assert response.status_code == 200
         data = response.json()[0]
         expected_fields = {
@@ -252,7 +252,7 @@ class TestSmartBlockContentViewSetList:
         }
         assert set(data.keys()) == expected_fields
 
-    def test_list_with_cue_points(self, guest_client):
+    def test_list_with_cue_points(self, admin_client):
         """LIST should include cue point fields."""
         user = baker.make(User, username="testsbc_user")
         block = baker.make(
@@ -278,7 +278,7 @@ class TestSmartBlockContentViewSetList:
             cue_out="00:04:00",
         )
 
-        response = guest_client.get("/api/v2/smart-block-contents")
+        response = admin_client.get("/api/v2/smart-block-contents")
         data = response.json()[0]
         assert data["cue_in"] == "00:00:10"
         assert data["cue_out"] == "00:04:00"

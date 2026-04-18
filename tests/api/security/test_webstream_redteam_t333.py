@@ -20,7 +20,7 @@ class TestWebstreamIDOR:
 
     def test_list_webstreams_shows_only_own(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -44,8 +44,8 @@ class TestWebstreamIDOR:
         )
 
         # User lists webstreams
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get("/api/v2/webstreams")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get("/api/v2/webstreams")
 
         assert response.status_code == 200
         data = response.json()
@@ -59,7 +59,7 @@ class TestWebstreamIDOR:
 
     def test_access_other_user_webstream(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -73,8 +73,8 @@ class TestWebstreamIDOR:
             owner=admin_user,
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.get(f"/api/v2/webstreams/{admin_stream.id}")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.get(f"/api/v2/webstreams/{admin_stream.id}")
 
         # Should be denied
         if response.status_code == 200:
@@ -83,7 +83,7 @@ class TestWebstreamIDOR:
     @pytest.mark.xfail(reason="BOLA: Can modify other user's webstream")
     def test_modify_other_user_webstream(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -97,8 +97,8 @@ class TestWebstreamIDOR:
             owner=admin_user,
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.patch(
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.patch(
             f"/api/v2/webstreams/{admin_stream.id}",
             {"name": "Hacked Stream"},
             format="json",
@@ -111,9 +111,9 @@ class TestWebstreamIDOR:
 class TestWebstreamSQLInjection:
     """SQL injection via webstream fields."""
 
-    def test_sqli_in_name_field(self, guest_client, admin_user):
+    def test_sqli_in_name_field(self, admin_client, admin_user):
         """Try SQL injection in name field."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         sqli_payloads = [
             "stream'; DROP TABLE cc_webstream;--",
@@ -122,7 +122,7 @@ class TestWebstreamSQLInjection:
         ]
 
         for payload in sqli_payloads:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/webstreams",
                 {"name": payload, "url": "http://test.com/stream"},
                 format="json",
@@ -131,11 +131,11 @@ class TestWebstreamSQLInjection:
             # Should create with literal value or reject
             assert response.status_code in [201, 400]
 
-    def test_sqli_in_url_field(self, guest_client, admin_user):
+    def test_sqli_in_url_field(self, admin_client, admin_user):
         """Try SQL injection in URL field."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/webstreams",
             {
                 "name": "Test Stream",
@@ -151,13 +151,13 @@ class TestWebstreamSQLInjection:
 class TestWebstreamTimestampManipulation:
     """Timestamp field manipulation attempts."""
 
-    def test_create_with_fake_created_at(self, guest_client, admin_user):
+    def test_create_with_fake_created_at(self, admin_client, admin_user):
         """Try to set created_at to fake timestamp."""
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         fake_time = "2020-01-01T00:00:00Z"
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/webstreams",
             {
                 "name": "Test Stream",
@@ -176,12 +176,12 @@ class TestWebstreamTimestampManipulation:
             if data.get("created_at") == fake_time:
                 pytest.fail("SECURITY: created_at can be spoofed")
 
-    def test_create_with_fake_updated_at(self, guest_client, admin_user):
+    def test_create_with_fake_updated_at(self, admin_client, admin_user):
         """Try to set updated_at to fake timestamp."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         fake_time = "2020-01-01T00:00:00Z"
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/webstreams",
             {
                 "name": "Test Stream",
@@ -193,7 +193,7 @@ class TestWebstreamTimestampManipulation:
 
         assert response.status_code in [201, 400]
 
-    def test_update_created_at_field(self, guest_client, admin_user):
+    def test_update_created_at_field(self, admin_client, admin_user):
         """Try to modify created_at on update."""
         from model_bakery import baker
 
@@ -204,10 +204,10 @@ class TestWebstreamTimestampManipulation:
             owner=admin_user,
         )
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
         fake_time = "2019-01-01T00:00:00Z"
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             {"created_at": fake_time},
             format="json",
@@ -219,7 +219,7 @@ class TestWebstreamTimestampManipulation:
             if data.get("created_at") == fake_time:
                 pytest.xfail("T354: created_at can be modified after creation")
 
-    def test_update_length_field(self, guest_client, admin_user):
+    def test_update_length_field(self, admin_client, admin_user):
         """Try to modify length field directly."""
         from model_bakery import baker
 
@@ -231,9 +231,9 @@ class TestWebstreamTimestampManipulation:
             length=timedelta(hours=1),
         )
 
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             {"length": "02:00:00"},  # Try to change length
             format="json",
@@ -249,14 +249,14 @@ class TestWebstreamOwnerBypass:
 
     def test_create_webstream_with_other_owner(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
         """Try to create webstream with another user as owner."""
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/webstreams",
             {
                 "name": "My Stream",
@@ -275,7 +275,7 @@ class TestWebstreamOwnerBypass:
 
     def test_change_webstream_owner(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -289,8 +289,8 @@ class TestWebstreamOwnerBypass:
             owner=regular_user,
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.patch(
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             {"owner": admin_user.id},
             format="json",
@@ -306,38 +306,30 @@ class TestWebstreamOwnerBypass:
         """Try to create webstream without authentication."""
         from django.db import IntegrityError
 
-        # This will fail because owner is required (creator_id NOT NULL)
-        # Should return 403 or IntegrityError
-        try:
-            response = guest_client.post(
-                "/api/v2/webstreams",
-                {
-                    "name": "Anonymous Stream",
-                    "url": "http://anon.com/stream",
-                    "description": "test",
-                },
-                format="json",
-            )
-            # If we get here, should be 403 or 400
-            assert response.status_code in [
-                403,
-                400,
-                500,
-            ]  # 500 if IntegrityError not handled
-        except IntegrityError:
-            # Expected - owner is required
-            pass
+        response = guest_client.post(
+            "/api/v2/webstreams",
+            {
+                "name": "Anonymous Stream",
+                "url": "http://anon.com/stream",
+                "description": "test",
+            },
+            format="json",
+        )
+        # If we get here, should be 403 or 400
+        assert response.status_code in [
+            403,
+        ]
 
 
 @pytest.mark.django_db
 class TestWebstreamFieldValidation:
     """Field validation edge cases."""
 
-    def test_empty_name(self, guest_client, admin_user):
+    def test_empty_name(self, admin_client, admin_user):
         """Try to create webstream with empty name."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/webstreams",
             {"name": "", "url": "http://test.com/stream"},
             format="json",
@@ -346,12 +338,12 @@ class TestWebstreamFieldValidation:
         # Should reject empty name
         assert response.status_code in [201, 400]
 
-    def test_very_long_name(self, guest_client, admin_user):
+    def test_very_long_name(self, admin_client, admin_user):
         """Try to create webstream with very long name."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         long_name = "A" * 5000
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/webstreams",
             {"name": long_name, "url": "http://test.com/stream"},
             format="json",
@@ -359,9 +351,9 @@ class TestWebstreamFieldValidation:
 
         assert response.status_code in [201, 400]
 
-    def test_invalid_url_format(self, guest_client, admin_user):
+    def test_invalid_url_format(self, admin_client, admin_user):
         """Try to create webstream with invalid URL."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
         invalid_urls = [
             "not-a-url",
@@ -372,7 +364,7 @@ class TestWebstreamFieldValidation:
         ]
 
         for url in invalid_urls:
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/webstreams",
                 {"name": "Test Stream", "url": url},
                 format="json",
@@ -380,11 +372,11 @@ class TestWebstreamFieldValidation:
             # May accept or reject
             assert response.status_code in [201, 400]
 
-    def test_unicode_in_name(self, guest_client, admin_user):
+    def test_unicode_in_name(self, admin_client, admin_user):
         """Try to create webstream with unicode name."""
-        guest_client.force_authenticate(user=admin_user)
+        admin_client.force_authenticate(user=admin_user)
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/webstreams",
             {
                 "name": "日本語 🎉 Émojis",
@@ -405,7 +397,7 @@ class TestWebstreamDelete:
     @pytest.mark.xfail(reason="BOLA: Can delete other user's webstream")
     def test_delete_other_user_webstream(
         self,
-        guest_client,
+        admin_client,
         admin_user,
         regular_user,
     ):
@@ -419,13 +411,13 @@ class TestWebstreamDelete:
             owner=admin_user,
         )
 
-        guest_client.force_authenticate(user=regular_user)
-        response = guest_client.delete(f"/api/v2/webstreams/{admin_stream.id}")
+        admin_client.force_authenticate(user=regular_user)
+        response = admin_client.delete(f"/api/v2/webstreams/{admin_stream.id}")
 
         # Should be denied
         assert response.status_code in [403, 404]
 
-    def test_delete_webstream_without_auth(self, guest_client, admin_user):
+    def test_delete_webstream_without_auth(self, admin_client, admin_user):
         """CRITICAL: Try to delete webstream without authentication.
 
         T354: Anonymous delete should return 403, not 204.
@@ -439,7 +431,7 @@ class TestWebstreamDelete:
             owner=admin_user,
         )
 
-        response = guest_client.delete(f"/api/v2/webstreams/{stream.id}")
+        response = admin_client.delete(f"/api/v2/webstreams/{stream.id}")
 
         # T354: Should require authentication
         if response.status_code == 204:

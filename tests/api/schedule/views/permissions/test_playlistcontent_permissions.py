@@ -59,12 +59,12 @@ class TestPlaylistContentViewSetPermissions:
 
     # === AUTHORIZED USERS CAN ACCESS ===
 
-    def test_list_with_auth_returns_200(self, guest_client):
+    def test_list_with_auth_returns_200(self, admin_client):
         """LIST with auth should return 200."""
-        response = guest_client.get("/api/v2/playlist-contents")
+        response = admin_client.get("/api/v2/playlist-contents")
         assert response.status_code == 200
 
-    def test_retrieve_with_auth_returns_200(self, guest_client):
+    def test_retrieve_with_auth_returns_200(self, admin_client):
         """RETRIEVE with auth should return 200."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -82,10 +82,10 @@ class TestPlaylistContentViewSetPermissions:
             position=1,
             offset=0,
         )
-        response = guest_client.get(f"/api/v2/playlist-contents/{content.id}")
+        response = admin_client.get(f"/api/v2/playlist-contents/{content.id}")
         assert response.status_code == 200
 
-    def test_create_with_auth_returns_201(self, guest_client):
+    def test_create_with_auth_returns_201(self, admin_client):
         """CREATE with auth should return 201."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -96,7 +96,7 @@ class TestPlaylistContentViewSetPermissions:
             owner=user,
         )
 
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/playlist-contents",
             json.dumps(
                 {
@@ -111,7 +111,7 @@ class TestPlaylistContentViewSetPermissions:
         )
         assert response.status_code == 201
 
-    def test_update_with_auth_returns_200(self, guest_client):
+    def test_update_with_auth_returns_200(self, admin_client):
         """UPDATE with auth should return 200."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -129,14 +129,14 @@ class TestPlaylistContentViewSetPermissions:
             position=1,
             offset=0,
         )
-        response = guest_client.patch(
+        response = admin_client.patch(
             f"/api/v2/playlist-contents/{content.id}",
             json.dumps({"position": 5}),
             content_type="application/json",
         )
         assert response.status_code == 200
 
-    def test_delete_with_auth_returns_204(self, guest_client):
+    def test_delete_with_auth_returns_204(self, admin_client):
         """DELETE with auth should return 204."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -154,12 +154,12 @@ class TestPlaylistContentViewSetPermissions:
             position=1,
             offset=0,
         )
-        response = guest_client.delete(f"/api/v2/playlist-contents/{content.id}")
+        response = admin_client.delete(f"/api/v2/playlist-contents/{content.id}")
         assert response.status_code == 204
 
     # === CROSS-USER ACCESS ===
 
-    def test_user_can_view_other_users_content(self, guest_client):
+    def test_user_can_view_other_users_content(self, admin_client):
         """Any authenticated user can view any content."""
         other_user = baker.make(User, username="testpc_other")
         playlist = baker.make(
@@ -182,6 +182,6 @@ class TestPlaylistContentViewSetPermissions:
             offset=0,
         )
 
-        response = guest_client.get(f"/api/v2/playlist-contents/{content.id}")
+        response = admin_client.get(f"/api/v2/playlist-contents/{content.id}")
         assert response.status_code == 200
         assert response.json()["id"] == content.id

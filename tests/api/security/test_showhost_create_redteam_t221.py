@@ -23,13 +23,13 @@ class TestShowHostCreateAuthentication:
     """CREATE authentication tests."""
 
     @pytest.mark.xfail(reason="T409: Anonymous CREATE show host allowed")
-    def test_create_without_auth(self, guest_client):
+    def test_create_without_auth(self, admin_client):
         """Anonymous CREATE should fail."""
         show = baker.make(Show, name="Test Show")
         user = baker.make("core.User")
 
         data = {"show": show.id, "user": user.id}
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",
@@ -47,16 +47,16 @@ class TestShowHostCreateBOLA:
     @pytest.mark.xfail(reason="T408: No owner filtering")
     def test_create_for_other_user_show(
         self,
-        guest_client,
+        admin_client,
         regular_user,
         admin_user,
     ):
         """Create host for another user's show."""
         show = baker.make(Show, name="Admin Show")
 
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
         data = {"show": show.id, "user": regular_user.id}
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",
@@ -69,16 +69,16 @@ class TestShowHostCreateBOLA:
     @pytest.mark.xfail(reason="T408: No owner filtering")
     def test_assign_other_user_as_host(
         self,
-        guest_client,
+        admin_client,
         regular_user,
         admin_user,
     ):
         """Assign another user as host without their consent."""
         show = baker.make(Show, name="User Show")
 
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
         data = {"show": show.id, "user": admin_user.id}  # Assign admin as host
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",
@@ -93,14 +93,14 @@ class TestShowHostCreateBOLA:
 class TestShowHostCreateMassAssignment:
     """CREATE mass assignment tests."""
 
-    def test_create_with_id_field(self, guest_client):
+    def test_create_with_id_field(self, admin_client):
         """Try to set id during CREATE."""
         show = baker.make(Show, name="Test Show")
         user = baker.make("core.User")
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         data = {"id": 99999, "show": show.id, "user": user.id}
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",
@@ -116,18 +116,18 @@ class TestShowHostCreateDuplicateAbuse:
     """Duplicate assignment abuse tests."""
 
     @pytest.mark.xfail(reason="T320: Duplicate entries allowed")
-    def test_create_duplicate_host_assignment(self, guest_client):
+    def test_create_duplicate_host_assignment(self, admin_client):
         """Try to create duplicate host assignment."""
         show = baker.make(Show, name="Test Show")
         user = baker.make("core.User")
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         # Create first assignment
         baker.make(ShowHost, show=show, user=user)
 
         # Try to create duplicate
         data = {"show": show.id, "user": user.id}
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",
@@ -137,16 +137,16 @@ class TestShowHostCreateDuplicateAbuse:
             409,
         ], "Duplicate host assignment allowed"
 
-    def test_create_multiple_hosts_for_show(self, guest_client):
+    def test_create_multiple_hosts_for_show(self, admin_client):
         """Create many hosts for same show."""
         show = baker.make(Show, name="Test Show")
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         created = 0
         for i in range(50):  # Try to create 50 hosts
             user = baker.make("core.User")
             data = {"show": show.id, "user": user.id}
-            response = guest_client.post(
+            response = admin_client.post(
                 "/api/v2/show-hosts",
                 json.dumps(data),
                 content_type="application/json",
@@ -162,13 +162,13 @@ class TestShowHostCreateDuplicateAbuse:
 class TestShowHostCreateValidation:
     """CREATE validation bypass tests."""
 
-    def test_create_with_null_show(self, guest_client):
+    def test_create_with_null_show(self, admin_client):
         """Try CREATE with null show."""
         user = baker.make("core.User")
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         data = {"show": None, "user": user.id}
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",
@@ -176,13 +176,13 @@ class TestShowHostCreateValidation:
         if response.status_code == 201:
             pytest.fail("BUG: Null show accepted")
 
-    def test_create_with_null_user(self, guest_client):
+    def test_create_with_null_user(self, admin_client):
         """Try CREATE with null user."""
         show = baker.make(Show, name="Test Show")
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         data = {"show": show.id, "user": None}
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",
@@ -190,13 +190,13 @@ class TestShowHostCreateValidation:
         if response.status_code == 201:
             pytest.fail("BUG: Null user accepted")
 
-    def test_create_with_nonexistent_show(self, guest_client):
+    def test_create_with_nonexistent_show(self, admin_client):
         """Try CREATE with non-existent show."""
         user = baker.make("core.User")
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         data = {"show": 99999, "user": user.id}
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",
@@ -204,13 +204,13 @@ class TestShowHostCreateValidation:
         if response.status_code == 201:
             pytest.fail("BUG: Non-existent show accepted")
 
-    def test_create_with_nonexistent_user(self, guest_client):
+    def test_create_with_nonexistent_user(self, admin_client):
         """Try CREATE with non-existent user."""
         show = baker.make(Show, name="Test Show")
-        guest_client.force_authenticate(user=baker.make("core.User"))
+        admin_client.force_authenticate(user=baker.make("core.User"))
 
         data = {"show": show.id, "user": 99999}
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",
@@ -223,13 +223,13 @@ class TestShowHostCreateValidation:
 class TestShowHostCreateSelfAssignment:
     """Self-assignment vs admin assignment tests."""
 
-    def test_self_assign_as_host(self, guest_client, regular_user):
+    def test_self_assign_as_host(self, admin_client, regular_user):
         """User assigns themselves as host."""
         show = baker.make(Show, name="Test Show")
 
-        guest_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
         data = {"show": show.id, "user": regular_user.id}
-        response = guest_client.post(
+        response = admin_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",
