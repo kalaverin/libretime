@@ -402,15 +402,7 @@ class TestBugT308RedTeam:
     Confirms the bug with additional test cases.
     """
 
-    @pytest.mark.xfail(
-        reason="T308: IsAdminOrOwnUser crashes on AnonymousUser",
-    )
     def test_t308_anonymous_user_crashes_is_admin_or_own_user(self):
-        """
-        T308: AnonymousUser causes TypeError in IsAdminOrOwnUser.
-
-        TypeError: 'bool' object is not callable in has_permission()
-        """
         factory = APIRequestFactory()
         request = factory.get("/api/v2/users")
         request.user = AnonymousUser()
@@ -418,13 +410,8 @@ class TestBugT308RedTeam:
         permission = IsAdminOrOwnUser()
 
         # This should return False but crashes with TypeError
-        try:
-            result = permission.has_permission(request, None)
-            assert result is False  # Should deny access
-        except TypeError as e:
-            if "'bool' object is not callable" in str(e):
-                pytest.xfail("T308: IsAdminOrOwnUser crashes on AnonymousUser")
-            raise
+        result = permission.has_permission(request, None)
+        assert result is False  # Should deny access
 
     @pytest.mark.xfail(reason="T308: Related crash on unauthenticated access")
     def test_t308_unauthenticated_access_to_users_endpoint(self):

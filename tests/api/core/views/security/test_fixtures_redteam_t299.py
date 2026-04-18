@@ -145,16 +145,8 @@ class TestFixturesBOLA:
                 "Verify this is expected behavior."
             )
 
-    @pytest.mark.xfail(
-        reason="T914: manager_user fixture incorrectly has is_superuser=True",
-    )
     def test_manager_vs_admin_privileges(self, manager_user):
-        """Manager should not have admin privileges (BFLA).
-
-        XFail: T914 - manager_user fixture sets is_superuser=True which
-        breaks role-based permission tests. Manager should have role=P
-        but not is_superuser=True.
-        """
+        """Manager should not have admin privileges (BFLA)."""
         from api.core.models import Role
 
         assert manager_user.role == Role.MANAGER
