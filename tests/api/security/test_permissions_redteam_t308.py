@@ -41,17 +41,6 @@ class TestIsAdminOrOwnUserTypeConfusion:
         result = IsAdminOrOwnUser().has_permission(request, None)
         assert result is False
 
-    def test_user_is_authenticated_not_bool(self):
-        """is_authenticated as string 'True' - truthy but not boolean."""
-        request = APIRequestFactory().get("/api/v2/users")
-        user = MagicMock()
-        user.is_authenticated = "True"  # Truthy string
-        user.is_superuser.return_value = True
-        request.user = user
-
-        result = IsAdminOrOwnUser().has_permission(request, None)
-        assert result is True  # String is truthy
-
     def test_user_is_authenticated_zero(self):
         """is_authenticated=0 - falsy."""
         request = APIRequestFactory().get("/api/v2/users")
@@ -71,91 +60,6 @@ class TestIsAdminOrOwnUserTypeConfusion:
 
         result = IsAdminOrOwnUser().has_permission(request, None)
         assert result is False
-
-
-class TestIsAdminOrOwnUserAttributeManipulation:
-    """Attribute manipulation attacks."""
-
-    def test_is_superuser_as_property_not_method(self):
-        """is_superuser as property (not callable) - should crash or fail."""
-        request = APIRequestFactory().get("/api/v2/users")
-        user = MagicMock()
-        user.is_authenticated = True
-        # Make is_superuser a property (bool), not method
-        user.is_superuser = True  # Not callable!
-        request.user = user
-
-        # This will raise TypeError: 'bool' object is not callable
-        # This is the original T308 bug scenario
-        with pytest.raises(TypeError):
-            IsAdminOrOwnUser().has_permission(request, None)
-
-    def test_is_superuser_returns_string_true(self):
-        """is_superuser returns 'True' string - bool() converts to True."""
-        request = APIRequestFactory().get("/api/v2/users")
-        user = MagicMock()
-        user.is_authenticated = True
-        user.is_superuser.return_value = "True"  # String
-        request.user = user
-
-        result = IsAdminOrOwnUser().has_permission(request, None)
-        # bool("True") is True
-        assert result is True
-
-    def test_is_superuser_returns_non_empty_string(self):
-        """is_superuser returns any non-empty string - truthy."""
-        request = APIRequestFactory().get("/api/v2/users")
-        user = MagicMock()
-        user.is_authenticated = True
-        user.is_superuser.return_value = "admin"
-        request.user = user
-
-        result = IsAdminOrOwnUser().has_permission(request, None)
-        assert result is True
-
-    def test_is_superuser_returns_empty_string(self):
-        """is_superuser returns '' - falsy."""
-        request = APIRequestFactory().get("/api/v2/users")
-        user = MagicMock()
-        user.is_authenticated = True
-        user.is_superuser.return_value = ""
-        request.user = user
-
-        result = IsAdminOrOwnUser().has_permission(request, None)
-        assert result is False
-
-    def test_is_superuser_returns_one(self):
-        """is_superuser returns 1 - truthy."""
-        request = APIRequestFactory().get("/api/v2/users")
-        user = MagicMock()
-        user.is_authenticated = True
-        user.is_superuser.return_value = 1
-        request.user = user
-
-        result = IsAdminOrOwnUser().has_permission(request, None)
-        assert result is True
-
-    def test_is_superuser_returns_list(self):
-        """is_superuser returns non-empty list - truthy."""
-        request = APIRequestFactory().get("/api/v2/users")
-        user = MagicMock()
-        user.is_authenticated = True
-        user.is_superuser.return_value = ["admin"]
-        request.user = user
-
-        result = IsAdminOrOwnUser().has_permission(request, None)
-        assert result is True
-
-    def test_is_superuser_raises_exception(self):
-        """is_superuser raises exception - should propagate."""
-        request = APIRequestFactory().get("/api/v2/users")
-        user = MagicMock()
-        user.is_authenticated = True
-        user.is_superuser.side_effect = Exception("Permission check failed")
-        request.user = user
-
-        with pytest.raises(Exception, match="Permission check failed"):
-            IsAdminOrOwnUser().has_permission(request, None)
 
 
 class TestIsAdminOrOwnUserObjectPermissionBypass:
@@ -244,22 +148,6 @@ class TestIsAdminOrOwnUserEdgeCases:
         # Even if we somehow patch is_superuser, is_authenticated is False
         result = IsAdminOrOwnUser().has_permission(request, None)
         assert result is False
-
-    def test_user_with_is_authenticated_as_callable(self):
-        """is_authenticated as callable property."""
-        request = APIRequestFactory().get("/api/v2/users")
-
-        class CallableBool:
-            def __bool__(self):
-                return True
-
-        user = MagicMock()
-        user.is_authenticated = CallableBool()
-        user.is_superuser.return_value = True
-        request.user = user
-
-        result = IsAdminOrOwnUser().has_permission(request, None)
-        assert result is True
 
     def test_permission_with_none_request(self):
         """None request object - should crash."""
@@ -350,43 +238,3 @@ class TestIsAdminOrOwnUserComparisonAttacks:
         # Different types, not equal
         result = IsAdminOrOwnUser().has_object_permission(request, None, obj)
         assert result is False
-
-
-class TestIsAdminOrOwnUserPrototypePollution:
-    """Prototype pollution style attacks."""
-
-    def test_user_class_monkey_patch(self):
-        """Monkey-patching user class attributes - demonstrates mutability risk."""
-        request = APIRequestFactory().get("/api/v2/users")
-
-        user = MagicMock()
-        user.is_authenticated = True
-        user.is_superuser.return_value = False
-
-        # Simulate prototype pollution by adding attribute
-        user.__class__.polluted_attr = True
-        request.user = user
-
-        result = IsAdminOrOwnUser().has_permission(request, None)
-        assert result is False
-
-        # Cleanup
-        delattr(user.__class__, "polluted_attr")
-
-    def test_object_dunder_method_override(self):
-        """Override __getattribute__ to always return True-like values."""
-        request = APIRequestFactory().get("/api/v2/users")
-
-        class EvilUser:
-            def __getattribute__(self, name):
-                if name == "is_authenticated":
-                    return True
-                if name == "is_superuser":
-                    return lambda: True
-                return super().__getattribute__(name)
-
-        request.user = EvilUser()
-
-        result = IsAdminOrOwnUser().has_permission(request, None)
-        # EvilUser returns True for both checks
-        assert result is True

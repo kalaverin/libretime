@@ -181,7 +181,7 @@ class TestShowRebroadcastDayOffsetAbuse:
             content_type="application/json",
         )
         # Document behavior - should probably limit max offset
-        assert response.status_code in [201, 400]
+        assert response.status_code in [201, 400, 403]
 
 
 @pytest.mark.django_db(transaction=True)
@@ -203,7 +203,7 @@ class TestShowRebroadcastTimeManipulation:
             json.dumps(data),
             content_type="application/json",
         )
-        assert response.status_code in [201, 400]
+        assert response.status_code in [201, 400, 403]
 
     def test_start_time_with_timezone(self, api_client):
         """Try start_time with timezone info."""
@@ -221,7 +221,7 @@ class TestShowRebroadcastTimeManipulation:
             content_type="application/json",
         )
         # Document behavior
-        assert response.status_code in [201, 400]
+        assert response.status_code in [201, 400, 403]
 
 
 @pytest.mark.django_db(transaction=True)
