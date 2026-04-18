@@ -5,7 +5,7 @@ Provides model_bakery recipes and helper functions for creating test data
 across all API v2 modules: core, storage, schedule, history, podcasts.
 """
 
-from api.tests.fixtures.recipes import (
+from tests.api.fixtures.recipes import (
     admin_user_recipe,
     file_recipe,
     get_user_recipe,

@@ -21,37 +21,39 @@ class TestLiquidsoap:
         mock_result.stdout = ""
         mock_result.stderr = ""
 
-        with patch("analyzer.pipeline._liquidsoap.run_", return_value=mock_result) as mock_run:
-            result = _liquidsoap(
-                "-v",
-                "-c", "output.dummy(audio_to_stereo(single(argv(1))))",
-                "--",
-                "/path/to/file.mp3",
-            )
+        with patch("analyzer.pipeline._liquidsoap.LIQUIDSOAP", "liquidsoap"):
+            with patch("analyzer.pipeline._liquidsoap.run_", return_value=mock_result) as mock_run:
+                result = _liquidsoap(
+                    "-v",
+                    "-c", "output.dummy(audio_to_stereo(single(argv(1))))",
+                    "--",
+                    "/path/to/file.mp3",
+                )
 
-            mock_run.assert_called_once_with(
-                "liquidsoap",
-                "-v",
-                "-c", "output.dummy(audio_to_stereo(single(argv(1))))",
-                "--",
-                "/path/to/file.mp3",
-            )
-            assert result == mock_result
+                mock_run.assert_called_once_with(
+                    "liquidsoap",
+                    "-v",
+                    "-c", "output.dummy(audio_to_stereo(single(argv(1))))",
+                    "--",
+                    "/path/to/file.mp3",
+                )
+                assert result == mock_result
 
     def test_liquidsoap_with_kwargs(self):
         """Test liquidsoap execution with additional kwargs."""
         mock_result = MagicMock()
 
-        with patch("analyzer.pipeline._liquidsoap.run_", return_value=mock_result) as mock_run:
-            _liquidsoap("-v", "--", "file.mp3", cwd="/tmp")
+        with patch("analyzer.pipeline._liquidsoap.LIQUIDSOAP", "liquidsoap"):
+            with patch("analyzer.pipeline._liquidsoap.run_", return_value=mock_result) as mock_run:
+                _liquidsoap("-v", "--", "file.mp3", cwd="/tmp")
 
-            mock_run.assert_called_once_with(
-                "liquidsoap",
-                "-v",
-                "--",
-                "file.mp3",
-                cwd="/tmp",
-            )
+                mock_run.assert_called_once_with(
+                    "liquidsoap",
+                    "-v",
+                    "--",
+                    "file.mp3",
+                    cwd="/tmp",
+                )
 
     def test_liquidsoap_called_process_error(self):
         """Test liquidsoap when command returns error."""
@@ -77,10 +79,11 @@ class TestLiquidsoap:
         """Test liquidsoap with minimal arguments."""
         mock_result = MagicMock()
 
-        with patch("analyzer.pipeline._liquidsoap.run_", return_value=mock_result) as mock_run:
-            _liquidsoap()
+        with patch("analyzer.pipeline._liquidsoap.LIQUIDSOAP", "liquidsoap"):
+            with patch("analyzer.pipeline._liquidsoap.run_", return_value=mock_result) as mock_run:
+                _liquidsoap()
 
-            mock_run.assert_called_once_with("liquidsoap")
+                mock_run.assert_called_once_with("liquidsoap")
 
     def test_liquidsoap_custom_path_from_env(self):
         """Test liquidsoap with custom path from environment variable."""

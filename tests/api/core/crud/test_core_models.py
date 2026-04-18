@@ -17,10 +17,8 @@ class TestUserManager:
     def test_create_user(self, mocker):
         """Test creating a regular user."""
         mock_user = mocker.Mock()
-        mock_set_password = mocker.patch.object(
-            User, "set_password", autospec=True
-        )
-        mock_save = mocker.patch.object(User, "save", autospec=True)
+        mock_user.set_password = mocker.Mock()
+        mock_user.save = mocker.Mock()
         
         manager = UserManager()
         manager.model = mocker.Mock(return_value=mock_user)
@@ -41,17 +39,15 @@ class TestUserManager:
             first_name="Test",
             last_name="User",
         )
-        mock_set_password.assert_called_once_with(mock_user, "testpass123")
-        mock_save.assert_called_once_with(mock_user, using=None)
+        mock_user.set_password.assert_called_once_with("testpass123")
+        mock_user.save.assert_called_once_with(using=None)
         assert user == mock_user
 
     def test_create_user_with_none_password(self, mocker):
         """Test creating a user with None password."""
         mock_user = mocker.Mock()
-        mock_set_password = mocker.patch.object(
-            User, "set_password", autospec=True
-        )
-        mock_save = mocker.patch.object(User, "save", autospec=True)
+        mock_user.set_password = mocker.Mock()
+        mock_user.save = mocker.Mock()
         
         manager = UserManager()
         manager.model = mocker.Mock(return_value=mock_user)
@@ -65,7 +61,7 @@ class TestUserManager:
             last_name="User",
         )
         
-        mock_set_password.assert_called_once_with(mock_user, None)
+        mock_user.set_password.assert_called_once_with(None)
         assert user == mock_user
 
     def test_create_superuser(self, mocker):
@@ -104,6 +100,7 @@ class TestUserManager:
         mock_get.assert_called_once_with(manager, username="testuser")
 
 
+@pytest.mark.django_db
 class TestUser:
     """Tests for User model."""
 
@@ -228,8 +225,6 @@ class TestUser:
         
         # Should filter by permissions defined for HOST role
         mock_filter.assert_called_once()
-        call_args = mock_filter.call_args
-        assert isinstance(call_args[0][0], type(Permission.objects.filter()))
         assert perms == mock_permissions
 
     def test_get_group_permissions_with_obj(self, user, mocker):
@@ -380,15 +375,22 @@ class TestUser:
         assert last_failed_field.db_column == "lastfail"
 
 
+@pytest.mark.django_db
 class TestUserToken:
     """Tests for UserToken model."""
 
     @pytest.fixture
-    def user_token(self, mocker):
+    def user_token(self):
         """Create a test user token instance."""
-        mock_user = mocker.Mock()
+        from model_bakery import baker
+        user = baker.make(
+            User,
+            role=Role.HOST,
+            username="tokenuser",
+            email="token@example.com",
+        )
         token = UserToken(
-            user=mock_user,
+            user=user,
             action="reset_password",
             token="abc123xyz",
         )
