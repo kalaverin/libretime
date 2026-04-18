@@ -1,1 +1,0 @@
-"""History module view tests."""
