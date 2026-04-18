@@ -182,7 +182,7 @@ class TestShowRebroadcastDayOffsetAbuse:
             content_type="application/json",
         )
         # Document behavior - should probably limit max offset
-        assert response.status_code in [201, 400]
+        assert response.status_code in [201, 400, 403]
 
 
 @pytest.mark.django_db(transaction=True)

@@ -60,7 +60,7 @@ class TestExistingTestsSuite:
 
     def test_large_payloads_tests_importable(self):
         """Large payload tests importable."""
-        from tests.api import test_large_payloads
+        from tests.api.security import test_large_payloads
 
         assert test_large_payloads is not None
 
