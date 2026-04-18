@@ -255,7 +255,6 @@ class TestBOLAListEndpoints:
 class TestResourceExhaustionNoPagination:
     """API4:2023 - Unrestricted Resource Consumption via no pagination."""
 
-    @pytest.mark.slow
     def test_list_large_dataset_response_time(self, admin_client, faker):
         """LIST with 500+ records should still respond reasonably."""
         user = baker.make(

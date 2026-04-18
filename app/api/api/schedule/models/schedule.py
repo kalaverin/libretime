@@ -12,9 +12,9 @@ from django.db.models import (
     SmallIntegerField,
     TimeField,
 )
-from django.utils.timezone import now
 
 from api.fields import TimezoneAwareDateTimeField
+from sdk import now
 
 if TYPE_CHECKING:
     from api.core.models.user import User

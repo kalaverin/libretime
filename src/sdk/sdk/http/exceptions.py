@@ -246,12 +246,12 @@ class HTTPStatusesMixin:
     @property
     def isRequestEntityTooLarge(self) -> bool:
         """Check if status is 413 Request Entity Too Large."""
-        return bool(self.status == status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+        return bool(self.status == status.HTTP_413_CONTENT_TOO_LARGE)
 
     @property
     def isRequestUriTooLong(self) -> bool:
         """Check if status is 414 Request URI Too Long."""
-        return bool(self.status == status.HTTP_414_REQUEST_URI_TOO_LONG)
+        return bool(self.status == status.HTTP_414_URI_TOO_LONG)
 
     @property
     def isUnsupportedMediaType(self) -> bool:
@@ -262,7 +262,7 @@ class HTTPStatusesMixin:
     def isRequestedRangeNotSatisfiable(self) -> bool:
         """Check if status is 416 Requested Range Not Satisfiable."""
         return bool(
-            self.status == status.HTTP_416_REQUESTED_RANGE_NOT_SATISFIABLE,
+            self.status == status.HTTP_416_RANGE_NOT_SATISFIABLE,
         )
 
     @property

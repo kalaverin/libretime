@@ -146,17 +146,11 @@ class SuppressSpamFilter(Filter):
 
     @override
     def filter(self, record: LogRecord) -> bool:
-        # False – suppress message
-
-        if self._files:
-            if self.is_ignored_file(record.filename):
-                return False
-
-        if self._modules:
-            if self.is_ignored_modules(record.name):
-                return False
-
-        return True
+        # False - suppress message
+        return not bool(
+            (self._files and self.is_ignored_file(record.filename))
+            or (self._modules and self.is_ignored_modules(record.name)),
+        )
 
 
 ###
