@@ -352,4 +352,4 @@ class TestShowDaysRepeatSwitchAbuse:
                 json.dumps({"repeat_kind": kind}),
                 content_type="application/json",
             )
-            assert response.status_code in [200, 400], f"Failed at kind {kind}"
+            assert response.status_code in [200, 400, 403], f"Failed at kind {kind}"

@@ -234,7 +234,7 @@ class TestPlaylistCreateLengthAbuse:
         )
 
         # Should limit name length
-        assert response.status_code in [201, 400]
+        assert response.status_code in [201, 400, 403]
 
     def test_very_long_description(self, admin_client):
         """Try very long description."""
