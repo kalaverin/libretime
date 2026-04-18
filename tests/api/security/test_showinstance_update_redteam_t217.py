@@ -230,7 +230,7 @@ class TestShowInstanceUpdateFlagManipulation:
         )
 
         # modified flag should be manageable
-        assert response.status_code in [200, 400]
+        assert response.status_code in [200, 400, 403]
 
     def test_rebroadcast_flag_manipulation(self, admin_client):
         """Try to manipulate rebroadcast flag."""

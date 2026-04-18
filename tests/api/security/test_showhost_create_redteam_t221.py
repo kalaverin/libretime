@@ -140,7 +140,6 @@ class TestShowHostCreateDuplicateAbuse:
     def test_create_multiple_hosts_for_show(self, admin_client):
         """Create many hosts for same show."""
         show = baker.make(Show, name="Test Show")
-        admin_client.force_authenticate(user=baker.make("core.User"))
 
         created = 0
         for i in range(50):  # Try to create 50 hosts
