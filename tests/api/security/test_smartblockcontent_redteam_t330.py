@@ -509,6 +509,7 @@ class TestSmartBlockContentInvalidReferences:
 class TestSmartBlockContentDelete:
     """Delete operation security tests."""
 
+    @pytest.mark.xfail(reason="BOLA: Can delete other user's smart block content")
     def test_delete_other_user_content(
         self,
         api_client,

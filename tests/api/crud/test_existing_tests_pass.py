@@ -12,49 +12,49 @@ class TestExistingTestsSuite:
 
     def test_auth_session_tests_importable(self):
         """T279: Session auth tests importable."""
-        from tests.api import test_auth_session
+        from tests.api.security import test_auth_session
 
         assert test_auth_session is not None
 
     def test_auth_apikey_tests_importable(self):
         """T280: API Key auth tests importable."""
-        from tests.api import test_auth_apikey
+        from tests.api.security import test_auth_apikey
 
         assert test_auth_apikey is not None
 
     def test_auth_public_tests_importable(self):
         """T281: Public endpoints tests importable."""
-        from tests.api import test_auth_public
+        from tests.api.security import test_auth_public
 
         assert test_auth_public is not None
 
     def test_auth_invalid_tests_importable(self):
         """T282: Invalid auth tests importable."""
-        from tests.api import test_auth_invalid
+        from tests.api.security import test_auth_invalid
 
         assert test_auth_invalid is not None
 
     def test_permissions_tests_importable(self):
         """Permission tests importable."""
-        from tests.api import test_permissions
+        from tests.api.permissions import test_permissions
 
         assert test_permissions is not None
 
     def test_cascade_deletes_tests_importable(self):
         """Cascade delete tests importable."""
-        from tests.api import test_cascade_deletes
+        from tests.api.crud import test_cascade_deletes
 
         assert test_cascade_deletes is not None
 
     def test_pagination_tests_importable(self):
         """Pagination tests importable."""
-        from tests.api import test_pagination
+        from tests.api.crud import test_pagination
 
         assert test_pagination is not None
 
     def test_concurrent_edits_tests_importable(self):
         """Concurrent edits tests importable."""
-        from tests.api import test_concurrent_edits
+        from tests.api.security import test_concurrent_edits
 
         assert test_concurrent_edits is not None
 

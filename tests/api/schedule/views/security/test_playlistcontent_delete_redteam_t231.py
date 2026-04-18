@@ -29,6 +29,7 @@ class TestPlaylistContentDeleteRedTeam:
         PlaylistContent.objects.all().delete()
         Playlist.objects.all().delete()
         File.objects.all().delete()
+        File.objects.filter(owner__username__startswith="testred").delete()
         User.objects.filter(username__startswith="testred").delete()
 
     # ========================================================================

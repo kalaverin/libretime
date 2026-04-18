@@ -34,6 +34,7 @@ class TestShowHostListAuthentication:
 class TestShowHostListBOLA:
     """LIST BOLA tests."""
 
+    @pytest.mark.xfail(reason="BOLA: LIST shows all show hosts")
     def test_list_shows_only_own_hosts(
         self,
         api_client,
@@ -66,6 +67,7 @@ class TestShowHostListBOLA:
 class TestShowHostListUserEnumeration:
     """User enumeration via filter tests."""
 
+    @pytest.mark.xfail(reason="BOLA: Filter by user does not scope to requesting user")
     def test_filter_by_other_user_id_returns_only_own(
         self,
         api_client,

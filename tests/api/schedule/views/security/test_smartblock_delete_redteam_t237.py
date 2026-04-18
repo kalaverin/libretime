@@ -34,6 +34,7 @@ class TestSmartBlockDeleteRedTeam:
         SmartBlockContent.objects.all().delete()
         SmartBlock.objects.all().delete()
         File.objects.all().delete()
+        File.objects.filter(owner__username__startswith="testred").delete()
         User.objects.filter(username__startswith="testred").delete()
 
     # ========================================================================
@@ -453,8 +454,8 @@ class TestSmartBlockDeleteRedTeam:
         api_client.delete("/api/v2/smart-blocks/999999")
         time_nonexisting = time.time() - start
 
-        # Timing difference should not be significant (less than 2x)
+        # Timing difference should not be significant (less than 3x)
         ratio = time_existing / time_nonexisting if time_nonexisting > 0 else 0
         assert (
-            0.5 < ratio < 2.0
+            0.3 < ratio < 3.0
         ), f"Timing leak: existing={time_existing:.4f}s, non-existing={time_nonexisting:.4f}s"

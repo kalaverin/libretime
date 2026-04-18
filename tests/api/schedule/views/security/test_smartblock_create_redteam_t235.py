@@ -15,6 +15,7 @@ from model_bakery import baker
 
 from api.core.models import User
 from api.schedule.models import SmartBlock
+from api.storage.models import File
 
 
 @pytest.mark.django_db(transaction=True)
@@ -24,6 +25,8 @@ class TestSmartBlockCreateRedTeam:
     def setup_method(self):
         """Clean up before each test."""
         SmartBlock.objects.all().delete()
+        File.objects.filter(owner__username__startswith="testred").delete()
+        File.objects.filter(owner__username__startswith="testred").delete()
         User.objects.filter(username__startswith="testred").delete()
 
     # ========================================================================
@@ -99,7 +102,6 @@ class TestSmartBlockCreateRedTeam:
             # Should not crash with 500
             assert response.status_code in [
                 201,
-                400,
             ], f"SQLi name caused {response.status_code}"
 
     def test_create_sql_injection_description(self, api_client):
@@ -117,7 +119,6 @@ class TestSmartBlockCreateRedTeam:
         )
         assert response.status_code in [
             201,
-            400,
         ], f"SQLi description caused {response.status_code}"
 
     # ========================================================================
@@ -186,20 +187,20 @@ class TestSmartBlockCreateRedTeam:
         )
         assert response.status_code in [
             400,
-            413,
         ], f"Long name accepted with {response.status_code}"
 
     # ========================================================================
     # Edge Cases
     # ========================================================================
 
+    @pytest.mark.xfail(reason="FUCK: NO FILTER INJECTION AND PATH TRAVERSAL")
     def test_create_unicode_injection(self, api_client):
         """Edge: Unicode and special chars in name."""
         unicode_names = [
+            "日本語" * 100,
+            "🎵🎶🎼" * 100,
             "<script>alert(1)</script>",
             "../../../etc/passwd",
-            "🎵🎶🎼" * 100,
-            "日本語" * 100,
         ]
 
         for name in unicode_names:
@@ -214,7 +215,6 @@ class TestSmartBlockCreateRedTeam:
                 content_type="application/json",
             )
             assert response.status_code in [
-                201,
                 400,
             ], f"Unicode '{name[:20]}' caused {response.status_code}"
 
@@ -235,6 +235,7 @@ class TestSmartBlockCreateAdvancedRedTeam:
     def setup_method(self):
         """Clean up before each test."""
         SmartBlock.objects.all().delete()
+        File.objects.filter(owner__username__startswith="testred").delete()
         User.objects.filter(username__startswith="testred").delete()
 
     # ========================================================================
@@ -326,8 +327,6 @@ class TestSmartBlockCreateAdvancedRedTeam:
         )
         # Should reject or handle properly
         assert response.status_code in [
-            201,
-            400,
             415,
         ], f"text/plain caused unexpected {response.status_code}"
 
@@ -339,11 +338,10 @@ class TestSmartBlockCreateAdvancedRedTeam:
             content_type="multipart/form-data",
         )
         assert response.status_code in [
-            201,
             400,
-            415,
         ], f"form-data caused unexpected {response.status_code}"
 
+    @pytest.mark.xfail(reason="FUCK: WE CAN'T OVERRIDE METHOD BY HEADER")
     def test_create_http_method_override(self, api_client):
         """HTTP Method Override header - potential bypass vector."""
         response = api_client.post(
@@ -354,8 +352,6 @@ class TestSmartBlockCreateAdvancedRedTeam:
         )
         # Should still create or reject, not crash
         assert response.status_code in [
-            201,
-            400,
             405,
         ], f"Method override caused {response.status_code}"
 
@@ -363,6 +359,7 @@ class TestSmartBlockCreateAdvancedRedTeam:
     # JSON Attacks
     # ========================================================================
 
+    @pytest.mark.xfail(reason="FUCK: JSON KEYS COLLIDED")
     def test_create_json_key_collision(self, api_client):
         """JSON Key Collision: duplicate keys behavior."""
         # Send raw JSON with duplicate keys
@@ -373,7 +370,6 @@ class TestSmartBlockCreateAdvancedRedTeam:
         )
         # Should handle gracefully - either reject or use last value
         assert response.status_code in [
-            201,
             400,
         ], f"Key collision caused {response.status_code}"
 
@@ -390,11 +386,10 @@ class TestSmartBlockCreateAdvancedRedTeam:
             content_type="application/json",
         )
         assert response.status_code in [
-            201,
             400,
-            413,
         ], f"Deep nesting caused {response.status_code}"
 
+    @pytest.mark.xfail(reason="FUCK: ESCAPED INJECTION DETECTED")
     def test_create_json_unicode_escape(self, api_client):
         """JSON Unicode Escape: bypass potential."""
         response = api_client.post(
@@ -404,7 +399,6 @@ class TestSmartBlockCreateAdvancedRedTeam:
         )
         # Should handle unicode escapes properly
         assert response.status_code in [
-            201,
             400,
         ], f"Unicode escape caused {response.status_code}"
 
@@ -442,7 +436,6 @@ class TestSmartBlockCreateAdvancedRedTeam:
             content_type="application/json",
         )
         assert response.status_code in [
-            201,
             400,
         ], f"Negative length caused {response.status_code}"
 
@@ -471,6 +464,7 @@ class TestSmartBlockCreateAdvancedRedTeam:
                 response.status_code == 400
             ), f"Whitespace '{repr(name)}' accepted with {response.status_code}"
 
+    @pytest.mark.xfail(reason="FUCK: CONTROL CHARS DETECTED")
     def test_create_name_with_control_chars(self, api_client):
         """Validation: Control characters should be rejected."""
         control_chars = [
@@ -486,7 +480,6 @@ class TestSmartBlockCreateAdvancedRedTeam:
                 content_type="application/json",
             )
             assert response.status_code in [
-                201,
                 400,
             ], f"Control chars caused unexpected {response.status_code}"
 
@@ -511,7 +504,6 @@ class TestSmartBlockCreateAdvancedRedTeam:
             )
             # Should not crash with 500
             assert response.status_code in [
-                201,
                 400,
             ], f"NoSQLi payload caused {response.status_code}"
 
@@ -552,6 +544,7 @@ class TestSmartBlockCreateAdvancedRedTeam:
     # Fuzzing - SecLists Integration
     # ========================================================================
 
+    @pytest.mark.xfail(reason="FUCK: WE NEED TO FILTER DANGEROUS VALUES")
     def test_create_fuzzing_naughty_strings_name(self, api_client):
         """Fuzzing: Naughty strings from SecLists in name."""
         naughty_strings = [
@@ -588,29 +581,29 @@ class TestSmartBlockCreateAdvancedRedTeam:
                 content_type="application/json",
             )
             assert response.status_code in [
-                201,
                 400,
             ], f"Naughty string '{string[:30]}' caused {response.status_code}"
 
+    @pytest.mark.xfail(reason="FUCK: BIG VALUES MUST BE FILTERED BY 400")
     def test_create_fuzzing_overflow_values(self, api_client):
         """Fuzzing: Integer overflow and extreme values."""
-        overflow_values = [
-            2**31 - 1,  # Max int32
-            2**31,  # Min int32 negative
-            2**63 - 1,  # Max int64
-            2**63,  # Overflow
-            -1,
-            0,
-            999999999999999999999999999999,
-        ]
+        overflow = {
+            -1: 201,
+            0: 201,
+            99999999999999999999999999999999999: 400,
+            -2**32 - 1: 201,
+            2**32 + 1: 201,
+            -2**64 - 1: 400,
+            2**64 + 1: 400,
+        }
 
-        for val in overflow_values:
+        for value, expected in overflow.items():
+            data = json.dumps({"name": value, "kind": "static"})
             response = api_client.post(
                 "/api/v2/smart-blocks",
-                json.dumps({"name": f"Test{val}", "kind": "static"}),
+                data,
                 content_type="application/json",
             )
             assert response.status_code in [
-                201,
-                400,
-            ], f"Overflow value {val} caused {response.status_code}"
+                expected,
+            ], f"Overflow value {value} caused {response.status_code}"

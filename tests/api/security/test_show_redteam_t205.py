@@ -82,26 +82,24 @@ class TestShowUpdateMassAssignment:
 class TestShowUpdateBOLA:
     """Broken Object Level Authorization on UPDATE."""
 
-    def test_patch_other_user_show(self, api_client, admin_user, regular_user):
+    def test_patch_other_user_show(self, host_client, admin_user, regular_user):
         """Try to PATCH another user's show."""
         show = baker.make("schedule.Show", name="Admin Show")
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.patch(
+        response = host_client.patch(
             f"/api/v2/shows/{show.id}",
             {"name": "Hacked Show"},
             format="json",
         )
 
-        if response.status_code == 200:
-            pytest.fail("CRITICAL BUG: Can PATCH other user's show")
+        # Should be denied (not host of this show)
+        assert response.status_code in [403, 404]
 
-    def test_put_other_user_show(self, api_client, admin_user, regular_user):
+    def test_put_other_user_show(self, host_client, admin_user, regular_user):
         """Try to PUT another user's show."""
         show = baker.make("schedule.Show", name="Admin Show")
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.put(
+        response = host_client.put(
             f"/api/v2/shows/{show.id}",
             {
                 "name": "Hacked Show",
@@ -115,23 +113,22 @@ class TestShowUpdateBOLA:
             format="json",
         )
 
-        if response.status_code == 200:
-            pytest.fail("CRITICAL BUG: Can PUT other user's show")
+        # Should be denied (not host of this show)
+        assert response.status_code in [403, 404]
 
     def test_delete_other_user_show(
         self,
-        api_client,
+        host_client,
         admin_user,
         regular_user,
     ):
         """Try to DELETE another user's show."""
         show = baker.make("schedule.Show", name="Admin Show")
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.delete(f"/api/v2/shows/{show.id}")
+        response = host_client.delete(f"/api/v2/shows/{show.id}")
 
-        if response.status_code == 204:
-            pytest.fail("CRITICAL BUG: Can DELETE other user's show")
+        # Should be denied (not host of this show)
+        assert response.status_code in [403, 404]
 
 
 @pytest.mark.django_db

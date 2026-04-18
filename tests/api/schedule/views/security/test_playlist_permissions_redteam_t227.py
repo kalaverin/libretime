@@ -18,6 +18,7 @@ from model_bakery import baker
 
 from api.core.models import Role, User
 from api.schedule.models import Playlist
+from api.storage.models import File
 
 
 @pytest.mark.django_db(transaction=True)
@@ -27,6 +28,7 @@ class TestPlaylistPermissionsRedTeam:
     def setup_method(self):
         """Clean up before each test."""
         Playlist.objects.all().delete()
+        File.objects.filter(owner__username__startswith="testred").delete()
         User.objects.filter(username__startswith="testred").delete()
 
     # ========================================================================

@@ -37,6 +37,7 @@ class TestPlaylistContentListRedTeam:
         File.objects.all().delete()
         Webstream.objects.all().delete()
         SmartBlock.objects.all().delete()
+        File.objects.filter(owner__username__startswith="testred").delete()
         User.objects.filter(username__startswith="testred").delete()
 
     # ========================================================================

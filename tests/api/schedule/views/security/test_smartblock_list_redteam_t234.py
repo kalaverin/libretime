@@ -15,6 +15,7 @@ from model_bakery import baker
 
 from api.core.models import User
 from api.schedule.models import SmartBlock
+from api.storage.models import File
 
 
 @pytest.mark.django_db(transaction=True)
@@ -24,6 +25,7 @@ class TestSmartBlockListRedTeam:
     def setup_method(self):
         """Clean up before each test."""
         SmartBlock.objects.all().delete()
+        File.objects.filter(owner__username__startswith="testred").delete()
         User.objects.filter(username__startswith="testred").delete()
 
     # ========================================================================

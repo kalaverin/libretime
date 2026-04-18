@@ -98,18 +98,17 @@ class TestShowDeleteBOLA:
 
     def test_delete_other_user_show(
         self,
-        api_client,
+        host_client,
         admin_user,
         regular_user,
     ):
         """Try to DELETE another user's show."""
         show = baker.make("schedule.Show", name="Admin Show")
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.delete(f"/api/v2/shows/{show.id}")
+        response = host_client.delete(f"/api/v2/shows/{show.id}")
 
-        if response.status_code == 204:
-            pytest.fail("CRITICAL BUG: Can DELETE other user's show")
+        # Should be denied (not host of this show)
+        assert response.status_code in [403, 404]
 
     def test_delete_with_related_models(self, api_client, admin_user):
         """Try to delete show with related data."""

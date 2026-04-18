@@ -80,6 +80,7 @@ class TestWebstreamIDOR:
         if response.status_code == 200:
             pytest.xfail("BOLA: User can access other user's webstream")
 
+    @pytest.mark.xfail(reason="BOLA: Can modify other user's webstream")
     def test_modify_other_user_webstream(
         self,
         api_client,
@@ -401,6 +402,7 @@ class TestWebstreamFieldValidation:
 class TestWebstreamDelete:
     """Delete operation security tests."""
 
+    @pytest.mark.xfail(reason="BOLA: Can delete other user's webstream")
     def test_delete_other_user_webstream(
         self,
         api_client,

@@ -36,7 +36,7 @@ class TestSmartBlockCriteriaViewSetCreate:
                 {
                     "block": block.id,
                     "criteria": "genre",
-                    "condition": "contains",
+                    "condition": "0",
                     "value": "Jazz",
                 },
             ),
@@ -46,7 +46,7 @@ class TestSmartBlockCriteriaViewSetCreate:
         data = response.json()
         assert data["block"] == block.id
         assert data["criteria"] == "genre"
-        assert data["condition"] == "contains"
+        assert data["condition"] == "0"
         assert data["value"] == "Jazz"
 
     def test_create_with_group(self, api_client):
@@ -65,7 +65,7 @@ class TestSmartBlockCriteriaViewSetCreate:
                 {
                     "block": block.id,
                     "criteria": "genre",
-                    "condition": "contains",
+                    "condition": "0",
                     "value": "Jazz",
                     "group": 1,
                 },
@@ -91,7 +91,7 @@ class TestSmartBlockCriteriaViewSetCreate:
                 {
                     "block": block.id,
                     "criteria": "genre",
-                    "condition": "contains",
+                    "condition": "0",
                     "value": "Jazz",
                     "extra": "additional info",
                 },
@@ -108,7 +108,7 @@ class TestSmartBlockCriteriaViewSetCreate:
             json.dumps(
                 {
                     "criteria": "genre",
-                    "condition": "contains",
+                    "condition": "0",
                     "value": "Jazz",
                 },
             ),
@@ -131,7 +131,7 @@ class TestSmartBlockCriteriaViewSetCreate:
             json.dumps(
                 {
                     "block": block.id,
-                    "condition": "contains",
+                    "condition": "0",
                     "value": "Jazz",
                 },
             ),
@@ -178,7 +178,7 @@ class TestSmartBlockCriteriaViewSetCreate:
                 {
                     "block": block.id,
                     "criteria": "genre",
-                    "condition": "contains",
+                    "condition": "0",
                 },
             ),
             content_type="application/json",
@@ -193,7 +193,7 @@ class TestSmartBlockCriteriaViewSetCreate:
                 {
                     "block": 999999,
                     "criteria": "genre",
-                    "condition": "contains",
+                    "condition": "0",
                     "value": "Jazz",
                 },
             ),
@@ -221,10 +221,10 @@ class TestSmartBlockCriteriaViewSetCreate:
         )
 
         criteria_types = [
-            ("genre", "contains", "Rock"),
-            ("artist", "starts", "The"),
-            ("album", "ends", "Collection"),
-            ("title", "equals", "Hit Song"),
+            ("genre", "0", "Rock"),
+            ("artist_name", "4", "The"),
+            ("album_title", "5", "Collection"),
+            ("composer", "2", "Hit Song"),
         ]
 
         for crit, cond, val in criteria_types:

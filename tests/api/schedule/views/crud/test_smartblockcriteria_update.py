@@ -33,7 +33,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
             SmartBlockCriteria,
             block=block,
             criteria="genre",
-            condition="contains",
+            condition="0",
             value="Jazz",
         )
 
@@ -58,17 +58,17 @@ class TestSmartBlockCriteriaViewSetUpdate:
             SmartBlockCriteria,
             block=block,
             criteria="genre",
-            condition="contains",
+            condition="0",
             value="Jazz",
         )
 
         response = api_client.patch(
             f"/api/v2/smart-block-criteria/{criteria.id}",
-            json.dumps({"condition": "starts"}),
+            json.dumps({"condition": "4"}),
             content_type="application/json",
         )
         assert response.status_code == 200
-        assert response.json()["condition"] == "starts"
+        assert response.json()["condition"] == "4"
 
     def test_patch_update_criteria(self, api_client):
         """PATCH criteria field should update."""
@@ -83,17 +83,17 @@ class TestSmartBlockCriteriaViewSetUpdate:
             SmartBlockCriteria,
             block=block,
             criteria="genre",
-            condition="contains",
+            condition="0",
             value="Jazz",
         )
 
         response = api_client.patch(
             f"/api/v2/smart-block-criteria/{criteria.id}",
-            json.dumps({"criteria": "artist"}),
+            json.dumps({"criteria": "artist_name"}),
             content_type="application/json",
         )
         assert response.status_code == 200
-        assert response.json()["criteria"] == "artist"
+        assert response.json()["criteria"] == "artist_name"
 
     def test_patch_partial_does_not_affect_other_fields(self, api_client):
         """PATCH should only update specified fields."""
@@ -108,7 +108,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
             SmartBlockCriteria,
             block=block,
             criteria="genre",
-            condition="contains",
+            condition="0",
             value="Jazz",
         )
 
@@ -121,7 +121,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
         data = response.json()
         assert data["value"] == "Rock"
         assert data["criteria"] == "genre"
-        assert data["condition"] == "contains"
+        assert data["condition"] == "0"
 
     def test_put_full_update_success(self, api_client):
         """PUT should update all fields."""
@@ -136,7 +136,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
             SmartBlockCriteria,
             block=block,
             criteria="genre",
-            condition="contains",
+            condition="0",
             value="Jazz",
         )
 
@@ -145,8 +145,8 @@ class TestSmartBlockCriteriaViewSetUpdate:
             json.dumps(
                 {
                     "block": block.id,
-                    "criteria": "artist",
-                    "condition": "starts",
+                    "criteria": "artist_name",
+                    "condition": "4",
                     "value": "The",
                 },
             ),
@@ -154,8 +154,8 @@ class TestSmartBlockCriteriaViewSetUpdate:
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["criteria"] == "artist"
-        assert data["condition"] == "starts"
+        assert data["criteria"] == "artist_name"
+        assert data["condition"] == "4"
         assert data["value"] == "The"
 
     def test_update_not_found_returns_404(self, api_client):
@@ -195,7 +195,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
             SmartBlockCriteria,
             block=block1,
             criteria="genre",
-            condition="contains",
+            condition="0",
             value="Jazz",
         )
 
@@ -220,7 +220,7 @@ class TestSmartBlockCriteriaViewSetUpdate:
             SmartBlockCriteria,
             block=block,
             criteria="genre",
-            condition="contains",
+            condition="0",
             value="Jazz",
         )
 

@@ -30,6 +30,7 @@ class TestScheduleOverbookedFilterRedTeam:
         File.objects.all().delete()
         ShowInstance.objects.all().delete()
         Show.objects.all().delete()
+        File.objects.filter(owner__username__startswith="testred").delete()
         User.objects.filter(username__startswith="testred").delete()
 
     # ========================================================================

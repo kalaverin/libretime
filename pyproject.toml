@@ -95,8 +95,7 @@ extension-pkg-whitelist = [
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "api.settings.testing"
-log_cli = true
-log_cli_level = "DEBUG"
+log_cli = false
 env_files = [".env"]
 
 [tool.refurb]

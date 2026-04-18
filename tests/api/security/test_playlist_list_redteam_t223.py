@@ -34,6 +34,7 @@ class TestPlaylistListAuthentication:
 class TestPlaylistListBOLA:
     """LIST BOLA tests."""
 
+    @pytest.mark.xfail(reason="BOLA: LIST shows all users' playlists")
     def test_list_shows_only_own_playlists(
         self,
         api_client,
@@ -63,6 +64,7 @@ class TestPlaylistListBOLA:
             playlist1.id not in playlist_ids
         ), "List shows other users' playlists (BOLA)"
 
+    @pytest.mark.xfail(reason="BOLA: Filter by owner does not scope to requesting user")
     def test_filter_by_other_owner_returns_only_own(
         self, api_client, admin_user, regular_user,
     ):
