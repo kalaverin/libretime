@@ -24,7 +24,10 @@ class SmartBlockViewSet(AutoAssignOwnerMixin, viewsets.ModelViewSet[Any]):
     queryset = SmartBlock.objects.all()
     serializer_class: type[Serializer[Any]] = SmartBlockSerializer
     model_permission_name: str = "smartblock"
-    filter_backends = [django_filters.DjangoFilterBackend, filters.OrderingFilter]
+    filter_backends = [
+        django_filters.DjangoFilterBackend,
+        filters.OrderingFilter,
+    ]
     filterset_fields = ["kind"]
     ordering_fields = ["name", "created_at"]
     ordering = ["name"]
@@ -50,7 +53,8 @@ class BlockIdQuerySetFilter:
 
 @final
 class SmartBlockContentViewSet(
-    BlockIdQuerySetFilter, viewsets.ModelViewSet[Any],
+    BlockIdQuerySetFilter,
+    viewsets.ModelViewSet[Any],
 ):
 
     queryset = SmartBlockContent.objects.all()
@@ -66,7 +70,8 @@ class SmartBlockContentViewSet(
 
 @final
 class SmartBlockCriteriaViewSet(
-    BlockIdQuerySetFilter, viewsets.ModelViewSet[Any],
+    BlockIdQuerySetFilter,
+    viewsets.ModelViewSet[Any],
 ):
 
     queryset = SmartBlockCriteria.objects.all()

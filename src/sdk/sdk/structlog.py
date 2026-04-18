@@ -15,6 +15,7 @@ Example:
 
 import logging.config
 import sys
+
 from collections.abc import Collection, Iterable
 from fnmatch import translate
 from functools import cached_property, lru_cache, partial
@@ -30,10 +31,10 @@ from logging import (
 from os import getenv
 from re import Pattern, compile
 from typing import Any, TextIO, final
-from typing_extensions import override
 
 import orjson
 import structlog
+
 from structlog.dev import ConsoleRenderer, RichTracebackFormatter
 from structlog.processors import (
     CallsiteParameter,
@@ -53,6 +54,7 @@ from structlog.stdlib import (
     add_logger_name,
 )
 from structlog.types import Processor
+from typing_extensions import override
 
 
 @final
@@ -117,16 +119,16 @@ class SuppressSpamFilter(Filter):
     def regex_files(self) -> Pattern[str]:
         return compile(
             "|".join(
-                map(translate, sorted(self._files, key=len, reverse=True))
-            )
+                map(translate, sorted(self._files, key=len, reverse=True)),
+            ),
         )
 
     @cached_property
     def regex_modules(self) -> Pattern[str]:
         return compile(
             "|".join(
-                map(translate, sorted(self._modules, key=len, reverse=True))
-            )
+                map(translate, sorted(self._modules, key=len, reverse=True)),
+            ),
         )
 
     @lru_cache(maxsize=2**10)
@@ -155,6 +157,7 @@ class SuppressSpamFilter(Filter):
                 return False
 
         return True
+
 
 ###
 

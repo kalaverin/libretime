@@ -132,7 +132,8 @@ def validate_non_negative_int(value: Any, field_name: str = "value") -> int:
 
 
 def validate_non_negative_float(
-    value: Any, field_name: str = "value",
+    value: Any,
+    field_name: str = "value",
 ) -> float:
     """Validate that float value is non-negative."""
     if value is None:
@@ -202,7 +203,9 @@ def validate_time_order(cue_in: Any, cue_out: Any) -> None:
                     minutes = float(parts[1])
                     seconds = float(parts[2])
                     return timedelta(
-                        hours=hours, minutes=minutes, seconds=seconds,
+                        hours=hours,
+                        minutes=minutes,
+                        seconds=seconds,
                     )
                 if len(parts) == 2:
                     minutes = float(parts[0])
@@ -281,7 +284,9 @@ def validate_hex_color(value: Any, field_name: str = "color") -> str:
 
 
 def validate_max_length(
-    value: Any, max_length: int, field_name: str = "value",
+    value: Any,
+    max_length: int,
+    field_name: str = "value",
 ) -> Any:
     """Validate that string value doesn't exceed max length."""
     if value is None:
@@ -290,7 +295,8 @@ def validate_max_length(
     if isinstance(value, str) and len(value) > max_length:
         raise ValidationError(
             _("{field} must not exceed {max} characters.").format(
-                field=field_name, max=max_length,
+                field=field_name,
+                max=max_length,
             ),
             code=f"{field_name}_too_long",
         )
@@ -299,7 +305,9 @@ def validate_max_length(
 
 
 def validate_url_length(
-    value: Any, max_length: int = 2048, field_name: str = "url",
+    value: Any,
+    max_length: int = 2048,
+    field_name: str = "url",
 ) -> Any:
     """Validate URL length."""
     return validate_max_length(value, max_length, field_name)
@@ -311,7 +319,9 @@ def validate_url_length(
 
 
 def validate_choice(
-    value: Any, valid_choices: set[str], field_name: str = "value",
+    value: Any,
+    valid_choices: set[str],
+    field_name: str = "value",
 ) -> Any:
     """Validate that value is in allowed choices."""
     if value is None:
@@ -320,7 +330,8 @@ def validate_choice(
     if str(value).lower() not in {c.lower() for c in valid_choices}:
         raise ValidationError(
             _("{field} must be one of: {choices}.").format(
-                field=field_name, choices=", ".join(sorted(valid_choices)),
+                field=field_name,
+                choices=", ".join(sorted(valid_choices)),
             ),
             code=f"{field_name}_invalid_choice",
         )

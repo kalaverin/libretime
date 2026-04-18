@@ -5,7 +5,6 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.serializers import Serializer
 
 from api.permissions import (
-    check_authorization_header,
     is_authenticated,
     is_superuser,
     request_superauthorized,

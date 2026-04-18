@@ -259,7 +259,8 @@ HTML_TAG_PATTERN = re.compile(r"</?[a-zA-Z][^>]*>")
 
 # on* event handler pattern
 EVENT_HANDLER_PATTERN = re.compile(
-    r"\s*on\w+\s*=[\"']?[^\"']*[\"']?", re.IGNORECASE,
+    r"\s*on\w+\s*=[\"']?[^\"']*[\"']?",
+    re.IGNORECASE,
 )
 
 

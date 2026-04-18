@@ -192,9 +192,7 @@ def is_superuser(user: AnonymousUser | User) -> bool:
     """Check if user is authenticated and has admin or manager role."""
 
     return (
-        isinstance(user, User)
-        and user.is_authenticated
-        and user.is_superuser
+        isinstance(user, User) and user.is_authenticated and user.is_superuser
     )
 
 

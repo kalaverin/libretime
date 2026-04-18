@@ -214,4 +214,3 @@ class SecureModelSerializer(TimestampSerializer, StrictSerializer):
                 model = MyModel
                 fields = "__all__"
     """
-
