@@ -62,12 +62,12 @@ class TestMountNameListRedTeamAuthorization:
 class TestMountNameListRedTeamInjection:
     """SQL injection tests for LIST endpoint."""
 
-    def test_sqli_in_ordering_param(self, api_client, admin_user):
+    def test_sqli_in_ordering_param(self, guest_client, admin_user):
         """SQLi attempt in ordering parameter."""
         MountName.objects.create(mount_name="/main")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.get(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.get(
             "/api/v2/mount-names",
             {"ordering": "mount_name; DROP TABLE cc_mount_name;--"},
         )
@@ -76,10 +76,10 @@ class TestMountNameListRedTeamInjection:
         assert response.status_code in [200, 400]
 
         # Verify table still exists by making another request
-        response2 = api_client.get("/api/v2/mount-names")
+        response2 = guest_client.get("/api/v2/mount-names")
         assert response2.status_code == 200
 
-    def test_sqli_in_mount_name_special_chars(self, api_client, admin_user):
+    def test_sqli_in_mount_name_special_chars(self, guest_client, admin_user):
         """SQLi via special characters in mount name."""
         malicious_names = [
             "'; DROP TABLE cc_mount_name;--",
@@ -88,12 +88,12 @@ class TestMountNameListRedTeamInjection:
             "<script>alert(1)</script>",
         ]
 
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         for name in malicious_names:
             MountName.objects.create(mount_name=name)
 
-        response = api_client.get("/api/v2/mount-names")
+        response = guest_client.get("/api/v2/mount-names")
         assert response.status_code == 200
 
         data = response.json()
@@ -108,12 +108,12 @@ class TestMountNameListRedTeamInjection:
 class TestMountNameListRedTeamInformationDisclosure:
     """Information disclosure tests."""
 
-    def test_list_exposes_all_ids(self, api_client, admin_user):
+    def test_list_exposes_all_ids(self, guest_client, admin_user):
         """LIST exposes all mount IDs - allows enumeration."""
         mount = MountName.objects.create(mount_name="/secret")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.get("/api/v2/mount-names")
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.get("/api/v2/mount-names")
 
         assert response.status_code == 200
         data = response.json()
@@ -122,11 +122,11 @@ class TestMountNameListRedTeamInformationDisclosure:
         ids = [m.get("id") for m in data]
         assert mount.id in ids
 
-    def test_error_message_on_invalid_filter(self, api_client, admin_user):
+    def test_error_message_on_invalid_filter(self, guest_client, admin_user):
         """Error messages may leak database structure."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/mount-names",
             {"invalid_param": "test"},
         )
@@ -144,41 +144,41 @@ class TestMountNameListRedTeamInformationDisclosure:
 class TestMountNameListRedTeamResourceConsumption:
     """Resource consumption and DoS tests."""
 
-    def test_rapid_list_requests(self, api_client, admin_user):
+    def test_rapid_list_requests(self, guest_client, admin_user):
         """Rate limiting test - rapid LIST requests."""
         MountName.objects.create(mount_name="/stream")
 
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         responses = []
         for _ in range(50):
-            response = api_client.get("/api/v2/mount-names")
+            response = guest_client.get("/api/v2/mount-names")
             responses.append(response.status_code)
 
         # All requests should succeed (no rate limiting observed)
         success_count = sum(1 for r in responses if r == 200)
         assert success_count == 50
 
-    def test_bulk_mount_creation_and_list(self, api_client, admin_user):
+    def test_bulk_mount_creation_and_list(self, guest_client, admin_user):
         """Test LIST performance with many mount names."""
         # Create many mount names
         for i in range(100):
             MountName.objects.create(mount_name=f"/stream-{i}")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.get("/api/v2/mount-names")
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.get("/api/v2/mount-names")
 
         assert response.status_code == 200
         data = response.json()
         assert len(data) >= 100
 
-    def test_large_page_size_abuse(self, api_client, admin_user):
+    def test_large_page_size_abuse(self, guest_client, admin_user):
         """Test large page_size parameter."""
         for i in range(10):
             MountName.objects.create(mount_name=f"/mount-{i}")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.get("/api/v2/mount-names", {"page_size": 10000})
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.get("/api/v2/mount-names", {"page_size": 10000})
 
         # Should handle gracefully
         assert response.status_code in [200, 400]
@@ -188,19 +188,19 @@ class TestMountNameListRedTeamResourceConsumption:
 class TestMountNameListRedTeamAuthentication:
     """Authentication bypass tests."""
 
-    def test_list_requires_authentication(self, api_client):
+    def test_list_requires_authentication(self, guest_client):
         """Unauthenticated LIST should fail."""
-        api_client.logout()
-        response = api_client.get("/api/v2/mount-names")
+        guest_client.logout()
+        response = guest_client.get("/api/v2/mount-names")
 
         assert response.status_code == 403
 
-    def test_list_with_invalid_token(self, api_client):
+    def test_list_with_invalid_token(self, guest_client):
         """LIST with invalid/expired token should fail."""
-        api_client.logout()
-        api_client.credentials(HTTP_AUTHORIZATION="Bearer invalid_token_12345")
+        guest_client.logout()
+        guest_client.credentials(HTTP_AUTHORIZATION="Bearer invalid_token_12345")
 
-        response = api_client.get("/api/v2/mount-names")
+        response = guest_client.get("/api/v2/mount-names")
         assert response.status_code == 403
 
 
@@ -208,19 +208,19 @@ class TestMountNameListRedTeamAuthentication:
 class TestMountNameListRedTeamHTTPMethodTampering:
     """HTTP method tampering tests."""
 
-    def test_trace_method_disabled(self, api_client, admin_user):
+    def test_trace_method_disabled(self, guest_client, admin_user):
         """TRACE method should be disabled."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         # Django doesn't support TRACE by default
-        response = api_client.get("/api/v2/mount-names")
+        response = guest_client.get("/api/v2/mount-names")
         assert response.status_code == 200
 
-    def test_options_method_allowed(self, api_client, admin_user):
+    def test_options_method_allowed(self, guest_client, admin_user):
         """OPTIONS method should return allowed methods."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.options("/api/v2/mount-names")
+        response = guest_client.options("/api/v2/mount-names")
         assert response.status_code == 200
 
         # OPTIONS returns allowed actions (POST for create)
@@ -234,7 +234,7 @@ class TestMountNameListRedTeamHTTPMethodTampering:
 class TestMountNameListEdgeCases:
     """Edge case security tests."""
 
-    def test_unicode_mount_names(self, api_client, admin_user):
+    def test_unicode_mount_names(self, guest_client, admin_user):
         """Unicode mount names should be handled safely."""
         unicode_names = [
             "/поток-юникод",
@@ -246,8 +246,8 @@ class TestMountNameListEdgeCases:
         for name in unicode_names:
             MountName.objects.create(mount_name=name)
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.get("/api/v2/mount-names")
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.get("/api/v2/mount-names")
 
         assert response.status_code == 200
         data = response.json()
@@ -256,14 +256,14 @@ class TestMountNameListEdgeCases:
         for name in unicode_names:
             assert name in mount_names
 
-    def test_very_long_mount_name(self, api_client, admin_user):
+    def test_very_long_mount_name(self, guest_client, admin_user):
         """Very long mount name should be handled."""
         long_name = "/" + "A" * 500
 
         MountName.objects.create(mount_name=long_name)
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.get("/api/v2/mount-names")
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.get("/api/v2/mount-names")
 
         assert response.status_code == 200
         data = response.json()

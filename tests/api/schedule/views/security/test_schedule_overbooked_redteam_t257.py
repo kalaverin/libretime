@@ -38,7 +38,7 @@ class TestScheduleOverbookedFilterRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T613: Filter - overbooked parameter injection")
-    def test_overbooked_sql_injection(self, api_client, faker):
+    def test_overbooked_sql_injection(self, guest_client, faker):
         """Injection: SQLi in overbooked filter parameter."""
         sqli_payloads = [
             "1 OR 1=1",
@@ -48,11 +48,11 @@ class TestScheduleOverbookedFilterRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.get(f"/api/v2/schedule?overbooked={payload}")
+            response = guest_client.get(f"/api/v2/schedule?overbooked={payload}")
             if response.status_code == 500:
                 pytest.fail(f"SQLi in overbooked: '{payload}' caused 500")
 
-    def test_overbooked_nosql_injection(self, api_client, faker):
+    def test_overbooked_nosql_injection(self, guest_client, faker):
         """Injection: NoSQL in overbooked filter."""
         nosql_payloads = [
             {"overbooked": {"$ne": None}},
@@ -60,14 +60,14 @@ class TestScheduleOverbookedFilterRedTeam:
         ]
 
         for payload in nosql_payloads:
-            response = api_client.get("/api/v2/schedule", payload)
+            response = guest_client.get("/api/v2/schedule", payload)
             assert response.status_code in [
                 200,
                 400,
             ], f"NoSQLi caused {response.status_code}"
 
     @pytest.mark.xfail(reason="T614: Filter - overbooked bypass using null")
-    def test_overbooked_null_bypass(self, api_client, faker):
+    def test_overbooked_null_bypass(self, guest_client, faker):
         """Filter: Using null/undefined to bypass overbooked filter."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -94,7 +94,7 @@ class TestScheduleOverbookedFilterRedTeam:
         )
 
         # Try to bypass filter with null
-        response = api_client.get("/api/v2/schedule?overbooked=null")
+        response = guest_client.get("/api/v2/schedule?overbooked=null")
         data = response.json()
 
         # Should not return data when filter is bypassed
@@ -109,7 +109,7 @@ class TestScheduleOverbookedFilterRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T615: Filter - overbooked logic bypass")
-    def test_overbooked_logic_bypass(self, api_client, faker):
+    def test_overbooked_logic_bypass(self, guest_client, faker):
         """Filter: Logic bypass in overbooked calculation."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -143,7 +143,7 @@ class TestScheduleOverbookedFilterRedTeam:
         )
 
         # Query overbooked with null ends_at
-        response = api_client.get("/api/v2/schedule?overbooked=1")
+        response = guest_client.get("/api/v2/schedule?overbooked=1")
         # Should handle gracefully, not crash
         assert response.status_code in [
             200,
@@ -157,7 +157,7 @@ class TestScheduleOverbookedFilterRedTeam:
     @pytest.mark.xfail(
         reason="T616: BOLA - overbooked filter reveals other users' schedules",
     )
-    def test_overbooked_bola_info_leak(self, api_client, faker):
+    def test_overbooked_bola_info_leak(self, guest_client, faker):
         """BOLA: overbooked filter reveals other users' schedules."""
         victim = baker.make(
             User,
@@ -187,7 +187,7 @@ class TestScheduleOverbookedFilterRedTeam:
         )
 
         # Attacker queries overbooked
-        response = api_client.get("/api/v2/schedule?overbooked=1")
+        response = guest_client.get("/api/v2/schedule?overbooked=1")
         data = response.json()
 
         ids = [s["id"] for s in data]
@@ -200,7 +200,7 @@ class TestScheduleOverbookedFilterRedTeam:
     # Filter Combination Attacks
     # ========================================================================
 
-    def test_overbooked_with_other_filters(self, api_client, faker):
+    def test_overbooked_with_other_filters(self, guest_client, faker):
         """Filter: Combining overbooked with other filters."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -226,13 +226,13 @@ class TestScheduleOverbookedFilterRedTeam:
         )
 
         # Combine filters
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/schedule?overbooked=1&position=1&broadcasted=1",
         )
         assert response.status_code == 200
 
     @pytest.mark.xfail(reason="T617: Filter - overbooked with instance bypass")
-    def test_overbooked_instance_bypass(self, api_client, faker):
+    def test_overbooked_instance_bypass(self, guest_client, faker):
         """Filter: Using instance filter to bypass overbooked."""
         victim = baker.make(
             User,
@@ -261,7 +261,7 @@ class TestScheduleOverbookedFilterRedTeam:
         )
 
         # Try to bypass using instance filter
-        response = api_client.get(
+        response = guest_client.get(
             f"/api/v2/schedule?overbooked=0&instance={instance.id}",
         )
         data = response.json()
@@ -274,7 +274,7 @@ class TestScheduleOverbookedFilterRedTeam:
     # Input Validation
     # ========================================================================
 
-    def test_overbooked_invalid_values(self, api_client, faker):
+    def test_overbooked_invalid_values(self, guest_client, faker):
         """Validation: Invalid overbooked parameter values."""
         invalid_values = [
             "true",
@@ -290,16 +290,16 @@ class TestScheduleOverbookedFilterRedTeam:
         ]
 
         for value in invalid_values:
-            response = api_client.get(f"/api/v2/schedule?overbooked={value}")
+            response = guest_client.get(f"/api/v2/schedule?overbooked={value}")
             # Should handle gracefully
             assert response.status_code in [
                 200,
                 400,
             ], f"overbooked={value} caused {response.status_code}"
 
-    def test_overbooked_unicode(self, api_client, faker):
+    def test_overbooked_unicode(self, guest_client, faker):
         """Validation: Unicode in overbooked parameter."""
-        response = api_client.get("/api/v2/schedule?overbooked=日本語")
+        response = guest_client.get("/api/v2/schedule?overbooked=日本語")
         assert response.status_code in [200, 400]
 
     # ========================================================================
@@ -309,7 +309,7 @@ class TestScheduleOverbookedFilterRedTeam:
     @pytest.mark.xfail(
         reason="T618: DoS - overbooked filter performance issue",
     )
-    def test_overbooked_performance_dos(self, api_client, faker):
+    def test_overbooked_performance_dos(self, guest_client, faker):
         """DoS: overbooked filter with large dataset."""
         import time
 
@@ -339,7 +339,7 @@ class TestScheduleOverbookedFilterRedTeam:
             )
 
         start = time.time()
-        response = api_client.get("/api/v2/schedule?overbooked=1")
+        response = guest_client.get("/api/v2/schedule?overbooked=1")
         duration = time.time() - start
 
         if duration > 3:
@@ -350,7 +350,7 @@ class TestScheduleOverbookedFilterRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T619: Logic - overbooked filter inconsistency")
-    def test_overbooked_logic_consistency(self, api_client, faker):
+    def test_overbooked_logic_consistency(self, guest_client, faker):
         """Logic: overbooked filter consistency check."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -377,12 +377,12 @@ class TestScheduleOverbookedFilterRedTeam:
         )
 
         # Query overbooked=true
-        response_true = api_client.get("/api/v2/schedule?overbooked=1")
+        response_true = guest_client.get("/api/v2/schedule?overbooked=1")
         data_true = response_true.json()
         ids_true = [s["id"] for s in data_true]
 
         # Query overbooked=false
-        response_false = api_client.get("/api/v2/schedule?overbooked=0")
+        response_false = guest_client.get("/api/v2/schedule?overbooked=0")
         data_false = response_false.json()
         ids_false = [s["id"] for s in data_false]
 

@@ -85,7 +85,7 @@ class TestSilenceProcessingBOLA:
     )
     def test_filter_by_import_status_shows_only_own_files(
         self,
-        api_client,
+        guest_client,
         faker,
     ):
         """User should only see their own files when filtering by import_status. (T889)"""
@@ -155,7 +155,7 @@ class TestSilenceProcessingBOLA:
         reason="BOLA: Cross-user access allowed - T889",
         strict=False,
     )
-    def test_cross_user_silence_processing_blocked(self, api_client, faker):
+    def test_cross_user_silence_processing_blocked(self, guest_client, faker):
         """User cannot trigger silence processing on another user's file. (T889)""" ""
         user_a = baker.make(
             User,
@@ -203,7 +203,7 @@ class TestSilenceProcessingMassAssignment:
         reason="BOPLA: import_status can be modified - T887",
         strict=False,
     )
-    def test_mass_assignment_import_status_blocked(self, api_client, faker):
+    def test_mass_assignment_import_status_blocked(self, guest_client, faker):
         """import_status should not be modifiable via PATCH. (T887)"""
         user = baker.make(
             User,
@@ -249,7 +249,7 @@ class TestSilenceProcessingMassAssignment:
         reason="BOPLA: channels can be spoofed - T888",
         strict=False,
     )
-    def test_mass_assignment_extreme_channels_blocked(self, api_client, faker):
+    def test_mass_assignment_extreme_channels_blocked(self, guest_client, faker):
         """Extreme channel values should be rejected. (T888)"""
         user = baker.make(
             User,
@@ -296,7 +296,7 @@ class TestSilenceProcessingSQLInjection:
     def test_sqli_in_import_status_filter_no_crash(
         self,
         payload,
-        api_client,
+        guest_client,
         faker,
     ):
         """SQLi in import_status filter should not crash."""
@@ -320,13 +320,13 @@ class TestSilenceProcessingSQLInjection:
             import_status=File.ImportStatus.SUCCESS,
         )
 
-        response = api_client.get(f"/api/v2/files?{payload}")
+        response = guest_client.get(f"/api/v2/files?{payload}")
 
         # Should not crash with 500
         assert response.status_code != 500, f"SQLi caused 500: {payload[:50]}"
         assert response.status_code in [200, 400]
 
-    def test_sqli_in_channels_filter_no_crash(self, api_client, faker):
+    def test_sqli_in_channels_filter_no_crash(self, guest_client, faker):
         """SQLi in channels filter."""
         user = baker.make(
             User,
@@ -355,7 +355,7 @@ class TestSilenceProcessingSQLInjection:
         ]
 
         for payload in sqli_channels:
-            response = api_client.get(f"/api/v2/files?{payload}")
+            response = guest_client.get(f"/api/v2/files?{payload}")
             assert response.status_code != 500, f"SQLi in channels: {payload}"
 
 
@@ -388,7 +388,7 @@ class TestSilenceProcessingPathTraversal:
     def test_path_traversal_in_filepath_blocked(
         self,
         payload,
-        api_client,
+        guest_client,
         faker,
     ):
         """Path traversal in filepath should be blocked."""
@@ -438,7 +438,7 @@ class TestSilenceProcessingMIMEConfusion:
     """MIME type confusion and bypass attacks."""
 
     @pytest.mark.parametrize("mime_type", INVALID_MIME_TYPES)
-    def test_invalid_mime_type_handled(self, mime_type, api_client, faker):
+    def test_invalid_mime_type_handled(self, mime_type, guest_client, faker):
         """Invalid/dangerous MIME types should be rejected."""
         user = baker.make(
             User,
@@ -484,7 +484,7 @@ class TestSilenceProcessingMIMEConfusion:
             # Should handle gracefully
             pass
 
-    def test_mime_spoofing_for_silence_processing(self, api_client, faker):
+    def test_mime_spoofing_for_silence_processing(self, guest_client, faker):
         """Spoof MIME type to bypass silence processing checks."""
         user = baker.make(
             User,
@@ -508,7 +508,7 @@ class TestSilenceProcessingMIMEConfusion:
             import_status=File.ImportStatus.SUCCESS,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
@@ -525,7 +525,7 @@ class TestSilenceProcessingNumericOverflow:
         self,
         field,
         value,
-        api_client,
+        guest_client,
         faker,
     ):
         """Extreme audio properties should be validated."""
@@ -573,7 +573,7 @@ class TestSilenceProcessingResourceExhaustion:
     """API4:2023 - Resource exhaustion via extreme durations."""
 
     @pytest.mark.parametrize("duration", EXTREME_DURATIONS)
-    def test_extreme_duration_handled(self, duration, api_client, faker):
+    def test_extreme_duration_handled(self, duration, guest_client, faker):
         """Extreme durations should be validated."""
         user = baker.make(
             User,
@@ -597,13 +597,13 @@ class TestSilenceProcessingResourceExhaustion:
                 length=duration,
             )
 
-            response = api_client.get(f"/api/v2/files/{file_obj.id}")
+            response = guest_client.get(f"/api/v2/files/{file_obj.id}")
             assert response.status_code in [200, 400]
         except Exception:
             # Should handle gracefully
             pass
 
-    def test_batch_processing_limits(self, api_client, faker):
+    def test_batch_processing_limits(self, guest_client, faker):
         """Batch silence processing should have limits."""
         user = baker.make(
             User,
@@ -629,7 +629,7 @@ class TestSilenceProcessingResourceExhaustion:
             )
 
         # Request all for batch processing
-        response = api_client.get("/api/v2/files?import_status=0")
+        response = guest_client.get("/api/v2/files?import_status=0")
         assert response.status_code == 200
 
         data = response.json()
@@ -642,7 +642,7 @@ class TestSilenceProcessingWorkflowBypass:
     """Workflow bypass attacks."""
 
     @pytest.mark.xfail(reason="Workflow bypass possible - T891", strict=False)
-    def test_pending_to_success_bypass_blocked(self, api_client, faker):
+    def test_pending_to_success_bypass_blocked(self, guest_client, faker):
         """Cannot bypass processing by directly setting SUCCESS. (T891)"""
         user = baker.make(
             User,
@@ -688,7 +688,7 @@ class TestSilenceProcessingWorkflowBypass:
             )
 
     @pytest.mark.xfail(reason="Workflow bypass possible - T891", strict=False)
-    def test_failed_to_success_bypass_blocked(self, api_client, faker):
+    def test_failed_to_success_bypass_blocked(self, guest_client, faker):
         """Cannot bypass by setting FAILED to SUCCESS. (T891)"""
         user = baker.make(
             User,
@@ -729,7 +729,7 @@ class TestSilenceProcessingWorkflowBypass:
 class TestSilenceProcessingInformationDisclosure:
     """Information disclosure via error messages."""
 
-    def test_no_internal_paths_in_errors(self, api_client, faker):
+    def test_no_internal_paths_in_errors(self, guest_client, faker):
         """Error messages should not expose internal paths."""
         user = baker.make(
             User,
@@ -744,7 +744,7 @@ class TestSilenceProcessingInformationDisclosure:
         )
 
         # Request non-existent file
-        response = api_client.get("/api/v2/files/999999999")
+        response = guest_client.get("/api/v2/files/999999999")
 
         if response.status_code == 500:
             error_text = response.content.decode(
@@ -755,7 +755,7 @@ class TestSilenceProcessingInformationDisclosure:
             assert "/var/" not in error_text, "Internal path exposed"
             assert "sql" not in error_text, "SQL info exposed"
 
-    def test_no_stack_traces_in_response(self, api_client, faker):
+    def test_no_stack_traces_in_response(self, guest_client, faker):
         """Stack traces should not be exposed."""
         user = baker.make(
             User,
@@ -764,7 +764,7 @@ class TestSilenceProcessingInformationDisclosure:
         )
 
         # Trigger potential error with bad filter
-        response = api_client.get("/api/v2/files?import_status=invalid")
+        response = guest_client.get("/api/v2/files?import_status=invalid")
 
         response_text = response.content.decode(
             "utf-8",

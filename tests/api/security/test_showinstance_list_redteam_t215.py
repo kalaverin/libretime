@@ -21,9 +21,9 @@ class TestShowInstanceListAuthentication:
     """LIST authentication tests."""
 
     @pytest.mark.xfail(reason="T397: Anonymous LIST show instances allowed")
-    def test_list_without_auth(self, api_client):
+    def test_list_without_auth(self, guest_client):
         """Anonymous LIST should fail."""
-        response = api_client.get("/api/v2/show-instances")
+        response = guest_client.get("/api/v2/show-instances")
         assert response.status_code in [
             401,
             403,
@@ -37,7 +37,7 @@ class TestShowInstanceListBOLA:
     @pytest.mark.xfail(reason="T398: No owner filtering on ShowInstance")
     def test_list_shows_only_own_instances(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -48,8 +48,8 @@ class TestShowInstanceListBOLA:
         instance1 = baker.make(ShowInstance, show=show1)
         instance2 = baker.make(ShowInstance, show=show2)
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get("/api/v2/show-instances")
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.get("/api/v2/show-instances")
 
         assert response.status_code == 200
         data = response.json()
@@ -62,7 +62,7 @@ class TestShowInstanceListBOLA:
     @pytest.mark.xfail(reason="T399: BOLA via show filter")
     def test_filter_by_other_user_show(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -70,8 +70,8 @@ class TestShowInstanceListBOLA:
         show = baker.make(Show, name="Admin Show")
         instance = baker.make(ShowInstance, show=show)
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get(f"/api/v2/show-instances?show={show.id}")
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.get(f"/api/v2/show-instances?show={show.id}")
 
         assert response.status_code == 200
         data = response.json()
@@ -82,18 +82,18 @@ class TestShowInstanceListBOLA:
 class TestShowInstanceFilterInjection:
     """Filter parameter injection attacks."""
 
-    def test_filter_by_invalid_show_id(self, api_client, admin_user):
+    def test_filter_by_invalid_show_id(self, guest_client, admin_user):
         """Try to filter by invalid show_id."""
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.get("/api/v2/show-instances?show=invalid")
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.get("/api/v2/show-instances?show=invalid")
 
         if response.status_code == 500:
             pytest.fail("BUG: Filter crashes on invalid show_id")
         assert response.status_code in [200, 400]
 
-    def test_filter_by_sql_injection(self, api_client, admin_user):
+    def test_filter_by_sql_injection(self, guest_client, admin_user):
         """Try SQL injection in show filter."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         sqli_payloads = [
             "1' OR '1'='1",
@@ -102,14 +102,14 @@ class TestShowInstanceFilterInjection:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.get(f"/api/v2/show-instances?show={payload}")
+            response = guest_client.get(f"/api/v2/show-instances?show={payload}")
             if response.status_code == 500:
                 pytest.fail(f"BUG: SQL injection causes crash: {payload}")
 
-    def test_filter_by_negative_show_id(self, api_client, admin_user):
+    def test_filter_by_negative_show_id(self, guest_client, admin_user):
         """Try to filter by negative show_id."""
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.get("/api/v2/show-instances?show=-1")
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.get("/api/v2/show-instances?show=-1")
 
         assert response.status_code in [200, 400]
 
@@ -118,10 +118,10 @@ class TestShowInstanceFilterInjection:
 class TestShowInstanceListInformationDisclosure:
     """Information disclosure attacks."""
 
-    def test_error_message_on_invalid_filter(self, api_client, admin_user):
+    def test_error_message_on_invalid_filter(self, guest_client, admin_user):
         """Check if error messages leak information."""
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.get("/api/v2/show-instances?show=invalid")
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.get("/api/v2/show-instances?show=invalid")
 
         if response.status_code == 400:
             content = response.content.decode()
@@ -135,9 +135,9 @@ class TestShowInstanceListInformationDisclosure:
 class TestShowInstanceListMassAssignment:
     """Mass assignment via GET attacks."""
 
-    def test_get_with_extra_parameters(self, api_client, admin_user):
+    def test_get_with_extra_parameters(self, guest_client, admin_user):
         """Try GET with extra/malicious parameters."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         # Try various malicious query params
         malicious_params = [
@@ -147,6 +147,6 @@ class TestShowInstanceListMassAssignment:
         ]
 
         for params in malicious_params:
-            response = api_client.get(f"/api/v2/show-instances{params}")
+            response = guest_client.get(f"/api/v2/show-instances{params}")
             # Should not crash or expose unexpected data
             assert response.status_code in [200, 400]

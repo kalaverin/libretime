@@ -17,23 +17,23 @@ class TestLibraryViewSetList:
         """Clean up libraries before each test."""
         Library.objects.all().delete()
 
-    def test_list_libraries_endpoint_available(self, api_client):
+    def test_list_libraries_endpoint_available(self, guest_client):
         """LIST endpoint should be accessible with API key."""
-        response = api_client.get("/api/v2/libraries")
+        response = guest_client.get("/api/v2/libraries")
         assert response.status_code == 200
 
-    def test_list_returns_json(self, api_client):
+    def test_list_returns_json(self, guest_client):
         """LIST should return JSON response."""
-        response = api_client.get("/api/v2/libraries")
+        response = guest_client.get("/api/v2/libraries")
         assert response["Content-Type"] == "application/json"
 
-    def test_list_empty_when_no_libraries(self, api_client):
+    def test_list_empty_when_no_libraries(self, guest_client):
         """LIST should return empty list when no libraries exist."""
-        response = api_client.get("/api/v2/libraries")
+        response = guest_client.get("/api/v2/libraries")
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_list_returns_all_libraries(self, api_client):
+    def test_list_returns_all_libraries(self, guest_client):
         """LIST should return all existing libraries."""
         lib1 = baker.make(
             Library,
@@ -54,17 +54,17 @@ class TestLibraryViewSetList:
             description="Ads library",
         )
 
-        response = api_client.get("/api/v2/libraries")
+        response = guest_client.get("/api/v2/libraries")
         data = response.json()
         assert len(data) == 3
         codes = {item["code"] for item in data}
         assert codes == {"music", "podcast", "ads"}
 
-    def test_list_response_structure(self, api_client):
+    def test_list_response_structure(self, guest_client):
         """LIST response should have all model fields."""
         baker.make(Library, code="test", name="Test", description="Test lib")
 
-        response = api_client.get("/api/v2/libraries")
+        response = guest_client.get("/api/v2/libraries")
         data = response.json()
         assert len(data) == 1
         lib_data = data[0]
@@ -76,7 +76,7 @@ class TestLibraryViewSetList:
         assert "enabled" in lib_data
         assert "analyze_cue_points" in lib_data
 
-    def test_list_field_types(self, api_client):
+    def test_list_field_types(self, guest_client):
         """LIST should return correct data types."""
         baker.make(
             Library,
@@ -87,7 +87,7 @@ class TestLibraryViewSetList:
             analyze_cue_points=False,
         )
 
-        response = api_client.get("/api/v2/libraries")
+        response = guest_client.get("/api/v2/libraries")
         data = response.json()[0]
 
         assert isinstance(data["id"], int)
@@ -97,7 +97,7 @@ class TestLibraryViewSetList:
         assert isinstance(data["enabled"], bool)
         assert isinstance(data["analyze_cue_points"], bool)
 
-    def test_list_code_unique_constraint(self, api_client):
+    def test_list_code_unique_constraint(self, guest_client):
         """Library code should be unique."""
         baker.make(
             Library,
@@ -114,7 +114,7 @@ class TestLibraryViewSetList:
                 description="Second lib",
             )
 
-    def test_list_enabled_filtering(self, api_client):
+    def test_list_enabled_filtering(self, guest_client):
         """Test listing with enabled/disabled libraries."""
         enabled_lib = baker.make(
             Library,
@@ -131,7 +131,7 @@ class TestLibraryViewSetList:
             enabled=False,
         )
 
-        response = api_client.get("/api/v2/libraries")
+        response = guest_client.get("/api/v2/libraries")
         data = response.json()
 
         # Both should be listed (no filtering by default)
@@ -139,7 +139,7 @@ class TestLibraryViewSetList:
         assert "enabled" in codes
         assert "disabled" in codes
 
-    def test_list_analyze_cue_points_field(self, api_client):
+    def test_list_analyze_cue_points_field(self, guest_client):
         """Test analyze_cue_points field in response."""
         lib = baker.make(
             Library,
@@ -148,11 +148,11 @@ class TestLibraryViewSetList:
             description="Cue lib",
             analyze_cue_points=True,
         )
-        response = api_client.get("/api/v2/libraries")
+        response = guest_client.get("/api/v2/libraries")
         data = response.json()[0]
         assert data["analyze_cue_points"] is True
 
-    def test_list_empty_description(self, api_client):
+    def test_list_empty_description(self, guest_client):
         """Library description can be empty."""
         lib = baker.make(
             Library,
@@ -160,7 +160,7 @@ class TestLibraryViewSetList:
             name="No Desc",
             description="",
         )
-        response = api_client.get("/api/v2/libraries")
+        response = guest_client.get("/api/v2/libraries")
         data = response.json()[0]
         assert data["description"] == ""
 
@@ -169,14 +169,14 @@ class TestLibraryViewSetList:
         response = client.get("/api/v2/libraries")
         assert response.status_code == 403
 
-    def test_list_post_creates_library(self, api_client):
+    def test_list_post_creates_library(self, guest_client):
         """POST on LIST endpoint creates new library (ModelViewSet)."""
         data = {
             "code": "newlib",
             "name": "New Library",
             "description": "New lib",
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/libraries",
             json.dumps(data),
             content_type="application/json",
@@ -184,30 +184,30 @@ class TestLibraryViewSetList:
         # POST creates a new library (201), not 405
         assert response.status_code == 201
 
-    def test_list_put_not_allowed(self, api_client):
+    def test_list_put_not_allowed(self, guest_client):
         """PUT should not be allowed on LIST endpoint."""
-        response = api_client.put(
+        response = guest_client.put(
             "/api/v2/libraries",
             {},
             content_type="application/json",
         )
         assert response.status_code == 405
 
-    def test_list_patch_not_allowed(self, api_client):
+    def test_list_patch_not_allowed(self, guest_client):
         """PATCH should not be allowed on LIST endpoint."""
-        response = api_client.patch(
+        response = guest_client.patch(
             "/api/v2/libraries",
             {},
             content_type="application/json",
         )
         assert response.status_code == 405
 
-    def test_list_delete_not_allowed(self, api_client):
+    def test_list_delete_not_allowed(self, guest_client):
         """DELETE should not be allowed on LIST endpoint."""
-        response = api_client.delete("/api/v2/libraries")
+        response = guest_client.delete("/api/v2/libraries")
         assert response.status_code == 405
 
-    def test_list_unicode_in_name(self, api_client):
+    def test_list_unicode_in_name(self, guest_client):
         """LIST should handle unicode in library names."""
         lib = baker.make(
             Library,
@@ -215,12 +215,12 @@ class TestLibraryViewSetList:
             name="日本語",
             description="日本語説明",
         )
-        response = api_client.get("/api/v2/libraries")
+        response = guest_client.get("/api/v2/libraries")
         data = response.json()[0]
         assert data["name"] == "日本語"
         assert data["description"] == "日本語説明"
 
-    def test_list_long_code(self, api_client):
+    def test_list_long_code(self, guest_client):
         """LIST should handle library with long code (up to 16 chars)."""
         lib = baker.make(
             Library,
@@ -228,6 +228,6 @@ class TestLibraryViewSetList:
             name="Long Code",
             description="Long code lib",
         )
-        response = api_client.get("/api/v2/libraries")
+        response = guest_client.get("/api/v2/libraries")
         data = response.json()[0]
         assert data["code"] == "a" * 16

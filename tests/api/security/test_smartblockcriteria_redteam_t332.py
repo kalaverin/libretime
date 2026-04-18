@@ -17,19 +17,19 @@ from model_bakery import baker
 class TestSmartBlockCriteriaFilterInjection:
     """Filter parameter injection attacks."""
 
-    def test_filter_by_invalid_block_id(self, api_client, admin_user):
+    def test_filter_by_invalid_block_id(self, guest_client, admin_user):
         """Try to filter by invalid block_id."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/smart-block-criteria?block=invalid")
+        response = guest_client.get("/api/v2/smart-block-criteria?block=invalid")
 
         if response.status_code == 500:
             pytest.fail("BUG: Filter crashes on invalid block_id (500 error)")
         assert response.status_code in [200, 400]
 
-    def test_filter_by_sql_injection(self, api_client, admin_user):
+    def test_filter_by_sql_injection(self, guest_client, admin_user):
         """Try SQL injection in block filter."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         sqli_payloads = [
             "1' OR '1'='1",
@@ -38,31 +38,31 @@ class TestSmartBlockCriteriaFilterInjection:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/smart-block-criteria?block={payload}",
             )
 
             if response.status_code == 500:
                 pytest.fail(f"BUG: SQL injection causes 500: {payload}")
 
-    def test_filter_by_negative_block_id(self, api_client, admin_user):
+    def test_filter_by_negative_block_id(self, guest_client, admin_user):
         """Try to filter by negative block_id."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/smart-block-criteria?block=-1")
+        response = guest_client.get("/api/v2/smart-block-criteria?block=-1")
         assert response.status_code in [200, 400]
 
-    def test_filter_by_float_block_id(self, api_client, admin_user):
+    def test_filter_by_float_block_id(self, guest_client, admin_user):
         """Try to filter by float block_id."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/smart-block-criteria?block=1.5")
+        response = guest_client.get("/api/v2/smart-block-criteria?block=1.5")
         assert response.status_code in [200, 400]
 
     @pytest.mark.xfail(reason="Anonymous filter allowed")
-    def test_filter_without_auth(self, api_client):
+    def test_filter_without_auth(self, guest_client):
         """Try to filter without authentication."""
-        response = api_client.get("/api/v2/smart-block-criteria?block=1")
+        response = guest_client.get("/api/v2/smart-block-criteria?block=1")
 
         if response.status_code == 200:
             pytest.fail("BUG: Anonymous can filter smart block criteria")
@@ -75,7 +75,7 @@ class TestSmartBlockCriteriaBOLA:
     @pytest.mark.xfail(reason="BOLA: LIST does not filter by owner")
     def test_list_shows_only_own_criteria(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -107,8 +107,8 @@ class TestSmartBlockCriteriaBOLA:
             value="User",
         )
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get("/api/v2/smart-block-criteria")
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.get("/api/v2/smart-block-criteria")
 
         assert response.status_code == 200
         data = response.json()
@@ -124,7 +124,7 @@ class TestSmartBlockCriteriaBOLA:
     @pytest.mark.xfail(reason="BOLA: Can access other user's criteria")
     def test_access_other_user_criteria(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -142,8 +142,8 @@ class TestSmartBlockCriteriaBOLA:
             value="Admin",
         )
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get(
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.get(
             f"/api/v2/smart-block-criteria/{criteria.id}",
         )
 
@@ -155,7 +155,7 @@ class TestSmartBlockCriteriaBOLA:
     @pytest.mark.xfail(reason="BOLA: Can update other user's criteria")
     def test_update_other_user_criteria(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -173,8 +173,8 @@ class TestSmartBlockCriteriaBOLA:
             value="Admin",
         )
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.patch(
             f"/api/v2/smart-block-criteria/{criteria.id}",
             {"value": "Hacked"},
             format="json",
@@ -188,7 +188,7 @@ class TestSmartBlockCriteriaBOLA:
     @pytest.mark.xfail(reason="BOLA: Can delete other user's criteria")
     def test_delete_other_user_criteria(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -206,8 +206,8 @@ class TestSmartBlockCriteriaBOLA:
             value="Admin",
         )
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.delete(
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.delete(
             f"/api/v2/smart-block-criteria/{criteria.id}",
         )
 
@@ -218,7 +218,7 @@ class TestSmartBlockCriteriaBOLA:
 
     def test_filter_shows_only_own_by_block(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -249,8 +249,8 @@ class TestSmartBlockCriteriaBOLA:
             value="User",
         )
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get(
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.get(
             f"/api/v2/smart-block-criteria?block={user_block.id}",
         )
 
@@ -270,7 +270,7 @@ class TestSmartBlockCriteriaBOLA:
 class TestSmartBlockCriteriaMassAssignment:
     """Mass assignment attacks."""
 
-    def test_create_with_id_field(self, api_client, admin_user):
+    def test_create_with_id_field(self, guest_client, admin_user):
         """Try to set id field during creation."""
         block = baker.make(
             "schedule.SmartBlock",
@@ -278,8 +278,8 @@ class TestSmartBlockCriteriaMassAssignment:
             kind="dynamic",
         )
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/smart-block-criteria",
             {
                 "id": 99999,
@@ -297,7 +297,7 @@ class TestSmartBlockCriteriaMassAssignment:
                 pytest.fail("BUG: Can set id field")
 
     @pytest.mark.xfail(reason="Mass assignment: Can transfer criteria to another block")
-    def test_update_block_field(self, api_client, admin_user, regular_user):
+    def test_update_block_field(self, guest_client, admin_user, regular_user):
         """Try to change block via PATCH."""
         block1 = baker.make(
             "schedule.SmartBlock",
@@ -317,8 +317,8 @@ class TestSmartBlockCriteriaMassAssignment:
             value="Test",
         )
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.patch(
             f"/api/v2/smart-block-criteria/{criteria.id}",
             {"block": block2.id},
             format="json",
@@ -334,9 +334,9 @@ class TestSmartBlockCriteriaMassAssignment:
 class TestSmartBlockCriteriaBusinessLogic:
     """Business logic bypasses."""
 
-    def test_create_without_auth(self, api_client):
+    def test_create_without_auth(self, guest_client):
         """Try to create without authentication."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-block-criteria",
             {
                 "group": 1,
@@ -349,10 +349,10 @@ class TestSmartBlockCriteriaBusinessLogic:
         if response.status_code == 201:
             pytest.fail("CRITICAL BUG: Anonymous can create criteria")
 
-    def test_create_with_nonexistent_block(self, api_client, admin_user):
+    def test_create_with_nonexistent_block(self, guest_client, admin_user):
         """Try to create with non-existent block."""
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/smart-block-criteria",
             {
                 "block": 99999,
@@ -366,7 +366,7 @@ class TestSmartBlockCriteriaBusinessLogic:
         if response.status_code == 201:
             pytest.fail("BUG: Accepts non-existent block_id")
 
-    def test_create_criteria_for_static_block(self, api_client, admin_user):
+    def test_create_criteria_for_static_block(self, guest_client, admin_user):
         """Try to create criteria for static block (should be dynamic only)."""
         block = baker.make(
             "schedule.SmartBlock",
@@ -374,8 +374,8 @@ class TestSmartBlockCriteriaBusinessLogic:
             kind="static",
         )
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/smart-block-criteria",
             {
                 "block": block.id,

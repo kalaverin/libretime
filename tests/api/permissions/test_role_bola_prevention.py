@@ -382,7 +382,7 @@ class TestBolaWebstreamPrevention:
 class TestBolaCrossRoleSummary:
     """Summary tests showing BOLA prevention across all roles."""
 
-    def test_cross_role_playlist_modification_matrix(self, api_client, faker):
+    def test_cross_role_playlist_modification_matrix(self, guest_client, faker):
         """Complete matrix: which roles can modify which user's playlist."""
         # Create users of each role
         host1 = baker.make(
@@ -407,44 +407,44 @@ class TestBolaCrossRoleSummary:
         results = {}
 
         # Test HOST1 (owner) - should succeed
-        api_client.force_authenticate(user=host1)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=host1)
+        response = guest_client.patch(
             f"/api/v2/playlists/{playlist_id}",
             {"name": "Updated"},
             format="json",
         )
         results["owner_host"] = response.status_code
-        api_client.logout()
+        guest_client.logout()
 
         # Test HOST2 (other host) - should fail (BOLA prevention)
-        api_client.force_authenticate(user=host2)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=host2)
+        response = guest_client.patch(
             f"/api/v2/playlists/{playlist_id}",
             {"name": "Hacked"},
             format="json",
         )
         results["other_host"] = response.status_code
-        api_client.logout()
+        guest_client.logout()
 
         # Test MANAGER - should succeed
-        api_client.force_authenticate(user=manager)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=manager)
+        response = guest_client.patch(
             f"/api/v2/playlists/{playlist_id}",
             {"name": "Manager Updated"},
             format="json",
         )
         results["manager"] = response.status_code
-        api_client.logout()
+        guest_client.logout()
 
         # Test ADMIN - should succeed
-        api_client.force_authenticate(user=admin)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin)
+        response = guest_client.patch(
             f"/api/v2/playlists/{playlist_id}",
             {"name": "Admin Updated"},
             format="json",
         )
         results["admin"] = response.status_code
-        api_client.logout()
+        guest_client.logout()
 
         # Assert expected results
         assert (

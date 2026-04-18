@@ -76,7 +76,7 @@ class TestScheduleCreateRedTeam:
     @pytest.mark.xfail(
         reason="T576: BOLA - Can create schedule for other user's show",
     )
-    def test_bola_create_schedule_for_other_user_show(self, api_client, faker):
+    def test_bola_create_schedule_for_other_user_show(self, guest_client, faker):
         """BOLA: Can create schedule entry in another user's show instance."""
         victim = baker.make(
             User,
@@ -95,7 +95,7 @@ class TestScheduleCreateRedTeam:
 
         # Attacker tries to create schedule in victim's show
         data = self._get_schedule_data(victim_instance, file_obj=attacker_file)
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(data),
             content_type="application/json",
@@ -110,7 +110,7 @@ class TestScheduleCreateRedTeam:
     )
     def test_bola_create_schedule_with_other_user_file(
         self,
-        api_client,
+        guest_client,
         faker,
     ):
         """BOLA: Can create schedule using another user's file without permission."""
@@ -131,7 +131,7 @@ class TestScheduleCreateRedTeam:
 
         # Attacker tries to use victim's file
         data = self._get_schedule_data(instance, file_obj=victim_file)
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(data),
             content_type="application/json",
@@ -146,7 +146,7 @@ class TestScheduleCreateRedTeam:
     )
     def test_bola_create_schedule_with_other_user_stream(
         self,
-        api_client,
+        guest_client,
         faker,
     ):
         """BOLA: Can create schedule using another user's webstream."""
@@ -167,7 +167,7 @@ class TestScheduleCreateRedTeam:
 
         # Attacker tries to use victim's stream
         data = self._get_schedule_data(instance, stream=victim_stream)
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(data),
             content_type="application/json",
@@ -181,7 +181,7 @@ class TestScheduleCreateRedTeam:
     # API3:2023 - BOPLA (Broken Object Property Level Authorization)
     # ========================================================================
 
-    def test_bopla_mass_assignment_id(self, api_client, faker):
+    def test_bopla_mass_assignment_id(self, guest_client, faker):
         """BOPLA: Check if custom ID can be set during CREATE."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -196,7 +196,7 @@ class TestScheduleCreateRedTeam:
         fake_id = faker.random_int(min=100000, max=999999)
         data = self._get_schedule_data(instance, file_obj=file_obj, id=fake_id)
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(data),
             content_type="application/json",
@@ -209,7 +209,7 @@ class TestScheduleCreateRedTeam:
                     f"BOPLA: Can set custom ID during CREATE (id={fake_id})",
                 )
 
-    def test_bopla_mass_assignment_readonly(self, api_client, faker):
+    def test_bopla_mass_assignment_readonly(self, guest_client, faker):
         """BOPLA: Check if read-only fields can be mass assigned."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -227,7 +227,7 @@ class TestScheduleCreateRedTeam:
             position_status=999,  # Should not be writable
         )
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(data),
             content_type="application/json",
@@ -245,7 +245,7 @@ class TestScheduleCreateRedTeam:
     @pytest.mark.xfail(
         reason="T581: Business Logic - No schedule overlap validation",
     )
-    def test_business_logic_schedule_overlap(self, api_client, faker):
+    def test_business_logic_schedule_overlap(self, guest_client, faker):
         """Logic: Can create overlapping schedule entries."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -266,7 +266,7 @@ class TestScheduleCreateRedTeam:
             starts_at=format_datetime(base_time),
             ends_at=format_datetime(base_time + timedelta(minutes=5)),
         )
-        api_client.post(
+        guest_client.post(
             "/api/v2/schedule",
             json.dumps(data1),
             content_type="application/json",
@@ -282,7 +282,7 @@ class TestScheduleCreateRedTeam:
             ends_at=format_datetime(base_time + timedelta(minutes=7)),
             position=2,
         )
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(data2),
             content_type="application/json",
@@ -295,7 +295,7 @@ class TestScheduleCreateRedTeam:
     @pytest.mark.xfail(
         reason="T582: Business Logic - No show time boundary validation",
     )
-    def test_business_logic_outside_show_time(self, api_client, faker):
+    def test_business_logic_outside_show_time(self, guest_client, faker):
         """Logic: Can create schedule outside show time boundaries."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -325,7 +325,7 @@ class TestScheduleCreateRedTeam:
             ),  # Outside show time
             ends_at=format_datetime(base_time + timedelta(hours=2, minutes=5)),
         )
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(data),
             content_type="application/json",
@@ -343,7 +343,7 @@ class TestScheduleCreateRedTeam:
     )
     def test_ssrf_create_schedule_with_internal_stream(
         self,
-        api_client,
+        guest_client,
         faker,
     ):
         """SSRF: Can create schedule with internal stream URL."""
@@ -360,7 +360,7 @@ class TestScheduleCreateRedTeam:
         )
 
         data = self._get_schedule_data(instance, stream=internal_stream)
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(data),
             content_type="application/json",
@@ -386,7 +386,7 @@ class TestScheduleCreateRedTeam:
         """T584: Auth: Invalid token should be rejected with 403.
 
         FIXED: Use credentials() to properly override auth.
-        defaults[] does NOT override credentials() set in api_client fixture.
+        defaults[] does NOT override credentials() set in guest_client fixture.
         """
         from rest_framework.test import APIClient
 
@@ -407,7 +407,7 @@ class TestScheduleCreateRedTeam:
     # Injection Attacks
     # ========================================================================
 
-    def test_sqli_in_create_fields(self, api_client, faker):
+    def test_sqli_in_create_fields(self, guest_client, faker):
         """Injection: SQLi in CREATE fields."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -430,7 +430,7 @@ class TestScheduleCreateRedTeam:
                 file_obj=file_obj,
                 cue_in=payload,
             )
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/schedule",
                 json.dumps(data),
                 content_type="application/json",
@@ -438,7 +438,7 @@ class TestScheduleCreateRedTeam:
             if response.status_code == 500:
                 pytest.fail(f"SQLi in cue_in: '{payload}' caused 500")
 
-    def test_nosql_injection_in_create(self, api_client, faker):
+    def test_nosql_injection_in_create(self, guest_client, faker):
         """Injection: NoSQL operators in CREATE fields."""
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
@@ -455,7 +455,7 @@ class TestScheduleCreateRedTeam:
             "position": 1,
             "broadcasted": 1,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(data),
             content_type="application/json",
@@ -471,7 +471,7 @@ class TestScheduleCreateRedTeam:
     # Input Validation
     # ========================================================================
 
-    def test_unicode_in_create_fields(self, api_client, faker):
+    def test_unicode_in_create_fields(self, guest_client, faker):
         """Validation: Unicode in CREATE fields."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -488,7 +488,7 @@ class TestScheduleCreateRedTeam:
             file_obj=file_obj,
             cue_in="日本語",
         )
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(data),
             content_type="application/json",
@@ -500,7 +500,7 @@ class TestScheduleCreateRedTeam:
             400,
         ], f"Unicode caused unexpected {response.status_code}"
 
-    def test_negative_position(self, api_client, faker):
+    def test_negative_position(self, guest_client, faker):
         """Validation: Negative position values."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -517,7 +517,7 @@ class TestScheduleCreateRedTeam:
             file_obj=file_obj,
             position=-999,
         )
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(data),
             content_type="application/json",
@@ -528,7 +528,7 @@ class TestScheduleCreateRedTeam:
             400,
         ], f"Negative position returned {response.status_code}"
 
-    def test_invalid_date_formats(self, api_client, faker):
+    def test_invalid_date_formats(self, guest_client, faker):
         """Validation: Invalid date formats."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -552,7 +552,7 @@ class TestScheduleCreateRedTeam:
                 file_obj=file_obj,
                 starts_at=date_str,
             )
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/schedule",
                 json.dumps(data),
                 content_type="application/json",
@@ -566,7 +566,7 @@ class TestScheduleCreateRedTeam:
     # Information Disclosure
     # ========================================================================
 
-    def test_create_error_reveals_field_info(self, api_client, faker):
+    def test_create_error_reveals_field_info(self, guest_client, faker):
         """Info Leak: Check if CREATE errors reveal field information."""
         show = baker.make(Show, name=faker.catch_phrase())
         base_time = now() + timedelta(hours=1)
@@ -581,7 +581,7 @@ class TestScheduleCreateRedTeam:
             "position": 1,
             "broadcasted": 1,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(data),
             content_type="application/json",
@@ -597,7 +597,7 @@ class TestScheduleCreateRedTeam:
     @pytest.mark.xfail(
         reason="T586: Race condition - concurrent CREATE same slot",
     )
-    def test_race_condition_concurrent_create(self, api_client, faker):
+    def test_race_condition_concurrent_create(self, guest_client, faker):
         """Race: Concurrent CREATE for same time slot."""
         import concurrent.futures
 
@@ -613,7 +613,7 @@ class TestScheduleCreateRedTeam:
 
         def create_schedule():
             data = self._get_schedule_data(instance, file_obj=file_obj)
-            return api_client.post(
+            return guest_client.post(
                 "/api/v2/schedule",
                 json.dumps(data),
                 content_type="application/json",

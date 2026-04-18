@@ -25,12 +25,12 @@ class TestScheduleViewSetList:
         Show.objects.all().delete()
         User.objects.filter(username__startswith="testsched").delete()
 
-    def test_list_empty_returns_200(self, api_client):
-        response = api_client.get("/api/v2/schedule")
+    def test_list_empty_returns_200(self, guest_client):
+        response = guest_client.get("/api/v2/schedule")
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_list_single_file_schedule(self, api_client):
+    def test_list_single_file_schedule(self, guest_client):
         user = baker.make(User, username="testsched_user")
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
@@ -52,14 +52,14 @@ class TestScheduleViewSetList:
             position=1,
             broadcasted=1,
         )
-        response = api_client.get("/api/v2/schedule")
+        response = guest_client.get("/api/v2/schedule")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
         assert data[0]["file"] == file_obj.id
         assert data[0]["instance"] == instance.id
 
-    def test_list_single_stream_schedule(self, api_client):
+    def test_list_single_stream_schedule(self, guest_client):
         user = baker.make(User, username="testsched_user")
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
@@ -82,14 +82,14 @@ class TestScheduleViewSetList:
             position=1,
             broadcasted=1,
         )
-        response = api_client.get("/api/v2/schedule")
+        response = guest_client.get("/api/v2/schedule")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
         assert data[0]["stream"] == stream.id
         assert data[0]["file"] is None
 
-    def test_list_returns_computed_cue_out(self, api_client):
+    def test_list_returns_computed_cue_out(self, guest_client):
         user = baker.make(User, username="testsched_user")
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
@@ -111,11 +111,11 @@ class TestScheduleViewSetList:
             position=1,
             broadcasted=1,
         )
-        response = api_client.get("/api/v2/schedule")
+        response = guest_client.get("/api/v2/schedule")
         assert response.status_code == 200
         assert "cue_out" in response.json()[0]
 
-    def test_list_returns_computed_ends_at(self, api_client):
+    def test_list_returns_computed_ends_at(self, guest_client):
         user = baker.make(User, username="testsched_user")
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
@@ -137,11 +137,11 @@ class TestScheduleViewSetList:
             position=1,
             broadcasted=1,
         )
-        response = api_client.get("/api/v2/schedule")
+        response = guest_client.get("/api/v2/schedule")
         assert response.status_code == 200
         assert "ends_at" in response.json()[0]
 
-    def test_list_filter_by_instance(self, api_client):
+    def test_list_filter_by_instance(self, guest_client):
         user = baker.make(User, username="testsched_user")
         show = baker.make(Show, name="Test Show")
         instance1 = baker.make(ShowInstance, show=show)
@@ -181,13 +181,13 @@ class TestScheduleViewSetList:
             position=1,
             broadcasted=1,
         )
-        response = api_client.get(f"/api/v2/schedule?instance={instance1.id}")
+        response = guest_client.get(f"/api/v2/schedule?instance={instance1.id}")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
         assert data[0]["instance"] == instance1.id
 
-    def test_list_filter_starts_after(self, api_client):
+    def test_list_filter_starts_after(self, guest_client):
         user = baker.make(User, username="testsched_user")
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
@@ -209,13 +209,13 @@ class TestScheduleViewSetList:
             position=1,
             broadcasted=1,
         )
-        response = api_client.get(
+        response = guest_client.get(
             f"/api/v2/schedule?starts_after={format_datetime(start_time - timedelta(hours=1))}",
         )
         assert response.status_code == 200
         assert len(response.json()) == 1
 
-    def test_list_filter_starts_before(self, api_client):
+    def test_list_filter_starts_before(self, guest_client):
         user = baker.make(User, username="testsched_user")
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
@@ -237,13 +237,13 @@ class TestScheduleViewSetList:
             position=1,
             broadcasted=1,
         )
-        response = api_client.get(
+        response = guest_client.get(
             f"/api/v2/schedule?starts_before={format_datetime(start_time + timedelta(hours=1))}",
         )
         assert response.status_code == 200
         assert len(response.json()) == 1
 
-    def test_list_filter_overbooked(self, api_client):
+    def test_list_filter_overbooked(self, guest_client):
         user = baker.make(User, username="testsched_user")
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
@@ -265,7 +265,7 @@ class TestScheduleViewSetList:
             position=1,
             broadcasted=1,
         )
-        response = api_client.get("/api/v2/schedule?overbooked=false")
+        response = guest_client.get("/api/v2/schedule?overbooked=false")
         assert response.status_code == 200
 
     def test_list_no_auth_fails(self, client):

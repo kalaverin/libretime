@@ -35,7 +35,7 @@ class TestSmartBlockCriteriaDeleteRedTeam:
     @pytest.mark.xfail(
         reason="T512: BOLA - DELETE other user's criteria returns wrong status",
     )
-    def test_bola_delete_other_users_criteria_status(self, api_client):
+    def test_bola_delete_other_users_criteria_status(self, guest_client):
         """BOLA: DELETE of other's criteria should return 403 not 404."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -54,7 +54,7 @@ class TestSmartBlockCriteriaDeleteRedTeam:
             value="Victim Genre",
         )
 
-        response = api_client.delete(
+        response = guest_client.delete(
             f"/api/v2/smart-block-criteria/{victim_criteria.id}",
         )
         # 403 = permission denied (correct), 404 = not found (leaks existence)
@@ -65,7 +65,7 @@ class TestSmartBlockCriteriaDeleteRedTeam:
     @pytest.mark.xfail(
         reason="T513: BOLA - Batch delete may affect other users' criteria",
     )
-    def test_bola_batch_delete_scope(self, api_client):
+    def test_bola_batch_delete_scope(self, guest_client):
         """BOLA: Ensure delete only affects single criteria, not all of user's."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -91,7 +91,7 @@ class TestSmartBlockCriteriaDeleteRedTeam:
         initial_count = SmartBlockCriteria.objects.count()
 
         # Attacker tries various delete patterns
-        response = api_client.delete(
+        response = guest_client.delete(
             f"/api/v2/smart-block-criteria/{victim_criteria_list[0].id}",
         )
 
@@ -106,7 +106,7 @@ class TestSmartBlockCriteriaDeleteRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T514: Error message leaks criteria existence")
-    def test_error_message_leaks_existence(self, api_client):
+    def test_error_message_leaks_existence(self, guest_client):
         """Info Leak: Error messages reveal if criteria exists."""
         victim = baker.make(User, username="testred_victim")
         victim_block = baker.make(
@@ -124,10 +124,10 @@ class TestSmartBlockCriteriaDeleteRedTeam:
         )
 
         # Try to delete existing vs non-existing
-        response_existing = api_client.delete(
+        response_existing = guest_client.delete(
             f"/api/v2/smart-block-criteria/{victim_criteria.id}",
         )
-        response_nonexistent = api_client.delete(
+        response_nonexistent = guest_client.delete(
             "/api/v2/smart-block-criteria/999999",
         )
 
@@ -142,7 +142,7 @@ class TestSmartBlockCriteriaDeleteRedTeam:
     # ID Enumeration Attacks
     # ========================================================================
 
-    def test_id_enumeration_timing_attack(self, api_client):
+    def test_id_enumeration_timing_attack(self, guest_client):
         """Security: Timing difference between existing and non-existing IDs."""
         import time
 
@@ -163,12 +163,12 @@ class TestSmartBlockCriteriaDeleteRedTeam:
 
         # Time delete for existing ID
         start = time.time()
-        api_client.delete(f"/api/v2/smart-block-criteria/{criteria.id}")
+        guest_client.delete(f"/api/v2/smart-block-criteria/{criteria.id}")
         time_existing = time.time() - start
 
         # Time delete for non-existing ID
         start = time.time()
-        api_client.delete("/api/v2/smart-block-criteria/999999")
+        guest_client.delete("/api/v2/smart-block-criteria/999999")
         time_nonexistent = time.time() - start
 
         # Times should be similar (within 3x factor)
@@ -183,7 +183,7 @@ class TestSmartBlockCriteriaDeleteRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T515: Race condition in concurrent delete")
-    def test_race_condition_concurrent_delete(self, api_client):
+    def test_race_condition_concurrent_delete(self, guest_client):
         """Race: Concurrent delete of same criteria."""
         import concurrent.futures
 
@@ -203,7 +203,7 @@ class TestSmartBlockCriteriaDeleteRedTeam:
         )
 
         def delete_criteria():
-            return api_client.delete(
+            return guest_client.delete(
                 f"/api/v2/smart-block-criteria/{criteria.id}",
             ).status_code
 
@@ -229,7 +229,7 @@ class TestSmartBlockCriteriaDeleteRedTeam:
     # Mass Deletion Attack
     # ========================================================================
 
-    def test_mass_deletion_rate_limit(self, api_client):
+    def test_mass_deletion_rate_limit(self, guest_client):
         """Security: Rate limiting on delete operations."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -254,7 +254,7 @@ class TestSmartBlockCriteriaDeleteRedTeam:
         # Rapid sequential deletes
         delete_count = 0
         for criteria in criteria_list:
-            response = api_client.delete(
+            response = guest_client.delete(
                 f"/api/v2/smart-block-criteria/{criteria.id}",
             )
             if response.status_code == 204:
@@ -270,7 +270,7 @@ class TestSmartBlockCriteriaDeleteRedTeam:
     # Injection in DELETE (path parameter)
     # ========================================================================
 
-    def test_sqli_in_delete_id(self, api_client):
+    def test_sqli_in_delete_id(self, guest_client):
         """Injection: SQLi in DELETE id path parameter."""
         sqli_payloads = [
             "1 OR 1=1",
@@ -280,7 +280,7 @@ class TestSmartBlockCriteriaDeleteRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.delete(
+            response = guest_client.delete(
                 f"/api/v2/smart-block-criteria/{payload}",
             )
             # Should return 404, never 500
@@ -289,7 +289,7 @@ class TestSmartBlockCriteriaDeleteRedTeam:
                 404,
             ], f"SQLi '{payload}' caused {response.status_code}"
 
-    def test_path_traversal_in_delete_id(self, api_client):
+    def test_path_traversal_in_delete_id(self, guest_client):
         """Injection: Path traversal in DELETE id."""
         traversal_payloads = [
             "../../../etc/passwd",
@@ -298,7 +298,7 @@ class TestSmartBlockCriteriaDeleteRedTeam:
         ]
 
         for payload in traversal_payloads:
-            response = api_client.delete(
+            response = guest_client.delete(
                 f"/api/v2/smart-block-criteria/{payload}",
             )
             assert response.status_code in [
@@ -313,7 +313,7 @@ class TestSmartBlockCriteriaDeleteRedTeam:
     @pytest.mark.xfail(
         reason="T516: Block without criteria behavior undefined",
     )
-    def test_delete_all_criteria_from_block(self, api_client):
+    def test_delete_all_criteria_from_block(self, guest_client):
         """Logic: Block with no criteria should still be valid."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -332,7 +332,7 @@ class TestSmartBlockCriteriaDeleteRedTeam:
             value="Jazz",
         )
 
-        response = api_client.delete(
+        response = guest_client.delete(
             f"/api/v2/smart-block-criteria/{criteria.id}",
         )
         assert response.status_code == 204
@@ -355,7 +355,7 @@ class TestSmartBlockCriteriaDeleteRedTeam:
         """Auth: DELETE with invalid token should return 403.
 
         FIXED: Use credentials() to properly override auth.
-        defaults[] does NOT override credentials() set in api_client fixture.
+        defaults[] does NOT override credentials() set in guest_client fixture.
         """
         from rest_framework.test import APIClient
 
@@ -371,17 +371,17 @@ class TestSmartBlockCriteriaDeleteRedTeam:
     # Unicode and Encoding
     # ========================================================================
 
-    def test_delete_unicode_id(self, api_client):
+    def test_delete_unicode_id(self, guest_client):
         """Validation: Unicode in ID handled gracefully."""
-        response = api_client.delete("/api/v2/smart-block-criteria/日本語")
+        response = guest_client.delete("/api/v2/smart-block-criteria/日本語")
         assert response.status_code in [
             400,
             404,
         ], f"Unicode ID caused {response.status_code}"
 
-    def test_delete_null_bytes(self, api_client):
+    def test_delete_null_bytes(self, guest_client):
         """Validation: Null bytes in ID handled gracefully."""
-        response = api_client.delete("/api/v2/smart-block-criteria/1%00test")
+        response = guest_client.delete("/api/v2/smart-block-criteria/1%00test")
         assert response.status_code in [
             400,
             404,

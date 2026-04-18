@@ -55,11 +55,11 @@ class TestWebstreamViewSetCreate:
         assert response.status_code == 201
         assert response.json()["mime"] == "audio/mpeg"
 
-    def test_create_missing_name_fails(self, api_client):
+    def test_create_missing_name_fails(self, guest_client):
         """CREATE without name should return 400."""
         user = baker.make(User, username="testws_user")
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/webstreams",
             json.dumps(
                 {
@@ -70,11 +70,11 @@ class TestWebstreamViewSetCreate:
         )
         assert response.status_code == 400
 
-    def test_create_missing_url_fails(self, api_client):
+    def test_create_missing_url_fails(self, guest_client):
         """CREATE without URL should return 400."""
         user = baker.make(User, username="testws_user")
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/webstreams",
             json.dumps(
                 {
@@ -85,11 +85,11 @@ class TestWebstreamViewSetCreate:
         )
         assert response.status_code == 400
 
-    def test_create_invalid_url_fails(self, api_client):
+    def test_create_invalid_url_fails(self, guest_client):
         """CREATE with invalid URL should return 400."""
         user = baker.make(User, username="testws_user")
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/webstreams",
             json.dumps(
                 {
@@ -131,12 +131,12 @@ class TestWebstreamViewSetCreate:
     @pytest.mark.xfail(
         reason="T333: serializer requires created_at, updated_at, length which should be optional",
     )
-    def test_create_long_url(self, api_client):
+    def test_create_long_url(self, guest_client):
         """CREATE with long URL should succeed."""
         user = baker.make(User, username="testws_user")
         long_url = "http://example.com/" + "a" * 400
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/webstreams",
             json.dumps(
                 {
@@ -152,11 +152,11 @@ class TestWebstreamViewSetCreate:
     @pytest.mark.xfail(
         reason="T333: serializer requires created_at, updated_at, length which should be optional",
     )
-    def test_create_ftp_url(self, api_client):
+    def test_create_ftp_url(self, guest_client):
         """CREATE with FTP URL should succeed."""
         user = baker.make(User, username="testws_user")
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/webstreams",
             json.dumps(
                 {

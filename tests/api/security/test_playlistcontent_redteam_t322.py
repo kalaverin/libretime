@@ -18,11 +18,11 @@ class TestPlaylistContentFilterInjection:
     """Filter parameter injection attacks."""
 
     @pytest.mark.xfail(reason="500 error on invalid playlist_id filter")
-    def test_filter_by_invalid_playlist_id(self, api_client, admin_user):
+    def test_filter_by_invalid_playlist_id(self, guest_client, admin_user):
         """Try to filter by invalid playlist_id - should not crash."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/playlist-contents?playlist=invalid")
+        response = guest_client.get("/api/v2/playlist-contents?playlist=invalid")
 
         # Should return 400, not 500
         if response.status_code == 500:
@@ -32,9 +32,9 @@ class TestPlaylistContentFilterInjection:
         assert response.status_code in [200, 400]
 
     @pytest.mark.xfail(reason="500 error on SQLi in playlist filter")
-    def test_filter_by_sql_injection(self, api_client, admin_user):
+    def test_filter_by_sql_injection(self, guest_client, admin_user):
         """Try SQL injection in playlist filter."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         sqli_payloads = [
             "1' OR '1'='1",
@@ -44,7 +44,7 @@ class TestPlaylistContentFilterInjection:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/playlist-contents?playlist={payload}",
             )
 
@@ -57,49 +57,49 @@ class TestPlaylistContentFilterInjection:
                 # If we get results, check if it's suspiciously large
                 # (indicating potential data leak)
 
-    def test_filter_by_negative_playlist_id(self, api_client, admin_user):
+    def test_filter_by_negative_playlist_id(self, guest_client, admin_user):
         """Try to filter by negative playlist_id."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/playlist-contents?playlist=-1")
+        response = guest_client.get("/api/v2/playlist-contents?playlist=-1")
 
         # Should handle gracefully
         assert response.status_code in [200, 400]
 
-    def test_filter_by_zero_playlist_id(self, api_client, admin_user):
+    def test_filter_by_zero_playlist_id(self, guest_client, admin_user):
         """Try to filter by zero playlist_id."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/playlist-contents?playlist=0")
+        response = guest_client.get("/api/v2/playlist-contents?playlist=0")
 
         assert response.status_code in [200, 400]
 
-    def test_filter_by_very_large_playlist_id(self, api_client, admin_user):
+    def test_filter_by_very_large_playlist_id(self, guest_client, admin_user):
         """Try to filter by very large playlist_id."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/playlist-contents?playlist=999999999999999999",
         )
 
         assert response.status_code in [200, 400]
 
     @pytest.mark.xfail(reason="500 error on float playlist_id filter")
-    def test_filter_by_float_playlist_id(self, api_client, admin_user):
+    def test_filter_by_float_playlist_id(self, guest_client, admin_user):
         """Try to filter by float playlist_id."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/playlist-contents?playlist=1.5")
+        response = guest_client.get("/api/v2/playlist-contents?playlist=1.5")
 
         # Should handle gracefully
         assert response.status_code in [200, 400]
 
     @pytest.mark.xfail(reason="500 error on hex playlist_id filter")
-    def test_filter_by_hex_playlist_id(self, api_client, admin_user):
+    def test_filter_by_hex_playlist_id(self, guest_client, admin_user):
         """Try to filter by hex playlist_id."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/playlist-contents?playlist=0x1")
+        response = guest_client.get("/api/v2/playlist-contents?playlist=0x1")
 
         assert response.status_code in [200, 400]
 
@@ -115,20 +115,20 @@ class TestPlaylistContentFilterInjection:
 class TestPlaylistContentOrderingManipulation:
     """Ordering parameter manipulation attacks."""
 
-    def test_order_by_invalid_field(self, api_client, admin_user):
+    def test_order_by_invalid_field(self, guest_client, admin_user):
         """Try to order by non-existent field."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/playlist-contents?ordering=nonexistent_field",
         )
 
         # Should reject invalid field
         assert response.status_code in [200, 400]
 
-    def test_order_by_sql_injection(self, api_client, admin_user):
+    def test_order_by_sql_injection(self, guest_client, admin_user):
         """Try SQL injection in ordering parameter."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         sqli_payloads = [
             "position; DROP TABLE cc_playlistcontents;--",
@@ -137,16 +137,16 @@ class TestPlaylistContentOrderingManipulation:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/playlist-contents?ordering={payload}",
             )
 
             if response.status_code == 500:
                 pytest.fail(f"BUG: Ordering SQLi causes 500: {payload}")
 
-    def test_order_by_private_field(self, api_client, admin_user):
+    def test_order_by_private_field(self, guest_client, admin_user):
         """Try to order by internal/private fields."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         internal_fields = [
             "id",
@@ -156,7 +156,7 @@ class TestPlaylistContentOrderingManipulation:
         ]
 
         for field in internal_fields:
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/playlist-contents?ordering={field}",
             )
 
@@ -164,7 +164,7 @@ class TestPlaylistContentOrderingManipulation:
             if response.status_code == 500:
                 pytest.fail(f"BUG: Ordering by {field} causes 500 error")
 
-    def test_reverse_ordering(self, api_client, admin_user):
+    def test_reverse_ordering(self, guest_client, admin_user):
         """Test reverse ordering works correctly."""
         playlist = baker.make("schedule.Playlist", owner=admin_user)
 
@@ -180,16 +180,16 @@ class TestPlaylistContentOrderingManipulation:
                 offset=0,
             )
 
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         # Test ascending order
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/playlist-contents?ordering=position",
         )
         assert response.status_code == 200
 
         # Test descending order
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/playlist-contents?ordering=-position",
         )
         assert response.status_code == 200
@@ -205,11 +205,11 @@ class TestPlaylistContentOrderingManipulation:
 class TestPlaylistContentInformationDisclosure:
     """Information disclosure via filter/ordering."""
 
-    def test_error_message_on_invalid_filter(self, api_client, admin_user):
+    def test_error_message_on_invalid_filter(self, guest_client, admin_user):
         """Check if error messages leak implementation details."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/playlist-contents?playlist=invalid")
+        response = guest_client.get("/api/v2/playlist-contents?playlist=invalid")
 
         if response.status_code == 400:
             content = response.content.decode()
@@ -225,20 +225,20 @@ class TestPlaylistContentInformationDisclosure:
                 if term.lower() in content.lower():
                     pytest.fail(f"BUG: Error message leaks info: {term}")
 
-    def test_timing_attack_on_filter(self, api_client, admin_user):
+    def test_timing_attack_on_filter(self, guest_client, admin_user):
         """Test for timing-based information disclosure."""
         import time
 
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         # Request with valid filter
         start = time.time()
-        response1 = api_client.get("/api/v2/playlist-contents?playlist=1")
+        response1 = guest_client.get("/api/v2/playlist-contents?playlist=1")
         time_valid = time.time() - start
 
         # Request with invalid filter
         start = time.time()
-        response2 = api_client.get("/api/v2/playlist-contents?playlist=999999")
+        response2 = guest_client.get("/api/v2/playlist-contents?playlist=999999")
         time_invalid = time.time() - start
 
         # Times should be similar (no timing leak)
@@ -253,7 +253,7 @@ class TestPlaylistContentIDORWithFilter:
 
     def test_filter_by_other_user_playlist(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -269,8 +269,8 @@ class TestPlaylistContentIDORWithFilter:
             offset=0,
         )
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get(
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.get(
             f"/api/v2/playlist-contents?playlist={admin_playlist.id}",
         )
 
@@ -286,28 +286,28 @@ class TestPlaylistContentIDORWithFilter:
 class TestPlaylistContentPagination:
     """Pagination-related security tests."""
 
-    def test_large_limit_parameter(self, api_client, admin_user):
+    def test_large_limit_parameter(self, guest_client, admin_user):
         """Try to request very large number of items."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/playlist-contents?limit=999999")
+        response = guest_client.get("/api/v2/playlist-contents?limit=999999")
 
         # Should not crash or return all items
         assert response.status_code in [200, 400]
 
-    def test_negative_limit(self, api_client, admin_user):
+    def test_negative_limit(self, guest_client, admin_user):
         """Try negative limit parameter."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/playlist-contents?limit=-1")
+        response = guest_client.get("/api/v2/playlist-contents?limit=-1")
 
         assert response.status_code in [200, 400]
 
-    def test_negative_offset(self, api_client, admin_user):
+    def test_negative_offset(self, guest_client, admin_user):
         """Try negative offset parameter."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/playlist-contents?offset=-1")
+        response = guest_client.get("/api/v2/playlist-contents?offset=-1")
 
         assert response.status_code in [200, 400]
 
@@ -316,13 +316,13 @@ class TestPlaylistContentPagination:
 class TestPlaylistContentOffsetValidation:
     """T324 offset field optional - security implications."""
 
-    def test_create_without_offset_succeeds(self, api_client, admin_user):
+    def test_create_without_offset_succeeds(self, guest_client, admin_user):
         """Verify offset is truly optional."""
         playlist = baker.make("schedule.Playlist", owner=admin_user)
         file_obj = baker.make("storage.File", owner=admin_user)
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/playlist-contents",
             {
                 "playlist": playlist.id,
@@ -339,13 +339,13 @@ class TestPlaylistContentOffsetValidation:
         # Offset should have default value
         assert "offset" in data
 
-    def test_create_with_null_offset(self, api_client, admin_user):
+    def test_create_with_null_offset(self, guest_client, admin_user):
         """Try to create with explicit null offset."""
         playlist = baker.make("schedule.Playlist", owner=admin_user)
         file_obj = baker.make("storage.File", owner=admin_user)
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/playlist-contents",
             {
                 "playlist": playlist.id,
@@ -360,13 +360,13 @@ class TestPlaylistContentOffsetValidation:
         # Should handle null offset
         assert response.status_code in [201, 400]
 
-    def test_create_with_negative_offset(self, api_client, admin_user):
+    def test_create_with_negative_offset(self, guest_client, admin_user):
         """Try to create with negative offset."""
         playlist = baker.make("schedule.Playlist", owner=admin_user)
         file_obj = baker.make("storage.File", owner=admin_user)
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/playlist-contents",
             {
                 "playlist": playlist.id,
@@ -381,13 +381,13 @@ class TestPlaylistContentOffsetValidation:
         # May accept or reject - documenting behavior
         assert response.status_code in [201, 400]
 
-    def test_create_with_very_large_offset(self, api_client, admin_user):
+    def test_create_with_very_large_offset(self, guest_client, admin_user):
         """Try to create with very large offset."""
         playlist = baker.make("schedule.Playlist", owner=admin_user)
         file_obj = baker.make("storage.File", owner=admin_user)
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/playlist-contents",
             {
                 "playlist": playlist.id,

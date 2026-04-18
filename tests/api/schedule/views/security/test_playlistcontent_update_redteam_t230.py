@@ -46,7 +46,7 @@ class TestPlaylistContentUpdateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T420: BOLA - can update other's content")
-    def test_bola_update_other_users_content(self, api_client):
+    def test_bola_update_other_users_content(self, guest_client):
         """BOLA: Should not update another user's playlist content."""
         victim = baker.make(User, username="testred_victim")
         victim_playlist = baker.make(Playlist, name="Victim", owner=victim)
@@ -64,7 +64,7 @@ class TestPlaylistContentUpdateRedTeam:
             position=1,
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/playlist-contents/{content.id}",
             json.dumps({"position": 99}),
             content_type="application/json",
@@ -78,7 +78,7 @@ class TestPlaylistContentUpdateRedTeam:
     @pytest.mark.xfail(
         reason="T420: BOLA - can move content to other's playlist",
     )
-    def test_bola_move_content_to_other_playlist(self, api_client):
+    def test_bola_move_content_to_other_playlist(self, guest_client):
         """BOLA: Should not move content to another user's playlist."""
         user = baker.make(User, username="testred_user")
         victim = baker.make(User, username="testred_victim")
@@ -101,7 +101,7 @@ class TestPlaylistContentUpdateRedTeam:
         )
 
         # Try to move content to victim's playlist
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/playlist-contents/{content.id}",
             json.dumps({"playlist": victim_playlist.id}),
             content_type="application/json",
@@ -119,7 +119,7 @@ class TestPlaylistContentUpdateRedTeam:
     @pytest.mark.xfail(
         reason="T425: Mass assignment - id modification allowed",
     )
-    def test_bopla_update_id_field(self, api_client):
+    def test_bopla_update_id_field(self, guest_client):
         """BOPLA: Should not allow modifying id field."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -138,7 +138,7 @@ class TestPlaylistContentUpdateRedTeam:
         )
         original_id = content.id
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/playlist-contents/{content.id}",
             json.dumps({"id": 99999}),
             content_type="application/json",
@@ -152,7 +152,7 @@ class TestPlaylistContentUpdateRedTeam:
     # Race Conditions
     # ========================================================================
 
-    def test_race_condition_concurrent_updates(self, api_client):
+    def test_race_condition_concurrent_updates(self, guest_client):
         """Race: Concurrent updates to same content."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -171,7 +171,7 @@ class TestPlaylistContentUpdateRedTeam:
         )
 
         def update_position(pos):
-            return api_client.patch(
+            return guest_client.patch(
                 f"/api/v2/playlist-contents/{content.id}",
                 json.dumps({"position": pos}),
                 content_type="application/json",
@@ -190,7 +190,7 @@ class TestPlaylistContentUpdateRedTeam:
     # Injection
     # ========================================================================
 
-    def test_update_sql_injection_in_fields(self, api_client):
+    def test_update_sql_injection_in_fields(self, guest_client):
         """SQLi: Injection in update fields."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -215,7 +215,7 @@ class TestPlaylistContentUpdateRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.patch(
+            response = guest_client.patch(
                 f"/api/v2/playlist-contents/{content.id}",
                 json.dumps({"cue_in": payload}),
                 content_type="application/json",
@@ -230,7 +230,7 @@ class TestPlaylistContentUpdateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T423: No validation of negative position")
-    def test_update_negative_position(self, api_client):
+    def test_update_negative_position(self, guest_client):
         """Validation: Negative position should be rejected."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -248,7 +248,7 @@ class TestPlaylistContentUpdateRedTeam:
             position=1,
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/playlist-contents/{content.id}",
             json.dumps({"position": -1}),
             content_type="application/json",
@@ -258,9 +258,9 @@ class TestPlaylistContentUpdateRedTeam:
             response.status_code == 400
         ), f"Negative position accepted with {response.status_code}"
 
-    def test_update_nonexistent_content(self, api_client):
+    def test_update_nonexistent_content(self, guest_client):
         """Validation: Update non-existent content should return 404."""
-        response = api_client.patch(
+        response = guest_client.patch(
             "/api/v2/playlist-contents/999999",
             json.dumps({"position": 1}),
             content_type="application/json",
@@ -271,7 +271,7 @@ class TestPlaylistContentUpdateRedTeam:
     # Resource Consumption
     # ========================================================================
 
-    def test_update_rapid_fire(self, api_client):
+    def test_update_rapid_fire(self, guest_client):
         """Resource: Rapid updates should be rate limited."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -292,7 +292,7 @@ class TestPlaylistContentUpdateRedTeam:
         start = time.time()
         responses = []
         for i in range(20):
-            r = api_client.patch(
+            r = guest_client.patch(
                 f"/api/v2/playlist-contents/{content.id}",
                 json.dumps({"position": i}),
                 content_type="application/json",
@@ -308,7 +308,7 @@ class TestPlaylistContentUpdateRedTeam:
     # Mass Assignment
     # ========================================================================
 
-    def test_mass_assignment_readonly_fields(self, api_client):
+    def test_mass_assignment_readonly_fields(self, guest_client):
         """BOPLA: Try to update read-only/system fields."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -333,7 +333,7 @@ class TestPlaylistContentUpdateRedTeam:
         ]
 
         for fields in protected_fields:
-            response = api_client.patch(
+            response = guest_client.patch(
                 f"/api/v2/playlist-contents/{content.id}",
                 json.dumps(fields),
                 content_type="application/json",

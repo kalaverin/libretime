@@ -193,7 +193,7 @@ class TestWebstreamCreatedAtImmutability:
         reason="T354: created_at is mutable - needs serializer fix",
     )
     def test_authenticated_cannot_modify_created_at(
-        self, api_client, admin_user,
+        self, guest_client, admin_user,
     ):
         """Even admin cannot change created_at - currently FAILS (known issue)."""
         stream = baker.make(
@@ -204,10 +204,10 @@ class TestWebstreamCreatedAtImmutability:
         )
         original_created = stream.created_at
 
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         # Try to PATCH created_at
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             {"created_at": "2015-01-01T00:00:00Z"},
             format="json",

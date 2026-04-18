@@ -17,18 +17,18 @@ from model_bakery import baker
 class TestSmartBlockFilterInjection:
     """Filter parameter injection attacks."""
 
-    def test_filter_by_invalid_kind(self, api_client, admin_user):
+    def test_filter_by_invalid_kind(self, guest_client, admin_user):
         """Try to filter by invalid kind value."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/smart-blocks?kind=invalid")
+        response = guest_client.get("/api/v2/smart-blocks?kind=invalid")
 
         # Should handle gracefully
         assert response.status_code in [200, 400]
 
-    def test_filter_by_sql_injection(self, api_client, admin_user):
+    def test_filter_by_sql_injection(self, guest_client, admin_user):
         """Try SQL injection in kind filter."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         sqli_payloads = [
             "static' OR '1'='1",
@@ -37,22 +37,22 @@ class TestSmartBlockFilterInjection:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.get(f"/api/v2/smart-blocks?kind={payload}")
+            response = guest_client.get(f"/api/v2/smart-blocks?kind={payload}")
 
             if response.status_code == 500:
                 pytest.fail(f"BUG: SQL injection causes 500: {payload}")
 
-    def test_filter_by_empty_kind(self, api_client, admin_user):
+    def test_filter_by_empty_kind(self, guest_client, admin_user):
         """Try to filter by empty kind."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/smart-blocks?kind=")
+        response = guest_client.get("/api/v2/smart-blocks?kind=")
 
         assert response.status_code in [200, 400]
 
-    def test_filter_by_kind_with_special_chars(self, api_client, admin_user):
+    def test_filter_by_kind_with_special_chars(self, guest_client, admin_user):
         """Try special characters in kind filter."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         special_kinds = [
             "static<script>",
@@ -63,7 +63,7 @@ class TestSmartBlockFilterInjection:
         ]
 
         for kind in special_kinds:
-            response = api_client.get(f"/api/v2/smart-blocks?kind={kind}")
+            response = guest_client.get(f"/api/v2/smart-blocks?kind={kind}")
             assert response.status_code in [200, 400]
 
     def test_filter_without_auth(self, session_client):
@@ -79,7 +79,7 @@ class TestSmartBlockBOLA:
 
     def test_list_shows_only_own_blocks(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -99,8 +99,8 @@ class TestSmartBlockBOLA:
         )
 
         # User lists blocks
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get("/api/v2/smart-blocks")
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.get("/api/v2/smart-blocks")
 
         assert response.status_code == 200
         data = response.json()
@@ -112,7 +112,7 @@ class TestSmartBlockBOLA:
 
     def test_access_other_user_block_directly(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -125,8 +125,8 @@ class TestSmartBlockBOLA:
         )
 
         # User tries to access admin's block
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get(f"/api/v2/smart-blocks/{admin_block.id}")
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.get(f"/api/v2/smart-blocks/{admin_block.id}")
 
         if response.status_code == 200:
             pytest.fail(
@@ -135,7 +135,7 @@ class TestSmartBlockBOLA:
 
     def test_update_other_user_block(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -148,8 +148,8 @@ class TestSmartBlockBOLA:
         )
 
         # User tries to update admin's block
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.patch(
             f"/api/v2/smart-blocks/{admin_block.id}",
             {"name": "Hacked Block"},
             format="json",
@@ -162,7 +162,7 @@ class TestSmartBlockBOLA:
 
     def test_delete_other_user_block(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -175,8 +175,8 @@ class TestSmartBlockBOLA:
         )
 
         # User tries to delete admin's block
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.delete(f"/api/v2/smart-blocks/{admin_block.id}")
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.delete(f"/api/v2/smart-blocks/{admin_block.id}")
 
         if response.status_code == 204:
             pytest.fail(
@@ -186,7 +186,7 @@ class TestSmartBlockBOLA:
     @pytest.mark.xfail(reason="BOLA: LIST filter by kind does not scope to owner")
     def test_filter_shows_only_own_by_kind(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -206,8 +206,8 @@ class TestSmartBlockBOLA:
         )
 
         # User filters by kind
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get("/api/v2/smart-blocks?kind=static")
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.get("/api/v2/smart-blocks?kind=static")
 
         assert response.status_code == 200
         data = response.json()
@@ -223,10 +223,10 @@ class TestSmartBlockBOLA:
 class TestSmartBlockMassAssignment:
     """Mass assignment attacks."""
 
-    def test_create_with_id_field(self, api_client, admin_user):
+    def test_create_with_id_field(self, guest_client, admin_user):
         """Try to set id field during creation."""
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             {
                 "id": 99999,
@@ -241,7 +241,7 @@ class TestSmartBlockMassAssignment:
             if data.get("id") == 99999:
                 pytest.fail("BUG: Can set id field during creation")
 
-    def test_update_owner_field(self, api_client, admin_user, regular_user):
+    def test_update_owner_field(self, guest_client, admin_user, regular_user):
         """Try to change owner via PATCH."""
         block = baker.make(
             "schedule.SmartBlock",
@@ -250,8 +250,8 @@ class TestSmartBlockMassAssignment:
             kind="static",
         )
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             {"owner": regular_user.id},
             format="json",
@@ -262,7 +262,7 @@ class TestSmartBlockMassAssignment:
             if data.get("owner") == regular_user.id:
                 pytest.fail("BUG: Can transfer ownership via PATCH")
 
-    def test_update_created_at(self, api_client, admin_user):
+    def test_update_created_at(self, guest_client, admin_user):
         """Try to update created_at via PATCH."""
         block = baker.make(
             "schedule.SmartBlock",
@@ -271,8 +271,8 @@ class TestSmartBlockMassAssignment:
             kind="static",
         )
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             {"created_at": "2019-01-01T00:00:00Z"},
             format="json",
@@ -290,25 +290,25 @@ class TestSmartBlockMassAssignment:
 class TestSmartBlockOrderingManipulation:
     """Ordering parameter manipulation."""
 
-    def test_order_by_invalid_field(self, api_client, admin_user):
+    def test_order_by_invalid_field(self, guest_client, admin_user):
         """Try to order by non-existent field."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/smart-blocks?ordering=nonexistent")
+        response = guest_client.get("/api/v2/smart-blocks?ordering=nonexistent")
 
         assert response.status_code in [200, 400]
 
-    def test_order_by_private_field(self, api_client, admin_user):
+    def test_order_by_private_field(self, guest_client, admin_user):
         """Try to order by internal field."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/smart-blocks?ordering=owner__password",
         )
 
         assert response.status_code in [200, 400]
 
-    def test_reverse_ordering(self, api_client, admin_user):
+    def test_reverse_ordering(self, guest_client, admin_user):
         """Test reverse ordering works."""
         baker.make(
             "schedule.SmartBlock",
@@ -323,9 +323,9 @@ class TestSmartBlockOrderingManipulation:
             kind="static",
         )
 
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/smart-blocks?ordering=-name")
+        response = guest_client.get("/api/v2/smart-blocks?ordering=-name")
         assert response.status_code == 200
 
 
@@ -334,9 +334,9 @@ class TestSmartBlockBusinessLogic:
     """Business logic bypasses."""
 
     @pytest.mark.xfail(reason="Anonymous creation allowed")
-    def test_create_without_auth(self, api_client):
+    def test_create_without_auth(self, guest_client):
         """Try to create without authentication."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             {"name": "Anonymous Block", "kind": "static"},
             format="json",
@@ -345,7 +345,7 @@ class TestSmartBlockBusinessLogic:
         if response.status_code == 201:
             pytest.fail("CRITICAL BUG: Anonymous can create smart blocks")
 
-    def test_create_duplicate_name(self, api_client, admin_user):
+    def test_create_duplicate_name(self, guest_client, admin_user):
         """Try to create block with duplicate name."""
         baker.make(
             "schedule.SmartBlock",
@@ -354,8 +354,8 @@ class TestSmartBlockBusinessLogic:
             kind="static",
         )
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             {"name": "Unique Block", "kind": "static"},
             format="json",
@@ -364,10 +364,10 @@ class TestSmartBlockBusinessLogic:
         # May accept or reject - documenting behavior
         assert response.status_code in [201, 400]
 
-    def test_create_with_invalid_kind(self, api_client, admin_user):
+    def test_create_with_invalid_kind(self, guest_client, admin_user):
         """Try to create with invalid kind value."""
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             {"name": "Test Block", "kind": "invalid_kind"},
             format="json",

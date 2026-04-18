@@ -74,7 +74,7 @@ class TestBOLAListEndpoints:
     """API1:2023 - Broken Object Level Authorization on LIST endpoints."""
 
     @pytest.mark.xfail(reason="BOLA vulnerability: T874", strict=False)
-    def test_files_list_user_isolation(self, api_client, faker):
+    def test_files_list_user_isolation(self, guest_client, faker):
         """User A should NOT see User B's files in LIST response. (T874)"""
         # Create users
         user_a = baker.make(
@@ -142,7 +142,7 @@ class TestBOLAListEndpoints:
                 )
 
     @pytest.mark.xfail(reason="BOLA vulnerability: T874", strict=False)
-    def test_playlists_list_user_isolation(self, api_client, faker):
+    def test_playlists_list_user_isolation(self, guest_client, faker):
         """User A should NOT see User B's playlists. (T874)"""
         user_a = baker.make(
             User,
@@ -189,7 +189,7 @@ class TestBOLAListEndpoints:
                     f"BOLA VULNERABILITY: User A can see User B's playlist {pid}",
                 )
 
-    def test_list_returns_only_owned_data(self, api_client, faker):
+    def test_list_returns_only_owned_data(self, guest_client, faker):
         """Comprehensive BOLA test across multiple endpoints."""
         user_a = baker.make(
             User,
@@ -256,7 +256,7 @@ class TestResourceExhaustionNoPagination:
     """API4:2023 - Unrestricted Resource Consumption via no pagination."""
 
     @pytest.mark.slow
-    def test_list_large_dataset_response_time(self, api_client, faker):
+    def test_list_large_dataset_response_time(self, guest_client, faker):
         """LIST with 500+ records should still respond reasonably."""
         user = baker.make(
             User,
@@ -282,7 +282,7 @@ class TestResourceExhaustionNoPagination:
 
         # Measure response time
         start = time.time()
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         duration = time.time() - start
 
         assert response.status_code == 200
@@ -296,7 +296,7 @@ class TestResourceExhaustionNoPagination:
                 f"PERFORMANCE ISSUE: LIST took {duration}s for 500 records",
             )
 
-    def test_concurrent_list_requests(self, api_client, faker):
+    def test_concurrent_list_requests(self, guest_client, faker):
         """Multiple concurrent LIST requests = DoS vector."""
         user = baker.make(
             User,
@@ -322,7 +322,7 @@ class TestResourceExhaustionNoPagination:
 
         def make_request():
             start = time.time()
-            response = api_client.get("/api/v2/files")
+            response = guest_client.get("/api/v2/files")
             duration = time.time() - start
             return response.status_code, duration
 
@@ -347,7 +347,7 @@ class TestResourceExhaustionNoPagination:
                 f"DoS VULNERABILITY: Max response time {max_duration}s under load",
             )
 
-    def test_response_size_limits(self, api_client, faker):
+    def test_response_size_limits(self, guest_client, faker):
         """Response should have reasonable size limits."""
         user = baker.make(
             User,
@@ -374,7 +374,7 @@ class TestResourceExhaustionNoPagination:
                 album_title="Z" * 500,
             )
 
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         assert response.status_code == 200
 
         # Check response size
@@ -391,7 +391,7 @@ class TestQueryParamFuzzing:
     """Fuzzing query parameters on LIST endpoints."""
 
     @pytest.mark.parametrize("payload", SQLI_PAYLOADS)
-    def test_filter_sql_injection_files(self, api_client, payload, faker):
+    def test_filter_sql_injection_files(self, guest_client, payload, faker):
         """SQLi attempts in filter parameters should return 400, not 500."""
         user = baker.make(
             User,
@@ -416,7 +416,7 @@ class TestQueryParamFuzzing:
         filter_params = ["name", "mime", "track_title", "artist_name"]
 
         for param in filter_params:
-            response = api_client.get(f"/api/v2/files?{param}={payload}")
+            response = guest_client.get(f"/api/v2/files?{param}={payload}")
             # Should not crash with 500
             if response.status_code == 500:
                 pytest.fail(f"SQLi caused 500 on {param}={payload}")
@@ -424,7 +424,7 @@ class TestQueryParamFuzzing:
             assert response.status_code in [200, 400, 404]
 
     @pytest.mark.parametrize("payload", PATH_TRAVERSAL_PAYLOADS)
-    def test_filter_path_traversal(self, api_client, payload, faker):
+    def test_filter_path_traversal(self, guest_client, payload, faker):
         """Path traversal in filter parameters."""
         user = baker.make(
             User,
@@ -445,12 +445,12 @@ class TestQueryParamFuzzing:
             owner=user,
         )
 
-        response = api_client.get(f"/api/v2/files?name={payload}")
+        response = guest_client.get(f"/api/v2/files?name={payload}")
         # Should not crash
         assert response.status_code != 500
 
     @pytest.mark.parametrize("payload", NAUGHTY_STRINGS)
-    def test_filter_naughty_strings(self, api_client, payload, faker):
+    def test_filter_naughty_strings(self, guest_client, payload, faker):
         """Edge case strings in filters."""
         user = baker.make(
             User,
@@ -472,13 +472,13 @@ class TestQueryParamFuzzing:
         )
 
         try:
-            response = api_client.get(f"/api/v2/files?name={payload}")
+            response = guest_client.get(f"/api/v2/files?name={payload}")
             # Should handle gracefully
             assert response.status_code in [200, 400, 404]
         except Exception as e:
             pytest.fail(f"Exception on naughty string '{payload}': {e}")
 
-    def test_pagination_params_rejected(self, api_client, faker):
+    def test_pagination_params_rejected(self, guest_client, faker):
         """Pagination params should be handled (ignored or rejected)."""
         user = baker.make(
             User,
@@ -511,14 +511,14 @@ class TestQueryParamFuzzing:
         ]
 
         for param in params:
-            response = api_client.get(f"/api/v2/files?{param}")
+            response = guest_client.get(f"/api/v2/files?{param}")
             # Should not crash
             assert response.status_code in [
                 200,
                 400,
             ], f"Param {param} caused {response.status_code}"
 
-    def test_sort_param_sql_injection(self, api_client, faker):
+    def test_sort_param_sql_injection(self, guest_client, faker):
         """SQLi via sort/order parameters."""
         user = baker.make(
             User,
@@ -546,7 +546,7 @@ class TestQueryParamFuzzing:
         ]
 
         for sort_param in sqli_sorts:
-            response = api_client.get(f"/api/v2/files?{sort_param}")
+            response = guest_client.get(f"/api/v2/files?{sort_param}")
             assert (
                 response.status_code != 500
             ), f"SQLi in sort param caused 500: {sort_param}"
@@ -556,7 +556,7 @@ class TestQueryParamFuzzing:
 class TestMassDataExposure:
     """API3:2023 - Sensitive data exposure in LIST responses."""
 
-    def test_list_does_not_expose_sensitive_fields(self, api_client, faker):
+    def test_list_does_not_expose_sensitive_fields(self, guest_client, faker):
         """LIST should not expose internal/sensitive fields."""
         user = baker.make(
             User,
@@ -577,7 +577,7 @@ class TestMassDataExposure:
             owner=user,
         )
 
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         assert response.status_code == 200
         data = response.json()
         assert len(data) > 0
@@ -598,7 +598,7 @@ class TestMassDataExposure:
                         f"Sensitive field '{field}' exposed in LIST response",
                     )
 
-    def test_list_vs_retrieve_field_consistency(self, api_client, faker):
+    def test_list_vs_retrieve_field_consistency(self, guest_client, faker):
         """LIST should not expose more fields than RETRIEVE."""
         user = baker.make(
             User,
@@ -620,7 +620,7 @@ class TestMassDataExposure:
         )
 
         # Get LIST
-        list_response = api_client.get("/api/v2/files")
+        list_response = guest_client.get("/api/v2/files")
         list_data = list_response.json()
         list_item = next(
             (f for f in list_data if f["id"] == file_obj.id),
@@ -629,7 +629,7 @@ class TestMassDataExposure:
         assert list_item is not None
 
         # Get RETRIEVE
-        retrieve_response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        retrieve_response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         retrieve_data = retrieve_response.json()
 
         # LIST fields should be subset of RETRIEVE fields
@@ -642,7 +642,7 @@ class TestMassDataExposure:
                 f"LIST exposes fields not in RETRIEVE: {extra_in_list}",
             )
 
-    def test_list_field_count_reasonable(self, api_client, faker):
+    def test_list_field_count_reasonable(self, guest_client, faker):
         """LIST should return fewer fields than RETRIEVE (performance)."""
         user = baker.make(
             User,
@@ -663,14 +663,14 @@ class TestMassDataExposure:
             owner=user,
         )
 
-        list_response = api_client.get("/api/v2/files")
+        list_response = guest_client.get("/api/v2/files")
         list_data = list_response.json()
         list_item = next(
             (f for f in list_data if f["id"] == file_obj.id),
             None,
         )
 
-        retrieve_response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        retrieve_response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         retrieve_data = retrieve_response.json()
 
         list_field_count = len(list_item.keys())
@@ -688,7 +688,7 @@ class TestFilterAuthorizationBypass:
     """Filter parameters should respect authorization."""
 
     @pytest.mark.xfail(reason="Filter bypass vulnerability: T875", strict=False)
-    def test_filter_by_other_user_id_blocked(self, api_client, faker):
+    def test_filter_by_other_user_id_blocked(self, guest_client, faker):
         """Filtering by other user's ID should not bypass auth. (T875)"""
         user_a = baker.make(
             User,
@@ -737,7 +737,7 @@ class TestFilterAuthorizationBypass:
                 if item.get("owner") == user_b.id:
                     pytest.fail("Filter by owner_id bypassed authorization")
 
-    def test_filter_by_nonexistent_values(self, api_client, faker):
+    def test_filter_by_nonexistent_values(self, guest_client, faker):
         """Filtering by non-existent values should return empty, not error."""
         user = baker.make(
             User,
@@ -765,7 +765,7 @@ class TestFilterAuthorizationBypass:
         ]
 
         for filter_param in filters:
-            response = api_client.get(f"/api/v2/files?{filter_param}")
+            response = guest_client.get(f"/api/v2/files?{filter_param}")
             assert response.status_code == 200
             data = response.json()
             assert isinstance(data, list)
@@ -776,7 +776,7 @@ class TestFilterAuthorizationBypass:
 class TestUnicodeAndEncoding:
     """Unicode and encoding edge cases in LIST."""
 
-    def test_unicode_in_filter_values(self, api_client, faker):
+    def test_unicode_in_filter_values(self, guest_client, faker):
         """Unicode characters in filter values."""
         user = baker.make(
             User,
@@ -806,13 +806,13 @@ class TestUnicodeAndEncoding:
         ]
 
         for value in unicode_values:
-            response = api_client.get(f"/api/v2/files?name={value}")
+            response = guest_client.get(f"/api/v2/files?name={value}")
             assert response.status_code in [
                 200,
                 400,
             ], f"Unicode '{value}' caused {response.status_code}"
 
-    def test_filter_special_characters(self, api_client, faker):
+    def test_filter_special_characters(self, guest_client, faker):
         """Special regex/wildcard characters in filters."""
         user = baker.make(
             User,
@@ -845,7 +845,7 @@ class TestUnicodeAndEncoding:
         ]
 
         for char in special_chars:
-            response = api_client.get(f"/api/v2/files?name={char}")
+            response = guest_client.get(f"/api/v2/files?name={char}")
             assert (
                 response.status_code != 500
             ), f"Special char '{char}' caused 500"
@@ -855,7 +855,7 @@ class TestUnicodeAndEncoding:
 class TestHttpMethodOverride:
     """HTTP method override attempts on LIST endpoints."""
 
-    def test_method_override_on_list(self, api_client, faker):
+    def test_method_override_on_list(self, guest_client, faker):
         """Method override headers should not bypass security."""
         user = baker.make(
             User,
@@ -880,14 +880,14 @@ class TestHttpMethodOverride:
         headers = {
             "HTTP_X_HTTP_METHOD_OVERRIDE": "DELETE",
         }
-        response = api_client.get("/api/v2/files", **headers)
+        response = guest_client.get("/api/v2/files", **headers)
 
         # Should still be GET behavior, not DELETE
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
 
-    def test_unsupported_methods_on_list(self, api_client, faker):
+    def test_unsupported_methods_on_list(self, guest_client, faker):
         """Unsupported HTTP methods on LIST endpoints."""
         user = baker.make(
             User,
@@ -903,7 +903,7 @@ class TestHttpMethodOverride:
 
         methods = ["PATCH", "PUT", "DELETE"]
         for method in methods:
-            response = getattr(api_client, method.lower())("/api/v2/files")
+            response = getattr(guest_client, method.lower())("/api/v2/files")
             # Should return 405 Method Not Allowed
             assert response.status_code in [
                 405,

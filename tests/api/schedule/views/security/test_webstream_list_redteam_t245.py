@@ -83,7 +83,7 @@ class TestWebstreamListRedTeam:
             victim_stream.id not in result_ids
         ), "BOLA T518: HOST can see victim's webstream in LIST!"
 
-    def test_stream_id_enumeration_mitigated(self, api_client):
+    def test_stream_id_enumeration_mitigated(self, guest_client):
         """Security: Stream ID enumeration mitigated by owner filtering."""
         user = baker.make(User, username="testred_enum")
         for i in range(5):
@@ -94,7 +94,7 @@ class TestWebstreamListRedTeam:
                 owner=user,
             )
 
-        response = api_client.get("/api/v2/webstreams")
+        response = guest_client.get("/api/v2/webstreams")
         data = response.json()
 
         # Should only see own streams (or all if T518 not fixed)
@@ -105,7 +105,7 @@ class TestWebstreamListRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T519: __all__ fields may expose sensitive data")
-    def test_field_exposure_all_fields_review(self, api_client):
+    def test_field_exposure_all_fields_review(self, guest_client):
         """Security: Review all fields exposed via __all__ serializer."""
         user = baker.make(User, username="testred_user")
         baker.make(
@@ -115,7 +115,7 @@ class TestWebstreamListRedTeam:
             owner=user,
         )
 
-        response = api_client.get("/api/v2/webstreams")
+        response = guest_client.get("/api/v2/webstreams")
         data = response.json()
 
         if len(data) > 0:
@@ -139,7 +139,7 @@ class TestWebstreamListRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T520: URL field may reflect internal URLs")
-    def test_url_field_ssrf_reflection(self, api_client):
+    def test_url_field_ssrf_reflection(self, guest_client):
         """Security: URL field should not reflect internal network URLs."""
         user = baker.make(User, username="testred_user")
 
@@ -151,7 +151,7 @@ class TestWebstreamListRedTeam:
             owner=user,
         )
 
-        response = api_client.get("/api/v2/webstreams")
+        response = guest_client.get("/api/v2/webstreams")
         data = response.json()
 
         # If BOLA not fixed, attacker sees internal URL
@@ -167,7 +167,7 @@ class TestWebstreamListRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T521: MIME type field accepts arbitrary values")
-    def test_mime_type_arbitrary_values(self, api_client):
+    def test_mime_type_arbitrary_values(self, guest_client):
         """Validation: MIME type field should validate against allowed types."""
         user = baker.make(User, username="testred_user")
 
@@ -180,7 +180,7 @@ class TestWebstreamListRedTeam:
             owner=user,
         )
 
-        response = api_client.get("/api/v2/webstreams")
+        response = guest_client.get("/api/v2/webstreams")
         data = response.json()
 
         if len(data) > 0:
@@ -195,7 +195,7 @@ class TestWebstreamListRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T522: Very long URL not validated")
-    def test_url_length_overflow(self, api_client):
+    def test_url_length_overflow(self, guest_client):
         """Validation: Very long URLs should be rejected."""
         user = baker.make(User, username="testred_user")
 
@@ -208,7 +208,7 @@ class TestWebstreamListRedTeam:
             owner=user,
         )
 
-        response = api_client.get("/api/v2/webstreams")
+        response = guest_client.get("/api/v2/webstreams")
         # Should either reject or handle gracefully
         assert response.status_code in [
             200,
@@ -216,7 +216,7 @@ class TestWebstreamListRedTeam:
         ], f"Long URL caused {response.status_code}"
 
     @pytest.mark.xfail(reason="T523: Invalid URL format accepted")
-    def test_url_format_validation(self, api_client):
+    def test_url_format_validation(self, guest_client):
         """Validation: Invalid URL formats should be rejected."""
         user = baker.make(User, username="testred_user")
 
@@ -243,7 +243,7 @@ class TestWebstreamListRedTeam:
     # Pagination Abuse
     # ========================================================================
 
-    def test_pagination_page_size_limits(self, api_client):
+    def test_pagination_page_size_limits(self, guest_client):
         """Security: Page size is properly limited."""
         user = baker.make(User, username="testred_user")
 
@@ -256,7 +256,7 @@ class TestWebstreamListRedTeam:
                 owner=user,
             )
 
-        response = api_client.get("/api/v2/webstreams?page_size=999999")
+        response = guest_client.get("/api/v2/webstreams?page_size=999999")
         # Should have pagination limits
         assert (
             response.status_code == 200
@@ -266,7 +266,7 @@ class TestWebstreamListRedTeam:
     # Sorting / Ordering Attacks
     # ========================================================================
 
-    def test_sorting_sql_injection_attempt(self, api_client):
+    def test_sorting_sql_injection_attempt(self, guest_client):
         """Injection: SQLi in ordering parameter."""
         user = baker.make(User, username="testred_user")
         baker.make(
@@ -283,7 +283,7 @@ class TestWebstreamListRedTeam:
         ]
 
         for ordering in malicious_orderings:
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/webstreams?ordering={ordering}",
             )
             # Django DRF safely ignores invalid ordering
@@ -296,9 +296,9 @@ class TestWebstreamListRedTeam:
     # CORS and Security Headers
     # ========================================================================
 
-    def test_cors_preflight_list(self, api_client):
+    def test_cors_preflight_list(self, guest_client):
         """CORS: Preflight request for LIST."""
-        response = api_client.options(
+        response = guest_client.options(
             "/api/v2/webstreams",
             HTTP_ORIGIN="https://evil.com",
             HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET",
@@ -307,7 +307,7 @@ class TestWebstreamListRedTeam:
         allowed_origin = response.get("Access-Control-Allow-Origin", "")
         assert "evil.com" not in allowed_origin, "CORS allows arbitrary origin"
 
-    def test_security_headers_present(self, api_client):
+    def test_security_headers_present(self, guest_client):
         """Security: Required security headers present."""
         user = baker.make(User, username="testred_user")
         baker.make(
@@ -317,7 +317,7 @@ class TestWebstreamListRedTeam:
             owner=user,
         )
 
-        response = api_client.get("/api/v2/webstreams")
+        response = guest_client.get("/api/v2/webstreams")
 
         # Check for basic security headers
         headers = response.headers
@@ -328,7 +328,7 @@ class TestWebstreamListRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T524: Special query params cause 500 error")
-    def test_fuzzing_query_params(self, api_client):
+    def test_fuzzing_query_params(self, guest_client):
         """Fuzzing: Naughty strings in query parameters."""
         naughty_params = [
             "undefined",
@@ -340,7 +340,7 @@ class TestWebstreamListRedTeam:
         ]
 
         for param in naughty_params:
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/webstreams?page={param}",
             )
             # Should not crash with 500
@@ -354,13 +354,13 @@ class TestWebstreamListRedTeam:
     # Timing Attacks
     # ========================================================================
 
-    def test_timing_empty_vs_populated(self, api_client):
+    def test_timing_empty_vs_populated(self, guest_client):
         """Timing: Difference between empty and populated list."""
         import time
 
         # Time empty list
         start = time.time()
-        response1 = api_client.get("/api/v2/webstreams")
+        response1 = guest_client.get("/api/v2/webstreams")
         time_empty = time.time() - start
 
         # Create some streams
@@ -375,7 +375,7 @@ class TestWebstreamListRedTeam:
 
         # Time populated list
         start = time.time()
-        response2 = api_client.get("/api/v2/webstreams")
+        response2 = guest_client.get("/api/v2/webstreams")
         time_populated = time.time() - start
 
         # Difference should not be extreme (less than 5x)
@@ -390,7 +390,7 @@ class TestWebstreamListRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T525: Description field XSS not sanitized")
-    def test_description_xss_protection(self, api_client):
+    def test_description_xss_protection(self, guest_client):
         """Security: Description field should sanitize XSS."""
         user = baker.make(User, username="testred_user")
 
@@ -409,7 +409,7 @@ class TestWebstreamListRedTeam:
                 owner=user,
             )
 
-        response = api_client.get("/api/v2/webstreams")
+        response = guest_client.get("/api/v2/webstreams")
         data = response.json()
 
         for stream in data:
@@ -425,7 +425,7 @@ class TestWebstreamListRedTeam:
     # Unicode and Encoding
     # ========================================================================
 
-    def test_unicode_in_name_handling(self, api_client):
+    def test_unicode_in_name_handling(self, guest_client):
         """Validation: Unicode in name handled correctly."""
         user = baker.make(User, username="testred_user")
 
@@ -444,7 +444,7 @@ class TestWebstreamListRedTeam:
                 owner=user,
             )
 
-        response = api_client.get("/api/v2/webstreams")
+        response = guest_client.get("/api/v2/webstreams")
         assert response.status_code == 200
 
     # ========================================================================

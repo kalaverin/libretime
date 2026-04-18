@@ -62,7 +62,7 @@ class TestFileUniqueBOLA:
 
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T850: BOLA - no ownership check in FileViewSet")
-    def test_bola_retrieve_other_users_file(self, api_client, faker):
+    def test_bola_retrieve_other_users_file(self, guest_client, faker):
         """Attacker can retrieve victim's file metadata."""
         victim = baker.make(User, username=f"victim_{faker.user_name()}")
         attacker = baker.make(User, username=f"attacker_{faker.user_name()}")
@@ -89,7 +89,7 @@ class TestFileUniqueBOLA:
 
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T851: BOLA - LIST shows all files")
-    def test_bola_list_shows_all_files(self, api_client, faker):
+    def test_bola_list_shows_all_files(self, guest_client, faker):
         """LIST returns all files regardless of owner."""
         victim = baker.make(User, username=f"victim_{faker.user_name()}")
         attacker = baker.make(User, username=f"attacker_{faker.user_name()}")
@@ -119,7 +119,7 @@ class TestFileUniqueBOLA:
 
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T852: BOLA - attacker can update victim's file")
-    def test_bola_update_other_users_file_blocked(self, api_client, faker):
+    def test_bola_update_other_users_file_blocked(self, guest_client, faker):
         """Attacker can update victim's file metadata."""
         victim = baker.make(User, username=f"victim_{faker.user_name()}")
         attacker = baker.make(User, username=f"attacker_{faker.user_name()}")
@@ -151,7 +151,7 @@ class TestFileUniqueBOLA:
 
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T853: BOLA - attacker can delete victim's file")
-    def test_bola_delete_other_users_file(self, api_client, faker):
+    def test_bola_delete_other_users_file(self, guest_client, faker):
         """Attacker can delete victim's file."""
         victim = baker.make(User, username=f"victim_{faker.user_name()}")
         attacker = baker.make(User, username=f"attacker_{faker.user_name()}")
@@ -179,7 +179,7 @@ class TestFileUniqueBOLA:
 
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T854: BOLA - download other user's file")
-    def test_bola_download_other_users_file(self, api_client, faker):
+    def test_bola_download_other_users_file(self, guest_client, faker):
         """Attacker can download victim's file."""
         victim = baker.make(User, username=f"victim_{faker.user_name()}")
         attacker = baker.make(User, username=f"attacker_{faker.user_name()}")
@@ -213,7 +213,7 @@ class TestFileUniquePathTraversal:
     # FIXED: T855 - Path traversal now rejected by validate_filepath
     def test_path_traversal_in_filepath_create(
         self,
-        api_client,
+        guest_client,
         admin_user,
         faker,
     ):
@@ -248,7 +248,7 @@ class TestFileUniquePathTraversal:
     # FIXED: T856 - Path traversal in UPDATE now rejected
     def test_path_traversal_in_filepath_update(
         self,
-        api_client,
+        guest_client,
         admin_user,
         faker,
     ):
@@ -281,7 +281,7 @@ class TestFileUniquePathTraversal:
     # FIXED: T857 - Absolute paths now rejected
     def test_filepath_absolute_path_blocked(
         self,
-        api_client,
+        guest_client,
         admin_user,
         faker,
     ):
@@ -325,7 +325,7 @@ class TestFileUniqueBOPLA:
     @pytest.mark.django_db
     def test_bopla_mass_assignment_id_field(
         self,
-        api_client,
+        guest_client,
         admin_user,
         faker,
     ):
@@ -363,7 +363,7 @@ class TestFileUniqueBOPLA:
     )
     def test_bopla_mass_assignment_created_at(
         self,
-        api_client,
+        guest_client,
         admin_user,
         faker,
     ):
@@ -399,7 +399,7 @@ class TestFileUniqueBOPLA:
     @pytest.mark.xfail(reason="T860: BOPLA - owner change via PATCH allowed")
     def test_bopla_change_owner_via_update(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
         faker,
@@ -432,7 +432,7 @@ class TestFileUniqueBOPLA:
         ), "T860: BOPLA - owner change via PATCH allowed"
 
     @pytest.mark.django_db
-    def test_bopla_extra_fields_behavior(self, api_client, admin_user, faker):
+    def test_bopla_extra_fields_behavior(self, guest_client, admin_user, faker):
         """Extra fields should be rejected."""
         library = baker.make(Library, name="Test Lib", description="Test")
 
@@ -468,7 +468,7 @@ class TestFileUniqueDuplicateAbuse:
     """Abuse of no unique constraints."""
 
     @pytest.mark.django_db
-    def test_duplicate_filepath_confusion(self, api_client, admin_user, faker):
+    def test_duplicate_filepath_confusion(self, guest_client, admin_user, faker):
         """Multiple files with same filepath can cause confusion."""
         library = baker.make(Library, name="Test Lib", description="Test")
 
@@ -499,7 +499,7 @@ class TestFileUniqueDuplicateAbuse:
         assert len(set(file_ids)) == 3, "Files should have different IDs"
 
     @pytest.mark.django_db
-    def test_rapid_duplicate_creation(self, api_client, admin_user, faker):
+    def test_rapid_duplicate_creation(self, guest_client, admin_user, faker):
         """Rapid creation of files with same name."""
         library = baker.make(Library, name="Test Lib", description="Test")
 
@@ -525,7 +525,7 @@ class TestFileUniqueDuplicateAbuse:
             assert response.status_code == 201
 
     @pytest.mark.django_db
-    def test_rapid_create_requests_no_rate_limit(self, api_client, admin_user):
+    def test_rapid_create_requests_no_rate_limit(self, guest_client, admin_user):
         """Rapid CREATE requests should be rate limited."""
         library = baker.make(Library, name="Test Lib", description="Test")
 
@@ -565,7 +565,7 @@ class TestFileUniqueInjection:
     """Injection vulnerability tests."""
 
     @pytest.mark.django_db
-    def test_sqli_in_filepath(self, api_client, admin_user, faker):
+    def test_sqli_in_filepath(self, guest_client, admin_user, faker):
         """SQL injection in filepath field."""
         library = baker.make(Library, name="Test Lib", description="Test")
 
@@ -593,7 +593,7 @@ class TestFileUniqueInjection:
                 pytest.fail(f"T863: SQLi in filepath causes 500: {payload}")
 
     @pytest.mark.django_db
-    def test_xss_in_metadata(self, api_client, admin_user, faker):
+    def test_xss_in_metadata(self, guest_client, admin_user, faker):
         """XSS payloads in metadata fields."""
         library = baker.make(Library, name="Test Lib", description="Test")
 
@@ -623,7 +623,7 @@ class TestFileUniqueInjection:
                 pytest.fail(f"T864: XSS payload causes 500: {payload}")
 
     @pytest.mark.django_db
-    def test_sqli_in_md5_filter(self, api_client, admin_user, faker):
+    def test_sqli_in_md5_filter(self, guest_client, admin_user, faker):
         """SQL injection in md5 filter parameter."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -647,7 +647,7 @@ class TestFileUniqueFilterBypass:
     @pytest.mark.django_db
     def test_filter_by_md5_case_sensitivity(
         self,
-        api_client,
+        guest_client,
         admin_user,
         faker,
     ):
@@ -678,7 +678,7 @@ class TestFileUniqueFilterBypass:
     @pytest.mark.django_db
     def test_filter_by_genre_case_sensitivity(
         self,
-        api_client,
+        guest_client,
         admin_user,
         faker,
     ):
@@ -704,7 +704,7 @@ class TestFileUniqueFilterBypass:
         assert response.status_code == 200
 
     @pytest.mark.django_db
-    def test_filter_with_empty_values(self, api_client, admin_user, faker):
+    def test_filter_with_empty_values(self, guest_client, admin_user, faker):
         """Filter with empty values."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -714,7 +714,7 @@ class TestFileUniqueFilterBypass:
         assert response.status_code in [200, 400]
 
     @pytest.mark.django_db
-    def test_filter_with_special_chars(self, api_client, admin_user, faker):
+    def test_filter_with_special_chars(self, guest_client, admin_user, faker):
         """Filter with special characters."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -738,7 +738,7 @@ class TestFileUniqueInfoDisclosure:
     """Information disclosure tests."""
 
     @pytest.mark.django_db
-    def test_error_message_leaks_structure(self, api_client, admin_user):
+    def test_error_message_leaks_structure(self, guest_client, admin_user):
         """Error messages should not leak database structure."""
         library = baker.make(Library, name="Test Lib", description="Test")
 
@@ -778,7 +778,7 @@ class TestFileUniqueInfoDisclosure:
                     )
 
     @pytest.mark.django_db
-    def test_file_metadata_exposure(self, api_client, admin_user, faker):
+    def test_file_metadata_exposure(self, guest_client, admin_user, faker):
         """File metadata should not expose sensitive info."""
         library = baker.make(Library, name="Test Lib", description="Test")
         file_obj = baker.make(
@@ -809,7 +809,7 @@ class TestFileUniqueDoS:
     """Denial of Service tests."""
 
     @pytest.mark.django_db
-    def test_very_long_filepath(self, api_client, admin_user, faker):
+    def test_very_long_filepath(self, guest_client, admin_user, faker):
         """Very long filepath should be rejected."""
         library = baker.make(Library, name="Test Lib", description="Test")
 
@@ -837,7 +837,7 @@ class TestFileUniqueDoS:
             pytest.fail("T867: Very long filepath accepted (DoS risk)")
 
     @pytest.mark.django_db
-    def test_very_long_metadata(self, api_client, admin_user, faker):
+    def test_very_long_metadata(self, guest_client, admin_user, faker):
         """Very long metadata fields should be validated."""
         library = baker.make(Library, name="Test Lib", description="Test")
 

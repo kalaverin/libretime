@@ -16,7 +16,7 @@ from api.storage.models import File, Library
 class TestFilePathOrganization:
     """Test file path organization."""
 
-    def test_filepath_storage(self, api_client):
+    def test_filepath_storage(self, guest_client):
         """File path stored correctly."""
         user = baker.make(User, username="path_test")
         library = baker.make(
@@ -35,7 +35,7 @@ class TestFilePathOrganization:
             filepath="/srv/libretime/music/2024/artist/album/song.mp3",
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
@@ -44,7 +44,7 @@ class TestFilePathOrganization:
             == "/srv/libretime/music/2024/artist/album/song.mp3"
         )
 
-    def test_nested_directory_structure(self, api_client):
+    def test_nested_directory_structure(self, guest_client):
         """File in deeply nested directory."""
         user = baker.make(User, username="nested_test")
         library = baker.make(
@@ -63,13 +63,13 @@ class TestFilePathOrganization:
             filepath="/a/very/deep/nested/directory/structure/file.mp3",
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert "/a/very/deep/nested/" in data["filepath"]
 
-    def test_unicode_filepath(self, api_client):
+    def test_unicode_filepath(self, guest_client):
         """File path with unicode characters."""
         user = baker.make(User, username="unicode_path")
         library = baker.make(
@@ -88,13 +88,13 @@ class TestFilePathOrganization:
             filepath="/music/日本語/アーティスト/曲.mp3",
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert "日本語" in data["filepath"]
 
-    def test_relative_filepath(self, api_client):
+    def test_relative_filepath(self, guest_client):
         """File with relative path."""
         user = baker.make(User, username="relative_test")
         library = baker.make(
@@ -113,7 +113,7 @@ class TestFilePathOrganization:
             filepath="music/artist/album/song.mp3",
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
@@ -124,7 +124,7 @@ class TestFilePathOrganization:
 class TestLibraryOrganization:
     """Test file organization by library."""
 
-    def test_file_in_library(self, api_client):
+    def test_file_in_library(self, guest_client):
         """File belongs to library."""
         user = baker.make(User, username="lib_test")
         library = baker.make(
@@ -142,13 +142,13 @@ class TestLibraryOrganization:
             owner=user,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["library"] == library.id
 
-    def test_file_without_library(self, api_client):
+    def test_file_without_library(self, guest_client):
         """File not assigned to any library."""
         user = baker.make(User, username="no_lib_test")
 
@@ -160,13 +160,13 @@ class TestLibraryOrganization:
             owner=user,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["library"] is None
 
-    def test_files_by_library(self, api_client):
+    def test_files_by_library(self, guest_client):
         """Filter files by library."""
         user = baker.make(User, username="lib_filter")
         lib1 = baker.make(
@@ -200,7 +200,7 @@ class TestLibraryOrganization:
                 owner=user,
             )
 
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         assert response.status_code == 200
         data = response.json()
 
@@ -215,7 +215,7 @@ class TestLibraryOrganization:
 class TestImportStatusOrganization:
     """Test file organization by import status."""
 
-    def test_success_status(self, api_client):
+    def test_success_status(self, guest_client):
         """File with success import status."""
         user = baker.make(User, username="success_test")
         library = baker.make(
@@ -234,13 +234,13 @@ class TestImportStatusOrganization:
             import_status=File.ImportStatus.SUCCESS,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["import_status"] == File.ImportStatus.SUCCESS
 
-    def test_pending_status(self, api_client):
+    def test_pending_status(self, guest_client):
         """File with pending import status."""
         user = baker.make(User, username="pending_test")
         library = baker.make(
@@ -259,13 +259,13 @@ class TestImportStatusOrganization:
             import_status=File.ImportStatus.PENDING,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["import_status"] == File.ImportStatus.PENDING
 
-    def test_failed_status(self, api_client):
+    def test_failed_status(self, guest_client):
         """File with failed import status."""
         user = baker.make(User, username="failed_test")
         library = baker.make(
@@ -284,7 +284,7 @@ class TestImportStatusOrganization:
             import_status=File.ImportStatus.FAILED,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
@@ -295,7 +295,7 @@ class TestImportStatusOrganization:
 class TestFileSizeOrganization:
     """Test file size organization."""
 
-    def test_small_file(self, api_client):
+    def test_small_file(self, guest_client):
         """Small file size."""
         user = baker.make(User, username="small_test")
         library = baker.make(
@@ -314,13 +314,13 @@ class TestFileSizeOrganization:
             size=1024,  # 1KB
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["size"] == 1024
 
-    def test_large_file(self, api_client):
+    def test_large_file(self, guest_client):
         """Large file size."""
         user = baker.make(User, username="large_test")
         library = baker.make(
@@ -339,13 +339,13 @@ class TestFileSizeOrganization:
             size=100 * 1024 * 1024,  # 100MB
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["size"] == 100 * 1024 * 1024
 
-    def test_zero_size_file(self, api_client):
+    def test_zero_size_file(self, guest_client):
         """Zero size file."""
         user = baker.make(User, username="zero_test")
         library = baker.make(
@@ -364,7 +364,7 @@ class TestFileSizeOrganization:
             size=0,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
@@ -375,7 +375,7 @@ class TestFileSizeOrganization:
 class TestFileOrganizationUpdates:
     """Test updating file organization."""
 
-    def test_move_to_different_library(self, api_client):
+    def test_move_to_different_library(self, guest_client):
         """Move file to different library."""
         import json
 
@@ -396,7 +396,7 @@ class TestFileOrganizationUpdates:
             owner=user,
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/files/{file_obj.id}",
             json.dumps({"library": lib2.id}),
             content_type="application/json",
@@ -406,7 +406,7 @@ class TestFileOrganizationUpdates:
         data = response.json()
         assert data["library"] == lib2.id
 
-    def test_update_filepath(self, api_client):
+    def test_update_filepath(self, guest_client):
         """Update file path with relative path."""
         import json
 
@@ -427,7 +427,7 @@ class TestFileOrganizationUpdates:
             filepath="old/path/file.mp3",
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/files/{file_obj.id}",
             json.dumps({"filepath": "new/path/file.mp3"}),
             content_type="application/json",

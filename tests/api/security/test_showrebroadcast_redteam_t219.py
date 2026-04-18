@@ -23,9 +23,9 @@ class TestShowRebroadcastListAuthentication:
     """LIST authentication tests."""
 
     @pytest.mark.xfail(reason="T404: Anonymous LIST show rebroadcasts allowed")
-    def test_list_without_auth(self, api_client):
+    def test_list_without_auth(self, guest_client):
         """Anonymous LIST should fail."""
-        response = api_client.get("/api/v2/show-rebroadcasts")
+        response = guest_client.get("/api/v2/show-rebroadcasts")
         assert response.status_code in [
             401,
             403,
@@ -39,7 +39,7 @@ class TestShowRebroadcastListBOLA:
     @pytest.mark.xfail(reason="T405: No owner filtering")
     def test_list_other_user_rebroadcasts(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -50,8 +50,8 @@ class TestShowRebroadcastListBOLA:
         rebroadcast1 = baker.make(ShowRebroadcast, show=show1)
         rebroadcast2 = baker.make(ShowRebroadcast, show=show2)
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get("/api/v2/show-rebroadcasts")
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.get("/api/v2/show-rebroadcasts")
 
         assert response.status_code == 200
         data = response.json()
@@ -67,7 +67,7 @@ class TestShowRebroadcastCreateAuthentication:
     """CREATE authentication tests."""
 
     @pytest.mark.xfail(reason="T406: Anonymous CREATE rebroadcast allowed")
-    def test_create_without_auth(self, api_client):
+    def test_create_without_auth(self, guest_client):
         """Anonymous CREATE should fail."""
         show = baker.make(Show, name="Test Show")
         data = {
@@ -75,7 +75,7 @@ class TestShowRebroadcastCreateAuthentication:
             "day_offset": 1,
             "start_time": "14:00:00",
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-rebroadcasts",
             json.dumps(data),
             content_type="application/json",
@@ -93,20 +93,20 @@ class TestShowRebroadcastCreateBOLA:
     @pytest.mark.xfail(reason="T405: No owner filtering")
     def test_create_for_other_user_show(
         self,
-        api_client,
+        guest_client,
         regular_user,
         admin_user,
     ):
         """Create rebroadcast for another user's show."""
         show = baker.make(Show, name="Admin Show")
 
-        api_client.force_authenticate(user=regular_user)
+        guest_client.force_authenticate(user=regular_user)
         data = {
             "show": show.id,
             "day_offset": 1,
             "start_time": "14:00:00",
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-rebroadcasts",
             json.dumps(data),
             content_type="application/json",
@@ -121,10 +121,10 @@ class TestShowRebroadcastCreateBOLA:
 class TestShowRebroadcastCreateMassAssignment:
     """CREATE mass assignment tests."""
 
-    def test_create_with_id_field(self, api_client):
+    def test_create_with_id_field(self, guest_client):
         """Try to set id during CREATE."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "id": 99999,
@@ -132,7 +132,7 @@ class TestShowRebroadcastCreateMassAssignment:
             "day_offset": 1,
             "start_time": "14:00:00",
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-rebroadcasts",
             json.dumps(data),
             content_type="application/json",
@@ -148,17 +148,17 @@ class TestShowRebroadcastDayOffsetAbuse:
     """day_offset abuse tests."""
 
     @pytest.mark.xfail(reason="Negative day_offset accepted")
-    def test_negative_day_offset(self, api_client):
+    def test_negative_day_offset(self, guest_client):
         """Try negative day_offset."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
             "day_offset": -1,
             "start_time": "14:00:00",
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-rebroadcasts",
             json.dumps(data),
             content_type="application/json",
@@ -166,17 +166,17 @@ class TestShowRebroadcastDayOffsetAbuse:
         if response.status_code == 201:
             pytest.fail("BUG: Negative day_offset accepted")
 
-    def test_very_large_day_offset(self, api_client):
+    def test_very_large_day_offset(self, guest_client):
         """Try very large day_offset."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
             "day_offset": 999999,
             "start_time": "14:00:00",
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-rebroadcasts",
             json.dumps(data),
             content_type="application/json",
@@ -189,34 +189,34 @@ class TestShowRebroadcastDayOffsetAbuse:
 class TestShowRebroadcastTimeManipulation:
     """Time manipulation tests."""
 
-    def test_invalid_start_time_format(self, api_client):
+    def test_invalid_start_time_format(self, guest_client):
         """Try invalid start_time format."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
             "day_offset": 1,
             "start_time": "invalid_time",
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-rebroadcasts",
             json.dumps(data),
             content_type="application/json",
         )
         assert response.status_code in [201, 400]
 
-    def test_start_time_with_timezone(self, api_client):
+    def test_start_time_with_timezone(self, guest_client):
         """Try start_time with timezone info."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
             "day_offset": 1,
             "start_time": "14:00:00+05:00",  # With timezone
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-rebroadcasts",
             json.dumps(data),
             content_type="application/json",
@@ -229,17 +229,17 @@ class TestShowRebroadcastTimeManipulation:
 class TestShowRebroadcastFilterInjection:
     """Filter injection tests."""
 
-    def test_filter_by_invalid_show(self, api_client, admin_user):
+    def test_filter_by_invalid_show(self, guest_client, admin_user):
         """Try filter by invalid show_id."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/show-rebroadcasts?show=invalid")
+        response = guest_client.get("/api/v2/show-rebroadcasts?show=invalid")
         if response.status_code == 500:
             pytest.fail("BUG: Filter crash on invalid show")
 
-    def test_filter_sqli(self, api_client, admin_user):
+    def test_filter_sqli(self, guest_client, admin_user):
         """Try SQL injection in filter."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         sqli_payloads = [
             "1' OR '1'='1",
@@ -247,7 +247,7 @@ class TestShowRebroadcastFilterInjection:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/show-rebroadcasts?show={payload}",
             )
             if response.status_code == 500:

@@ -34,9 +34,9 @@ class TestSmartBlockCreateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T426: Mass assignment - id field accepted")
-    def test_bopla_mass_assignment_id(self, api_client):
+    def test_bopla_mass_assignment_id(self, guest_client):
         """BOPLA: Setting id field should be rejected."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             json.dumps(
                 {
@@ -55,9 +55,9 @@ class TestSmartBlockCreateRedTeam:
     @pytest.mark.xfail(
         reason="T427: Mass assignment - created_at manipulation",
     )
-    def test_bopla_mass_assignment_created_at(self, api_client):
+    def test_bopla_mass_assignment_created_at(self, guest_client):
         """BOPLA: Setting created_at should be rejected."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             json.dumps(
                 {
@@ -80,7 +80,7 @@ class TestSmartBlockCreateRedTeam:
     # Injection
     # ========================================================================
 
-    def test_create_sql_injection_name(self, api_client):
+    def test_create_sql_injection_name(self, guest_client):
         """SQLi: Injection in name field."""
         sqli_names = [
             "Block' OR '1'='1",
@@ -89,7 +89,7 @@ class TestSmartBlockCreateRedTeam:
         ]
 
         for name in sqli_names:
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/smart-blocks",
                 json.dumps(
                     {
@@ -104,9 +104,9 @@ class TestSmartBlockCreateRedTeam:
                 201,
             ], f"SQLi name caused {response.status_code}"
 
-    def test_create_sql_injection_description(self, api_client):
+    def test_create_sql_injection_description(self, guest_client):
         """SQLi: Injection in description field."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             json.dumps(
                 {
@@ -125,9 +125,9 @@ class TestSmartBlockCreateRedTeam:
     # Validation
     # ========================================================================
 
-    def test_create_empty_name(self, api_client):
+    def test_create_empty_name(self, guest_client):
         """Validation: Empty name should be rejected."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             json.dumps(
                 {
@@ -141,9 +141,9 @@ class TestSmartBlockCreateRedTeam:
             response.status_code == 400
         ), f"Empty name accepted with {response.status_code}"
 
-    def test_create_whitespace_name(self, api_client):
+    def test_create_whitespace_name(self, guest_client):
         """Validation: Whitespace-only name should be rejected."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             json.dumps(
                 {
@@ -157,9 +157,9 @@ class TestSmartBlockCreateRedTeam:
             response.status_code == 400
         ), f"Whitespace name accepted with {response.status_code}"
 
-    def test_create_invalid_kind(self, api_client):
+    def test_create_invalid_kind(self, guest_client):
         """Validation: Invalid kind should be rejected."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             json.dumps(
                 {
@@ -173,9 +173,9 @@ class TestSmartBlockCreateRedTeam:
             response.status_code == 400
         ), f"Invalid kind accepted with {response.status_code}"
 
-    def test_create_name_too_long(self, api_client):
+    def test_create_name_too_long(self, guest_client):
         """Validation: Extremely long name should be rejected."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             json.dumps(
                 {
@@ -194,7 +194,7 @@ class TestSmartBlockCreateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="FUCK: NO FILTER INJECTION AND PATH TRAVERSAL")
-    def test_create_unicode_injection(self, api_client):
+    def test_create_unicode_injection(self, guest_client):
         """Edge: Unicode and special chars in name."""
         unicode_names = [
             "日本語" * 100,
@@ -204,7 +204,7 @@ class TestSmartBlockCreateRedTeam:
         ]
 
         for name in unicode_names:
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/smart-blocks",
                 json.dumps(
                     {
@@ -243,12 +243,12 @@ class TestSmartBlockCreateAdvancedRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T428: Mass assignment - owner field accepted")
-    def test_bopla_mass_assignment_owner(self, api_client):
+    def test_bopla_mass_assignment_owner(self, guest_client):
         """BOPLA: Setting owner field should be rejected - BOLA vector."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             json.dumps(
                 {
@@ -269,9 +269,9 @@ class TestSmartBlockCreateAdvancedRedTeam:
     @pytest.mark.xfail(
         reason="T431: Mass assignment - updated_at manipulation",
     )
-    def test_bopla_mass_assignment_updated_at(self, api_client):
+    def test_bopla_mass_assignment_updated_at(self, guest_client):
         """BOPLA: Setting updated_at should be rejected."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             json.dumps(
                 {
@@ -293,9 +293,9 @@ class TestSmartBlockCreateAdvancedRedTeam:
     @pytest.mark.xfail(
         reason="T432: Mass assignment - length field manipulation",
     )
-    def test_bopla_mass_assignment_length(self, api_client):
+    def test_bopla_mass_assignment_length(self, guest_client):
         """BOPLA: Setting length field should be rejected or validated."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             json.dumps(
                 {
@@ -318,9 +318,9 @@ class TestSmartBlockCreateAdvancedRedTeam:
     # Content-Type Confusion & HTTP Attacks
     # ========================================================================
 
-    def test_create_content_type_confusion_text_plain(self, api_client):
+    def test_create_content_type_confusion_text_plain(self, guest_client):
         """Content-Type confusion: text/plain should fail."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             '{"name": "Test", "kind": "static"}',
             content_type="text/plain",
@@ -330,9 +330,9 @@ class TestSmartBlockCreateAdvancedRedTeam:
             415,
         ], f"text/plain caused unexpected {response.status_code}"
 
-    def test_create_content_type_confusion_form_data(self, api_client):
+    def test_create_content_type_confusion_form_data(self, guest_client):
         """Content-Type confusion: form-data should fail."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             {"name": "Test", "kind": "static"},
             content_type="multipart/form-data",
@@ -342,9 +342,9 @@ class TestSmartBlockCreateAdvancedRedTeam:
         ], f"form-data caused unexpected {response.status_code}"
 
     @pytest.mark.xfail(reason="FUCK: WE CAN'T OVERRIDE METHOD BY HEADER")
-    def test_create_http_method_override(self, api_client):
+    def test_create_http_method_override(self, guest_client):
         """HTTP Method Override header - potential bypass vector."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             json.dumps({"name": "Test"}),
             content_type="application/json",
@@ -360,10 +360,10 @@ class TestSmartBlockCreateAdvancedRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="FUCK: JSON KEYS COLLIDED")
-    def test_create_json_key_collision(self, api_client):
+    def test_create_json_key_collision(self, guest_client):
         """JSON Key Collision: duplicate keys behavior."""
         # Send raw JSON with duplicate keys
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             '{"name": "First", "name": "Second", "kind": "static"}',
             content_type="application/json",
@@ -373,14 +373,14 @@ class TestSmartBlockCreateAdvancedRedTeam:
             400,
         ], f"Key collision caused {response.status_code}"
 
-    def test_create_json_deeply_nested(self, api_client):
+    def test_create_json_deeply_nested(self, guest_client):
         """JSON Deep Nesting: potential DoS."""
         # Create deeply nested structure
         nested = {"name": "Test"}
         for _ in range(100):
             nested = {"nested": nested}
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             json.dumps(nested),
             content_type="application/json",
@@ -390,9 +390,9 @@ class TestSmartBlockCreateAdvancedRedTeam:
         ], f"Deep nesting caused {response.status_code}"
 
     @pytest.mark.xfail(reason="FUCK: ESCAPED INJECTION DETECTED")
-    def test_create_json_unicode_escape(self, api_client):
+    def test_create_json_unicode_escape(self, guest_client):
         """JSON Unicode Escape: bypass potential."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             '{"name": "\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E", "kind": "static"}',
             content_type="application/json",
@@ -406,9 +406,9 @@ class TestSmartBlockCreateAdvancedRedTeam:
     # Input Validation - Extended
     # ========================================================================
 
-    def test_create_null_bytes_in_name(self, api_client):
+    def test_create_null_bytes_in_name(self, guest_client):
         """Validation: Null bytes should be rejected."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             json.dumps(
                 {
@@ -422,9 +422,9 @@ class TestSmartBlockCreateAdvancedRedTeam:
             response.status_code == 400
         ), f"Null bytes accepted with {response.status_code}"
 
-    def test_create_negative_length(self, api_client):
+    def test_create_negative_length(self, guest_client):
         """Validation: Negative length should be rejected."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             json.dumps(
                 {
@@ -439,7 +439,7 @@ class TestSmartBlockCreateAdvancedRedTeam:
             400,
         ], f"Negative length caused {response.status_code}"
 
-    def test_create_name_only_whitespace_variations(self, api_client):
+    def test_create_name_only_whitespace_variations(self, guest_client):
         """Validation: Various whitespace-only names."""
         whitespace_names = [
             " ",
@@ -455,7 +455,7 @@ class TestSmartBlockCreateAdvancedRedTeam:
         ]
 
         for name in whitespace_names:
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/smart-blocks",
                 json.dumps({"name": name, "kind": SmartBlock.Kind.STATIC}),
                 content_type="application/json",
@@ -465,7 +465,7 @@ class TestSmartBlockCreateAdvancedRedTeam:
             ), f"Whitespace '{repr(name)}' accepted with {response.status_code}"
 
     @pytest.mark.xfail(reason="FUCK: CONTROL CHARS DETECTED")
-    def test_create_name_with_control_chars(self, api_client):
+    def test_create_name_with_control_chars(self, guest_client):
         """Validation: Control characters should be rejected."""
         control_chars = [
             "Test\x01Block",
@@ -474,7 +474,7 @@ class TestSmartBlockCreateAdvancedRedTeam:
         ]
 
         for name in control_chars:
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/smart-blocks",
                 json.dumps({"name": name, "kind": SmartBlock.Kind.STATIC}),
                 content_type="application/json",
@@ -487,7 +487,7 @@ class TestSmartBlockCreateAdvancedRedTeam:
     # NoSQL Injection / MongoDB-style Attacks
     # ========================================================================
 
-    def test_create_nosql_injection_kind(self, api_client):
+    def test_create_nosql_injection_kind(self, guest_client):
         """NoSQLi: MongoDB-style operators in kind field."""
         nosql_payloads = [
             {"name": "Test", "kind": {"$ne": None}},
@@ -497,7 +497,7 @@ class TestSmartBlockCreateAdvancedRedTeam:
         ]
 
         for payload in nosql_payloads:
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/smart-blocks",
                 json.dumps(payload),
                 content_type="application/json",
@@ -514,14 +514,14 @@ class TestSmartBlockCreateAdvancedRedTeam:
     @pytest.mark.xfail(
         reason="T433: Race condition - duplicate names possible",
     )
-    def test_create_race_condition_duplicate_names(self, api_client):
+    def test_create_race_condition_duplicate_names(self, guest_client):
         """Race: Concurrent creation with same name."""
         import concurrent.futures
 
         results = []
 
         def create_block():
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/smart-blocks",
                 json.dumps({"name": "RaceTestBlock", "kind": "static"}),
                 content_type="application/json",
@@ -545,7 +545,7 @@ class TestSmartBlockCreateAdvancedRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="FUCK: WE NEED TO FILTER DANGEROUS VALUES")
-    def test_create_fuzzing_naughty_strings_name(self, api_client):
+    def test_create_fuzzing_naughty_strings_name(self, guest_client):
         """Fuzzing: Naughty strings from SecLists in name."""
         naughty_strings = [
             "undefined",
@@ -575,7 +575,7 @@ class TestSmartBlockCreateAdvancedRedTeam:
         ]
 
         for string in naughty_strings:
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/smart-blocks",
                 json.dumps({"name": string, "kind": "static"}),
                 content_type="application/json",
@@ -585,7 +585,7 @@ class TestSmartBlockCreateAdvancedRedTeam:
             ], f"Naughty string '{string[:30]}' caused {response.status_code}"
 
     @pytest.mark.xfail(reason="FUCK: BIG VALUES MUST BE FILTERED BY 400")
-    def test_create_fuzzing_overflow_values(self, api_client):
+    def test_create_fuzzing_overflow_values(self, guest_client):
         """Fuzzing: Integer overflow and extreme values."""
         overflow = {
             -1: 201,
@@ -599,7 +599,7 @@ class TestSmartBlockCreateAdvancedRedTeam:
 
         for value, expected in overflow.items():
             data = json.dumps({"name": value, "kind": "static"})
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/smart-blocks",
                 data,
                 content_type="application/json",

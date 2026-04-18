@@ -16,9 +16,9 @@ class TestInvalidTokenDebug:
         print(f"Response: {response.content[:200]}")
         assert response.status_code == 403
 
-    def test_api_key_auth(self, api_client):
+    def test_api_key_auth(self, guest_client):
         """Valid API-Key auth."""
-        response = api_client.get("/api/v2/schedule")
+        response = guest_client.get("/api/v2/schedule")
         print(f"\nAPI-Key: {response.status_code}")
         assert response.status_code == 200
 

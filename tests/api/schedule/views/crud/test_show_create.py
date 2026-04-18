@@ -18,7 +18,7 @@ class TestShowViewSetCreate:
         Show.objects.all().delete()
         ShowHost.objects.all().delete()
 
-    def test_create_show_minimal_success(self, api_client):
+    def test_create_show_minimal_success(self, guest_client):
         """CREATE with minimal required fields should succeed."""
         data = {
             "name": "Test Show",
@@ -29,7 +29,7 @@ class TestShowViewSetCreate:
             "override_intro_playlist": False,
             "override_outro_playlist": False,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",
@@ -37,7 +37,7 @@ class TestShowViewSetCreate:
         assert response.status_code == 201
         assert response.json()["name"] == "Test Show"
 
-    def test_create_show_with_description(self, api_client):
+    def test_create_show_with_description(self, guest_client):
         """CREATE with description should succeed."""
         data = {
             "name": "Test Show",
@@ -49,7 +49,7 @@ class TestShowViewSetCreate:
             "override_intro_playlist": False,
             "override_outro_playlist": False,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",
@@ -57,7 +57,7 @@ class TestShowViewSetCreate:
         assert response.status_code == 201
         assert response.json()["description"] == "Test description"
 
-    def test_create_show_with_genre(self, api_client):
+    def test_create_show_with_genre(self, guest_client):
         """CREATE with genre should succeed."""
         data = {
             "name": "Test Show",
@@ -69,7 +69,7 @@ class TestShowViewSetCreate:
             "override_intro_playlist": False,
             "override_outro_playlist": False,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",
@@ -77,7 +77,7 @@ class TestShowViewSetCreate:
         assert response.status_code == 201
         assert response.json()["genre"] == "Rock"
 
-    def test_create_show_with_url(self, api_client):
+    def test_create_show_with_url(self, guest_client):
         """CREATE with url should succeed."""
         data = {
             "name": "Test Show",
@@ -89,7 +89,7 @@ class TestShowViewSetCreate:
             "override_intro_playlist": False,
             "override_outro_playlist": False,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",
@@ -97,7 +97,7 @@ class TestShowViewSetCreate:
         assert response.status_code == 201
         assert response.json()["url"] == "https://example.com/show"
 
-    def test_create_show_with_colors(self, api_client):
+    def test_create_show_with_colors(self, guest_client):
         """CREATE with colors should succeed."""
         data = {
             "name": "Test Show",
@@ -110,7 +110,7 @@ class TestShowViewSetCreate:
             "override_intro_playlist": False,
             "override_outro_playlist": False,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",
@@ -120,7 +120,7 @@ class TestShowViewSetCreate:
         assert result["foreground_color"] == "FFFFFF"
         assert result["background_color"] == "000000"
 
-    def test_create_show_missing_name_fails(self, api_client):
+    def test_create_show_missing_name_fails(self, guest_client):
         """CREATE without name should fail."""
         data = {
             "linked": False,
@@ -130,14 +130,14 @@ class TestShowViewSetCreate:
             "override_intro_playlist": False,
             "override_outro_playlist": False,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",
         )
         assert response.status_code == 400
 
-    def test_create_show_missing_linked_fails(self, api_client):
+    def test_create_show_missing_linked_fails(self, guest_client):
         """CREATE without linked should fail."""
         data = {
             "name": "Test Show",
@@ -147,14 +147,14 @@ class TestShowViewSetCreate:
             "override_intro_playlist": False,
             "override_outro_playlist": False,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",
         )
         assert response.status_code == 400
 
-    def test_create_show_missing_linkable_fails(self, api_client):
+    def test_create_show_missing_linkable_fails(self, guest_client):
         """CREATE without linkable should fail."""
         data = {
             "name": "Test Show",
@@ -164,14 +164,14 @@ class TestShowViewSetCreate:
             "override_intro_playlist": False,
             "override_outro_playlist": False,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",
         )
         assert response.status_code == 400
 
-    def test_create_show_returns_json(self, api_client):
+    def test_create_show_returns_json(self, guest_client):
         """CREATE should return JSON response."""
         data = {
             "name": "Test Show",
@@ -182,7 +182,7 @@ class TestShowViewSetCreate:
             "override_intro_playlist": False,
             "override_outro_playlist": False,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",
@@ -199,7 +199,7 @@ class TestShowViewSetCreate:
         )
         assert response.status_code == 403
 
-    def test_create_show_unicode_name(self, api_client):
+    def test_create_show_unicode_name(self, guest_client):
         """CREATE with unicode name should succeed."""
         data = {
             "name": "日本語ショー",
@@ -211,7 +211,7 @@ class TestShowViewSetCreate:
             "override_intro_playlist": False,
             "override_outro_playlist": False,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",
@@ -221,7 +221,7 @@ class TestShowViewSetCreate:
         assert result["name"] == "日本語ショー"
         assert result["description"] == "日本語の説明"
 
-    def test_create_show_long_description(self, api_client):
+    def test_create_show_long_description(self, guest_client):
         """CREATE with long description should succeed."""
         long_desc = "A" * 8192
         data = {
@@ -234,7 +234,7 @@ class TestShowViewSetCreate:
             "override_intro_playlist": False,
             "override_outro_playlist": False,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",
@@ -242,7 +242,7 @@ class TestShowViewSetCreate:
         assert response.status_code == 201
         assert response.json()["description"] == long_desc
 
-    def test_create_show_with_live_auth_registered(self, api_client):
+    def test_create_show_with_live_auth_registered(self, guest_client):
         """CREATE with live_auth_registered should succeed."""
         data = {
             "name": "Test Show",
@@ -254,7 +254,7 @@ class TestShowViewSetCreate:
             "override_outro_playlist": False,
             "live_auth_registered": True,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",
@@ -263,7 +263,7 @@ class TestShowViewSetCreate:
         # live_enabled is computed property from live_auth fields
         assert response.json()["live_enabled"] is True
 
-    def test_create_show_with_live_auth_custom(self, api_client):
+    def test_create_show_with_live_auth_custom(self, guest_client):
         """CREATE with live_auth_custom should succeed."""
         data = {
             "name": "Test Show",
@@ -277,7 +277,7 @@ class TestShowViewSetCreate:
             "live_auth_custom_user": "dj_user",
             "live_auth_custom_password": "secret123",
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",
@@ -285,7 +285,7 @@ class TestShowViewSetCreate:
         assert response.status_code == 201
         assert response.json()["live_enabled"] is True
 
-    def test_create_show_with_auto_playlist_enabled(self, api_client):
+    def test_create_show_with_auto_playlist_enabled(self, guest_client):
         """CREATE with auto_playlist_enabled should succeed."""
         data = {
             "name": "Test Show",
@@ -296,7 +296,7 @@ class TestShowViewSetCreate:
             "override_intro_playlist": False,
             "override_outro_playlist": False,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",
@@ -306,7 +306,7 @@ class TestShowViewSetCreate:
         assert result["auto_playlist_enabled"] is True
         assert result["auto_playlist_repeat"] is True
 
-    def test_create_show_duplicate_name_fails(self, api_client):
+    def test_create_show_duplicate_name_fails(self, guest_client):
         """CREATE with duplicate name should fail."""
         baker.make(Show, name="Duplicate Show")
         data = {
@@ -318,7 +318,7 @@ class TestShowViewSetCreate:
             "override_intro_playlist": False,
             "override_outro_playlist": False,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",
@@ -326,7 +326,7 @@ class TestShowViewSetCreate:
         # Name may or may not be unique - accept either
         assert response.status_code in [201, 400]
 
-    def test_create_show_empty_name_fails(self, api_client):
+    def test_create_show_empty_name_fails(self, guest_client):
         """CREATE with empty name should fail."""
         data = {
             "name": "",
@@ -337,14 +337,14 @@ class TestShowViewSetCreate:
             "override_intro_playlist": False,
             "override_outro_playlist": False,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",
         )
         assert response.status_code == 400
 
-    def test_create_show_name_too_long_fails(self, api_client):
+    def test_create_show_name_too_long_fails(self, guest_client):
         """CREATE with name > 255 chars should fail."""
         data = {
             "name": "A" * 256,
@@ -355,14 +355,14 @@ class TestShowViewSetCreate:
             "override_intro_playlist": False,
             "override_outro_playlist": False,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",
         )
         assert response.status_code == 400
 
-    def test_create_show_invalid_color_format(self, api_client):
+    def test_create_show_invalid_color_format(self, guest_client):
         """CREATE with invalid color format may fail or be accepted."""
         data = {
             "name": "Test Show",
@@ -374,7 +374,7 @@ class TestShowViewSetCreate:
             "override_intro_playlist": False,
             "override_outro_playlist": False,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/shows",
             json.dumps(data),
             content_type="application/json",

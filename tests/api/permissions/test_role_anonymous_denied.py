@@ -165,7 +165,7 @@ class TestAnonymousVsApiKey:
     """
 
     def test_anonymous_gets_403_api_key_gets_200(
-        self, anonymous_client, api_client,
+        self, anonymous_client, guest_client,
     ):
         """Same endpoint: anonymous 403, API-Key 200."""
         endpoint = "/api/v2/playlists"
@@ -175,11 +175,11 @@ class TestAnonymousVsApiKey:
         assert anon_response.status_code == 403
 
         # API-Key
-        api_response = api_client.get(endpoint)
+        api_response = guest_client.get(endpoint)
         assert api_response.status_code == 200
 
     def test_anonymous_cannot_access_anything_api_key_can(
-        self, anonymous_client, api_client,
+        self, anonymous_client, guest_client,
     ):
         """API-Key has full read access, anonymous has none."""
         endpoints = [
@@ -191,7 +191,7 @@ class TestAnonymousVsApiKey:
 
         for endpoint in endpoints:
             anon_response = anonymous_client.get(endpoint)
-            api_response = api_client.get(endpoint)
+            api_response = guest_client.get(endpoint)
 
             assert (
                 anon_response.status_code == 403

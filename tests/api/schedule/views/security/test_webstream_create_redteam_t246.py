@@ -37,13 +37,13 @@ class TestWebstreamCreateRedTeam:
     @pytest.mark.xfail(
         reason="T526: BOPLA - can set other user as owner via owner field",
     )
-    def test_bopla_create_with_other_user_owner(self, api_client):
+    def test_bopla_create_with_other_user_owner(self, guest_client):
         """BOPLA: Setting other user as owner should be rejected."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
 
         # Attacker tries to create webstream with victim as owner
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/webstreams",
             json.dumps(
                 {
@@ -85,12 +85,12 @@ class TestWebstreamCreateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T528: BOPLA - mass assignment via id field")
-    def test_bopla_mass_assignment_id(self, api_client):
+    def test_bopla_mass_assignment_id(self, guest_client):
         """BOPLA: Setting id field should be ignored or rejected."""
         user = baker.make(User, username="testred_user")
         forced_id = 99999
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/webstreams",
             json.dumps(
                 {
@@ -111,12 +111,12 @@ class TestWebstreamCreateRedTeam:
     @pytest.mark.xfail(
         reason="T529: BOPLA - can set created_at/updated_at manually",
     )
-    def test_bopla_mass_assignment_timestamps(self, api_client):
+    def test_bopla_mass_assignment_timestamps(self, guest_client):
         """BOPLA: Setting timestamps manually should be ignored."""
         user = baker.make(User, username="testred_user")
         fake_time = "2020-01-01T00:00:00Z"
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/webstreams",
             json.dumps(
                 {
@@ -139,11 +139,11 @@ class TestWebstreamCreateRedTeam:
             ), "BOPLA: updated_at mass assignment worked"
 
     @pytest.mark.xfail(reason="T530: BOPLA - extra fields not rejected")
-    def test_bopla_extra_fields_rejected(self, api_client):
+    def test_bopla_extra_fields_rejected(self, guest_client):
         """BOPLA: Extra/unknown fields should be rejected."""
         user = baker.make(User, username="testred_user")
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/webstreams",
             json.dumps(
                 {
@@ -166,7 +166,7 @@ class TestWebstreamCreateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T531: SSRF - internal URL accepted")
-    def test_ssrf_internal_url(self, api_client):
+    def test_ssrf_internal_url(self, guest_client):
         """SSRF: Internal network URLs should be rejected."""
         user = baker.make(User, username="testred_user")
 
@@ -180,7 +180,7 @@ class TestWebstreamCreateRedTeam:
         ]
 
         for url in internal_urls:
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/webstreams",
                 json.dumps(
                     {
@@ -195,7 +195,7 @@ class TestWebstreamCreateRedTeam:
             ), f"SSRF: Internal URL '{url}' accepted with {response.status_code}"
 
     @pytest.mark.xfail(reason="T532: SSRF - cloud metadata URLs accepted")
-    def test_ssrf_cloud_metadata(self, api_client):
+    def test_ssrf_cloud_metadata(self, guest_client):
         """SSRF: Cloud metadata URLs should be rejected."""
         user = baker.make(User, username="testred_user")
 
@@ -206,7 +206,7 @@ class TestWebstreamCreateRedTeam:
         ]
 
         for url in metadata_urls:
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/webstreams",
                 json.dumps(
                     {
@@ -225,7 +225,7 @@ class TestWebstreamCreateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T533: Dangerous URL schemes accepted")
-    def test_url_scheme_validation(self, api_client):
+    def test_url_scheme_validation(self, guest_client):
         """Validation: Dangerous URL schemes should be rejected."""
         user = baker.make(User, username="testred_user")
 
@@ -240,7 +240,7 @@ class TestWebstreamCreateRedTeam:
         ]
 
         for url in dangerous_schemes:
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/webstreams",
                 json.dumps(
                     {
@@ -258,7 +258,7 @@ class TestWebstreamCreateRedTeam:
     # Injection Attacks
     # ========================================================================
 
-    def test_sqli_in_name_field(self, api_client):
+    def test_sqli_in_name_field(self, guest_client):
         """Injection: SQLi attempts in name field."""
         user = baker.make(User, username="testred_user")
 
@@ -269,7 +269,7 @@ class TestWebstreamCreateRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/webstreams",
                 json.dumps(
                     {
@@ -288,7 +288,7 @@ class TestWebstreamCreateRedTeam:
     @pytest.mark.xfail(
         reason="T540: 500 error due to creator_id NOT NULL violation",
     )
-    def test_sqli_in_description_field(self, api_client):
+    def test_sqli_in_description_field(self, guest_client):
         """Injection: SQLi attempts in description field - BUG T540."""
         user = baker.make(User, username="testred_user")
 
@@ -298,7 +298,7 @@ class TestWebstreamCreateRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/webstreams",
                 json.dumps(
                     {
@@ -315,7 +315,7 @@ class TestWebstreamCreateRedTeam:
                 400,
             ], f"BUG T540: SQLi in description caused {response.status_code}"
 
-    def test_sqli_in_url_field(self, api_client):
+    def test_sqli_in_url_field(self, guest_client):
         """Injection: SQLi attempts in URL field."""
         user = baker.make(User, username="testred_user")
 
@@ -325,7 +325,7 @@ class TestWebstreamCreateRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/webstreams",
                 json.dumps(
                     {
@@ -345,7 +345,7 @@ class TestWebstreamCreateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T534: XSS - name field not sanitized")
-    def test_xss_in_name_field(self, api_client):
+    def test_xss_in_name_field(self, guest_client):
         """XSS: Script tags in name should be sanitized or rejected."""
         user = baker.make(User, username="testred_user")
 
@@ -356,7 +356,7 @@ class TestWebstreamCreateRedTeam:
         ]
 
         for payload in xss_payloads:
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/webstreams",
                 json.dumps(
                     {
@@ -381,13 +381,13 @@ class TestWebstreamCreateRedTeam:
                 ), "XSS: onload not sanitized in name"
 
     @pytest.mark.xfail(reason="T535: XSS - description field not sanitized")
-    def test_xss_in_description_field(self, api_client):
+    def test_xss_in_description_field(self, guest_client):
         """XSS: Script tags in description should be sanitized or rejected."""
         user = baker.make(User, username="testred_user")
 
         xss_payload = "<script>alert('xss')</script>"
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/webstreams",
             json.dumps(
                 {
@@ -411,13 +411,13 @@ class TestWebstreamCreateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T536: Name length not validated")
-    def test_name_length_validation(self, api_client):
+    def test_name_length_validation(self, guest_client):
         """Validation: Very long name should be rejected."""
         user = baker.make(User, username="testred_user")
 
         long_name = "A" * 1000  # Model allows 255
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/webstreams",
             json.dumps(
                 {
@@ -433,11 +433,11 @@ class TestWebstreamCreateRedTeam:
         ], f"Long name caused {response.status_code}"
 
     @pytest.mark.xfail(reason="T537: Empty name accepted")
-    def test_empty_name_validation(self, api_client):
+    def test_empty_name_validation(self, guest_client):
         """Validation: Empty name should be rejected."""
         user = baker.make(User, username="testred_user")
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/webstreams",
             json.dumps(
                 {
@@ -474,11 +474,11 @@ class TestWebstreamCreateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T538: Wrong content-type accepted")
-    def test_create_wrong_content_type(self, api_client):
+    def test_create_wrong_content_type(self, guest_client):
         """Validation: Wrong Content-Type should be rejected."""
         user = baker.make(User, username="testred_user")
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/webstreams",
             "name=Test&url=http://example.com/stream.mp3",  # Form data
             content_type="application/x-www-form-urlencoded",
@@ -493,14 +493,14 @@ class TestWebstreamCreateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T539: Race condition in concurrent create")
-    def test_race_condition_concurrent_create(self, api_client):
+    def test_race_condition_concurrent_create(self, guest_client):
         """Race: Concurrent creation with same name."""
         import concurrent.futures
 
         user = baker.make(User, username="testred_user")
 
         def create_stream():
-            return api_client.post(
+            return guest_client.post(
                 "/api/v2/webstreams",
                 json.dumps(
                     {

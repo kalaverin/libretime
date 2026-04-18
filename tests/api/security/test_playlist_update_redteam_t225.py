@@ -24,13 +24,13 @@ class TestPlaylistUpdateAuthentication:
     """UPDATE authentication tests."""
 
     @pytest.mark.xfail(reason="T417: Anonymous UPDATE playlist allowed")
-    def test_update_without_auth(self, api_client):
+    def test_update_without_auth(self, guest_client):
         """Anonymous PATCH should fail."""
         user = baker.make("core.User")
         playlist = baker.make(Playlist, name="Original", owner=user)
 
         data = {"name": "Hacked"}
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/playlists/{playlist.id}",
             json.dumps(data),
             content_type="application/json",
@@ -41,13 +41,13 @@ class TestPlaylistUpdateAuthentication:
         ], "Anonymous can update playlists"
 
     @pytest.mark.xfail(reason="T417: Anonymous PUT playlist allowed")
-    def test_put_without_auth(self, api_client):
+    def test_put_without_auth(self, guest_client):
         """Anonymous PUT should fail."""
         user = baker.make("core.User")
         playlist = baker.make(Playlist, name="Original", owner=user)
 
         data = {"name": "Hacked", "owner": user.id}
-        response = api_client.put(
+        response = guest_client.put(
             f"/api/v2/playlists/{playlist.id}",
             json.dumps(data),
             content_type="application/json",
@@ -65,7 +65,7 @@ class TestPlaylistUpdateBOLA:
     @pytest.mark.xfail(reason="T412: No owner filtering")
     def test_update_other_user_playlist(
         self,
-        api_client,
+        guest_client,
         regular_user,
         admin_user,
     ):
@@ -76,9 +76,9 @@ class TestPlaylistUpdateBOLA:
             owner=admin_user,
         )
 
-        api_client.force_authenticate(user=regular_user)
+        guest_client.force_authenticate(user=regular_user)
         data = {"name": "Hacked by attacker"}
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/playlists/{playlist.id}",
             json.dumps(data),
             content_type="application/json",
@@ -93,15 +93,15 @@ class TestPlaylistUpdateBOLA:
 class TestPlaylistUpdateMassAssignment:
     """UPDATE mass assignment tests."""
 
-    def test_update_id_field(self, api_client):
+    def test_update_id_field(self, guest_client):
         """Try to change id via PATCH."""
         user = baker.make("core.User")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
         original_id = playlist.id
         data = {"id": 99999}
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/playlists/{playlist.id}",
             json.dumps(data),
             content_type="application/json",
@@ -111,14 +111,14 @@ class TestPlaylistUpdateMassAssignment:
         assert playlist.id == original_id, "ID was changed via mass assignment"
 
     @pytest.mark.xfail(reason="T419: created_at mutable via PATCH")
-    def test_update_created_at(self, api_client):
+    def test_update_created_at(self, guest_client):
         """Try to change created_at via PATCH."""
         user = baker.make("core.User")
         playlist = baker.make(Playlist, name="Test", owner=user)
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
         data = {"created_at": "2020-01-01T00:00:00Z"}
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/playlists/{playlist.id}",
             json.dumps(data),
             content_type="application/json",
@@ -138,16 +138,16 @@ class TestPlaylistUpdateOwnershipTransfer:
     @pytest.mark.xfail(reason="T418: Ownership transfer allowed")
     def test_transfer_ownership_via_patch(
         self,
-        api_client,
+        guest_client,
         regular_user,
         admin_user,
     ):
         """Try to transfer ownership via PATCH."""
         playlist = baker.make(Playlist, name="Test", owner=regular_user)
 
-        api_client.force_authenticate(user=regular_user)
+        guest_client.force_authenticate(user=regular_user)
         data = {"owner": admin_user.id}
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/playlists/{playlist.id}",
             json.dumps(data),
             content_type="application/json",
@@ -162,16 +162,16 @@ class TestPlaylistUpdateOwnershipTransfer:
     @pytest.mark.xfail(reason="T418: Ownership transfer allowed")
     def test_transfer_ownership_via_put(
         self,
-        api_client,
+        guest_client,
         regular_user,
         admin_user,
     ):
         """Try to transfer ownership via PUT."""
         playlist = baker.make(Playlist, name="Test", owner=regular_user)
 
-        api_client.force_authenticate(user=regular_user)
+        guest_client.force_authenticate(user=regular_user)
         data = {"name": "Test", "description": "Test", "owner": admin_user.id}
-        response = api_client.put(
+        response = guest_client.put(
             f"/api/v2/playlists/{playlist.id}",
             json.dumps(data),
             content_type="application/json",
@@ -189,15 +189,15 @@ class TestPlaylistUpdateXSS:
     """UPDATE XSS injection tests."""
 
     @pytest.mark.xfail(reason="T416: XSS stored unescaped")
-    def test_xss_in_name_via_patch(self, api_client):
+    def test_xss_in_name_via_patch(self, guest_client):
         """Try XSS in name via PATCH."""
         user = baker.make("core.User")
         playlist = baker.make(Playlist, name="Original", owner=user)
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
         xss_payload = "<script>alert('XSS')</script>"
         data = {"name": xss_payload}
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/playlists/{playlist.id}",
             json.dumps(data),
             content_type="application/json",
@@ -215,11 +215,11 @@ class TestPlaylistUpdateXSS:
 class TestPlaylistUpdateSQLInjection:
     """UPDATE SQL injection tests."""
 
-    def test_sqli_in_name_via_patch(self, api_client):
+    def test_sqli_in_name_via_patch(self, guest_client):
         """Try SQL injection in name via PATCH."""
         user = baker.make("core.User")
         playlist = baker.make(Playlist, name="Original", owner=user)
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
         sqli_payloads = [
             "'; DROP TABLE cc_playlist;--",
@@ -228,7 +228,7 @@ class TestPlaylistUpdateSQLInjection:
 
         for payload in sqli_payloads:
             data = {"name": payload}
-            response = api_client.patch(
+            response = guest_client.patch(
                 f"/api/v2/playlists/{playlist.id}",
                 json.dumps(data),
                 content_type="application/json",
@@ -242,14 +242,14 @@ class TestPlaylistUpdateSQLInjection:
 class TestPlaylistUpdateValidation:
     """UPDATE validation tests."""
 
-    def test_update_to_empty_name(self, api_client):
+    def test_update_to_empty_name(self, guest_client):
         """Try to update to empty name."""
         user = baker.make("core.User")
         playlist = baker.make(Playlist, name="Original", owner=user)
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
         data = {"name": ""}
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/playlists/{playlist.id}",
             json.dumps(data),
             content_type="application/json",
@@ -258,14 +258,14 @@ class TestPlaylistUpdateValidation:
         if response.status_code == 200:
             pytest.fail("BUG: Empty name accepted via PATCH")
 
-    def test_update_to_whitespace_name(self, api_client):
+    def test_update_to_whitespace_name(self, guest_client):
         """Try to update to whitespace-only name."""
         user = baker.make("core.User")
         playlist = baker.make(Playlist, name="Original", owner=user)
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
         data = {"name": "   "}
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/playlists/{playlist.id}",
             json.dumps(data),
             content_type="application/json",

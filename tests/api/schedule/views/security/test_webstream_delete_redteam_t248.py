@@ -34,7 +34,7 @@ class TestWebstreamDeleteRedTeam:
     @pytest.mark.xfail(
         reason="T556: BOLA - DELETE other user's stream returns wrong status",
     )
-    def test_bola_delete_other_users_stream_status(self, api_client):
+    def test_bola_delete_other_users_stream_status(self, guest_client):
         """BOLA: DELETE of other's stream should return 403 not 404."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -46,14 +46,14 @@ class TestWebstreamDeleteRedTeam:
             owner=victim,
         )
 
-        response = api_client.delete(f"/api/v2/webstreams/{victim_stream.id}")
+        response = guest_client.delete(f"/api/v2/webstreams/{victim_stream.id}")
         # 403 = permission denied (correct), 404 = not found (leaks existence)
         assert (
             response.status_code == 403
         ), f"BOLA: Wrong status {response.status_code} - leaks existence (404) or allows deletion (204)"
 
     @pytest.mark.xfail(reason="T557: BOLA - Batch delete scope verification")
-    def test_bola_batch_delete_scope(self, api_client):
+    def test_bola_batch_delete_scope(self, guest_client):
         """BOLA: Ensure delete only affects single stream."""
         victim = baker.make(User, username="testred_victim")
 
@@ -71,7 +71,7 @@ class TestWebstreamDeleteRedTeam:
         initial_count = Webstream.objects.count()
 
         # Attacker tries to delete one
-        response = api_client.delete(
+        response = guest_client.delete(
             f"/api/v2/webstreams/{victim_streams[0].id}",
         )
 
@@ -86,7 +86,7 @@ class TestWebstreamDeleteRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T558: Error message leaks stream existence")
-    def test_error_message_leaks_existence(self, api_client):
+    def test_error_message_leaks_existence(self, guest_client):
         """Info Leak: Error messages reveal if stream exists."""
         victim = baker.make(User, username="testred_victim")
         victim_stream = baker.make(
@@ -97,10 +97,10 @@ class TestWebstreamDeleteRedTeam:
         )
 
         # Try to delete existing vs non-existing
-        response_existing = api_client.delete(
+        response_existing = guest_client.delete(
             f"/api/v2/webstreams/{victim_stream.id}",
         )
-        response_nonexistent = api_client.delete("/api/v2/webstreams/999999")
+        response_nonexistent = guest_client.delete("/api/v2/webstreams/999999")
 
         # Both should return same status to not leak existence
         if response_existing.status_code != response_nonexistent.status_code:
@@ -112,7 +112,7 @@ class TestWebstreamDeleteRedTeam:
     # ID Enumeration Attacks
     # ========================================================================
 
-    def test_id_enumeration_timing_attack(self, api_client):
+    def test_id_enumeration_timing_attack(self, guest_client):
         """Security: Timing difference between existing and non-existing IDs."""
         import time
 
@@ -126,12 +126,12 @@ class TestWebstreamDeleteRedTeam:
 
         # Time delete for existing ID
         start = time.time()
-        api_client.delete(f"/api/v2/webstreams/{stream.id}")
+        guest_client.delete(f"/api/v2/webstreams/{stream.id}")
         time_existing = time.time() - start
 
         # Time delete for non-existing ID
         start = time.time()
-        api_client.delete("/api/v2/webstreams/999999")
+        guest_client.delete("/api/v2/webstreams/999999")
         time_nonexistent = time.time() - start
 
         # Times should be similar (within 3x factor)
@@ -145,7 +145,7 @@ class TestWebstreamDeleteRedTeam:
     # Mass Deletion Attack
     # ========================================================================
 
-    def test_mass_deletion_rate_limit(self, api_client):
+    def test_mass_deletion_rate_limit(self, guest_client):
         """Security: Rate limiting on delete operations."""
         user = baker.make(User, username="testred_user")
 
@@ -163,7 +163,7 @@ class TestWebstreamDeleteRedTeam:
         # Rapid sequential deletes
         delete_count = 0
         for stream in streams:
-            response = api_client.delete(f"/api/v2/webstreams/{stream.id}")
+            response = guest_client.delete(f"/api/v2/webstreams/{stream.id}")
             if response.status_code == 204:
                 delete_count += 1
             elif response.status_code == 429:
@@ -177,7 +177,7 @@ class TestWebstreamDeleteRedTeam:
     # Injection in DELETE (path parameter)
     # ========================================================================
 
-    def test_sqli_in_delete_id(self, api_client):
+    def test_sqli_in_delete_id(self, guest_client):
         """Injection: SQLi in DELETE id path parameter."""
         sqli_payloads = [
             "1 OR 1=1",
@@ -187,14 +187,14 @@ class TestWebstreamDeleteRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.delete(f"/api/v2/webstreams/{payload}")
+            response = guest_client.delete(f"/api/v2/webstreams/{payload}")
             # Should return 404, never 500
             assert response.status_code in [
                 400,
                 404,
             ], f"SQLi '{payload}' caused {response.status_code}"
 
-    def test_path_traversal_in_delete_id(self, api_client):
+    def test_path_traversal_in_delete_id(self, guest_client):
         """Injection: Path traversal in DELETE id."""
         traversal_payloads = [
             "../../../etc/passwd",
@@ -203,7 +203,7 @@ class TestWebstreamDeleteRedTeam:
         ]
 
         for payload in traversal_payloads:
-            response = api_client.delete(f"/api/v2/webstreams/{payload}")
+            response = guest_client.delete(f"/api/v2/webstreams/{payload}")
             assert response.status_code in [
                 400,
                 404,
@@ -214,7 +214,7 @@ class TestWebstreamDeleteRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T559: Race condition in concurrent delete")
-    def test_race_condition_concurrent_delete(self, api_client):
+    def test_race_condition_concurrent_delete(self, guest_client):
         """Race: Concurrent delete of same stream."""
         import concurrent.futures
 
@@ -227,7 +227,7 @@ class TestWebstreamDeleteRedTeam:
         )
 
         def delete_stream():
-            return api_client.delete(
+            return guest_client.delete(
                 f"/api/v2/webstreams/{stream.id}",
             ).status_code
 
@@ -262,7 +262,7 @@ class TestWebstreamDeleteRedTeam:
         """Auth: DELETE with invalid token should return 403.
 
         FIXED: Use credentials() to properly override auth.
-        defaults[] does NOT override credentials() set in api_client fixture.
+        defaults[] does NOT override credentials() set in guest_client fixture.
         """
         from rest_framework.test import APIClient
 
@@ -279,17 +279,17 @@ class TestWebstreamDeleteRedTeam:
     # Unicode and Encoding
     # ========================================================================
 
-    def test_delete_unicode_id(self, api_client):
+    def test_delete_unicode_id(self, guest_client):
         """Validation: Unicode in ID handled gracefully."""
-        response = api_client.delete("/api/v2/webstreams/日本語")
+        response = guest_client.delete("/api/v2/webstreams/日本語")
         assert response.status_code in [
             400,
             404,
         ], f"Unicode ID caused {response.status_code}"
 
-    def test_delete_null_bytes(self, api_client):
+    def test_delete_null_bytes(self, guest_client):
         """Validation: Null bytes in ID handled gracefully."""
-        response = api_client.delete("/api/v2/webstreams/1%00test")
+        response = guest_client.delete("/api/v2/webstreams/1%00test")
         assert response.status_code in [
             400,
             404,
@@ -300,7 +300,7 @@ class TestWebstreamDeleteRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T561: HTTP method override not blocked")
-    def test_http_method_override_delete(self, api_client):
+    def test_http_method_override_delete(self, guest_client):
         """Security: HTTP method override should not bypass auth."""
         user = baker.make(User, username="testred_user")
         stream = baker.make(
@@ -311,7 +311,7 @@ class TestWebstreamDeleteRedTeam:
         )
 
         # Try to override GET with DELETE
-        response = api_client.get(
+        response = guest_client.get(
             f"/api/v2/webstreams/{stream.id}",
             HTTP_X_HTTP_METHOD_OVERRIDE="DELETE",
         )

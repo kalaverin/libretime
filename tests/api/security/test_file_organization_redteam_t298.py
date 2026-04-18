@@ -28,7 +28,7 @@ class TestFileOrganizationBOLA:
     @pytest.mark.xfail(
         reason="BOLA: Can retrieve other user's file organization - T901",
     )
-    def test_retrieve_other_users_file_path(self, api_client: APIClient):
+    def test_retrieve_other_users_file_path(self, guest_client: APIClient):
         """
         Attacker retrieves victim's file to see filepath info.
         API1:2023 - Broken Object Level Authorization.
@@ -46,8 +46,8 @@ class TestFileOrganizationBOLA:
             filepath="/secret/music/private_collection/rare_track.mp3",
         )
 
-        api_client.force_authenticate(user=attacker)
-        response = api_client.get(f"/api/v2/files/{victim_file.id}")
+        guest_client.force_authenticate(user=attacker)
+        response = guest_client.get(f"/api/v2/files/{victim_file.id}")
 
         assert (
             response.status_code == 404
@@ -56,7 +56,7 @@ class TestFileOrganizationBOLA:
     @pytest.mark.xfail(
         reason="BOLA: LIST shows all users' file organization - T901",
     )
-    def test_list_shows_all_users_filepaths(self, api_client: APIClient):
+    def test_list_shows_all_users_filepaths(self, guest_client: APIClient):
         """
         LIST endpoint returns all users' file paths and library assignments.
         API1:2023 - Missing user isolation.
@@ -85,8 +85,8 @@ class TestFileOrganizationBOLA:
             _quantity=3,
         )
 
-        api_client.force_authenticate(user=user1)
-        response = api_client.get("/api/v2/files")
+        guest_client.force_authenticate(user=user1)
+        response = guest_client.get("/api/v2/files")
 
         assert response.status_code == 200
         data = response.json()
@@ -101,7 +101,7 @@ class TestFileOrganizationBOLA:
     @pytest.mark.xfail(
         reason="BOLA: Can enumerate file IDs to get all paths - T901",
     )
-    def test_enumerate_file_ids_for_paths(self, api_client: APIClient):
+    def test_enumerate_file_ids_for_paths(self, guest_client: APIClient):
         """Enumerate file IDs to collect filepaths from all users."""
         attacker = baker.make(User, username="path_enum")
         victim = baker.make(User, username="path_victim_enum")
@@ -120,7 +120,7 @@ class TestFileOrganizationBOLA:
             )
             victim_files.append(f)
 
-        api_client.force_authenticate(user=attacker)
+        guest_client.force_authenticate(user=attacker)
 
         # Try ID enumeration
         found_paths = []
@@ -128,7 +128,7 @@ class TestFileOrganizationBOLA:
 
         for offset in range(-3, 8):
             try_id = base_id + offset
-            response = api_client.get(f"/api/v2/files/{try_id}")
+            response = guest_client.get(f"/api/v2/files/{try_id}")
             if response.status_code == 200:
                 found_paths.append(response.json().get("filepath"))
 
@@ -145,7 +145,7 @@ class TestFileOrganizationMassAssignment:
     @pytest.mark.xfail(
         reason="BOPLA: Mass assignment allows changing filepath - T902",
     )
-    def test_mass_assignment_filepath_blocked(self, api_client: APIClient):
+    def test_mass_assignment_filepath_blocked(self, guest_client: APIClient):
         """
         Attempt to modify filepath via PATCH/PUT.
         Filepath should be immutable after creation.
@@ -162,10 +162,10 @@ class TestFileOrganizationMassAssignment:
             filepath="/original/path/file.mp3",
         )
 
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
         # Attempt to change filepath
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/files/{file_obj.id}",
             {"filepath": "/hacked/malicious/path.mp3"},
             format="json",
@@ -179,7 +179,7 @@ class TestFileOrganizationMassAssignment:
     @pytest.mark.xfail(
         reason="BOPLA: Mass assignment allows changing file_size - T903",
     )
-    def test_mass_assignment_file_size_blocked(self, api_client: APIClient):
+    def test_mass_assignment_file_size_blocked(self, guest_client: APIClient):
         """
         Attempt to modify file_size via PATCH/PUT.
         File size should be read-only from actual file.
@@ -196,9 +196,9 @@ class TestFileOrganizationMassAssignment:
             file_size=1024000,
         )
 
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/files/{file_obj.id}",
             {"file_size": 999999999},
             format="json",
@@ -214,7 +214,7 @@ class TestFileOrganizationMassAssignment:
     )
     def test_mass_assignment_library_change_blocked(
         self,
-        api_client: APIClient,
+        guest_client: APIClient,
     ):
         """
         Attempt to change file's library assignment.
@@ -237,9 +237,9 @@ class TestFileOrganizationMassAssignment:
             owner=victim,
         )
 
-        api_client.force_authenticate(user=attacker)
+        guest_client.force_authenticate(user=attacker)
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/files/{file_obj.id}",
             {"library": attacker_library.id},
             format="json",
@@ -255,7 +255,7 @@ class TestFileOrganizationMassAssignment:
     )
     def test_mass_assignment_import_status_blocked(
         self,
-        api_client: APIClient,
+        guest_client: APIClient,
     ):
         """
         Attempt to modify import_status via PATCH.
@@ -273,9 +273,9 @@ class TestFileOrganizationMassAssignment:
             import_status=0,  # PENDING
         )
 
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/files/{file_obj.id}",
             {"import_status": 1},  # SUCCESS
             format="json",
@@ -292,7 +292,7 @@ class TestFileOrganizationPathTraversal:
     """T906: Path traversal via filepath manipulation."""
 
     @pytest.mark.xfail(reason="Path traversal: Relative path accepted - T906")
-    def test_path_traversal_relative_blocked(self, api_client: APIClient):
+    def test_path_traversal_relative_blocked(self, guest_client: APIClient):
         """
         Attempt to create file with path traversal in filepath.
         API1:2023 - Path traversal vulnerability.
@@ -300,7 +300,7 @@ class TestFileOrganizationPathTraversal:
         user = baker.make(User, username="traversal_attacker")
         library = make_library(code="TRAVERSAL", name="Traversal Test")
 
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
         traversal_paths = [
             "../../../etc/passwd",
@@ -309,7 +309,7 @@ class TestFileOrganizationPathTraversal:
         ]
 
         for path in traversal_paths:
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/files",
                 {
                     "name": "evil.mp3",
@@ -333,7 +333,7 @@ class TestFileOrganizationPathTraversal:
     )
     def test_absolute_path_outside_storage_blocked(
         self,
-        api_client: APIClient,
+        guest_client: APIClient,
     ):
         """
         Attempt to use absolute path outside storage directory.
@@ -341,7 +341,7 @@ class TestFileOrganizationPathTraversal:
         user = baker.make(User, username="abs_path_hacker")
         library = make_library(code="ABS", name="Abs Test")
 
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
         malicious_paths = [
             "/etc/shadow",
@@ -351,7 +351,7 @@ class TestFileOrganizationPathTraversal:
         ]
 
         for path in malicious_paths:
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/files",
                 {
                     "name": "evil.mp3",
@@ -373,12 +373,12 @@ class TestFileOrganizationPathTraversal:
         reason="Flaky: Encoding attacks handling varies",
         strict=False,
     )
-    def test_filepath_encoding_attacks(self, api_client: APIClient):
+    def test_filepath_encoding_attacks(self, guest_client: APIClient):
         """Test various filepath encoding attacks."""
         user = baker.make(User, username="encoding_attacker")
         library = make_library(code="ENC", name="Encoding Test")
 
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
         encoding_attacks = [
             "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd",  # URL encoded
@@ -388,7 +388,7 @@ class TestFileOrganizationPathTraversal:
         ]
 
         for path in encoding_attacks:
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/files",
                 {
                     "name": "encoding_test.mp3",
@@ -422,7 +422,7 @@ class TestFileOrganizationSQLInjection:
     )
     def test_sqli_in_organization_filter_no_crash(
         self,
-        api_client: APIClient,
+        guest_client: APIClient,
         filter_payload: str,
     ):
         """
@@ -442,16 +442,16 @@ class TestFileOrganizationSQLInjection:
             _quantity=2,
         )
 
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
-        response = api_client.get(f"/api/v2/files?{filter_payload}")
+        response = guest_client.get(f"/api/v2/files?{filter_payload}")
 
         assert response.status_code in [
             200,
             400,
         ], f"SQLi payload '{filter_payload}' caused error"
 
-    def test_sqli_in_filepath_param_no_crash(self, api_client: APIClient):
+    def test_sqli_in_filepath_param_no_crash(self, guest_client: APIClient):
         """Test SQLi in filepath query parameter."""
         user = baker.make(User, username="sqli_path")
         library = make_library(code="SQLI2", name="SQLI Test")
@@ -465,7 +465,7 @@ class TestFileOrganizationSQLInjection:
             filepath="/music/test.mp3",
         )
 
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
         payloads = [
             "' OR '1'='1",
@@ -475,7 +475,7 @@ class TestFileOrganizationSQLInjection:
         ]
 
         for payload in payloads:
-            response = api_client.get(f"/api/v2/files?filepath={payload}")
+            response = guest_client.get(f"/api/v2/files?filepath={payload}")
             assert response.status_code in [
                 200,
                 400,
@@ -489,7 +489,7 @@ class TestFileOrganizationBusinessLogic:
     @pytest.mark.xfail(
         reason="Business logic: Can create file with fake size - T908",
     )
-    def test_fake_file_size_on_create_blocked(self, api_client: APIClient):
+    def test_fake_file_size_on_create_blocked(self, guest_client: APIClient):
         """
         Creating a file with fabricated file_size.
         API6:2023 - Unrestricted access to sensitive business flows.
@@ -497,9 +497,9 @@ class TestFileOrganizationBusinessLogic:
         user = baker.make(User, username="fake_size")
         library = make_library(code="FAKE", name="Fake Test")
 
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/files",
             {
                 "name": "fake.mp3",
@@ -520,14 +520,14 @@ class TestFileOrganizationBusinessLogic:
     @pytest.mark.xfail(
         reason="Business logic: Zero file size not validated - T908",
     )
-    def test_zero_file_size_handled(self, api_client: APIClient):
+    def test_zero_file_size_handled(self, guest_client: APIClient):
         """Zero file size should be rejected or flagged."""
         user = baker.make(User, username="zero_size")
         library = make_library(code="ZERO", name="Zero Test")
 
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/files",
             {
                 "name": "zero.mp3",
@@ -547,14 +547,14 @@ class TestFileOrganizationBusinessLogic:
         reason="Flaky: Negative size validation varies",
         strict=False,
     )
-    def test_negative_file_size_rejected(self, api_client: APIClient):
+    def test_negative_file_size_rejected(self, guest_client: APIClient):
         """Negative file size should be rejected."""
         user = baker.make(User, username="negative_size")
         library = make_library(code="NEG", name="Negative Test")
 
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/files",
             {
                 "name": "negative.mp3",
@@ -578,7 +578,7 @@ class TestFileOrganizationFilterBypass:
     @pytest.mark.xfail(
         reason="BOLA: Filter by library shows all users' files - T909",
     )
-    def test_filter_by_library_cross_user(self, api_client: APIClient):
+    def test_filter_by_library_cross_user(self, guest_client: APIClient):
         """
         Filter by library returns files from all users.
         API1:2023 - Missing authorization in filtered queries.
@@ -607,9 +607,9 @@ class TestFileOrganizationFilterBypass:
             _quantity=2,
         )
 
-        api_client.force_authenticate(user=attacker)
+        guest_client.force_authenticate(user=attacker)
 
-        response = api_client.get(f"/api/v2/files?library={shared_library.id}")
+        response = guest_client.get(f"/api/v2/files?library={shared_library.id}")
 
         assert response.status_code == 200
         data = response.json()
@@ -624,7 +624,7 @@ class TestFileOrganizationFilterBypass:
     @pytest.mark.xfail(
         reason="BOLA: Filter by import_status shows all users' files - T909",
     )
-    def test_filter_by_import_status_cross_user(self, api_client: APIClient):
+    def test_filter_by_import_status_cross_user(self, guest_client: APIClient):
         """Filter by import_status returns files from all users."""
         attacker = baker.make(User, username="status_attacker")
         victim = baker.make(User, username="status_victim")
@@ -652,9 +652,9 @@ class TestFileOrganizationFilterBypass:
             _quantity=2,
         )
 
-        api_client.force_authenticate(user=attacker)
+        guest_client.force_authenticate(user=attacker)
 
-        response = api_client.get("/api/v2/files?import_status=0")
+        response = guest_client.get("/api/v2/files?import_status=0")
 
         assert response.status_code == 200
         data = response.json()
@@ -666,7 +666,7 @@ class TestFileOrganizationFilterBypass:
             len(victim_visible) == 0
         ), "Filter should not expose victim's pending files"
 
-    def test_filter_by_invalid_values_handled(self, api_client: APIClient):
+    def test_filter_by_invalid_values_handled(self, guest_client: APIClient):
         """Invalid filter values should be handled gracefully."""
         user = baker.make(User, username="invalid_filter")
         library = make_library(code="INVALID", name="Invalid Test")
@@ -679,7 +679,7 @@ class TestFileOrganizationFilterBypass:
             owner=user,
         )
 
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
         invalid_filters = [
             "library=abc",
@@ -689,7 +689,7 @@ class TestFileOrganizationFilterBypass:
         ]
 
         for filter_str in invalid_filters:
-            response = api_client.get(f"/api/v2/files?{filter_str}")
+            response = guest_client.get(f"/api/v2/files?{filter_str}")
             assert response.status_code in [
                 200,
                 400,
@@ -700,15 +700,15 @@ class TestFileOrganizationFilterBypass:
 class TestFileOrganizationInformationDisclosure:
     """T910: Information disclosure via organization endpoints."""
 
-    def test_no_internal_paths_in_errors(self, api_client: APIClient):
+    def test_no_internal_paths_in_errors(self, guest_client: APIClient):
         """Error messages should not expose internal paths."""
         user = baker.make(User, username="info_leak")
         library = make_library(code="INFO", name="Info Test")
 
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
         # Try invalid operations
-        response = api_client.get("/api/v2/files/999999999")
+        response = guest_client.get("/api/v2/files/999999999")
 
         if response.status_code == 404:
             data = response.json()
@@ -718,14 +718,14 @@ class TestFileOrganizationInformationDisclosure:
             ), "Error exposes internal path"
             assert "/home/" not in error_str, "Error exposes home directory"
 
-    def test_no_stack_traces_in_response(self, api_client: APIClient):
+    def test_no_stack_traces_in_response(self, guest_client: APIClient):
         """Stack traces should not be exposed in API responses."""
         user = baker.make(User, username="stack_leak")
         library = make_library(code="STACK", name="Stack Test")
 
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
-        response = api_client.get("/api/v2/files/invalid-id")
+        response = guest_client.get("/api/v2/files/invalid-id")
 
         if response.status_code == 400:
             data = response.json()
@@ -738,7 +738,7 @@ class TestFileOrganizationInformationDisclosure:
     @pytest.mark.xfail(
         reason="Info leak: File size reveals file existence - T910",
     )
-    def test_file_size_timing_attack(self, api_client: APIClient):
+    def test_file_size_timing_attack(self, guest_client: APIClient):
         """
         Timing attack: Different response times for existent vs non-existent files.
         Could reveal if a file exists even without access.
@@ -759,16 +759,16 @@ class TestFileOrganizationInformationDisclosure:
             file_size=9999999,
         )
 
-        api_client.force_authenticate(user=attacker)
+        guest_client.force_authenticate(user=attacker)
 
         # Time request for existing file (no access)
         start = time.time()
-        response1 = api_client.get(f"/api/v2/files/{victim_file.id}")
+        response1 = guest_client.get(f"/api/v2/files/{victim_file.id}")
         time_existing = time.time() - start
 
         # Time request for non-existing file
         start = time.time()
-        response2 = api_client.get("/api/v2/files/999999999")
+        response2 = guest_client.get("/api/v2/files/999999999")
         time_nonexistent = time.time() - start
 
         # Both should be 404, timing should be similar
@@ -789,7 +789,7 @@ class TestFileOrganizationWorkflowBypass:
     @pytest.mark.xfail(
         reason="Workflow bypass: Can move PENDING file to SUCCESS library - T911",
     )
-    def test_pending_file_library_move_blocked(self, api_client: APIClient):
+    def test_pending_file_library_move_blocked(self, guest_client: APIClient):
         """
         Attempt to move pending file to 'processed' library.
         Could bypass import processing workflow.
@@ -810,9 +810,9 @@ class TestFileOrganizationWorkflowBypass:
             import_status=0,  # PENDING
         )
 
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/files/{file_obj.id}",
             {"library": processed_lib.id},
             format="json",
@@ -826,7 +826,7 @@ class TestFileOrganizationWorkflowBypass:
     @pytest.mark.xfail(
         reason="Workflow bypass: Can fake import completion - T911",
     )
-    def test_fake_import_completion_blocked(self, api_client: APIClient):
+    def test_fake_import_completion_blocked(self, guest_client: APIClient):
         """
         Attempt to set both library and status to appear processed.
         """
@@ -842,9 +842,9 @@ class TestFileOrganizationWorkflowBypass:
             import_status=2,  # FAILED
         )
 
-        api_client.force_authenticate(user=user)
+        guest_client.force_authenticate(user=user)
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/files/{file_obj.id}",
             {
                 "import_status": 1,  # SUCCESS

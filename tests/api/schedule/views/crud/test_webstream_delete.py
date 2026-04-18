@@ -17,7 +17,7 @@ class TestWebstreamViewSetDelete:
         Webstream.objects.all().delete()
         User.objects.filter(username__startswith="testws").delete()
 
-    def test_delete_webstream_success_returns_204(self, api_client):
+    def test_delete_webstream_success_returns_204(self, guest_client):
         """DELETE should return 204 on success."""
         user = baker.make(User, username="testws_user")
         stream = baker.make(
@@ -27,10 +27,10 @@ class TestWebstreamViewSetDelete:
             owner=user,
         )
 
-        response = api_client.delete(f"/api/v2/webstreams/{stream.id}")
+        response = guest_client.delete(f"/api/v2/webstreams/{stream.id}")
         assert response.status_code == 204
 
-    def test_delete_webstream_removes_from_db(self, api_client):
+    def test_delete_webstream_removes_from_db(self, guest_client):
         """DELETE should remove webstream from database."""
         user = baker.make(User, username="testws_user")
         stream = baker.make(
@@ -40,12 +40,12 @@ class TestWebstreamViewSetDelete:
             owner=user,
         )
 
-        api_client.delete(f"/api/v2/webstreams/{stream.id}")
+        guest_client.delete(f"/api/v2/webstreams/{stream.id}")
         assert Webstream.objects.filter(id=stream.id).count() == 0
 
-    def test_delete_not_found_returns_404(self, api_client):
+    def test_delete_not_found_returns_404(self, guest_client):
         """DELETE non-existent webstream should return 404."""
-        response = api_client.delete("/api/v2/webstreams/999999")
+        response = guest_client.delete("/api/v2/webstreams/999999")
         assert response.status_code == 404
 
     def test_delete_no_auth_fails(self, client):
@@ -53,7 +53,7 @@ class TestWebstreamViewSetDelete:
         response = client.delete("/api/v2/webstreams/1")
         assert response.status_code == 403
 
-    def test_delete_double_delete_returns_404(self, api_client):
+    def test_delete_double_delete_returns_404(self, guest_client):
         """DELETE already deleted webstream should return 404."""
         user = baker.make(User, username="testws_user")
         stream = baker.make(
@@ -63,11 +63,11 @@ class TestWebstreamViewSetDelete:
             owner=user,
         )
 
-        api_client.delete(f"/api/v2/webstreams/{stream.id}")
-        response = api_client.delete(f"/api/v2/webstreams/{stream.id}")
+        guest_client.delete(f"/api/v2/webstreams/{stream.id}")
+        response = guest_client.delete(f"/api/v2/webstreams/{stream.id}")
         assert response.status_code == 404
 
-    def test_delete_returns_empty_body(self, api_client):
+    def test_delete_returns_empty_body(self, guest_client):
         """DELETE should return empty response body."""
         user = baker.make(User, username="testws_user")
         stream = baker.make(
@@ -77,10 +77,10 @@ class TestWebstreamViewSetDelete:
             owner=user,
         )
 
-        response = api_client.delete(f"/api/v2/webstreams/{stream.id}")
+        response = guest_client.delete(f"/api/v2/webstreams/{stream.id}")
         assert response.content == b""
 
-    def test_delete_one_webstream_others_remain(self, api_client):
+    def test_delete_one_webstream_others_remain(self, guest_client):
         """DELETE one webstream should leave others."""
         user = baker.make(User, username="testws_user")
         stream1 = baker.make(
@@ -102,23 +102,23 @@ class TestWebstreamViewSetDelete:
             owner=user,
         )
 
-        api_client.delete(f"/api/v2/webstreams/{stream2.id}")
+        guest_client.delete(f"/api/v2/webstreams/{stream2.id}")
 
         assert Webstream.objects.filter(id=stream1.id).exists()
         assert not Webstream.objects.filter(id=stream2.id).exists()
         assert Webstream.objects.filter(id=stream3.id).exists()
 
-    def test_delete_id_zero_returns_404(self, api_client):
+    def test_delete_id_zero_returns_404(self, guest_client):
         """DELETE with id=0 should return 404."""
-        response = api_client.delete("/api/v2/webstreams/0")
+        response = guest_client.delete("/api/v2/webstreams/0")
         assert response.status_code == 404
 
-    def test_delete_negative_id_returns_404(self, api_client):
+    def test_delete_negative_id_returns_404(self, guest_client):
         """DELETE with negative id should return 404."""
-        response = api_client.delete("/api/v2/webstreams/-1")
+        response = guest_client.delete("/api/v2/webstreams/-1")
         assert response.status_code == 404
 
-    def test_delete_sql_injection_attempt(self, api_client):
+    def test_delete_sql_injection_attempt(self, guest_client):
         """DELETE with SQL injection in id should be handled safely."""
-        response = api_client.delete("/api/v2/webstreams/1 OR 1=1")
+        response = guest_client.delete("/api/v2/webstreams/1 OR 1=1")
         assert response.status_code == 404

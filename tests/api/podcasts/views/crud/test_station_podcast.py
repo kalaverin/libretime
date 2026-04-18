@@ -11,9 +11,9 @@ class TestStationPodcastViewSet:
     """Test StationPodcast LIST/CREATE/RETRIEVE/UPDATE/DELETE."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, api_client, admin_user):
+    def setup(self, guest_client, admin_user):
         """Set up test fixtures."""
-        self.api_client = api_client
+        self.guest_client = guest_client
         self.user = admin_user
         self.podcast = baker.make(
             Podcast,
@@ -24,7 +24,7 @@ class TestStationPodcastViewSet:
 
     def test_list_station_podcasts(self):
         """LIST station podcasts."""
-        response = self.api_client.get("/api/v2/station-podcasts")
+        response = self.guest_client.get("/api/v2/station-podcasts")
         assert response.status_code == 200
         data = response.json()
         assert len(data) >= 1
@@ -38,7 +38,7 @@ class TestStationPodcastViewSet:
         )
         data = {"podcast": new_podcast.id}
 
-        response = self.api_client.post(
+        response = self.guest_client.post(
             "/api/v2/station-podcasts",
             data,
             format="json",
@@ -49,7 +49,7 @@ class TestStationPodcastViewSet:
 
     def test_retrieve_station_podcast(self):
         """RETRIEVE station podcast."""
-        response = self.api_client.get(
+        response = self.guest_client.get(
             f"/api/v2/station-podcasts/{self.station.id}",
         )
         assert response.status_code == 200
@@ -58,7 +58,7 @@ class TestStationPodcastViewSet:
 
     def test_delete_station_podcast(self):
         """DELETE station podcast."""
-        response = self.api_client.delete(
+        response = self.guest_client.delete(
             f"/api/v2/station-podcasts/{self.station.id}",
         )
         assert response.status_code == 204
@@ -66,6 +66,6 @@ class TestStationPodcastViewSet:
 
     def test_no_auth_fails(self):
         """Operations without auth fail."""
-        self.api_client.logout()
-        response = self.api_client.get("/api/v2/station-podcasts")
+        self.guest_client.logout()
+        response = self.guest_client.get("/api/v2/station-podcasts")
         assert response.status_code == 403

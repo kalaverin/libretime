@@ -35,7 +35,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T505: BOLA - can update other user's criteria")
-    def test_bola_update_other_users_criteria(self, api_client):
+    def test_bola_update_other_users_criteria(self, guest_client):
         """BOLA: Updating another user's criteria should fail."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -55,7 +55,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
         )
 
         # Attacker tries to update victim's criteria
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/smart-block-criteria/{victim_criteria.id}",
             json.dumps({"value": "Attacker Genre"}),
             content_type="application/json",
@@ -66,7 +66,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
         ], f"BOLA: Updated victim's criteria, got {response.status_code}"
 
     @pytest.mark.xfail(reason="T506: BOLA - can delete other user's criteria")
-    def test_bola_delete_other_users_criteria(self, api_client):
+    def test_bola_delete_other_users_criteria(self, guest_client):
         """BOLA: Deleting another user's criteria should fail."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -86,7 +86,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
         )
 
         # Attacker tries to delete victim's criteria
-        response = api_client.delete(
+        response = guest_client.delete(
             f"/api/v2/smart-block-criteria/{victim_criteria.id}",
         )
         assert response.status_code in [
@@ -98,7 +98,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
     # IDOR via ID Enumeration
     # ========================================================================
 
-    def test_idor_criteria_enumeration(self, api_client):
+    def test_idor_criteria_enumeration(self, guest_client):
         """Security: Criteria ID enumeration mitigated."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -117,7 +117,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
 
         # Try to access with sequential IDs
         for test_id in range(1, 10):
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/smart-block-criteria/{test_id}",
             )
             # Should get 404 for non-existent or 403 for unauthorized
@@ -134,7 +134,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
     @pytest.mark.xfail(
         reason="T507: Can change criteria to point to other user's block",
     )
-    def test_block_takeover_via_update(self, api_client):
+    def test_block_takeover_via_update(self, guest_client):
         """BOLA: Changing criteria to point to victim's block."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -160,7 +160,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
         )
 
         # Attacker tries to move criteria to victim's block
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/smart-block-criteria/{criteria.id}",
             json.dumps({"block": victim_block.id}),
             content_type="application/json",
@@ -174,7 +174,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
     # Injection Attacks on Update
     # ========================================================================
 
-    def test_sqli_in_update_value(self, api_client):
+    def test_sqli_in_update_value(self, guest_client):
         """Injection: SQLi in PATCH value field."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -198,7 +198,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.patch(
+            response = guest_client.patch(
                 f"/api/v2/smart-block-criteria/{criteria.id}",
                 json.dumps({"value": payload}),
                 content_type="application/json",
@@ -208,7 +208,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
                 400,
             ], f"SQLi '{payload}' caused {response.status_code}"
 
-    def test_sqli_in_update_criteria_field(self, api_client):
+    def test_sqli_in_update_criteria_field(self, guest_client):
         """Injection: SQLi in PATCH criteria field."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -231,7 +231,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.patch(
+            response = guest_client.patch(
                 f"/api/v2/smart-block-criteria/{criteria.id}",
                 json.dumps({"criteria": payload}),
                 content_type="application/json",
@@ -246,7 +246,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T508: Can modify id field on update")
-    def test_mass_assignment_id_on_update(self, api_client):
+    def test_mass_assignment_id_on_update(self, guest_client):
         """BOPLA: Changing id field on update should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -264,7 +264,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
         )
         original_id = criteria.id
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/smart-block-criteria/{criteria.id}",
             json.dumps({"id": 99999}),
             content_type="application/json",
@@ -288,7 +288,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
     @pytest.mark.xfail(
         reason="T509: PUT allows changing block to other user's",
     )
-    def test_put_full_update_block_takeover(self, api_client):
+    def test_put_full_update_block_takeover(self, guest_client):
         """BOLA: PUT full update with victim's block ID."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -314,7 +314,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
         )
 
         # PUT full update with victim's block
-        response = api_client.put(
+        response = guest_client.put(
             f"/api/v2/smart-block-criteria/{criteria.id}",
             json.dumps(
                 {
@@ -335,18 +335,18 @@ class TestSmartBlockCriteriaUpdateRedTeam:
     # Invalid ID Handling
     # ========================================================================
 
-    def test_update_nonexistent_criteria(self, api_client):
+    def test_update_nonexistent_criteria(self, guest_client):
         """Validation: Update non-existent criteria returns 404."""
-        response = api_client.patch(
+        response = guest_client.patch(
             "/api/v2/smart-block-criteria/999999",
             json.dumps({"value": "New Value"}),
             content_type="application/json",
         )
         assert response.status_code == 404
 
-    def test_update_invalid_id_format(self, api_client):
+    def test_update_invalid_id_format(self, guest_client):
         """Validation: Invalid ID format handled gracefully."""
-        response = api_client.patch(
+        response = guest_client.patch(
             "/api/v2/smart-block-criteria/invalid",
             json.dumps({"value": "New Value"}),
             content_type="application/json",
@@ -379,7 +379,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T510: Empty value accepted on update")
-    def test_update_empty_value(self, api_client):
+    def test_update_empty_value(self, guest_client):
         """Validation: Empty value should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -396,7 +396,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
             value="Jazz",
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/smart-block-criteria/{criteria.id}",
             json.dumps({"value": ""}),
             content_type="application/json",
@@ -406,7 +406,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
         ), f"Empty value accepted with {response.status_code}"
 
     @pytest.mark.xfail(reason="T511: Very long value on update not validated")
-    def test_update_very_long_value(self, api_client):
+    def test_update_very_long_value(self, guest_client):
         """Validation: Very long value on update should be rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -424,7 +424,7 @@ class TestSmartBlockCriteriaUpdateRedTeam:
         )
 
         long_value = "A" * 10000
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/smart-block-criteria/{criteria.id}",
             json.dumps({"value": long_value}),
             content_type="application/json",

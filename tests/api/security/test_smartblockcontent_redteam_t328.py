@@ -16,27 +16,27 @@ import pytest
 class TestSmartBlockContentFilterInjection:
     """Filter parameter injection attacks."""
 
-    def test_filter_by_invalid_block_id(self, api_client, admin_user):
+    def test_filter_by_invalid_block_id(self, guest_client, admin_user):
         """Try to filter by invalid block_id."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/smart-block-contents?block=invalid")
+        response = guest_client.get("/api/v2/smart-block-contents?block=invalid")
 
         # Should handle gracefully
         assert response.status_code in [200, 400]
 
-    def test_filter_by_negative_block_id(self, api_client, admin_user):
+    def test_filter_by_negative_block_id(self, guest_client, admin_user):
         """Try to filter by negative block_id."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/smart-block-contents?block=-1")
+        response = guest_client.get("/api/v2/smart-block-contents?block=-1")
 
         # Should handle gracefully
         assert response.status_code in [200, 400]
 
-    def test_filter_by_sql_injection(self, api_client, admin_user):
+    def test_filter_by_sql_injection(self, guest_client, admin_user):
         """Try SQL injection in block filter."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         sqli_payloads = [
             "1' OR '1'='1",
@@ -45,26 +45,26 @@ class TestSmartBlockContentFilterInjection:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/smart-block-contents?block={payload}",
             )
 
             # Should not execute SQL
             assert response.status_code in [200, 400]
 
-    def test_filter_by_very_large_block_id(self, api_client, admin_user):
+    def test_filter_by_very_large_block_id(self, guest_client, admin_user):
         """Try to filter by very large block_id."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/smart-block-contents?block=999999999999999999",
         )
 
         assert response.status_code in [200, 400]
 
-    def test_filter_without_auth(self, api_client):
+    def test_filter_without_auth(self, guest_client):
         """Try to filter without authentication."""
-        response = api_client.get("/api/v2/smart-block-contents?block=1")
+        response = guest_client.get("/api/v2/smart-block-contents?block=1")
 
         if response.status_code == 200:
             pytest.xfail("SECURITY: Anonymous can filter smart block content")
@@ -74,20 +74,20 @@ class TestSmartBlockContentFilterInjection:
 class TestSmartBlockContentOrderingManipulation:
     """Ordering parameter manipulation attacks."""
 
-    def test_order_by_invalid_field(self, api_client, admin_user):
+    def test_order_by_invalid_field(self, guest_client, admin_user):
         """Try to order by non-existent field."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/smart-block-contents?ordering=nonexistent_field",
         )
 
         # Should reject invalid field
         assert response.status_code in [200, 400]
 
-    def test_order_by_sql_injection(self, api_client, admin_user):
+    def test_order_by_sql_injection(self, guest_client, admin_user):
         """Try SQL injection in ordering parameter."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         sqli_payloads = [
             "position; DROP TABLE cc_blockcontents;--",
@@ -95,15 +95,15 @@ class TestSmartBlockContentOrderingManipulation:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/smart-block-contents?ordering={payload}",
             )
 
             assert response.status_code in [200, 400]
 
-    def test_order_by_private_field(self, api_client, admin_user):
+    def test_order_by_private_field(self, guest_client, admin_user):
         """Try to order by internal/private fields."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         internal_fields = [
             "id",
@@ -112,14 +112,14 @@ class TestSmartBlockContentOrderingManipulation:
         ]
 
         for field in internal_fields:
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/smart-block-contents?ordering={field}",
             )
 
             # May accept or reject
             assert response.status_code in [200, 400]
 
-    def test_reverse_ordering(self, api_client, admin_user):
+    def test_reverse_ordering(self, guest_client, admin_user):
         """Test reverse ordering (should work)."""
         from model_bakery import baker
 
@@ -143,16 +143,16 @@ class TestSmartBlockContentOrderingManipulation:
             offset=0,
         )
 
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         # Test ascending order
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/smart-block-contents?ordering=position",
         )
         assert response.status_code == 200
 
         # Test descending order
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/smart-block-contents?ordering=-position",
         )
         assert response.status_code == 200
@@ -162,11 +162,11 @@ class TestSmartBlockContentOrderingManipulation:
 class TestSmartBlockContentInformationDisclosure:
     """Information disclosure via filter/ordering."""
 
-    def test_error_message_on_invalid_filter(self, api_client, admin_user):
+    def test_error_message_on_invalid_filter(self, guest_client, admin_user):
         """Check if error messages leak implementation details."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/smart-block-contents?block=invalid")
+        response = guest_client.get("/api/v2/smart-block-contents?block=invalid")
 
         if response.status_code == 400:
             content = response.content.decode()
@@ -174,20 +174,20 @@ class TestSmartBlockContentInformationDisclosure:
             if "cc_blockcontents" in content or "column" in content:
                 pytest.fail("Error message leaks database schema")
 
-    def test_timing_attack_on_filter(self, api_client, admin_user):
+    def test_timing_attack_on_filter(self, guest_client, admin_user):
         """Test for timing-based information disclosure."""
         import time
 
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         # Request with valid filter
         start = time.time()
-        response1 = api_client.get("/api/v2/smart-block-contents?block=1")
+        response1 = guest_client.get("/api/v2/smart-block-contents?block=1")
         time_valid = time.time() - start
 
         # Request with invalid filter
         start = time.time()
-        response2 = api_client.get("/api/v2/smart-block-contents?block=999999")
+        response2 = guest_client.get("/api/v2/smart-block-contents?block=999999")
         time_invalid = time.time() - start
 
         # Times should be similar (no timing leak)
@@ -201,7 +201,7 @@ class TestSmartBlockContentIDORWithFilter:
 
     def test_filter_shows_only_own_content(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -231,8 +231,8 @@ class TestSmartBlockContentIDORWithFilter:
         )
 
         # User filters content
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get("/api/v2/smart-block-contents")
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.get("/api/v2/smart-block-contents")
 
         assert response.status_code == 200
         data = response.json()
@@ -245,7 +245,7 @@ class TestSmartBlockContentIDORWithFilter:
 
     def test_filter_by_other_user_block(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -263,8 +263,8 @@ class TestSmartBlockContentIDORWithFilter:
         )
 
         # User tries to filter by admin's block
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get(
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.get(
             f"/api/v2/smart-block-contents?block={admin_block.id}",
         )
 
@@ -283,28 +283,28 @@ class TestSmartBlockContentIDORWithFilter:
 class TestSmartBlockContentPagination:
     """Pagination-related security tests."""
 
-    def test_large_limit_parameter(self, api_client, admin_user):
+    def test_large_limit_parameter(self, guest_client, admin_user):
         """Try to request very large number of items."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/smart-block-contents?limit=999999")
+        response = guest_client.get("/api/v2/smart-block-contents?limit=999999")
 
         # Should not crash or return all items
         assert response.status_code in [200, 400]
 
-    def test_negative_limit(self, api_client, admin_user):
+    def test_negative_limit(self, guest_client, admin_user):
         """Try negative limit parameter."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/smart-block-contents?limit=-1")
+        response = guest_client.get("/api/v2/smart-block-contents?limit=-1")
 
         assert response.status_code in [200, 400]
 
-    def test_negative_offset(self, api_client, admin_user):
+    def test_negative_offset(self, guest_client, admin_user):
         """Try negative offset parameter."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/smart-block-contents?offset=-1")
+        response = guest_client.get("/api/v2/smart-block-contents?offset=-1")
 
         assert response.status_code in [200, 400]
 
@@ -315,7 +315,7 @@ class TestSmartBlockContentMassOrdering:
 
     def test_extract_all_content_via_ordering(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -338,10 +338,10 @@ class TestSmartBlockContentMassOrdering:
                 offset=0,
             )
 
-        api_client.force_authenticate(user=regular_user)
+        guest_client.force_authenticate(user=regular_user)
 
         # Get first page
-        response = api_client.get("/api/v2/smart-block-contents?limit=5")
+        response = guest_client.get("/api/v2/smart-block-contents?limit=5")
         assert response.status_code == 200
 
         data = response.json()

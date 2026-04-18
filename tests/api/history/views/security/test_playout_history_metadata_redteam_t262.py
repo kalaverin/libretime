@@ -45,7 +45,7 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
 
     def test_bola_list_shows_all_metadata(
         self,
-        api_client,
+        admin_client,
         admin_user,
         victim_metadata,
         faker,
@@ -55,7 +55,7 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
 
         Should filter by requesting user's playout history.
         """
-        response = api_client.get("/api/v2/playout-history-metadata")
+        response = admin_client.get("/api/v2/playout-history-metadata")
 
         assert response.status_code == 200
         data = response.json()
@@ -68,14 +68,14 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
 
     def test_bola_retrieve_other_users_metadata(
         self,
-        api_client,
+        admin_client,
         admin_user,
         victim_metadata,
     ):
         """
         BOLA: RETRIEVE other user's metadata by ID.
         """
-        response = api_client.get(
+        response = admin_client.get(
             f"/api/v2/playout-history-metadata/{victim_metadata.id}",
         )
 
@@ -85,7 +85,7 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
 
     def test_bola_create_metadata_for_other_users_playout(
         self,
-        api_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -110,7 +110,7 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
             "value": "Attacker Value",
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-metadata",
             data,
             format="json",
@@ -124,7 +124,7 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
 
     def test_bola_update_other_users_metadata(
         self,
-        api_client,
+        admin_client,
         admin_user,
         victim_metadata,
     ):
@@ -137,7 +137,7 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
             "value": "Hacked Value",
         }
 
-        response = api_client.put(
+        response = admin_client.put(
             f"/api/v2/playout-history-metadata/{victim_metadata.id}",
             data,
             format="json",
@@ -149,14 +149,14 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
 
     def test_bola_delete_other_users_metadata(
         self,
-        api_client,
+        admin_client,
         admin_user,
         victim_metadata,
     ):
         """
         BOLA: DELETE other user's metadata.
         """
-        response = api_client.delete(
+        response = admin_client.delete(
             f"/api/v2/playout-history-metadata/{victim_metadata.id}",
         )
 
@@ -166,7 +166,7 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
 
     def test_bola_metadata_links_to_history_detail(
         self,
-        api_client,
+        admin_client,
         admin_user,
         victim_metadata,
     ):
@@ -175,7 +175,7 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
 
         Metadata includes history_id which can be used to access history.
         """
-        response = api_client.get(
+        response = admin_client.get(
             f"/api/v2/playout-history-metadata/{victim_metadata.id}",
         )
 
@@ -185,7 +185,7 @@ class TestPlayoutHistoryMetadataRedTeamBOLA:
             history_id = data.get("history")
             if history_id:
                 # Try to access the linked history
-                history_response = api_client.get(
+                history_response = admin_client.get(
                     f"/api/v2/playout-history/{history_id}",
                 )
                 # Document whether history is accessible
@@ -197,7 +197,7 @@ class TestPlayoutHistoryMetadataRedTeamBOPLA:
 
     def test_bopla_create_mass_assignment_id(
         self,
-        api_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -215,7 +215,7 @@ class TestPlayoutHistoryMetadataRedTeamBOPLA:
             "value": "test",
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-metadata",
             data,
             format="json",
@@ -228,7 +228,7 @@ class TestPlayoutHistoryMetadataRedTeamBOPLA:
 
     def test_bopla_create_extra_fields_ignored(
         self,
-        api_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -246,7 +246,7 @@ class TestPlayoutHistoryMetadataRedTeamBOPLA:
             "password": "stolen",
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-metadata",
             data,
             format="json",
@@ -259,7 +259,7 @@ class TestPlayoutHistoryMetadataRedTeamBOPLA:
 
     def test_bopla_update_extra_fields_ignored(
         self,
-        api_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -282,7 +282,7 @@ class TestPlayoutHistoryMetadataRedTeamBOPLA:
             "extra_field": "should_be_rejected",
         }
 
-        response = api_client.put(
+        response = admin_client.put(
             f"/api/v2/playout-history-metadata/{metadata.id}",
             data,
             format="json",
@@ -293,7 +293,7 @@ class TestPlayoutHistoryMetadataRedTeamBOPLA:
 
     def test_bopla_patch_key_value_manipulation(
         self,
-        api_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -314,7 +314,7 @@ class TestPlayoutHistoryMetadataRedTeamBOPLA:
         # Try to set key to reserved/system value
         data = {"key": "__internal__", "value": "system_data"}
 
-        response = api_client.patch(
+        response = admin_client.patch(
             f"/api/v2/playout-history-metadata/{metadata.id}",
             data,
             format="json",
@@ -329,7 +329,7 @@ class TestPlayoutHistoryMetadataRedTeamBOPLA:
 class TestPlayoutHistoryMetadataRedTeamInjection:
     """Injection attacks on metadata endpoints."""
 
-    def test_sqli_in_key_field(self, api_client, admin_user, faker):
+    def test_sqli_in_key_field(self, admin_client, admin_user, faker):
         """
         SQL Injection via key field.
         """
@@ -349,7 +349,7 @@ class TestPlayoutHistoryMetadataRedTeamInjection:
                 "value": "test",
             }
 
-            response = api_client.post(
+            response = admin_client.post(
                 "/api/v2/playout-history-metadata",
                 data,
                 format="json",
@@ -362,7 +362,7 @@ class TestPlayoutHistoryMetadataRedTeamInjection:
             if "sql" in error_text or "syntax" in error_text:
                 pytest.xfail(f"T630: SQLi error disclosure: {key[:30]}")
 
-    def test_sqli_in_value_field(self, api_client, admin_user, faker):
+    def test_sqli_in_value_field(self, admin_client, admin_user, faker):
         """
         SQL Injection via value field.
         """
@@ -382,7 +382,7 @@ class TestPlayoutHistoryMetadataRedTeamInjection:
                 "value": value,
             }
 
-            response = api_client.post(
+            response = admin_client.post(
                 "/api/v2/playout-history-metadata",
                 data,
                 format="json",
@@ -393,7 +393,7 @@ class TestPlayoutHistoryMetadataRedTeamInjection:
                     f"T630: SQLi in value field causes 500: {value[:30]}",
                 )
 
-    def test_xss_in_key_field(self, api_client, admin_user, faker):
+    def test_xss_in_key_field(self, admin_client, admin_user, faker):
         """
         XSS payloads in key field.
         """
@@ -413,7 +413,7 @@ class TestPlayoutHistoryMetadataRedTeamInjection:
                 "value": "test",
             }
 
-            response = api_client.post(
+            response = admin_client.post(
                 "/api/v2/playout-history-metadata",
                 data,
                 format="json",
@@ -427,7 +427,7 @@ class TestPlayoutHistoryMetadataRedTeamInjection:
                     # Stored without sanitization
                     pytest.xfail("T631: XSS in key field stored unsanitized")
 
-    def test_xss_in_value_field(self, api_client, admin_user, faker):
+    def test_xss_in_value_field(self, admin_client, admin_user, faker):
         """
         XSS payloads in value field.
         """
@@ -446,7 +446,7 @@ class TestPlayoutHistoryMetadataRedTeamInjection:
                 "value": value,
             }
 
-            response = api_client.post(
+            response = admin_client.post(
                 "/api/v2/playout-history-metadata",
                 data,
                 format="json",
@@ -460,7 +460,7 @@ class TestPlayoutHistoryMetadataRedTeamInjection:
                         "T631: XSS in value field stored unsanitized",
                     )
 
-    def test_command_injection_in_value(self, api_client, admin_user, faker):
+    def test_command_injection_in_value(self, admin_client, admin_user, faker):
         """
         Command injection patterns in value.
         """
@@ -481,7 +481,7 @@ class TestPlayoutHistoryMetadataRedTeamInjection:
                 "value": value,
             }
 
-            response = api_client.post(
+            response = admin_client.post(
                 "/api/v2/playout-history-metadata",
                 data,
                 format="json",
@@ -495,7 +495,7 @@ class TestPlayoutHistoryMetadataRedTeamInjection:
 class TestPlayoutHistoryMetadataRedTeamValidation:
     """Validation and edge case tests."""
 
-    def test_create_with_nonexistent_history(self, api_client, admin_user):
+    def test_create_with_nonexistent_history(self, admin_client, admin_user):
         """
         Validation: CREATE with non-existent history ID.
         """
@@ -505,7 +505,7 @@ class TestPlayoutHistoryMetadataRedTeamValidation:
             "value": "Test",
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-metadata",
             data,
             format="json",
@@ -513,7 +513,7 @@ class TestPlayoutHistoryMetadataRedTeamValidation:
 
         assert response.status_code == 400
 
-    def test_create_missing_required_key(self, api_client, admin_user, faker):
+    def test_create_missing_required_key(self, admin_client, admin_user, faker):
         """
         Validation: CREATE without required key field.
         """
@@ -525,7 +525,7 @@ class TestPlayoutHistoryMetadataRedTeamValidation:
             "value": "No Key Provided",
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-metadata",
             data,
             format="json",
@@ -535,7 +535,7 @@ class TestPlayoutHistoryMetadataRedTeamValidation:
 
     def test_create_missing_required_value(
         self,
-        api_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -550,7 +550,7 @@ class TestPlayoutHistoryMetadataRedTeamValidation:
             "key": "artist",
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-metadata",
             data,
             format="json",
@@ -561,7 +561,7 @@ class TestPlayoutHistoryMetadataRedTeamValidation:
 
     def test_create_duplicate_key_same_history(
         self,
-        api_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -579,7 +579,7 @@ class TestPlayoutHistoryMetadataRedTeamValidation:
             "key": "artist",
             "value": "First Artist",
         }
-        response1 = api_client.post(
+        response1 = admin_client.post(
             "/api/v2/playout-history-metadata",
             data,
             format="json",
@@ -588,7 +588,7 @@ class TestPlayoutHistoryMetadataRedTeamValidation:
 
         # Try duplicate
         data["value"] = "Second Artist"
-        response2 = api_client.post(
+        response2 = admin_client.post(
             "/api/v2/playout-history-metadata",
             data,
             format="json",
@@ -602,7 +602,7 @@ class TestPlayoutHistoryMetadataRedTeamValidation:
             # Duplicates rejected
             pass
 
-    def test_very_long_key(self, api_client, admin_user, faker):
+    def test_very_long_key(self, admin_client, admin_user, faker):
         """
         Validation: Very long key values.
         """
@@ -615,7 +615,7 @@ class TestPlayoutHistoryMetadataRedTeamValidation:
             "value": "test",
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-metadata",
             data,
             format="json",
@@ -624,7 +624,7 @@ class TestPlayoutHistoryMetadataRedTeamValidation:
         # Should be limited by max_length
         assert response.status_code in [201, 400]
 
-    def test_very_long_value(self, api_client, admin_user, faker):
+    def test_very_long_value(self, admin_client, admin_user, faker):
         """
         Validation: Very long value.
         """
@@ -637,7 +637,7 @@ class TestPlayoutHistoryMetadataRedTeamValidation:
             "value": "A" * 10000,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-metadata",
             data,
             format="json",
@@ -654,7 +654,7 @@ class TestPlayoutHistoryMetadataRedTeamValidation:
 class TestPlayoutHistoryMetadataRedTeamResourceConsumption:
     """API4:2023 Unrestricted Resource Consumption."""
 
-    def test_rapid_metadata_creation(self, api_client, admin_user, faker):
+    def test_rapid_metadata_creation(self, admin_client, admin_user, faker):
         """
         Rate limiting: Rapid metadata CREATE.
         """
@@ -668,7 +668,7 @@ class TestPlayoutHistoryMetadataRedTeamResourceConsumption:
                 "key": f"key_{i}",
                 "value": f"value_{i}",
             }
-            response = api_client.post(
+            response = admin_client.post(
                 "/api/v2/playout-history-metadata",
                 data,
                 format="json",
@@ -679,7 +679,7 @@ class TestPlayoutHistoryMetadataRedTeamResourceConsumption:
         if success_count == 20:
             pytest.xfail("T633: No rate limiting on metadata CREATE")
 
-    def test_bulk_metadata_list(self, api_client, admin_user, faker):
+    def test_bulk_metadata_list(self, admin_client, admin_user, faker):
         """
         Resource consumption: Large metadata list.
         """
@@ -695,7 +695,7 @@ class TestPlayoutHistoryMetadataRedTeamResourceConsumption:
                 value=f"value_{i}",
             )
 
-        response = api_client.get("/api/v2/playout-history-metadata")
+        response = admin_client.get("/api/v2/playout-history-metadata")
 
         if response.status_code == 200:
             data = response.json()
@@ -707,38 +707,38 @@ class TestPlayoutHistoryMetadataRedTeamResourceConsumption:
 class TestPlayoutHistoryMetadataRedTeamAuthentication:
     """Authentication tests."""
 
-    def test_unauthenticated_list(self, api_client):
+    def test_unauthenticated_list(self, guest_client):
         """
         Auth: Unauthenticated LIST should fail.
         """
-        api_client.logout()
-        response = api_client.get("/api/v2/playout-history-metadata")
+        guest_client.logout()
+        response = guest_client.get("/api/v2/playout-history-metadata")
         assert response.status_code == 403
 
-    def test_unauthenticated_create(self, api_client):
+    def test_unauthenticated_create(self, guest_client):
         """
         Auth: Unauthenticated CREATE should fail.
         """
-        api_client.logout()
-        response = api_client.post(
+        guest_client.logout()
+        response = guest_client.post(
             "/api/v2/playout-history-metadata",
             {"key": "test", "value": "test"},
             format="json",
         )
         assert response.status_code == 403
 
-    def test_guest_user_create(self, api_client, guest_user, faker):
+    def test_guest_user_create(self, guest_client, guest_user, faker):
         """
         BFLA: Guest user CREATE permissions.
         """
-        api_client.force_authenticate(user=guest_user)
+        guest_client.force_authenticate(user=guest_user)
 
         data = {
             "key": "artist",
             "value": "Guest Artist",
         }
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/playout-history-metadata",
             data,
             format="json",

@@ -48,7 +48,7 @@ class TestScheduleShowHostPermissionsRedTeam:
     # Show Host Own Show Permissions
     # ========================================================================
 
-    def test_host_can_create_schedule_own_show(self, api_client, faker):
+    def test_host_can_create_schedule_own_show(self, guest_client, faker):
         """Host should be able to create schedule for their own show."""
         host = baker.make(
             User,
@@ -66,9 +66,9 @@ class TestScheduleShowHostPermissionsRedTeam:
         )
 
         base_time = now()
-        api_client.force_authenticate(user=host)
+        guest_client.force_authenticate(user=host)
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(
                 {
@@ -96,7 +96,7 @@ class TestScheduleShowHostPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T617: BOLA - Host can modify other host's show schedule",
     )
-    def test_host_cannot_modify_other_host_show(self, api_client, faker):
+    def test_host_cannot_modify_other_host_show(self, guest_client, faker):
         """BOLA: Host should NOT be able to modify another host's show schedule."""
         # Victim host and show
         victim_host = baker.make(
@@ -133,10 +133,10 @@ class TestScheduleShowHostPermissionsRedTeam:
             username=f"testred_attacker_{faker.user_name()}",
             role=Role.HOST,
         )
-        api_client.force_authenticate(user=attacker_host)
+        guest_client.force_authenticate(user=attacker_host)
 
         # Try to modify victim's schedule
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/schedule/{victim_schedule.id}",
             json.dumps({"position": 999}),
             content_type="application/json",
@@ -149,7 +149,7 @@ class TestScheduleShowHostPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T618: BOLA - Host can delete other host's show schedule",
     )
-    def test_host_cannot_delete_other_host_show(self, api_client, faker):
+    def test_host_cannot_delete_other_host_show(self, guest_client, faker):
         """BOLA: Host should NOT be able to delete another host's show schedule."""
         victim_host = baker.make(
             User,
@@ -184,9 +184,9 @@ class TestScheduleShowHostPermissionsRedTeam:
             username=f"testred_attacker_{faker.user_name()}",
             role=Role.HOST,
         )
-        api_client.force_authenticate(user=attacker_host)
+        guest_client.force_authenticate(user=attacker_host)
 
-        response = api_client.delete(f"/api/v2/schedule/{victim_schedule.id}")
+        response = guest_client.delete(f"/api/v2/schedule/{victim_schedule.id}")
 
         assert (
             response.status_code == 403
@@ -196,7 +196,7 @@ class TestScheduleShowHostPermissionsRedTeam:
     # Host vs Admin Permissions
     # ========================================================================
 
-    def test_admin_can_modify_any_host_schedule(self, api_client, faker):
+    def test_admin_can_modify_any_host_schedule(self, guest_client, faker):
         """Admin should be able to modify any host's schedule."""
         host = baker.make(
             User,
@@ -231,9 +231,9 @@ class TestScheduleShowHostPermissionsRedTeam:
             username=f"testred_admin_{faker.user_name()}",
             role=Role.ADMIN,
         )
-        api_client.force_authenticate(user=admin)
+        guest_client.force_authenticate(user=admin)
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/schedule/{schedule.id}",
             json.dumps({"position": 888}),
             content_type="application/json",
@@ -253,7 +253,7 @@ class TestScheduleShowHostPermissionsRedTeam:
     )
     def test_host_cannot_change_to_other_show_instance(
         self,
-        api_client,
+        guest_client,
         faker,
     ):
         """BOPLA: Host should not change schedule to different show instance."""
@@ -297,10 +297,10 @@ class TestScheduleShowHostPermissionsRedTeam:
         baker.make(ShowHost, show=other_show, host=other_host)
         other_instance = baker.make(ShowInstance, show=other_show)
 
-        api_client.force_authenticate(user=host)
+        guest_client.force_authenticate(user=host)
 
         # Try to change schedule to other show's instance
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/schedule/{schedule.id}",
             json.dumps({"instance": other_instance.id}),
             content_type="application/json",
@@ -315,7 +315,7 @@ class TestScheduleShowHostPermissionsRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T620: BFLA - Guest can modify host's schedule")
-    def test_guest_cannot_modify_host_schedule(self, api_client, faker):
+    def test_guest_cannot_modify_host_schedule(self, guest_client, faker):
         """BFLA: Guest should not be able to modify host's schedule."""
         host = baker.make(
             User,
@@ -350,9 +350,9 @@ class TestScheduleShowHostPermissionsRedTeam:
             username=f"testred_guest_{faker.user_name()}",
             role=Role.GUEST,
         )
-        api_client.force_authenticate(user=guest)
+        guest_client.force_authenticate(user=guest)
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/schedule/{schedule.id}",
             json.dumps({"position": 777}),
             content_type="application/json",
@@ -366,7 +366,7 @@ class TestScheduleShowHostPermissionsRedTeam:
     # Show Creator Validation
     # ========================================================================
 
-    def test_show_host_permission_check(self, api_client, faker):
+    def test_show_host_permission_check(self, guest_client, faker):
         """Verify show host is properly checked for schedule operations."""
         host = baker.make(
             User,
@@ -384,9 +384,9 @@ class TestScheduleShowHostPermissionsRedTeam:
         )
 
         base_time = now()
-        api_client.force_authenticate(user=host)
+        guest_client.force_authenticate(user=host)
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(
                 {
@@ -412,7 +412,7 @@ class TestScheduleShowHostPermissionsRedTeam:
     # Multi-Show Host Permissions
     # ========================================================================
 
-    def test_host_multiple_shows_isolation(self, api_client, faker):
+    def test_host_multiple_shows_isolation(self, guest_client, faker):
         """Host with multiple shows should only access their own."""
         host = baker.make(
             User,
@@ -444,10 +444,10 @@ class TestScheduleShowHostPermissionsRedTeam:
 
         base_time = now()
 
-        api_client.force_authenticate(user=host)
+        guest_client.force_authenticate(user=host)
 
         # Create schedule for show1
-        response1 = api_client.post(
+        response1 = guest_client.post(
             "/api/v2/schedule",
             json.dumps(
                 {
@@ -467,7 +467,7 @@ class TestScheduleShowHostPermissionsRedTeam:
         )
 
         # Create schedule for show2
-        response2 = api_client.post(
+        response2 = guest_client.post(
             "/api/v2/schedule",
             json.dumps(
                 {
@@ -497,18 +497,18 @@ class TestScheduleShowHostPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T621: IDOR - Can access schedule via instance ID enumeration",
     )
-    def test_idor_instance_enumeration(self, api_client, faker):
+    def test_idor_instance_enumeration(self, guest_client, faker):
         """IDOR: Enumerating instance IDs to find other hosts' schedules."""
         host = baker.make(
             User,
             username=f"testred_host_{faker.user_name()}",
             role=Role.HOST,
         )
-        api_client.force_authenticate(user=host)
+        guest_client.force_authenticate(user=host)
 
         # Try to enumerate instance IDs
         for instance_id in range(1, 10):
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/schedule?instance={instance_id}",
             )
             if response.status_code == 200:
@@ -527,7 +527,7 @@ class TestScheduleShowHostPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T622: PrivEsc - Host can elevate to admin via schedule API",
     )
-    def test_host_privilege_escalation(self, api_client, faker):
+    def test_host_privilege_escalation(self, guest_client, faker):
         """PrivEsc: Host trying to escalate privileges via schedule manipulation."""
         host = baker.make(
             User,
@@ -545,10 +545,10 @@ class TestScheduleShowHostPermissionsRedTeam:
         )
 
         base_time = now()
-        api_client.force_authenticate(user=host)
+        guest_client.force_authenticate(user=host)
 
         # Try to add admin-only fields
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(
                 {

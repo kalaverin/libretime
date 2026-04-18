@@ -39,7 +39,7 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
 
     def test_bola_retrieve_other_users_playout(
         self,
-        api_client,
+        guest_client,
         admin_user,
         victim_playout,
         faker,
@@ -51,7 +51,7 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
         Test what happens with other users.
         """
         # Admin can retrieve victim's playout
-        response = api_client.get(
+        response = guest_client.get(
             f"/api/v2/playout-history/{victim_playout.id}",
         )
 
@@ -62,7 +62,7 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
 
     def test_bola_update_other_users_playout(
         self,
-        api_client,
+        guest_client,
         admin_user,
         victim_playout,
         faker,
@@ -80,7 +80,7 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
             "ends": format_datetime(now() + timedelta(minutes=5)),
         }
 
-        response = api_client.put(
+        response = guest_client.put(
             f"/api/v2/playout-history/{victim_playout.id}",
             data,
             format="json",
@@ -93,7 +93,7 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
 
     def test_bola_patch_other_users_playout(
         self,
-        api_client,
+        guest_client,
         admin_user,
         victim_playout,
     ):
@@ -106,7 +106,7 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
             "ends": format_datetime(now() + timedelta(minutes=10)),
         }
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/playout-history/{victim_playout.id}",
             data,
             format="json",
@@ -118,7 +118,7 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
 
     def test_bola_delete_other_users_playout(
         self,
-        api_client,
+        guest_client,
         admin_user,
         victim_playout,
     ):
@@ -127,7 +127,7 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
 
         Critical data loss vulnerability if allowed inappropriately.
         """
-        response = api_client.delete(
+        response = guest_client.delete(
             f"/api/v2/playout-history/{victim_playout.id}",
         )
 
@@ -138,7 +138,7 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
 
     def test_bola_retrieve_nonexistent_returns_404(
         self,
-        api_client,
+        admin_client,
         admin_user,
     ):
         """
@@ -146,13 +146,13 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
 
         404 vs 403 can leak existence information.
         """
-        response = api_client.get("/api/v2/playout-history/999999")
+        response = admin_client.get("/api/v2/playout-history/999999")
         assert response.status_code == 404
 
     def test_bola_id_enumeration_via_404_403(
         self,
-        api_client,
-        regular_user,
+        admin_client,
+        host_user,
         faker,
     ):
         """
@@ -166,12 +166,12 @@ class TestPlayoutHistoryRUDRedTeamBOLA:
         playout = baker.make(PlayoutHistory, file=f, starts=now())
 
         # Regular user tries to access
-        api_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=host_user)
 
-        response_existing = api_client.get(
+        response_existing = admin_client.get(
             f"/api/v2/playout-history/{playout.id}",
         )
-        response_nonexistent = api_client.get("/api/v2/playout-history/999999")
+        response_nonexistent = admin_client.get("/api/v2/playout-history/999999")
 
         # If different status codes, ID enumeration is possible
         if response_existing.status_code != response_nonexistent.status_code:
@@ -196,7 +196,7 @@ class TestPlayoutHistoryRUDRedTeamBOPLA:
 
     def test_bopla_update_change_id(
         self,
-        api_client,
+        admin_client,
         admin_user,
         own_playout,
         faker,
@@ -216,7 +216,7 @@ class TestPlayoutHistoryRUDRedTeamBOPLA:
             "ends": format_datetime(now() + timedelta(minutes=5)),
         }
 
-        response = api_client.put(
+        response = admin_client.put(
             f"/api/v2/playout-history/{own_playout.id}",
             data,
             format="json",
@@ -229,7 +229,7 @@ class TestPlayoutHistoryRUDRedTeamBOPLA:
 
     def test_bopla_patch_extra_fields_ignored(
         self,
-        api_client,
+        admin_client,
         admin_user,
         own_playout,
     ):
@@ -245,7 +245,7 @@ class TestPlayoutHistoryRUDRedTeamBOPLA:
             "hacked": True,
         }
 
-        response = api_client.patch(
+        response = admin_client.patch(
             f"/api/v2/playout-history/{own_playout.id}",
             data,
             format="json",
@@ -257,7 +257,7 @@ class TestPlayoutHistoryRUDRedTeamBOPLA:
 
     def test_bopla_full_update_with_invalid_field(
         self,
-        api_client,
+        admin_client,
         admin_user,
         own_playout,
         faker,
@@ -275,7 +275,7 @@ class TestPlayoutHistoryRUDRedTeamBOPLA:
             "another_bad_field": 12345,
         }
 
-        response = api_client.put(
+        response = admin_client.put(
             f"/api/v2/playout-history/{own_playout.id}",
             data,
             format="json",
@@ -289,7 +289,7 @@ class TestPlayoutHistoryRUDRedTeamBOPLA:
 class TestPlayoutHistoryRUDRedTeamInjection:
     """Injection attacks on RUD endpoints."""
 
-    def test_sqli_in_retrieve_id(self, api_client, admin_user):
+    def test_sqli_in_retrieve_id(self, admin_client, admin_user):
         """
         SQL Injection via ID in URL path.
         """
@@ -300,7 +300,7 @@ class TestPlayoutHistoryRUDRedTeamInjection:
         ]
 
         for bad_id in sqli_ids:
-            response = api_client.get(f"/api/v2/playout-history/{bad_id}")
+            response = admin_client.get(f"/api/v2/playout-history/{bad_id}")
 
             if response.status_code == 500:
                 pytest.xfail(f"T626: SQLi in ID causes 500: {bad_id[:30]}")
@@ -309,7 +309,7 @@ class TestPlayoutHistoryRUDRedTeamInjection:
             if "sql" in error_text or "syntax" in error_text:
                 pytest.xfail(f"T626: SQLi error disclosure: {bad_id[:30]}")
 
-    def test_sqli_in_update_fields(self, api_client, admin_user, faker):
+    def test_sqli_in_update_fields(self, admin_client, admin_user, faker):
         """
         SQL Injection via UPDATE fields.
         """
@@ -328,7 +328,7 @@ class TestPlayoutHistoryRUDRedTeamInjection:
                 "ends": format_datetime(now() + timedelta(minutes=5)),
             }
 
-            response = api_client.put(
+            response = admin_client.put(
                 f"/api/v2/playout-history/{playout.id}",
                 data,
                 format="json",
@@ -337,7 +337,7 @@ class TestPlayoutHistoryRUDRedTeamInjection:
             if response.status_code == 500:
                 pytest.xfail("T626: SQLi in UPDATE causes 500")
 
-    def test_no_sql_injection_id(self, api_client, admin_user):
+    def test_no_sql_injection_id(self, admin_client, admin_user):
         """
         NoSQL injection via ID parameter.
         """
@@ -347,7 +347,7 @@ class TestPlayoutHistoryRUDRedTeamInjection:
         ]
 
         for bad_id in nosql_ids:
-            response = api_client.get(f"/api/v2/playout-history/{bad_id}")
+            response = admin_client.get(f"/api/v2/playout-history/{bad_id}")
             # Should not crash
             assert response.status_code in [200, 404, 400]
 
@@ -358,7 +358,7 @@ class TestPlayoutHistoryRUDRedTeamRaceConditions:
 
     def test_race_condition_concurrent_update(
         self,
-        api_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -376,7 +376,7 @@ class TestPlayoutHistoryRUDRedTeamRaceConditions:
             "starts": format_datetime(now()),
             "ends": format_datetime(now() + timedelta(minutes=5)),
         }
-        response1 = api_client.put(
+        response1 = admin_client.put(
             f"/api/v2/playout-history/{playout.id}",
             data1,
             format="json",
@@ -388,7 +388,7 @@ class TestPlayoutHistoryRUDRedTeamRaceConditions:
             "starts": format_datetime(now() + timedelta(minutes=1)),
             "ends": format_datetime(now() + timedelta(minutes=6)),
         }
-        response2 = api_client.put(
+        response2 = admin_client.put(
             f"/api/v2/playout-history/{playout.id}",
             data2,
             format="json",
@@ -401,7 +401,7 @@ class TestPlayoutHistoryRUDRedTeamRaceConditions:
 
     def test_race_condition_update_during_delete(
         self,
-        api_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -414,7 +414,7 @@ class TestPlayoutHistoryRUDRedTeamRaceConditions:
         playout = baker.make(PlayoutHistory, file=f, starts=now())
 
         # Delete
-        delete_response = api_client.delete(
+        delete_response = admin_client.delete(
             f"/api/v2/playout-history/{playout.id}",
         )
 
@@ -424,7 +424,7 @@ class TestPlayoutHistoryRUDRedTeamRaceConditions:
             "starts": format_datetime(now()),
             "ends": format_datetime(now() + timedelta(minutes=5)),
         }
-        update_response = api_client.put(
+        update_response = admin_client.put(
             f"/api/v2/playout-history/{playout.id}",
             data,
             format="json",
@@ -435,7 +435,7 @@ class TestPlayoutHistoryRUDRedTeamRaceConditions:
 
     def test_race_condition_delete_already_deleted(
         self,
-        api_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -448,11 +448,11 @@ class TestPlayoutHistoryRUDRedTeamRaceConditions:
         playout = baker.make(PlayoutHistory, file=f, starts=now())
 
         # First delete
-        response1 = api_client.delete(f"/api/v2/playout-history/{playout.id}")
+        response1 = admin_client.delete(f"/api/v2/playout-history/{playout.id}")
         assert response1.status_code == 204
 
         # Second delete
-        response2 = api_client.delete(f"/api/v2/playout-history/{playout.id}")
+        response2 = admin_client.delete(f"/api/v2/playout-history/{playout.id}")
         assert response2.status_code == 404
 
 
@@ -462,8 +462,8 @@ class TestPlayoutHistoryRUDRedTeamAuthorization:
 
     def test_retrieve_as_regular_user(
         self,
-        api_client,
-        regular_user,
+        admin_client,
+        host_user,
         admin_user,
         faker,
     ):
@@ -475,8 +475,8 @@ class TestPlayoutHistoryRUDRedTeamAuthorization:
         playout = baker.make(PlayoutHistory, file=f, starts=now())
 
         # Regular user tries to retrieve
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get(f"/api/v2/playout-history/{playout.id}")
+        admin_client.force_authenticate(user=host_user)
+        response = admin_client.get(f"/api/v2/playout-history/{playout.id}")
 
         if response.status_code == 200:
             # Regular user can retrieve - document permission
@@ -485,15 +485,15 @@ class TestPlayoutHistoryRUDRedTeamAuthorization:
             # Properly restricted
             pass
 
-    def test_update_as_regular_user(self, api_client, regular_user, faker):
+    def test_update_as_regular_user(self, host_client, host_user, faker):
         """
         BFLA: Regular user UPDATE permissions.
         """
         # Create playout for regular user
-        f = baker.make(File, mime="audio/mp3", owner=regular_user)
+        f = baker.make(File, mime="audio/mp3", owner=host_user)
         playout = baker.make(PlayoutHistory, file=f, starts=now())
 
-        api_client.force_authenticate(user=regular_user)
+        host_client.force_authenticate(user=host_user)
 
         data = {
             "file": f.id,
@@ -501,7 +501,7 @@ class TestPlayoutHistoryRUDRedTeamAuthorization:
             "ends": format_datetime(now() + timedelta(minutes=5)),
         }
 
-        response = api_client.put(
+        response = host_client.put(
             f"/api/v2/playout-history/{playout.id}",
             data,
             format="json",
@@ -510,35 +510,35 @@ class TestPlayoutHistoryRUDRedTeamAuthorization:
         # Document whether regular users can update
         assert response.status_code in [200, 403]
 
-    def test_delete_as_regular_user(self, api_client, regular_user, faker):
+    def test_delete_as_regular_user(self, host_client, host_user, faker):
         """
         BFLA: Regular user DELETE permissions.
         """
-        f = baker.make(File, mime="audio/mp3", owner=regular_user)
+        f = baker.make(File, mime="audio/mp3", owner=host_user)
         playout = baker.make(PlayoutHistory, file=f, starts=now())
 
-        api_client.force_authenticate(user=regular_user)
+        host_client.force_authenticate(user=host_user)
 
-        response = api_client.delete(f"/api/v2/playout-history/{playout.id}")
+        response = host_client.delete(f"/api/v2/playout-history/{playout.id}")
 
         # Document whether regular users can delete
         assert response.status_code in [204, 403]
 
-    def test_unauthenticated_rud(self, api_client, admin_user, faker):
+    def test_unauthenticated_rud(self, admin_client, admin_user, faker):
         """
         Auth: Unauthenticated RUD operations should fail.
         """
         f = baker.make(File, mime="audio/mp3", owner=admin_user)
         playout = baker.make(PlayoutHistory, file=f, starts=now())
 
-        api_client.logout()
+        admin_client.logout()
 
         # RETRIEVE
-        r_get = api_client.get(f"/api/v2/playout-history/{playout.id}")
+        r_get = admin_client.get(f"/api/v2/playout-history/{playout.id}")
         assert r_get.status_code == 403
 
         # UPDATE
-        r_put = api_client.put(
+        r_put = admin_client.put(
             f"/api/v2/playout-history/{playout.id}",
             {"file": f.id, "starts": format_datetime(now())},
             format="json",
@@ -546,7 +546,7 @@ class TestPlayoutHistoryRUDRedTeamAuthorization:
         assert r_put.status_code == 403
 
         # DELETE
-        r_delete = api_client.delete(f"/api/v2/playout-history/{playout.id}")
+        r_delete = admin_client.delete(f"/api/v2/playout-history/{playout.id}")
         assert r_delete.status_code == 403
 
 
@@ -554,7 +554,7 @@ class TestPlayoutHistoryRUDRedTeamAuthorization:
 class TestPlayoutHistoryRUDRedTeamValidation:
     """Validation and edge case tests."""
 
-    def test_update_to_invalid_file(self, api_client, admin_user, faker):
+    def test_update_to_invalid_file(self, admin_client, admin_user, faker):
         """
         Validation: UPDATE to non-existent file should fail.
         """
@@ -567,7 +567,7 @@ class TestPlayoutHistoryRUDRedTeamValidation:
             "ends": format_datetime(now() + timedelta(minutes=5)),
         }
 
-        response = api_client.put(
+        response = admin_client.put(
             f"/api/v2/playout-history/{playout.id}",
             data,
             format="json",
@@ -575,7 +575,7 @@ class TestPlayoutHistoryRUDRedTeamValidation:
 
         assert response.status_code == 400
 
-    def test_update_starts_after_ends(self, api_client, admin_user, faker):
+    def test_update_starts_after_ends(self, admin_client, admin_user, faker):
         """
         Validation: UPDATE with starts > ends should fail.
         """
@@ -588,7 +588,7 @@ class TestPlayoutHistoryRUDRedTeamValidation:
             "ends": format_datetime(now()),
         }
 
-        response = api_client.put(
+        response = admin_client.put(
             f"/api/v2/playout-history/{playout.id}",
             data,
             format="json",
@@ -602,7 +602,7 @@ class TestPlayoutHistoryRUDRedTeamValidation:
 
     def test_partial_update_invalid_datetime(
         self,
-        api_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -614,7 +614,7 @@ class TestPlayoutHistoryRUDRedTeamValidation:
 
         data = {"ends": "not-a-valid-datetime"}
 
-        response = api_client.patch(
+        response = admin_client.patch(
             f"/api/v2/playout-history/{playout.id}",
             data,
             format="json",
@@ -627,14 +627,14 @@ class TestPlayoutHistoryRUDRedTeamValidation:
 class TestPlayoutHistoryRUDRedTeamHTTPMethodTampering:
     """HTTP method tampering tests."""
 
-    def test_method_override_on_retrieve(self, api_client, admin_user, faker):
+    def test_method_override_on_retrieve(self, admin_client, admin_user, faker):
         """
         Method override: POST with X-HTTP-Method-Override to retrieve.
         """
         f = baker.make(File, mime="audio/mp3", owner=admin_user)
         playout = baker.make(PlayoutHistory, file=f, starts=now())
 
-        response = api_client.post(
+        response = admin_client.post(
             f"/api/v2/playout-history/{playout.id}",
             {},
             headers={"X-HTTP-Method-Override": "GET"},
@@ -643,14 +643,14 @@ class TestPlayoutHistoryRUDRedTeamHTTPMethodTampering:
         # Should not work - POST is not valid for single resource
         assert response.status_code in [405, 403, 400]
 
-    def test_trace_method(self, api_client, admin_user, faker):
+    def test_trace_method(self, admin_client, admin_user, faker):
         """
         TRACE method should be disabled.
         """
         f = baker.make(File, mime="audio/mp3", owner=admin_user)
         playout = baker.make(PlayoutHistory, file=f, starts=now())
 
-        response = api_client.trace(f"/api/v2/playout-history/{playout.id}")
+        response = admin_client.trace(f"/api/v2/playout-history/{playout.id}")
 
         # TRACE should be disabled (security best practice)
         assert response.status_code in [405, 403]

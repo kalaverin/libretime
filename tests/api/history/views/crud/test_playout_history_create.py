@@ -21,9 +21,9 @@ class TestPlayoutHistoryViewSetCreate:
     """Test PlayoutHistory CREATE endpoint - POST /api/v2/playout-history."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, api_client, admin_user):
+    def setup(self, admin_client, admin_user):
         """Set up test fixtures."""
-        self.api_client = api_client
+        self.admin_client = admin_client
         self.user = admin_user
         show = baker.make(Show, name="Test Show")
         instance_start = now()
@@ -44,7 +44,7 @@ class TestPlayoutHistoryViewSetCreate:
             "starts": format_datetime(self.history_start),
             "ends": format_datetime(self.history_end),
         }
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history",
             data,
             format="json",
@@ -67,7 +67,7 @@ class TestPlayoutHistoryViewSetCreate:
             "starts": format_datetime(self.history_start),
             "ends": format_datetime(self.history_end),
         }
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history",
             data,
             format="json",
@@ -85,7 +85,7 @@ class TestPlayoutHistoryViewSetCreate:
             "file": self.file.id,
             "starts": format_datetime(self.history_start),
         }
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history",
             data,
             format="json",
@@ -103,7 +103,7 @@ class TestPlayoutHistoryViewSetCreate:
             "starts": format_datetime(self.history_start),
             "ends": format_datetime(self.history_end),
         }
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history",
             data,
             format="json",
@@ -118,7 +118,7 @@ class TestPlayoutHistoryViewSetCreate:
             "file": self.file.id,
             "ends": format_datetime(self.history_end),
         }
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history",
             data,
             format="json",
@@ -132,7 +132,7 @@ class TestPlayoutHistoryViewSetCreate:
             "starts": format_datetime(self.history_start),
             "ends": format_datetime(self.history_end),
         }
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history",
             data,
             format="json",
@@ -147,7 +147,7 @@ class TestPlayoutHistoryViewSetCreate:
             "starts": format_datetime(self.history_start),
             "ends": format_datetime(self.history_end),
         }
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history",
             data,
             format="json",
@@ -156,13 +156,13 @@ class TestPlayoutHistoryViewSetCreate:
 
     def test_create_no_auth_fails(self):
         """Create without authentication should fail."""
-        self.api_client.logout()
+        self.admin_client.logout()
         data = {
             "file": self.file.id,
             "starts": format_datetime(self.history_start),
             "ends": format_datetime(self.history_end),
         }
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history",
             data,
             format="json",
@@ -176,7 +176,7 @@ class TestPlayoutHistoryViewSetCreate:
             "starts": format_datetime(self.history_end),
             "ends": format_datetime(self.history_start),
         }
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history",
             data,
             format="json",

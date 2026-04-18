@@ -24,6 +24,7 @@ REQUEST_PERMISSION_TYPE_MAP = {
     "PUT": "change",
     "DELETE": "delete",
     "PATCH": "change",
+    "TRACE": "view",
 }
 
 

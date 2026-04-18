@@ -96,7 +96,7 @@ class TestPlaylistLengthBOLA:
     )
     def test_bola_retrieve_other_users_playlist_length(
         self,
-        api_client,
+        guest_client,
         faker,
     ):
         """Attacker can retrieve victim's playlist including length field."""
@@ -125,7 +125,7 @@ class TestPlaylistLengthBOLA:
     @pytest.mark.xfail(
         reason="T807: BOLA - LIST shows all playlists, no owner filtering",
     )
-    def test_bola_list_shows_all_playlists(self, api_client, faker):
+    def test_bola_list_shows_all_playlists(self, guest_client, faker):
         """LIST returns all playlists regardless of owner."""
         victim = baker.make(User, username=f"victim_{faker.user_name()}")
         attacker = baker.make(User, username=f"attacker_{faker.user_name()}")
@@ -154,7 +154,7 @@ class TestPlaylistLengthBOLA:
     @pytest.mark.xfail(
         reason="T808: BOLA - attacker can update victim's playlist",
     )
-    def test_bola_update_other_users_playlist_length(self, api_client, faker):
+    def test_bola_update_other_users_playlist_length(self, guest_client, faker):
         """Attacker can update victim's playlist length."""
         victim = baker.make(User, username=f"victim_{faker.user_name()}")
         attacker = baker.make(User, username=f"attacker_{faker.user_name()}")
@@ -184,7 +184,7 @@ class TestPlaylistLengthBOLA:
     @pytest.mark.xfail(
         reason="T809: BOLA - attacker can delete victim's playlist",
     )
-    def test_bola_delete_other_users_playlist(self, api_client, faker):
+    def test_bola_delete_other_users_playlist(self, guest_client, faker):
         """Attacker can delete victim's playlist."""
         victim = baker.make(User, username=f"victim_{faker.user_name()}")
         attacker = baker.make(User, username=f"attacker_{faker.user_name()}")
@@ -213,7 +213,7 @@ class TestPlaylistLengthBOPLA:
     @pytest.mark.django_db
     def test_bopla_mass_assignment_id_field(
         self,
-        api_client,
+        guest_client,
         admin_user,
         faker,
     ):
@@ -247,7 +247,7 @@ class TestPlaylistLengthBOPLA:
     )
     def test_bopla_mass_assignment_created_at(
         self,
-        api_client,
+        guest_client,
         admin_user,
         faker,
     ):
@@ -278,7 +278,7 @@ class TestPlaylistLengthBOPLA:
     @pytest.mark.xfail(reason="T812: BOPLA - owner change via PATCH allowed")
     def test_bopla_change_owner_via_update(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
         faker,
@@ -310,7 +310,7 @@ class TestPlaylistLengthBOPLA:
     @pytest.mark.xfail(reason="T813: BOPLA - extra fields silently accepted")
     def test_bopla_extra_fields_not_rejected(
         self,
-        api_client,
+        guest_client,
         admin_user,
         faker,
     ):
@@ -343,7 +343,7 @@ class TestPlaylistLengthInjection:
     """Injection vulnerability tests."""
 
     @pytest.mark.django_db
-    def test_sqli_in_length_field_create(self, api_client, admin_user):
+    def test_sqli_in_length_field_create(self, guest_client, admin_user):
         """SQL injection in length field during CREATE."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -380,7 +380,7 @@ class TestPlaylistLengthInjection:
                     pytest.fail(f"T814: SQL error disclosed: {err}")
 
     @pytest.mark.django_db
-    def test_sqli_in_length_field_update(self, api_client, admin_user):
+    def test_sqli_in_length_field_update(self, guest_client, admin_user):
         """SQL injection in length field during UPDATE."""
         playlist = baker.make(
             Playlist,
@@ -405,7 +405,7 @@ class TestPlaylistLengthInjection:
                 )
 
     @pytest.mark.django_db
-    def test_nosql_injection_length_field(self, api_client, admin_user):
+    def test_nosql_injection_length_field(self, guest_client, admin_user):
         """NoSQL injection attempts in length field."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -441,7 +441,7 @@ class TestPlaylistLengthValidation:
 
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T817: Invalid time format 99:99:99 accepted")
-    def test_invalid_time_format_accepted(self, api_client, admin_user):
+    def test_invalid_time_format_accepted(self, guest_client, admin_user):
         """Invalid time formats should be rejected."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -474,7 +474,7 @@ class TestPlaylistLengthValidation:
     @pytest.mark.xfail(
         reason="T818: Overflow length value 999999:00:00 accepted",
     )
-    def test_overflow_length_value(self, api_client, admin_user):
+    def test_overflow_length_value(self, guest_client, admin_user):
         """Very large duration values should be validated."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -502,7 +502,7 @@ class TestPlaylistLengthValidation:
             ), f"T818: Overflow length value accepted: {val}"
 
     @pytest.mark.django_db
-    def test_null_bytes_in_length(self, api_client, admin_user):
+    def test_null_bytes_in_length(self, guest_client, admin_user):
         """Null bytes in length field should be rejected."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -527,7 +527,7 @@ class TestPlaylistLengthFuzzing:
     """Fuzzing tests using SecLists payloads."""
 
     @pytest.mark.django_db
-    def test_fuzzing_length_field(self, api_client, admin_user):
+    def test_fuzzing_length_field(self, guest_client, admin_user):
         """Fuzz length field with naughty strings."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -552,7 +552,7 @@ class TestPlaylistLengthFuzzing:
                 )
 
     @pytest.mark.django_db
-    def test_fuzzing_name_field_with_length(self, api_client, admin_user):
+    def test_fuzzing_name_field_with_length(self, guest_client, admin_user):
         """Fuzz name field while setting length."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -578,7 +578,7 @@ class TestPlaylistLengthDoS:
     """Denial of Service tests."""
 
     @pytest.mark.django_db
-    def test_very_long_length_string(self, api_client, admin_user):
+    def test_very_long_length_string(self, guest_client, admin_user):
         """Very long length string should be rejected."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -602,7 +602,7 @@ class TestPlaylistLengthDoS:
 
     @pytest.mark.django_db
     @pytest.mark.xfail(reason="T823: No rate limiting on playlist CREATE")
-    def test_rapid_create_requests(self, api_client, admin_user):
+    def test_rapid_create_requests(self, guest_client, admin_user):
         """Rapid CREATE requests should be rate limited."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -636,7 +636,7 @@ class TestPlaylistLengthEdgeCases:
     """Edge case and boundary tests."""
 
     @pytest.mark.django_db
-    def test_zero_length_handling(self, api_client, admin_user):
+    def test_zero_length_handling(self, guest_client, admin_user):
         """Zero length should be handled correctly."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -658,7 +658,7 @@ class TestPlaylistLengthEdgeCases:
         assert data.get("length") == "00:00:00"
 
     @pytest.mark.django_db
-    def test_max_valid_length(self, api_client, admin_user):
+    def test_max_valid_length(self, guest_client, admin_user):
         """Maximum reasonable length should be accepted."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -682,7 +682,7 @@ class TestPlaylistLengthEdgeCases:
             )
 
     @pytest.mark.django_db
-    def test_whitespace_in_length(self, api_client, admin_user):
+    def test_whitespace_in_length(self, guest_client, admin_user):
         """Whitespace in length field should be handled."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -710,7 +710,7 @@ class TestPlaylistLengthMethodBypass:
     """HTTP method bypass tests."""
 
     @pytest.mark.django_db
-    def test_put_vs_patch_length_update(self, api_client, admin_user):
+    def test_put_vs_patch_length_update(self, guest_client, admin_user):
         """PUT should have same validation as PATCH."""
         playlist = baker.make(
             Playlist,
@@ -747,7 +747,7 @@ class TestPlaylistLengthMethodBypass:
                 pytest.fail("T826: PUT wiped existing fields (data loss)")
 
     @pytest.mark.django_db
-    def test_method_override_length_update(self, api_client, admin_user):
+    def test_method_override_length_update(self, guest_client, admin_user):
         """Test method override headers."""
         playlist = baker.make(
             Playlist,
@@ -774,7 +774,7 @@ class TestPlaylistLengthInfoDisclosure:
     """Information disclosure tests."""
 
     @pytest.mark.django_db
-    def test_error_message_leaks_structure(self, api_client, admin_user):
+    def test_error_message_leaks_structure(self, guest_client, admin_user):
         """Error messages should not leak database structure."""
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -810,7 +810,7 @@ class TestPlaylistLengthInfoDisclosure:
                     )
 
     @pytest.mark.django_db
-    def test_stack_trace_not_exposed(self, api_client, admin_user):
+    def test_stack_trace_not_exposed(self, guest_client, admin_user):
         """Stack traces should not be exposed in errors."""
         client = APIClient()
         client.force_authenticate(user=admin_user)

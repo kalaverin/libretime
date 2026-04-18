@@ -19,13 +19,13 @@ class TestPlaylistViewSetCreate:
         Playlist.objects.all().delete()
         User.objects.filter(username__startswith="testplaylist").delete()
 
-    def test_create_playlist_success(self, api_client):
+    def test_create_playlist_success(self, guest_client):
         """CREATE playlist should succeed."""
         user = baker.make(User, username="testplaylist_user")
         data = {
             "name": "My Playlist",
                     }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/playlists",
             json.dumps(data),
             content_type="application/json",
@@ -33,14 +33,14 @@ class TestPlaylistViewSetCreate:
         assert response.status_code == 201
         assert response.json()["name"] == "My Playlist"
 
-    def test_create_playlist_with_description(self, api_client):
+    def test_create_playlist_with_description(self, guest_client):
         """CREATE playlist with description should succeed."""
         user = baker.make(User, username="testplaylist_user")
         data = {
             "name": "My Playlist",
             "description": "Test description",
                     }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/playlists",
             json.dumps(data),
             content_type="application/json",
@@ -48,12 +48,12 @@ class TestPlaylistViewSetCreate:
         assert response.status_code == 201
         assert response.json()["description"] == "Test description"
 
-    def test_create_playlist_missing_name_fails(self, api_client):
+    def test_create_playlist_missing_name_fails(self, guest_client):
         """CREATE without name should fail."""
         user = baker.make(User, username="testplaylist_user")
         data = {
                     }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/playlists",
             json.dumps(data),
             content_type="application/json",
@@ -63,52 +63,52 @@ class TestPlaylistViewSetCreate:
     @pytest.mark.xfail(
         reason="BUG T321: Playlist CREATE allows null owner - no validation",
     )
-    def test_create_playlist_missing_owner_fails(self, api_client):
+    def test_create_playlist_missing_owner_fails(self, guest_client):
         """CREATE without owner should fail."""
         data = {
             "name": "My Playlist",
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/playlists",
             json.dumps(data),
             content_type="application/json",
         )
         assert response.status_code == 400  # Should fail but returns 201
 
-    def test_create_playlist_invalid_owner_fails(self, api_client):
+    def test_create_playlist_invalid_owner_fails(self, guest_client):
         """CREATE with invalid owner should fail."""
         data = {
             "name": "My Playlist",
             "owner": 999999,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/playlists",
             json.dumps(data),
             content_type="application/json",
         )
         assert response.status_code == 400
 
-    def test_create_playlist_empty_name_fails(self, api_client):
+    def test_create_playlist_empty_name_fails(self, guest_client):
         """CREATE with empty name should fail."""
         user = baker.make(User, username="testplaylist_user")
         data = {
             "name": "",
                     }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/playlists",
             json.dumps(data),
             content_type="application/json",
         )
         assert response.status_code == 400
 
-    def test_create_playlist_unicode_name(self, api_client):
+    def test_create_playlist_unicode_name(self, guest_client):
         """CREATE with unicode name should succeed."""
         user = baker.make(User, username="testplaylist_user")
         data = {
             "name": "日本語プレイリスト",
             "description": "日本語の説明",
                     }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/playlists",
             json.dumps(data),
             content_type="application/json",
@@ -118,13 +118,13 @@ class TestPlaylistViewSetCreate:
         assert result["name"] == "日本語プレイリスト"
         assert result["description"] == "日本語の説明"
 
-    def test_create_playlist_returns_json(self, api_client):
+    def test_create_playlist_returns_json(self, guest_client):
         """CREATE should return JSON response."""
         user = baker.make(User, username="testplaylist_user")
         data = {
             "name": "My Playlist",
                     }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/playlists",
             json.dumps(data),
             content_type="application/json",
@@ -141,7 +141,7 @@ class TestPlaylistViewSetCreate:
         )
         assert response.status_code == 403
 
-    def test_create_playlist_duplicate_name_same_owner(self, api_client):
+    def test_create_playlist_duplicate_name_same_owner(self, guest_client):
         """CREATE playlist with duplicate name for same owner."""
         user = baker.make(User, username="testplaylist_user")
 
@@ -149,14 +149,14 @@ class TestPlaylistViewSetCreate:
         data = {
             "name": "Duplicate Name",
                     }
-        api_client.post(
+        guest_client.post(
             "/api/v2/playlists",
             json.dumps(data),
             content_type="application/json",
         )
 
         # Second playlist with same name
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/playlists",
             json.dumps(data),
             content_type="application/json",

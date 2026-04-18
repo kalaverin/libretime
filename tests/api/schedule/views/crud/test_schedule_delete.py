@@ -18,8 +18,8 @@ class TestScheduleViewSetDelete:
     """Tests for Schedule delete endpoint."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, api_client, admin_user):
-        self.api_client = api_client
+    def setup(self, guest_client, admin_user):
+        self.guest_client = guest_client
         self.user = admin_user
         show = baker.make("schedule.Show", name="Test Show")
         instance_start = now()
@@ -50,7 +50,7 @@ class TestScheduleViewSetDelete:
 
     def test_delete_file_schedule_success(self):
         schedule_id = self.schedule.id
-        response = self.api_client.delete(f"/api/v2/schedule/{schedule_id}")
+        response = self.guest_client.delete(f"/api/v2/schedule/{schedule_id}")
         assert response.status_code == 204
         assert Schedule.objects.filter(id=schedule_id).count() == 0
 
@@ -69,17 +69,17 @@ class TestScheduleViewSetDelete:
             broadcasted=1,
         )
         schedule_id = stream_schedule.id
-        response = self.api_client.delete(f"/api/v2/schedule/{schedule_id}")
+        response = self.guest_client.delete(f"/api/v2/schedule/{schedule_id}")
         assert response.status_code == 204
         assert Schedule.objects.filter(id=schedule_id).count() == 0
 
     def test_delete_not_found(self):
-        response = self.api_client.delete("/api/v2/schedule/99999")
+        response = self.guest_client.delete("/api/v2/schedule/99999")
         assert response.status_code == 404
 
     def test_delete_no_auth_fails(self):
-        self.api_client.logout()
-        response = self.api_client.delete(
+        self.guest_client.logout()
+        response = self.guest_client.delete(
             f"/api/v2/schedule/{self.schedule.id}",
         )
         assert response.status_code == 403
@@ -98,7 +98,7 @@ class TestScheduleViewSetDelete:
             position=2,
             broadcasted=1,
         )
-        response = self.api_client.delete(
+        response = self.guest_client.delete(
             f"/api/v2/schedule/{self.schedule.id}",
         )
         assert response.status_code == 204

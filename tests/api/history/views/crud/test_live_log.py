@@ -20,16 +20,16 @@ class TestLiveLogViewSet:
         LiveLog.objects.all().delete()
 
     @pytest.fixture(autouse=True)
-    def setup(self, api_client, admin_user):
+    def setup(self, admin_client, admin_user):
         """Set up test fixtures."""
-        self.api_client = api_client
+        self.admin_client = admin_client
         self.user = admin_user
 
     # === LIST Tests ===
 
     def test_list_empty_returns_200(self):
         """LIST empty should return 200 with empty list."""
-        response = self.api_client.get("/api/v2/live-logs")
+        response = self.admin_client.get("/api/v2/live-logs")
         assert response.status_code == 200
         assert response.json() == []
 
@@ -44,7 +44,7 @@ class TestLiveLogViewSet:
             end_time=end_time,
         )
 
-        response = self.api_client.get("/api/v2/live-logs")
+        response = self.admin_client.get("/api/v2/live-logs")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
@@ -71,7 +71,7 @@ class TestLiveLogViewSet:
             end_time=None,
         )
 
-        response = self.api_client.get("/api/v2/live-logs")
+        response = self.admin_client.get("/api/v2/live-logs")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 2
@@ -85,7 +85,7 @@ class TestLiveLogViewSet:
             end_time=None,
         )
 
-        response = self.api_client.get("/api/v2/live-logs")
+        response = self.admin_client.get("/api/v2/live-logs")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
@@ -93,8 +93,8 @@ class TestLiveLogViewSet:
 
     def test_list_no_auth_fails(self):
         """LIST without auth should fail."""
-        self.api_client.logout()
-        response = self.api_client.get("/api/v2/live-logs")
+        self.admin_client.logout()
+        response = self.admin_client.get("/api/v2/live-logs")
         assert response.status_code == 403
 
     # === CREATE Tests ===
@@ -108,7 +108,7 @@ class TestLiveLogViewSet:
             "end_time": format_datetime(start_time + timedelta(hours=1)),
         }
 
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/live-logs",
             data,
             format="json",
@@ -131,7 +131,7 @@ class TestLiveLogViewSet:
             "start_time": format_datetime(now()),
         }
 
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/live-logs",
             data,
             format="json",
@@ -148,7 +148,7 @@ class TestLiveLogViewSet:
             "start_time": format_datetime(now()),
         }
 
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/live-logs",
             data,
             format="json",
@@ -161,7 +161,7 @@ class TestLiveLogViewSet:
             "state": "connected",
         }
 
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/live-logs",
             data,
             format="json",
@@ -170,13 +170,13 @@ class TestLiveLogViewSet:
 
     def test_create_no_auth_fails(self):
         """Create without auth should fail."""
-        self.api_client.logout()
+        self.admin_client.logout()
         data = {
             "state": "connected",
             "start_time": format_datetime(now()),
         }
 
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/live-logs",
             data,
             format="json",
@@ -196,7 +196,7 @@ class TestLiveLogViewSet:
             end_time=end_time,
         )
 
-        response = self.api_client.get(f"/api/v2/live-logs/{log.id}")
+        response = self.admin_client.get(f"/api/v2/live-logs/{log.id}")
 
         assert response.status_code == 200
         data = response.json()
@@ -209,7 +209,7 @@ class TestLiveLogViewSet:
 
     def test_retrieve_not_found(self):
         """Return 404 for non-existent log."""
-        response = self.api_client.get("/api/v2/live-logs/99999")
+        response = self.admin_client.get("/api/v2/live-logs/99999")
         assert response.status_code == 404
 
     # === UPDATE Tests ===
@@ -231,7 +231,7 @@ class TestLiveLogViewSet:
             "end_time": format_datetime(end_time),
         }
 
-        response = self.api_client.put(
+        response = self.admin_client.put(
             f"/api/v2/live-logs/{log.id}",
             data,
             format="json",
@@ -258,7 +258,7 @@ class TestLiveLogViewSet:
 
         data = {"end_time": format_datetime(end_time)}
 
-        response = self.api_client.patch(
+        response = self.admin_client.patch(
             f"/api/v2/live-logs/{log.id}",
             data,
             format="json",
@@ -282,14 +282,14 @@ class TestLiveLogViewSet:
             start_time=now(),
         )
 
-        response = self.api_client.delete(f"/api/v2/live-logs/{log.id}")
+        response = self.admin_client.delete(f"/api/v2/live-logs/{log.id}")
 
         assert response.status_code == 204
         assert LiveLog.objects.filter(id=log.id).count() == 0
 
     def test_delete_not_found(self):
         """Delete non-existent returns 404."""
-        response = self.api_client.delete("/api/v2/live-logs/99999")
+        response = self.admin_client.delete("/api/v2/live-logs/99999")
         assert response.status_code == 404
 
     def test_delete_no_auth_fails(self):
@@ -300,6 +300,6 @@ class TestLiveLogViewSet:
             start_time=now(),
         )
 
-        self.api_client.logout()
-        response = self.api_client.delete(f"/api/v2/live-logs/{log.id}")
+        self.admin_client.logout()
+        response = self.admin_client.delete(f"/api/v2/live-logs/{log.id}")
         assert response.status_code == 403

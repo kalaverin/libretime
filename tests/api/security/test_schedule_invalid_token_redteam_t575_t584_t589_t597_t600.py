@@ -208,9 +208,9 @@ class TestScheduleInvalidTokenComprehensive:
                 response.status_code == 403
             ), f"T575/T584/T589/T597/T600: {method} {url} returned {response.status_code}, expected 403"
 
-    def test_valid_api_key_still_works(self, api_client):
+    def test_valid_api_key_still_works(self, guest_client):
         """Valid Api-Key auth still works correctly."""
-        response = api_client.get("/api/v2/schedule")
+        response = guest_client.get("/api/v2/schedule")
         assert response.status_code == 200, "Valid API-Key should work"
 
     def test_no_auth_returns_403(self, client):

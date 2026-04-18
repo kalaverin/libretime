@@ -20,7 +20,7 @@ class TestListenerCountRedTeamBOLA:
 
     def test_bola_list_shows_all_listener_counts(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -48,7 +48,7 @@ class TestListenerCountRedTeamBOLA:
             listener_count=200,
         )
 
-        response = api_client.get("/api/v2/listener-counts")
+        response = admin_client.get("/api/v2/listener-counts")
 
         assert response.status_code == 200
         data = response.json()
@@ -60,7 +60,7 @@ class TestListenerCountRedTeamBOLA:
 
     def test_bola_retrieve_other_station_stats(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -76,7 +76,7 @@ class TestListenerCountRedTeamBOLA:
             listener_count=500,
         )
 
-        response = api_client.get(f"/api/v2/listener-counts/{count.id}")
+        response = admin_client.get(f"/api/v2/listener-counts/{count.id}")
 
         if response.status_code == 200:
             # Can access other station's stats
@@ -84,7 +84,7 @@ class TestListenerCountRedTeamBOLA:
 
     def test_bola_regular_user_can_access_all_stats(
         self,
-        api_client,
+        admin_client,
         regular_user,
         fake_catch_phrase,
     ):
@@ -102,9 +102,9 @@ class TestListenerCountRedTeamBOLA:
             listener_count=1000,
         )
 
-        api_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
 
-        response = api_client.get("/api/v2/listener-counts")
+        response = admin_client.get("/api/v2/listener-counts")
 
         if response.status_code == 200:
             data = response.json()
@@ -112,13 +112,13 @@ class TestListenerCountRedTeamBOLA:
                 # Regular user can see admin station stats
                 pass  # Document behavior
 
-    def test_bola_guest_user_can_access_stats(self, api_client, guest_user):
+    def test_bola_guest_user_can_access_stats(self, admin_client, guest_user):
         """
         BFLA: Guest user can access listener statistics.
         """
-        api_client.force_authenticate(user=guest_user)
+        admin_client.force_authenticate(user=guest_user)
 
-        response = api_client.get("/api/v2/listener-counts")
+        response = admin_client.get("/api/v2/listener-counts")
 
         if response.status_code == 200:
             pytest.xfail("T652: BFLA - Guest can access listener statistics")
@@ -130,7 +130,7 @@ class TestListenerCountRedTeamBOPLA:
 
     def test_bopla_create_mass_assignment_id(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_small_int,
         fake_catch_phrase,
@@ -150,7 +150,7 @@ class TestListenerCountRedTeamBOPLA:
             "listener_count": 100,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/listener-counts",
             data,
             format="json",
@@ -165,7 +165,7 @@ class TestListenerCountRedTeamBOPLA:
 
     def test_bopla_create_extra_fields_ignored(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -183,7 +183,7 @@ class TestListenerCountRedTeamBOPLA:
             "station_id": 999,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/listener-counts",
             data,
             format="json",
@@ -196,7 +196,7 @@ class TestListenerCountRedTeamBOPLA:
 
     def test_bopla_update_listener_count_manipulation(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -220,7 +220,7 @@ class TestListenerCountRedTeamBOPLA:
             "listener_count": 999999,  # Fake high count
         }
 
-        response = api_client.put(
+        response = admin_client.put(
             f"/api/v2/listener-counts/{count.id}",
             data,
             format="json",
@@ -236,7 +236,7 @@ class TestListenerCountRedTeamBOPLA:
 
     def test_bopla_negative_listener_count(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
         fake_negative_int,
@@ -253,7 +253,7 @@ class TestListenerCountRedTeamBOPLA:
             "listener_count": fake_negative_int,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/listener-counts",
             data,
             format="json",
@@ -267,7 +267,7 @@ class TestListenerCountRedTeamBOPLA:
 class TestListenerCountRedTeamTimeBasedInjection:
     """Time-based SQL injection via date parameters."""
 
-    def test_sqli_in_timestamp_filter(self, api_client, admin_user):
+    def test_sqli_in_timestamp_filter(self, admin_client, admin_user):
         """
         SQL Injection via timestamp filter parameter.
         """
@@ -278,7 +278,7 @@ class TestListenerCountRedTeamTimeBasedInjection:
         ]
 
         for ts in sqli_timestamps:
-            response = api_client.get(
+            response = admin_client.get(
                 f"/api/v2/listener-counts?timestamp={ts}",
             )
 
@@ -289,33 +289,33 @@ class TestListenerCountRedTeamTimeBasedInjection:
             if "sql" in error_text or "syntax" in error_text:
                 pytest.xfail("T657: SQLi error disclosure")
 
-    def test_sqli_in_date_range_start(self, api_client, admin_user):
+    def test_sqli_in_date_range_start(self, admin_client, admin_user):
         """
         SQL Injection via start date parameter.
         """
         sqli_start = "2026-04-01T00:00:00Z' OR '1'='1"
 
-        response = api_client.get(
+        response = admin_client.get(
             f"/api/v2/listener-counts?start={sqli_start}&end=2026-04-10T00:00:00Z",
         )
 
         if response.status_code == 500:
             pytest.xfail("T657: SQLi in start date causes 500")
 
-    def test_sqli_in_date_range_end(self, api_client, admin_user):
+    def test_sqli_in_date_range_end(self, admin_client, admin_user):
         """
         SQL Injection via end date parameter.
         """
         sqli_end = "2026-04-10T00:00:00Z' OR '1'='1"
 
-        response = api_client.get(
+        response = admin_client.get(
             f"/api/v2/listener-counts?start=2026-04-01T00:00:00Z&end={sqli_end}",
         )
 
         if response.status_code == 500:
             pytest.xfail("T657: SQLi in end date causes 500")
 
-    def test_time_based_blind_sqli(self, api_client, admin_user):
+    def test_time_based_blind_sqli(self, admin_client, admin_user):
         """
         Time-based blind SQL injection detection.
 
@@ -329,7 +329,7 @@ class TestListenerCountRedTeamTimeBasedInjection:
 class TestListenerCountRedTeamResourceConsumption:
     """API4:2023 Unrestricted Resource Consumption."""
 
-    def test_large_date_range_query(self, api_client, admin_user):
+    def test_large_date_range_query(self, admin_client, admin_user):
         """
         DoS: Query with very large date range.
 
@@ -351,7 +351,7 @@ class TestListenerCountRedTeamResourceConsumption:
         start = format_datetime(now() - timedelta(days=365 * 10))  # 10 years
         end = format_datetime(now())
 
-        response = api_client.get(
+        response = admin_client.get(
             f"/api/v2/listener-counts?start={start}&end={end}",
         )
 
@@ -363,7 +363,7 @@ class TestListenerCountRedTeamResourceConsumption:
 
     def test_rapid_listener_count_creation(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -380,7 +380,7 @@ class TestListenerCountRedTeamResourceConsumption:
                 "mount_name": mount.id,
                 "listener_count": i,
             }
-            response = api_client.post(
+            response = admin_client.post(
                 "/api/v2/listener-counts",
                 data,
                 format="json",
@@ -391,7 +391,7 @@ class TestListenerCountRedTeamResourceConsumption:
         if success_count == 20:
             pytest.xfail("T658: No rate limiting on ListenerCount CREATE")
 
-    def test_bulk_listener_count_query(self, api_client, admin_user):
+    def test_bulk_listener_count_query(self, admin_client, admin_user):
         """
         Resource consumption: Query without pagination.
         """
@@ -407,7 +407,7 @@ class TestListenerCountRedTeamResourceConsumption:
                 listener_count=i,
             )
 
-        response = api_client.get("/api/v2/listener-counts")
+        response = admin_client.get("/api/v2/listener-counts")
 
         if response.status_code == 200:
             data = response.json()
@@ -421,7 +421,7 @@ class TestListenerCountRedTeamValidation:
 
     def test_create_with_future_timestamp(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -439,7 +439,7 @@ class TestListenerCountRedTeamValidation:
             "listener_count": 100,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/listener-counts",
             data,
             format="json",
@@ -448,7 +448,7 @@ class TestListenerCountRedTeamValidation:
         if response.status_code == 201:
             pytest.xfail("T660: Future timestamp accepted")
 
-    def test_create_with_nonexistent_mount(self, api_client, admin_user):
+    def test_create_with_nonexistent_mount(self, admin_client, admin_user):
         """
         Validation: Non-existent mount_name should be rejected.
         """
@@ -460,7 +460,7 @@ class TestListenerCountRedTeamValidation:
             "listener_count": 100,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/listener-counts",
             data,
             format="json",
@@ -470,7 +470,7 @@ class TestListenerCountRedTeamValidation:
 
     def test_create_with_nonexistent_timestamp(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -485,7 +485,7 @@ class TestListenerCountRedTeamValidation:
             "listener_count": 100,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/listener-counts",
             data,
             format="json",
@@ -495,7 +495,7 @@ class TestListenerCountRedTeamValidation:
 
     def test_create_very_large_listener_count(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -511,7 +511,7 @@ class TestListenerCountRedTeamValidation:
             "listener_count": 999999999,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/listener-counts",
             data,
             format="json",
@@ -520,14 +520,14 @@ class TestListenerCountRedTeamValidation:
         # Document behavior - should have reasonable max
         assert response.status_code in [201, 400]
 
-    def test_end_before_start_date_range(self, api_client, admin_user):
+    def test_end_before_start_date_range(self, admin_client, admin_user):
         """
         Validation: End date before start date should be rejected.
         """
         start = format_datetime(now())
         end = format_datetime(now() - timedelta(days=7))
 
-        response = api_client.get(
+        response = admin_client.get(
             f"/api/v2/listener-counts?start={start}&end={end}",
         )
 
@@ -539,17 +539,17 @@ class TestListenerCountRedTeamValidation:
 class TestListenerCountRedTeamAuthentication:
     """Authentication tests."""
 
-    def test_unauthenticated_list(self, api_client):
+    def test_unauthenticated_list(self, admin_client):
         """Unauthenticated LIST should fail."""
-        api_client.logout()
-        response = api_client.get("/api/v2/listener-counts")
+        admin_client.logout()
+        response = admin_client.get("/api/v2/listener-counts")
         assert response.status_code == 403
 
-    def test_unauthenticated_create(self, api_client):
+    def test_unauthenticated_create(self, admin_client):
         """Unauthenticated CREATE should fail."""
-        api_client.logout()
+        admin_client.logout()
         data = {"listener_count": 100}
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/listener-counts",
             data,
             format="json",
@@ -558,7 +558,7 @@ class TestListenerCountRedTeamAuthentication:
 
     def test_unauthenticated_retrieve(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -572,8 +572,8 @@ class TestListenerCountRedTeamAuthentication:
             listener_count=100,
         )
 
-        api_client.logout()
-        response = api_client.get(f"/api/v2/listener-counts/{count.id}")
+        admin_client.logout()
+        response = admin_client.get(f"/api/v2/listener-counts/{count.id}")
         assert response.status_code == 403
 
 
@@ -581,11 +581,11 @@ class TestListenerCountRedTeamAuthentication:
 class TestListenerCountRedTeamInformationDisclosure:
     """Information disclosure tests."""
 
-    def test_error_message_leaks_db_structure(self, api_client, admin_user):
+    def test_error_message_leaks_db_structure(self, admin_client, admin_user):
         """
         Error messages should not leak database structure.
         """
-        response = api_client.get(
+        response = admin_client.get(
             "/api/v2/listener-counts?timestamp=invalid')",
         )
 
@@ -600,12 +600,12 @@ class TestListenerCountRedTeamInformationDisclosure:
             if any(kw in error_text for kw in leak_keywords):
                 pytest.xfail("T662: Error message leaks database structure")
 
-    def test_id_enumeration_via_error_messages(self, api_client, admin_user):
+    def test_id_enumeration_via_error_messages(self, admin_client, admin_user):
         """
         Different errors for existent vs non-existent IDs.
         """
-        response_existing = api_client.get("/api/v2/listener-counts/1")
-        response_nonexistent = api_client.get("/api/v2/listener-counts/999999")
+        response_existing = admin_client.get("/api/v2/listener-counts/1")
+        response_nonexistent = admin_client.get("/api/v2/listener-counts/999999")
 
         # Both should return same status (404) for unauthorized access
         # Different codes leak existence information
@@ -619,7 +619,7 @@ class TestListenerCountRedTeamHTTPMethodTampering:
 
     def test_trace_method_disabled(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -633,5 +633,5 @@ class TestListenerCountRedTeamHTTPMethodTampering:
             listener_count=100,
         )
 
-        response = api_client.trace(f"/api/v2/listener-counts/{count.id}")
+        response = admin_client.trace(f"/api/v2/listener-counts/{count.id}")
         assert response.status_code in [405, 403]

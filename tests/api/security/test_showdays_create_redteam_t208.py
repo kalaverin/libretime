@@ -26,7 +26,7 @@ class TestShowDaysCreateAuthentication:
     """Authentication bypass attacks."""
 
     @pytest.mark.xfail(reason="Anonymous creation allowed")
-    def test_create_without_auth(self, api_client):
+    def test_create_without_auth(self, guest_client):
         """Anonymous CREATE should fail."""
         show = baker.make(Show, name="Test Show")
         data = {
@@ -37,7 +37,7 @@ class TestShowDaysCreateAuthentication:
             "duration": "01:00:00",
             "repeat_kind": ShowDays.RepeatKind.WEEKLY,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
@@ -54,14 +54,14 @@ class TestShowDaysCreateBOLA:
     @pytest.mark.xfail(reason="BOLA: Can create show day for other user's show")
     def test_create_for_other_user_show(
         self,
-        api_client,
+        guest_client,
         regular_user,
         admin_user,
     ):
         """Create show day for another user's show."""
         show = baker.make(Show, name="Admin Show")
 
-        api_client.force_authenticate(user=regular_user)
+        guest_client.force_authenticate(user=regular_user)
         data = {
             "show": show.id,
             "first_show_on": "2026-04-01",
@@ -70,7 +70,7 @@ class TestShowDaysCreateBOLA:
             "duration": "01:00:00",
             "repeat_kind": ShowDays.RepeatKind.WEEKLY,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
@@ -85,10 +85,10 @@ class TestShowDaysCreateBOLA:
 class TestShowDaysCreateMassAssignment:
     """Mass assignment attacks via __all__ fields."""
 
-    def test_create_with_id_field(self, api_client):
+    def test_create_with_id_field(self, guest_client):
         """Try to set id field during CREATE."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "id": 99999,
@@ -99,7 +99,7 @@ class TestShowDaysCreateMassAssignment:
             "duration": "01:00:00",
             "repeat_kind": ShowDays.RepeatKind.WEEKLY,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
@@ -108,10 +108,10 @@ class TestShowDaysCreateMassAssignment:
         if response.status_code == 201 and response.json().get("id") == 99999:
             pytest.fail("CRITICAL BUG: Mass assignment - id field accepted")
 
-    def test_create_with_created_at(self, api_client):
+    def test_create_with_created_at(self, guest_client):
         """Try to manipulate created_at timestamp."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
@@ -122,7 +122,7 @@ class TestShowDaysCreateMassAssignment:
             "repeat_kind": ShowDays.RepeatKind.WEEKLY,
             "created_at": "2020-01-01T00:00:00Z",
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
@@ -148,10 +148,10 @@ class TestShowDaysCreateSQLInjection:
         "1' AND 1=2--",
     ]
 
-    def test_sqli_in_first_show_on(self, api_client, admin_user):
+    def test_sqli_in_first_show_on(self, guest_client, admin_user):
         """SQL injection in first_show_on field."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         for payload in self.sqli_payloads:
             data = {
@@ -162,7 +162,7 @@ class TestShowDaysCreateSQLInjection:
                 "duration": "01:00:00",
                 "repeat_kind": ShowDays.RepeatKind.WEEKLY,
             }
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/show-days",
                 json.dumps(data),
                 content_type="application/json",
@@ -170,10 +170,10 @@ class TestShowDaysCreateSQLInjection:
             if response.status_code == 500:
                 pytest.fail(f"BUG: SQLi crash in first_show_on: {payload}")
 
-    def test_sqli_in_start_time(self, api_client, admin_user):
+    def test_sqli_in_start_time(self, guest_client, admin_user):
         """SQL injection in start_time field."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         for payload in self.sqli_payloads:
             data = {
@@ -184,7 +184,7 @@ class TestShowDaysCreateSQLInjection:
                 "duration": "01:00:00",
                 "repeat_kind": ShowDays.RepeatKind.WEEKLY,
             }
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/show-days",
                 json.dumps(data),
                 content_type="application/json",
@@ -192,10 +192,10 @@ class TestShowDaysCreateSQLInjection:
             if response.status_code == 500:
                 pytest.fail(f"BUG: SQLi crash in start_time: {payload}")
 
-    def test_sqli_in_timezone(self, api_client, admin_user):
+    def test_sqli_in_timezone(self, guest_client, admin_user):
         """SQL injection in timezone field."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         for payload in self.sqli_payloads:
             data = {
@@ -206,7 +206,7 @@ class TestShowDaysCreateSQLInjection:
                 "duration": "01:00:00",
                 "repeat_kind": ShowDays.RepeatKind.WEEKLY,
             }
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/show-days",
                 json.dumps(data),
                 content_type="application/json",
@@ -214,10 +214,10 @@ class TestShowDaysCreateSQLInjection:
             if response.status_code == 500:
                 pytest.fail(f"BUG: SQLi crash in timezone: {payload}")
 
-    def test_sqli_in_repeat_kind(self, api_client, admin_user):
+    def test_sqli_in_repeat_kind(self, guest_client, admin_user):
         """SQL injection in repeat_kind field."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         for payload in self.sqli_payloads:
             data = {
@@ -228,7 +228,7 @@ class TestShowDaysCreateSQLInjection:
                 "duration": "01:00:00",
                 "repeat_kind": payload,
             }
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/show-days",
                 json.dumps(data),
                 content_type="application/json",
@@ -241,10 +241,10 @@ class TestShowDaysCreateSQLInjection:
 class TestShowDaysCreateTimeManipulation:
     """Time field manipulation attacks."""
 
-    def test_negative_duration(self, api_client):
+    def test_negative_duration(self, guest_client):
         """Try to create with negative duration."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
@@ -254,7 +254,7 @@ class TestShowDaysCreateTimeManipulation:
             "duration": "-01:00:00",
             "repeat_kind": ShowDays.RepeatKind.WEEKLY,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
@@ -263,10 +263,10 @@ class TestShowDaysCreateTimeManipulation:
             pytest.fail("BUG: Negative duration accepted")
 
     @pytest.mark.xfail(reason="Zero duration accepted")
-    def test_zero_duration(self, api_client):
+    def test_zero_duration(self, guest_client):
         """Try to create with zero duration."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
@@ -276,7 +276,7 @@ class TestShowDaysCreateTimeManipulation:
             "duration": "00:00:00",
             "repeat_kind": ShowDays.RepeatKind.WEEKLY,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
@@ -284,10 +284,10 @@ class TestShowDaysCreateTimeManipulation:
         if response.status_code == 201:
             pytest.fail("BUG: Zero duration accepted")
 
-    def test_invalid_timezone(self, api_client):
+    def test_invalid_timezone(self, guest_client):
         """Try to create with invalid timezone."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
@@ -297,7 +297,7 @@ class TestShowDaysCreateTimeManipulation:
             "duration": "01:00:00",
             "repeat_kind": ShowDays.RepeatKind.WEEKLY,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
@@ -305,10 +305,10 @@ class TestShowDaysCreateTimeManipulation:
         # Document behavior
         assert response.status_code in [201, 400]
 
-    def test_invalid_week_day(self, api_client):
+    def test_invalid_week_day(self, guest_client):
         """Try to create with out-of-range week_day."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         invalid_days = [-1, 7, 8, 99, 999]
         for day in invalid_days:
@@ -321,7 +321,7 @@ class TestShowDaysCreateTimeManipulation:
                 "week_day": day,
                 "repeat_kind": ShowDays.RepeatKind.WEEKLY,
             }
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/show-days",
                 json.dumps(data),
                 content_type="application/json",
@@ -330,10 +330,10 @@ class TestShowDaysCreateTimeManipulation:
                 pytest.fail(f"BUG: Invalid week_day {day} accepted")
 
     @pytest.mark.xfail(reason="last_show_on before first_show_on accepted")
-    def test_last_show_before_first(self, api_client):
+    def test_last_show_before_first(self, guest_client):
         """Try to create where last_show_on < first_show_on."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
@@ -344,7 +344,7 @@ class TestShowDaysCreateTimeManipulation:
             "duration": "01:00:00",
             "repeat_kind": ShowDays.RepeatKind.WEEKLY,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
@@ -357,10 +357,10 @@ class TestShowDaysCreateTimeManipulation:
 class TestShowDaysCreateRepeatAbuse:
     """Repeat options abuse attacks."""
 
-    def test_invalid_repeat_kind(self, api_client):
+    def test_invalid_repeat_kind(self, guest_client):
         """Try to create with invalid repeat_kind."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
@@ -370,7 +370,7 @@ class TestShowDaysCreateRepeatAbuse:
             "duration": "01:00:00",
             "repeat_kind": "INVALID_REPEAT_KIND",
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
@@ -379,10 +379,10 @@ class TestShowDaysCreateRepeatAbuse:
             pytest.fail("BUG: Invalid repeat_kind accepted")
 
     @pytest.mark.xfail(reason="repeat_next_on can be manipulated by user")
-    def test_repeat_next_on_manipulation(self, api_client):
+    def test_repeat_next_on_manipulation(self, guest_client):
         """Try to manipulate repeat_next_on date."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
@@ -393,7 +393,7 @@ class TestShowDaysCreateRepeatAbuse:
             "repeat_kind": ShowDays.RepeatKind.WEEKLY,
             "repeat_next_on": "2030-12-31",
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
@@ -410,10 +410,10 @@ class TestShowDaysCreateRecordEscalation:
     """Recording privilege escalation attacks."""
 
     @pytest.mark.xfail(reason="record_enabled can be set without permissions")
-    def test_record_enabled_without_permission(self, api_client, regular_user):
+    def test_record_enabled_without_permission(self, guest_client, regular_user):
         """Try to enable recording without proper permissions."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=regular_user)
+        guest_client.force_authenticate(user=regular_user)
 
         data = {
             "show": show.id,
@@ -424,7 +424,7 @@ class TestShowDaysCreateRecordEscalation:
             "repeat_kind": ShowDays.RepeatKind.WEEKLY,
             "record_enabled": Record.YES,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
@@ -436,10 +436,10 @@ class TestShowDaysCreateRecordEscalation:
                     "BUG: record_enabled can be set without permissions",
                 )
 
-    def test_record_enabled_invalid_value(self, api_client):
+    def test_record_enabled_invalid_value(self, guest_client):
         """Try to set invalid record_enabled value."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
@@ -450,7 +450,7 @@ class TestShowDaysCreateRecordEscalation:
             "repeat_kind": ShowDays.RepeatKind.WEEKLY,
             "record_enabled": 999,  # Invalid value
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
@@ -463,9 +463,9 @@ class TestShowDaysCreateRecordEscalation:
 class TestShowDaysCreateEdgeCases:
     """Edge case and input validation attacks."""
 
-    def test_null_show(self, api_client):
+    def test_null_show(self, guest_client):
         """Try to create with null show."""
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": None,
@@ -475,7 +475,7 @@ class TestShowDaysCreateEdgeCases:
             "duration": "01:00:00",
             "repeat_kind": ShowDays.RepeatKind.WEEKLY,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
@@ -483,9 +483,9 @@ class TestShowDaysCreateEdgeCases:
         if response.status_code == 201:
             pytest.fail("BUG: Null show accepted")
 
-    def test_nonexistent_show(self, api_client):
+    def test_nonexistent_show(self, guest_client):
         """Try to create with non-existent show ID."""
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": 99999,
@@ -495,7 +495,7 @@ class TestShowDaysCreateEdgeCases:
             "duration": "01:00:00",
             "repeat_kind": ShowDays.RepeatKind.WEEKLY,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",
@@ -503,12 +503,12 @@ class TestShowDaysCreateEdgeCases:
         if response.status_code == 201:
             pytest.fail("BUG: Non-existent show ID accepted")
 
-    def test_malformed_json(self, api_client):
+    def test_malformed_json(self, guest_client):
         """Try to send malformed JSON."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-days",
             '{"invalid json',  # Malformed
             content_type="application/json",
@@ -516,10 +516,10 @@ class TestShowDaysCreateEdgeCases:
         if response.status_code == 500:
             pytest.fail("BUG: Malformed JSON causes server error")
 
-    def test_extra_fields_ignored(self, api_client):
+    def test_extra_fields_ignored(self, guest_client):
         """Check if extra fields are ignored or cause error."""
         show = baker.make(Show, name="Test Show")
-        api_client.force_authenticate(user=baker.make("core.User"))
+        guest_client.force_authenticate(user=baker.make("core.User"))
 
         data = {
             "show": show.id,
@@ -531,7 +531,7 @@ class TestShowDaysCreateEdgeCases:
             "hacker_field": "malicious_value",
             "__proto__": {"isAdmin": True},
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-days",
             json.dumps(data),
             content_type="application/json",

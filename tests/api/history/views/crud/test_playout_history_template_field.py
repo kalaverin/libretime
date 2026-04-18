@@ -15,9 +15,9 @@ class TestPlayoutHistoryTemplateFieldViewSet:
     """Test PlayoutHistoryTemplateField LIST/CREATE/RETRIEVE/UPDATE/DELETE."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, api_client, admin_user):
+    def setup(self, admin_client, admin_user):
         """Set up test fixtures."""
-        self.api_client = api_client
+        self.admin_client = admin_client
         self.user = admin_user
         self.template = baker.make(
             PlayoutHistoryTemplate,
@@ -29,7 +29,7 @@ class TestPlayoutHistoryTemplateFieldViewSet:
 
     def test_list_empty_returns_200(self):
         """LIST empty should return 200 with empty list."""
-        response = self.api_client.get(
+        response = self.admin_client.get(
             "/api/v2/playout-history-template-fields",
         )
         assert response.status_code == 200
@@ -47,7 +47,7 @@ class TestPlayoutHistoryTemplateFieldViewSet:
             position=1,
         )
 
-        response = self.api_client.get(
+        response = self.admin_client.get(
             "/api/v2/playout-history-template-fields",
         )
         assert response.status_code == 200
@@ -77,7 +77,7 @@ class TestPlayoutHistoryTemplateFieldViewSet:
             position=2,
         )
 
-        response = self.api_client.get(
+        response = self.admin_client.get(
             "/api/v2/playout-history-template-fields",
         )
         assert response.status_code == 200
@@ -86,8 +86,8 @@ class TestPlayoutHistoryTemplateFieldViewSet:
 
     def test_list_no_auth_fails(self):
         """LIST without auth should fail."""
-        self.api_client.logout()
-        response = self.api_client.get(
+        self.admin_client.logout()
+        response = self.admin_client.get(
             "/api/v2/playout-history-template-fields",
         )
         assert response.status_code == 403
@@ -105,7 +105,7 @@ class TestPlayoutHistoryTemplateFieldViewSet:
             "position": 1,
         }
 
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -129,7 +129,7 @@ class TestPlayoutHistoryTemplateFieldViewSet:
             "position": 1,
         }
 
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -147,7 +147,7 @@ class TestPlayoutHistoryTemplateFieldViewSet:
             "position": 1,
         }
 
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -164,7 +164,7 @@ class TestPlayoutHistoryTemplateFieldViewSet:
             "position": 1,
         }
 
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -173,7 +173,7 @@ class TestPlayoutHistoryTemplateFieldViewSet:
 
     def test_create_no_auth_fails(self):
         """Create without auth should fail."""
-        self.api_client.logout()
+        self.admin_client.logout()
         data = {
             "template": self.template.id,
             "name": "test",
@@ -183,7 +183,7 @@ class TestPlayoutHistoryTemplateFieldViewSet:
             "position": 1,
         }
 
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -204,7 +204,7 @@ class TestPlayoutHistoryTemplateFieldViewSet:
             position=3,
         )
 
-        response = self.api_client.get(
+        response = self.admin_client.get(
             f"/api/v2/playout-history-template-fields/{field.id}",
         )
 
@@ -216,7 +216,7 @@ class TestPlayoutHistoryTemplateFieldViewSet:
 
     def test_retrieve_not_found(self):
         """Return 404 for non-existent field."""
-        response = self.api_client.get(
+        response = self.admin_client.get(
             "/api/v2/playout-history-template-fields/99999",
         )
         assert response.status_code == 404
@@ -244,7 +244,7 @@ class TestPlayoutHistoryTemplateFieldViewSet:
             "position": 5,
         }
 
-        response = self.api_client.put(
+        response = self.admin_client.put(
             f"/api/v2/playout-history-template-fields/{field.id}",
             data,
             format="json",
@@ -268,7 +268,7 @@ class TestPlayoutHistoryTemplateFieldViewSet:
 
         data = {"label": "New Label"}
 
-        response = self.api_client.patch(
+        response = self.admin_client.patch(
             f"/api/v2/playout-history-template-fields/{field.id}",
             data,
             format="json",
@@ -293,7 +293,7 @@ class TestPlayoutHistoryTemplateFieldViewSet:
             position=1,
         )
 
-        response = self.api_client.delete(
+        response = self.admin_client.delete(
             f"/api/v2/playout-history-template-fields/{field.id}",
         )
 
@@ -305,7 +305,7 @@ class TestPlayoutHistoryTemplateFieldViewSet:
 
     def test_delete_not_found(self):
         """Delete non-existent returns 404."""
-        response = self.api_client.delete(
+        response = self.admin_client.delete(
             "/api/v2/playout-history-template-fields/99999",
         )
         assert response.status_code == 404
@@ -322,8 +322,8 @@ class TestPlayoutHistoryTemplateFieldViewSet:
             position=1,
         )
 
-        self.api_client.logout()
-        response = self.api_client.delete(
+        self.admin_client.logout()
+        response = self.admin_client.delete(
             f"/api/v2/playout-history-template-fields/{field.id}",
         )
         assert response.status_code == 403

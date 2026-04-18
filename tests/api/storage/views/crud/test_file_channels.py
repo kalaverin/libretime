@@ -16,7 +16,7 @@ from api.storage.models import File, Library
 class TestMonoFileDetection:
     """Test mono (1 channel) audio file detection."""
 
-    def test_mono_file_channels(self, api_client):
+    def test_mono_file_channels(self, guest_client):
         """Mono file has channels=1."""
         user = baker.make(User, username="mono_test")
         library = baker.make(
@@ -35,13 +35,13 @@ class TestMonoFileDetection:
             channels=1,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["channels"] == 1
 
-    def test_mono_file_retrieve(self, api_client):
+    def test_mono_file_retrieve(self, guest_client):
         """Retrieve mono file details."""
         user = baker.make(User, username="mono_test2")
         library = baker.make(
@@ -61,14 +61,14 @@ class TestMonoFileDetection:
             sample_rate=22050,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["channels"] == 1
         assert data["sample_rate"] == 22050
 
-    def test_mono_in_list(self, api_client):
+    def test_mono_in_list(self, guest_client):
         """Mono files appear correctly in list."""
         user = baker.make(User, username="mono_list")
         library = baker.make(
@@ -87,7 +87,7 @@ class TestMonoFileDetection:
             channels=1,
         )
 
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         assert response.status_code == 200
         data = response.json()
 
@@ -99,7 +99,7 @@ class TestMonoFileDetection:
 class TestStereoFileDetection:
     """Test stereo (2 channels) audio file detection."""
 
-    def test_stereo_file_channels(self, api_client):
+    def test_stereo_file_channels(self, guest_client):
         """Stereo file has channels=2."""
         user = baker.make(User, username="stereo_test")
         library = baker.make(
@@ -118,13 +118,13 @@ class TestStereoFileDetection:
             channels=2,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["channels"] == 2
 
-    def test_stereo_file_retrieve(self, api_client):
+    def test_stereo_file_retrieve(self, guest_client):
         """Retrieve stereo file details."""
         user = baker.make(User, username="stereo_test2")
         library = baker.make(
@@ -144,14 +144,14 @@ class TestStereoFileDetection:
             sample_rate=44100,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["channels"] == 2
         assert data["sample_rate"] == 44100
 
-    def test_stereo_in_list(self, api_client):
+    def test_stereo_in_list(self, guest_client):
         """Stereo files appear correctly in list."""
         user = baker.make(User, username="stereo_list")
         library = baker.make(
@@ -170,7 +170,7 @@ class TestStereoFileDetection:
             channels=2,
         )
 
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         assert response.status_code == 200
         data = response.json()
 
@@ -182,7 +182,7 @@ class TestStereoFileDetection:
 class TestSurroundFileDetection:
     """Test surround/multi-channel audio file detection."""
 
-    def test_5_1_surround(self, api_client):
+    def test_5_1_surround(self, guest_client):
         """5.1 surround file has channels=6."""
         user = baker.make(User, username="surround_test")
         library = baker.make(
@@ -201,13 +201,13 @@ class TestSurroundFileDetection:
             channels=6,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["channels"] == 6
 
-    def test_7_1_surround(self, api_client):
+    def test_7_1_surround(self, guest_client):
         """7.1 surround file has channels=8."""
         user = baker.make(User, username="surround_test2")
         library = baker.make(
@@ -226,13 +226,13 @@ class TestSurroundFileDetection:
             channels=8,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["channels"] == 8
 
-    def test_quadraphonic(self, api_client):
+    def test_quadraphonic(self, guest_client):
         """Quadraphonic file has channels=4."""
         user = baker.make(User, username="quad_test")
         library = baker.make(
@@ -251,7 +251,7 @@ class TestSurroundFileDetection:
             channels=4,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
@@ -262,7 +262,7 @@ class TestSurroundFileDetection:
 class TestChannelFiltering:
     """Test filtering by channel count."""
 
-    def test_filter_by_mono(self, api_client):
+    def test_filter_by_mono(self, guest_client):
         """Filter mono files."""
         user = baker.make(User, username="filter_test")
         library = baker.make(
@@ -294,7 +294,7 @@ class TestChannelFiltering:
                 channels=2,
             )
 
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         assert response.status_code == 200
         data = response.json()
 
@@ -304,7 +304,7 @@ class TestChannelFiltering:
         assert len(mono_files) >= 3
         assert len(stereo_files) >= 3
 
-    def test_mixed_channels_in_list(self, api_client):
+    def test_mixed_channels_in_list(self, guest_client):
         """List contains files with various channel counts."""
         user = baker.make(User, username="mixed_test")
         library = baker.make(
@@ -326,7 +326,7 @@ class TestChannelFiltering:
                 channels=channels,
             )
 
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         assert response.status_code == 200
         data = response.json()
 
@@ -343,7 +343,7 @@ class TestChannelFiltering:
 class TestChannelUpdate:
     """Test updating channel information."""
 
-    def test_update_mono_to_stereo(self, api_client):
+    def test_update_mono_to_stereo(self, guest_client):
         """Update file from mono to stereo."""
         import json
 
@@ -364,7 +364,7 @@ class TestChannelUpdate:
             channels=1,
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/files/{file_obj.id}",
             json.dumps({"channels": 2}),
             content_type="application/json",
@@ -374,7 +374,7 @@ class TestChannelUpdate:
         data = response.json()
         assert data["channels"] == 2
 
-    def test_update_stereo_to_mono(self, api_client):
+    def test_update_stereo_to_mono(self, guest_client):
         """Update file from stereo to mono."""
         import json
 
@@ -395,7 +395,7 @@ class TestChannelUpdate:
             channels=2,
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/files/{file_obj.id}",
             json.dumps({"channels": 1}),
             content_type="application/json",
@@ -405,7 +405,7 @@ class TestChannelUpdate:
         data = response.json()
         assert data["channels"] == 1
 
-    def test_clear_channels(self, api_client):
+    def test_clear_channels(self, guest_client):
         """Clear channels field."""
         import json
 
@@ -426,7 +426,7 @@ class TestChannelUpdate:
             channels=2,
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/files/{file_obj.id}",
             json.dumps({"channels": None}),
             content_type="application/json",
@@ -441,7 +441,7 @@ class TestChannelUpdate:
 class TestChannelEdgeCases:
     """Test channel detection edge cases."""
 
-    def test_null_channels(self, api_client):
+    def test_null_channels(self, guest_client):
         """File with unknown channel count."""
         user = baker.make(User, username="null_test")
         library = baker.make(
@@ -460,13 +460,13 @@ class TestChannelEdgeCases:
             channels=None,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["channels"] is None
 
-    def test_zero_channels_invalid(self, api_client):
+    def test_zero_channels_invalid(self, guest_client):
         """Zero channels is unusual but possible."""
         user = baker.make(User, username="zero_test")
         library = baker.make(
@@ -485,7 +485,7 @@ class TestChannelEdgeCases:
             channels=0,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 

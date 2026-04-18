@@ -17,35 +17,35 @@ class TestFileViewSetList:
         """Clean up files before each test."""
         File.objects.all().delete()
 
-    def test_list_files_endpoint_available(self, api_client):
+    def test_list_files_endpoint_available(self, guest_client):
         """LIST endpoint should be accessible with API key."""
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         assert response.status_code == 200
 
-    def test_list_returns_json(self, api_client):
+    def test_list_returns_json(self, guest_client):
         """LIST should return JSON response."""
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         assert response["Content-Type"] == "application/json"
 
-    def test_list_empty_when_no_files(self, api_client):
+    def test_list_empty_when_no_files(self, guest_client):
         """LIST should return empty list when no files exist."""
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_list_returns_all_files(self, api_client):
+    def test_list_returns_all_files(self, guest_client):
         """LIST should return all existing files."""
         file1 = baker.make(File, name="Track 1", mime="audio/mpeg")
         file2 = baker.make(File, name="Track 2", mime="audio/mpeg")
         file3 = baker.make(File, name="Track 3", mime="audio/mpeg")
 
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         data = response.json()
         assert len(data) == 3
         ids = {item["id"] for item in data}
         assert ids == {file1.id, file2.id, file3.id}
 
-    def test_list_response_has_all_fields(self, api_client):
+    def test_list_response_has_all_fields(self, guest_client):
         """LIST response should include all model fields."""
         file = baker.make(
             File,
@@ -57,7 +57,7 @@ class TestFileViewSetList:
             track_title="Test Title",
         )
 
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         data = response.json()
         # Find our file in the list
         file_data = next(
@@ -117,7 +117,7 @@ class TestFileViewSetList:
         assert "updated_at" in file_data
         assert "last_played_at" in file_data
 
-    def test_list_field_types(self, api_client):
+    def test_list_field_types(self, guest_client):
         """LIST should return correct data types for fields."""
         file = baker.make(
             File,
@@ -131,7 +131,7 @@ class TestFileViewSetList:
             import_status=File.ImportStatus.SUCCESS,
         )
 
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         data = next(
             (item for item in response.json() if item["id"] == file.id),
             None,
@@ -148,7 +148,7 @@ class TestFileViewSetList:
         assert isinstance(data["track_number"], (int, type(None)))
         assert isinstance(data["import_status"], int)
 
-    def test_list_import_status_values(self, api_client):
+    def test_list_import_status_values(self, guest_client):
         """LIST should return correct import_status values."""
         success_file = baker.make(
             File,
@@ -160,13 +160,13 @@ class TestFileViewSetList:
         )
         failed_file = baker.make(File, import_status=File.ImportStatus.FAILED)
 
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         data = response.json()
 
         statuses = {item["import_status"] for item in data}
         assert statuses == {0, 1, 2}  # SUCCESS=0, PENDING=1, FAILED=2
 
-    def test_list_with_library_relation(self, api_client):
+    def test_list_with_library_relation(self, guest_client):
         """LIST should include library data when file has library."""
         library = baker.make(
             Library,
@@ -181,7 +181,7 @@ class TestFileViewSetList:
             mime="audio/mpeg",
         )
 
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         data = next(
             (item for item in response.json() if item["id"] == file.id),
             None,
@@ -191,7 +191,7 @@ class TestFileViewSetList:
         # Library should be serialized as ID
         assert data["library"] == library.id
 
-    def test_list_with_owner_relation(self, api_client, regular_user):
+    def test_list_with_owner_relation(self, guest_client, regular_user):
         """LIST should include owner data when file has owner."""
         file = baker.make(
             File,
@@ -200,7 +200,7 @@ class TestFileViewSetList:
             mime="audio/mpeg",
         )
 
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         data = response.json()[0]
 
         # Owner field should be serialized
@@ -211,40 +211,40 @@ class TestFileViewSetList:
         response = client.get("/api/v2/files")
         assert response.status_code == 403
 
-    def test_list_put_not_allowed(self, api_client):
+    def test_list_put_not_allowed(self, guest_client):
         """PUT should not be allowed on LIST endpoint."""
-        response = api_client.put(
+        response = guest_client.put(
             "/api/v2/files",
             {},
             content_type="application/json",
         )
         assert response.status_code == 405
 
-    def test_list_patch_not_allowed(self, api_client):
+    def test_list_patch_not_allowed(self, guest_client):
         """PATCH should not be allowed on LIST endpoint."""
-        response = api_client.patch(
+        response = guest_client.patch(
             "/api/v2/files",
             {},
             content_type="application/json",
         )
         assert response.status_code == 405
 
-    def test_list_delete_not_allowed(self, api_client):
+    def test_list_delete_not_allowed(self, guest_client):
         """DELETE should not be allowed on LIST endpoint."""
-        response = api_client.delete("/api/v2/files")
+        response = guest_client.delete("/api/v2/files")
         assert response.status_code == 405
 
-    def test_list_pagination_not_enabled(self, api_client):
+    def test_list_pagination_not_enabled(self, guest_client):
         """LIST should return all results without pagination."""
         # Get initial count
-        initial_response = api_client.get("/api/v2/files")
+        initial_response = guest_client.get("/api/v2/files")
         initial_count = len(initial_response.json())
 
         # Create many files
         for _ in range(5):
             baker.make(File)
 
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         data = response.json()
 
         # Should return all files directly, not paginated response

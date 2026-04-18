@@ -37,7 +37,7 @@ class TestSmartBlockContentListRedTeam:
     @pytest.mark.xfail(
         reason="T461: BOLA - LIST shows all users' content without filtering",
     )
-    def test_bola_list_shows_all_users_content(self, api_client):
+    def test_bola_list_shows_all_users_content(self, guest_client):
         """BOLA: LIST should only show content from user's own blocks."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -63,7 +63,7 @@ class TestSmartBlockContentListRedTeam:
         )
 
         # Attacker lists all content
-        response = api_client.get("/api/v2/smart-block-contents")
+        response = guest_client.get("/api/v2/smart-block-contents")
         assert response.status_code == 200
 
         data = response.json()
@@ -78,7 +78,7 @@ class TestSmartBlockContentListRedTeam:
     @pytest.mark.xfail(
         reason="T462: BOLA - filter by block ID bypasses ownership",
     )
-    def test_bola_filter_by_other_users_block(self, api_client):
+    def test_bola_filter_by_other_users_block(self, guest_client):
         """BOLA: Should not be able to filter by other user's block ID."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -104,7 +104,7 @@ class TestSmartBlockContentListRedTeam:
         )
 
         # Attacker filters by victim's block ID
-        response = api_client.get(
+        response = guest_client.get(
             f"/api/v2/smart-block-contents?block={victim_block.id}",
         )
         assert response.status_code == 200
@@ -114,7 +114,7 @@ class TestSmartBlockContentListRedTeam:
             len(data) == 0
         ), f"BOLA: Filter by victim's block returned {len(data)} items"
 
-    def test_content_id_enumeration_mitigated(self, api_client):
+    def test_content_id_enumeration_mitigated(self, guest_client):
         """Security: Content ID enumeration mitigated by owner filtering."""
         # If T461 is fixed, enumeration won't show other users' content
         # If T461 is not fixed, this will enumerate all content
@@ -142,7 +142,7 @@ class TestSmartBlockContentListRedTeam:
                 position=i,
             )
 
-        response = api_client.get("/api/v2/smart-block-contents")
+        response = guest_client.get("/api/v2/smart-block-contents")
         data = response.json()
 
         # Should only see own content (or all if T461 not fixed)
@@ -155,7 +155,7 @@ class TestSmartBlockContentListRedTeam:
     @pytest.mark.xfail(
         reason="T464: Filter bypass - SQL injection in block parameter",
     )
-    def test_filter_sql_injection_block_param(self, api_client):
+    def test_filter_sql_injection_block_param(self, guest_client):
         """Injection: SQLi in block filter parameter."""
         sqli_payloads = [
             "1' OR '1'='1",
@@ -165,7 +165,7 @@ class TestSmartBlockContentListRedTeam:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/smart-block-contents?block={payload}",
             )
             # Should not crash with 500
@@ -175,18 +175,18 @@ class TestSmartBlockContentListRedTeam:
                 404,
             ], f"SQLi payload '{payload}' caused {response.status_code}"
 
-    def test_filter_negative_block_id_handled(self, api_client):
+    def test_filter_negative_block_id_handled(self, guest_client):
         """Validation: Negative block ID handled gracefully."""
-        response = api_client.get("/api/v2/smart-block-contents?block=-1")
+        response = guest_client.get("/api/v2/smart-block-contents?block=-1")
         # Django handles this gracefully - returns empty list
         assert response.status_code in [
             200,
             400,
         ], f"Negative block ID caused {response.status_code}"
 
-    def test_filter_zero_block_id_handled(self, api_client):
+    def test_filter_zero_block_id_handled(self, guest_client):
         """Validation: Zero block ID handled gracefully."""
-        response = api_client.get("/api/v2/smart-block-contents?block=0")
+        response = guest_client.get("/api/v2/smart-block-contents?block=0")
         # Django handles this gracefully - returns empty list
         assert response.status_code in [
             200,
@@ -194,9 +194,9 @@ class TestSmartBlockContentListRedTeam:
         ], f"Zero block ID caused {response.status_code}"
 
     @pytest.mark.xfail(reason="T472: 500 error on non-numeric block_id filter")
-    def test_filter_non_numeric_block_id(self, api_client):
+    def test_filter_non_numeric_block_id(self, guest_client):
         """Validation: Non-numeric block ID in filter - BUG T472."""
-        response = api_client.get("/api/v2/smart-block-contents?block=abc")
+        response = guest_client.get("/api/v2/smart-block-contents?block=abc")
         # BUG: Returns 500 instead of 400
         assert response.status_code in [
             400,
@@ -204,9 +204,9 @@ class TestSmartBlockContentListRedTeam:
         ], f"BUG T472: Non-numeric block ID caused {response.status_code}"
 
     @pytest.mark.xfail(reason="T473: 500 error on unicode block_id filter")
-    def test_filter_unicode_block_id(self, api_client):
+    def test_filter_unicode_block_id(self, guest_client):
         """Validation: Unicode in block filter - BUG T473."""
-        response = api_client.get("/api/v2/smart-block-contents?block=日本語")
+        response = guest_client.get("/api/v2/smart-block-contents?block=日本語")
         # BUG: Returns 500 instead of 400
         assert response.status_code in [
             400,
@@ -217,7 +217,7 @@ class TestSmartBlockContentListRedTeam:
     # Sorting / Ordering Attacks
     # ========================================================================
 
-    def test_sorting_arbitrary_field_rejected(self, api_client):
+    def test_sorting_arbitrary_field_rejected(self, guest_client):
         """Security: Arbitrary ordering fields are rejected."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -233,7 +233,7 @@ class TestSmartBlockContentListRedTeam:
         ]
 
         for ordering in malicious_orderings:
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/smart-block-contents?ordering={ordering}",
             )
             # Django DRF safely ignores invalid ordering fields
@@ -242,7 +242,7 @@ class TestSmartBlockContentListRedTeam:
                 400,
             ], f"Ordering '{ordering}' caused {response.status_code}"
 
-    def test_sorting_negative_position(self, api_client):
+    def test_sorting_negative_position(self, guest_client):
         """Validation: Sorting with negative position values."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -259,7 +259,7 @@ class TestSmartBlockContentListRedTeam:
         )
         baker.make(SmartBlockContent, block=block, file=file_obj, position=-1)
 
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/smart-block-contents?ordering=position",
         )
         assert (
@@ -270,7 +270,7 @@ class TestSmartBlockContentListRedTeam:
     # Pagination Abuse
     # ========================================================================
 
-    def test_pagination_page_size_limited(self, api_client):
+    def test_pagination_page_size_limited(self, guest_client):
         """Security: Page size is properly limited."""
         user = baker.make(User, username="testred_user")
 
@@ -295,7 +295,7 @@ class TestSmartBlockContentListRedTeam:
                 position=i,
             )
 
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/smart-block-contents?page_size=999999",
         )
         # Django DRF has default pagination limits
@@ -303,17 +303,17 @@ class TestSmartBlockContentListRedTeam:
             response.status_code == 200
         ), f"Large page size caused {response.status_code}"
 
-    def test_pagination_negative_page(self, api_client):
+    def test_pagination_negative_page(self, guest_client):
         """Validation: Negative page number."""
-        response = api_client.get("/api/v2/smart-block-contents?page=-1")
+        response = guest_client.get("/api/v2/smart-block-contents?page=-1")
         assert response.status_code in [
             200,
             400,
         ], f"Negative page caused {response.status_code}"
 
-    def test_pagination_zero_page_size(self, api_client):
+    def test_pagination_zero_page_size(self, guest_client):
         """Validation: Zero page size."""
-        response = api_client.get("/api/v2/smart-block-contents?page_size=0")
+        response = guest_client.get("/api/v2/smart-block-contents?page_size=0")
         assert response.status_code in [
             200,
             400,
@@ -323,7 +323,7 @@ class TestSmartBlockContentListRedTeam:
     # Field Exposure
     # ========================================================================
 
-    def test_field_exposure_no_internal_fields(self, api_client):
+    def test_field_exposure_no_internal_fields(self, guest_client):
         """Security: Internal fields are not exposed."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -340,7 +340,7 @@ class TestSmartBlockContentListRedTeam:
         )
         baker.make(SmartBlockContent, block=block, file=file_obj, position=1)
 
-        response = api_client.get("/api/v2/smart-block-contents")
+        response = guest_client.get("/api/v2/smart-block-contents")
         data = response.json()
 
         if len(data) > 0:
@@ -355,7 +355,7 @@ class TestSmartBlockContentListRedTeam:
             leaked = fields & forbidden_fields
             assert len(leaked) == 0, f"Internal fields leaked: {leaked}"
 
-    def test_field_exposure_related_objects_are_ids(self, api_client):
+    def test_field_exposure_related_objects_are_ids(self, guest_client):
         """Security: Related objects are returned as IDs only."""
         user = baker.make(User, username="testred_user")
         block = baker.make(
@@ -372,7 +372,7 @@ class TestSmartBlockContentListRedTeam:
         )
         baker.make(SmartBlockContent, block=block, file=file_obj, position=1)
 
-        response = api_client.get("/api/v2/smart-block-contents")
+        response = guest_client.get("/api/v2/smart-block-contents")
         data = response.json()
 
         if len(data) > 0:
@@ -386,10 +386,10 @@ class TestSmartBlockContentListRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T471: Error message leaks query structure")
-    def test_error_message_leaks_structure(self, api_client):
+    def test_error_message_leaks_structure(self, guest_client):
         """Info Leak: Error messages reveal database structure."""
         # Trigger error with malformed request
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/smart-block-contents?block=invalid'union",
         )
 
@@ -412,7 +412,7 @@ class TestSmartBlockContentListRedTeam:
     # HPP (HTTP Parameter Pollution)
     # ========================================================================
 
-    def test_hpp_duplicate_filter_params(self, api_client):
+    def test_hpp_duplicate_filter_params(self, guest_client):
         """HPP: Duplicate block filter parameters."""
         user = baker.make(User, username="testred_user")
         block1 = baker.make(
@@ -443,7 +443,7 @@ class TestSmartBlockContentListRedTeam:
         baker.make(SmartBlockContent, block=block2, file=file2, position=1)
 
         # Send duplicate block parameters
-        response = api_client.get(
+        response = guest_client.get(
             f"/api/v2/smart-block-contents?block={block1.id}&block={block2.id}",
         )
         assert (
@@ -454,9 +454,9 @@ class TestSmartBlockContentListRedTeam:
     # CORS and Headers
     # ========================================================================
 
-    def test_cors_preflight_list(self, api_client):
+    def test_cors_preflight_list(self, guest_client):
         """CORS: Preflight request for LIST."""
-        response = api_client.options(
+        response = guest_client.options(
             "/api/v2/smart-block-contents",
             HTTP_ORIGIN="https://evil.com",
             HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET",
@@ -472,7 +472,7 @@ class TestSmartBlockContentListRedTeam:
     @pytest.mark.xfail(
         reason="T474: 500 error on special query params (undefined, null)",
     )
-    def test_fuzzing_query_params(self, api_client):
+    def test_fuzzing_query_params(self, guest_client):
         """Fuzzing: Naughty strings in query parameters - BUG T474."""
         naughty_params = [
             "undefined",
@@ -481,7 +481,7 @@ class TestSmartBlockContentListRedTeam:
         ]
 
         for param in naughty_params:
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/smart-block-contents?block={param}",
             )
             # BUG: Returns 500 instead of 400
@@ -494,13 +494,13 @@ class TestSmartBlockContentListRedTeam:
     # Timing Attacks
     # ========================================================================
 
-    def test_timing_list_empty_vs_populated(self, api_client):
+    def test_timing_list_empty_vs_populated(self, guest_client):
         """Timing: Difference between empty and populated list."""
         import time
 
         # Time empty list
         start = time.time()
-        response1 = api_client.get("/api/v2/smart-block-contents")
+        response1 = guest_client.get("/api/v2/smart-block-contents")
         time_empty = time.time() - start
 
         # Create some content
@@ -527,7 +527,7 @@ class TestSmartBlockContentListRedTeam:
 
         # Time populated list
         start = time.time()
-        response2 = api_client.get("/api/v2/smart-block-contents")
+        response2 = guest_client.get("/api/v2/smart-block-contents")
         time_populated = time.time() - start
 
         # Difference should not be extreme (less than 5x)

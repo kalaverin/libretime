@@ -57,12 +57,12 @@ class TestWebstreamViewSetPermissions:
 
     # === AUTHORIZED USERS CAN ACCESS ===
 
-    def test_list_with_auth_returns_200(self, api_client):
+    def test_list_with_auth_returns_200(self, guest_client):
         """LIST with auth should return 200."""
-        response = api_client.get("/api/v2/webstreams")
+        response = guest_client.get("/api/v2/webstreams")
         assert response.status_code == 200
 
-    def test_retrieve_with_auth_returns_200(self, api_client):
+    def test_retrieve_with_auth_returns_200(self, guest_client):
         """RETRIEVE with auth should return 200."""
         user = baker.make(User, username="testws_user")
         stream = baker.make(
@@ -71,14 +71,14 @@ class TestWebstreamViewSetPermissions:
             url="http://example.com/stream",
             owner=user,
         )
-        response = api_client.get(f"/api/v2/webstreams/{stream.id}")
+        response = guest_client.get(f"/api/v2/webstreams/{stream.id}")
         assert response.status_code == 200
         data = response.json()
         # Reformat API response datetime - triggers TimezoneExpectedError if naive (T351)
         assert "created_at" in data
         assert reformat_datetime(data["created_at"]) is not None
 
-    def test_update_with_auth_returns_200(self, api_client):
+    def test_update_with_auth_returns_200(self, guest_client):
         """UPDATE with auth should return 200."""
         user = baker.make(User, username="testws_user")
         stream = baker.make(
@@ -87,7 +87,7 @@ class TestWebstreamViewSetPermissions:
             url="http://example.com/stream",
             owner=user,
         )
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/webstreams/{stream.id}",
             json.dumps({"name": "New"}),
             content_type="application/json",
@@ -98,7 +98,7 @@ class TestWebstreamViewSetPermissions:
         assert "updated_at" in data
         assert reformat_datetime(data["updated_at"]) is not None
 
-    def test_delete_with_auth_returns_204(self, api_client):
+    def test_delete_with_auth_returns_204(self, guest_client):
         """DELETE with auth should return 204."""
         user = baker.make(User, username="testws_user")
         stream = baker.make(
@@ -107,12 +107,12 @@ class TestWebstreamViewSetPermissions:
             url="http://example.com/stream",
             owner=user,
         )
-        response = api_client.delete(f"/api/v2/webstreams/{stream.id}")
+        response = guest_client.delete(f"/api/v2/webstreams/{stream.id}")
         assert response.status_code == 204
 
     # === CROSS-USER ACCESS ===
 
-    def test_user_can_view_other_users_streams(self, api_client):
+    def test_user_can_view_other_users_streams(self, guest_client):
         """Any authenticated user can view any webstream."""
         other_user = baker.make(User, username="testws_other")
         stream = baker.make(
@@ -122,7 +122,7 @@ class TestWebstreamViewSetPermissions:
             owner=other_user,
         )
 
-        response = api_client.get(f"/api/v2/webstreams/{stream.id}")
+        response = guest_client.get(f"/api/v2/webstreams/{stream.id}")
         assert response.status_code == 200
         data = response.json()
         assert data["name"] == "Other Stream"

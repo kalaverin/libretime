@@ -20,7 +20,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOPLA:
 
     def test_bopla_create_mass_assignment_id(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_small_int,
         fake_word,
@@ -46,7 +46,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOPLA:
             "position": 1,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -61,7 +61,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOPLA:
 
     def test_bopla_create_extra_fields_ignored(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_word,
         fake_catch_phrase,
@@ -87,7 +87,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOPLA:
             "password": "hacked",
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -100,7 +100,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOPLA:
 
     def test_bopla_update_change_id(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_word,
         fake_catch_phrase,
@@ -135,7 +135,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOPLA:
             "position": field.position,
         }
 
-        response = api_client.put(
+        response = admin_client.put(
             f"/api/v2/playout-history-template-fields/{field.id}",
             data,
             format="json",
@@ -148,7 +148,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOPLA:
 
     def test_bopla_patch_extra_fields_ignored(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_word,
         fake_catch_phrase,
@@ -177,7 +177,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOPLA:
             "internal_flag": True,
         }
 
-        response = api_client.patch(
+        response = admin_client.patch(
             f"/api/v2/playout-history-template-fields/{field.id}",
             data,
             format="json",
@@ -195,7 +195,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOLA:
 
     def test_bola_create_field_for_other_users_template(
         self,
-        api_client,
+        admin_client,
         admin_user,
         regular_user,
         fake_word,
@@ -223,7 +223,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOLA:
             "position": 1,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -237,7 +237,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOLA:
 
     def test_bola_modify_field_in_other_users_template(
         self,
-        api_client,
+        admin_client,
         admin_user,
         regular_user,
         fake_word,
@@ -270,7 +270,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOLA:
             "position": 1,
         }
 
-        response = api_client.put(
+        response = admin_client.put(
             f"/api/v2/playout-history-template-fields/{victim_field.id}",
             data,
             format="json",
@@ -282,7 +282,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOLA:
 
     def test_bola_delete_field_in_other_users_template(
         self,
-        api_client,
+        admin_client,
         admin_user,
         regular_user,
         fake_word,
@@ -306,7 +306,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOLA:
             position=1,
         )
 
-        response = api_client.delete(
+        response = admin_client.delete(
             f"/api/v2/playout-history-template-fields/{victim_field.id}",
         )
 
@@ -316,7 +316,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOLA:
 
     def test_bola_regular_user_can_modify_global_field(
         self,
-        api_client,
+        admin_client,
         regular_user,
         fake_word,
         fake_catch_phrase,
@@ -339,7 +339,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOLA:
             position=1,
         )
 
-        api_client.force_authenticate(user=regular_user)
+        admin_client.force_authenticate(user=regular_user)
 
         data = {
             "template": template.id,
@@ -350,7 +350,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamBOLA:
             "position": 1,
         }
 
-        response = api_client.put(
+        response = admin_client.put(
             f"/api/v2/playout-history-template-fields/{field.id}",
             data,
             format="json",
@@ -368,7 +368,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamInjection:
 
     def test_sqli_in_name_field(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -396,7 +396,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamInjection:
                 "position": 1,
             }
 
-            response = api_client.post(
+            response = admin_client.post(
                 "/api/v2/playout-history-template-fields",
                 data,
                 format="json",
@@ -407,7 +407,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamInjection:
 
     def test_sqli_in_label_field(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_word,
         fake_catch_phrase,
@@ -432,7 +432,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamInjection:
             "position": 1,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -443,7 +443,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamInjection:
 
     def test_xss_in_name_field(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -467,7 +467,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamInjection:
             "position": 1,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -480,7 +480,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamInjection:
 
     def test_xss_in_label_field(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_word,
         fake_catch_phrase,
@@ -505,7 +505,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamInjection:
             "position": 1,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -523,7 +523,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
 
     def test_create_negative_position(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_word,
         fake_catch_phrase,
@@ -547,7 +547,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
             "position": fake_negative_int,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -558,7 +558,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
 
     def test_create_very_large_position(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_word,
         fake_catch_phrase,
@@ -582,7 +582,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
             "position": fake_positive_int,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -593,7 +593,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
 
     def test_create_empty_name(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_catch_phrase,
     ):
@@ -615,7 +615,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
             "position": 1,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -626,7 +626,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
 
     def test_create_empty_label(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_word,
         fake_catch_phrase,
@@ -649,7 +649,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
             "position": 1,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -660,7 +660,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
 
     def test_create_duplicate_field_name_same_template(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_word,
         fake_catch_phrase,
@@ -683,7 +683,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
             "is_file_md": False,
             "position": 1,
         }
-        response1 = api_client.post(
+        response1 = admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -692,7 +692,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
 
         # Duplicate name
         data["position"] = 2
-        response2 = api_client.post(
+        response2 = admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -706,7 +706,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
 
     def test_create_nonexistent_template(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_word,
         fake_catch_phrase,
@@ -723,7 +723,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
             "position": 1,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -733,7 +733,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
 
     def test_create_invalid_type_value(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_word,
         fake_catch_phrase,
@@ -765,7 +765,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
                 "position": 1,
             }
 
-            response = api_client.post(
+            response = admin_client.post(
                 "/api/v2/playout-history-template-fields",
                 data,
                 format="json",
@@ -777,7 +777,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
 
     def test_create_invalid_is_file_md_type(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_word,
         fake_catch_phrase,
@@ -800,7 +800,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamValidation:
             "position": 1,
         }
 
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -816,7 +816,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamResourceConsumption:
 
     def test_rapid_field_creation(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_word,
         fake_catch_phrase,
@@ -840,7 +840,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamResourceConsumption:
                 "is_file_md": False,
                 "position": i,
             }
-            response = api_client.post(
+            response = admin_client.post(
                 "/api/v2/playout-history-template-fields",
                 data,
                 format="json",
@@ -853,7 +853,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamResourceConsumption:
 
     def test_many_fields_in_single_template(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_word,
         fake_catch_phrase,
@@ -881,7 +881,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamResourceConsumption:
             )
 
         # List fields for template
-        response = api_client.get("/api/v2/playout-history-template-fields")
+        response = admin_client.get("/api/v2/playout-history-template-fields")
 
         if response.status_code == 200:
             data = response.json()
@@ -893,20 +893,20 @@ class TestPlayoutHistoryTemplateFieldRedTeamResourceConsumption:
 class TestPlayoutHistoryTemplateFieldRedTeamAuthentication:
     """Authentication tests."""
 
-    def test_unauthenticated_list(self, api_client):
+    def test_unauthenticated_list(self, guest_client):
         """Unauthenticated LIST should fail."""
-        api_client.logout()
-        response = api_client.get("/api/v2/playout-history-template-fields")
+        guest_client.logout()
+        response = guest_client.get("/api/v2/playout-history-template-fields")
         assert response.status_code == 403
 
     def test_unauthenticated_create(
         self,
-        api_client,
+        guest_client,
         fake_word,
         fake_catch_phrase,
     ):
         """Unauthenticated CREATE should fail."""
-        api_client.logout()
+        guest_client.logout()
         data = {
             "template": 1,
             "name": fake_word,
@@ -915,7 +915,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamAuthentication:
             "is_file_md": False,
             "position": 1,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -924,7 +924,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamAuthentication:
 
     def test_guest_user_create(
         self,
-        api_client,
+        guest_client,
         guest_user,
         fake_word,
         fake_catch_phrase,
@@ -936,7 +936,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamAuthentication:
             type="file",
         )
 
-        api_client.force_authenticate(user=guest_user)
+        guest_client.force_authenticate(user=guest_user)
 
         data = {
             "template": template.id,
@@ -947,7 +947,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamAuthentication:
             "position": 1,
         }
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/playout-history-template-fields",
             data,
             format="json",
@@ -963,7 +963,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamHTTPMethodTampering:
 
     def test_trace_method_disabled(
         self,
-        api_client,
+        admin_client,
         admin_user,
         fake_word,
         fake_catch_phrase,
@@ -984,7 +984,7 @@ class TestPlayoutHistoryTemplateFieldRedTeamHTTPMethodTampering:
             position=1,
         )
 
-        response = api_client.trace(
+        response = admin_client.trace(
             f"/api/v2/playout-history-template-fields/{field.id}",
         )
         assert response.status_code in [405, 403]

@@ -19,13 +19,13 @@ from model_bakery import baker
 class TestShowUpdateMassAssignment:
     """Mass assignment attacks on UPDATE."""
 
-    def test_patch_id_field(self, api_client, admin_user):
+    def test_patch_id_field(self, guest_client, admin_user):
         """Try to change id via PATCH."""
         show = baker.make("schedule.Show", name="Test Show")
         original_id = show.id
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.patch(
             f"/api/v2/shows/{show.id}",
             {"id": 99999},
             format="json",
@@ -36,12 +36,12 @@ class TestShowUpdateMassAssignment:
             if data.get("id") != original_id:
                 pytest.fail("BUG: Can change id via PATCH")
 
-    def test_patch_created_at(self, api_client, admin_user):
+    def test_patch_created_at(self, guest_client, admin_user):
         """Try to change created_at via PATCH."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.patch(
             f"/api/v2/shows/{show.id}",
             {"created_at": "2019-01-01T00:00:00Z"},
             format="json",
@@ -52,12 +52,12 @@ class TestShowUpdateMassAssignment:
             if "2019" in str(data.get("created_at", "")):
                 pytest.fail("BUG: Can modify created_at via PATCH")
 
-    def test_put_with_extra_fields(self, api_client, admin_user):
+    def test_put_with_extra_fields(self, guest_client, admin_user):
         """Try PUT with extra fields."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.put(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.put(
             f"/api/v2/shows/{show.id}",
             {
                 "name": "Updated Show",
@@ -135,12 +135,12 @@ class TestShowUpdateBOLA:
 class TestShowUpdateValidationBypass:
     """Validation bypass attacks."""
 
-    def test_patch_to_empty_name(self, api_client, admin_user):
+    def test_patch_to_empty_name(self, guest_client, admin_user):
         """Try to PATCH name to empty string."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.patch(
             f"/api/v2/shows/{show.id}",
             {"name": ""},
             format="json",
@@ -152,12 +152,12 @@ class TestShowUpdateValidationBypass:
             if data.get("name") == "":
                 pytest.fail("BUG: Can set empty name via PATCH")
 
-    def test_patch_to_whitespace_name(self, api_client, admin_user):
+    def test_patch_to_whitespace_name(self, guest_client, admin_user):
         """Try to PATCH name to whitespace only."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.patch(
             f"/api/v2/shows/{show.id}",
             {"name": "   "},
             format="json",
@@ -168,12 +168,12 @@ class TestShowUpdateValidationBypass:
             if data.get("name") == "   ":
                 pytest.fail("BUG: Can set whitespace-only name via PATCH")
 
-    def test_patch_to_null_name(self, api_client, admin_user):
+    def test_patch_to_null_name(self, guest_client, admin_user):
         """Try to PATCH name to null."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.patch(
             f"/api/v2/shows/{show.id}",
             {"name": None},
             format="json",
@@ -183,12 +183,12 @@ class TestShowUpdateValidationBypass:
         if response.status_code == 200:
             pytest.fail("BUG: Can set null name via PATCH")
 
-    def test_patch_to_very_long_name(self, api_client, admin_user):
+    def test_patch_to_very_long_name(self, guest_client, admin_user):
         """Try to PATCH name to very long string."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.patch(
             f"/api/v2/shows/{show.id}",
             {"name": "A" * 1000},
             format="json",
@@ -202,7 +202,7 @@ class TestShowUpdateValidationBypass:
 class TestShowUpdateURLAttacks:
     """URL field attacks via PATCH."""
 
-    def test_patch_url_to_javascript(self, api_client, admin_user):
+    def test_patch_url_to_javascript(self, guest_client, admin_user):
         """Try to PATCH URL to javascript protocol."""
         show = baker.make(
             "schedule.Show",
@@ -210,8 +210,8 @@ class TestShowUpdateURLAttacks:
             url="https://example.com",
         )
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.patch(
             f"/api/v2/shows/{show.id}",
             {"url": "javascript:alert('xss')"},
             format="json",
@@ -222,7 +222,7 @@ class TestShowUpdateURLAttacks:
             if "javascript:" in str(data.get("url", "")):
                 pytest.fail("BUG: Can set javascript: URL via PATCH")
 
-    def test_patch_url_to_data_protocol(self, api_client, admin_user):
+    def test_patch_url_to_data_protocol(self, guest_client, admin_user):
         """Try to PATCH URL to data protocol."""
         show = baker.make(
             "schedule.Show",
@@ -230,8 +230,8 @@ class TestShowUpdateURLAttacks:
             url="https://example.com",
         )
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.patch(
             f"/api/v2/shows/{show.id}",
             {"url": "data:text/html,<script>alert('xss')</script>"},
             format="json",
@@ -245,12 +245,12 @@ class TestShowUpdateURLAttacks:
 class TestShowUpdateDescriptionXSS:
     """Description XSS via PATCH."""
 
-    def test_patch_description_with_script(self, api_client, admin_user):
+    def test_patch_description_with_script(self, guest_client, admin_user):
         """Try to PATCH description with script tag."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.patch(
             f"/api/v2/shows/{show.id}",
             {"description": "<script>alert('xss')</script>"},
             format="json",
@@ -263,14 +263,14 @@ class TestShowUpdateDescriptionXSS:
 
     def test_patch_description_with_event_handler(
         self,
-        api_client,
+        guest_client,
         admin_user,
     ):
         """Try to PATCH description with event handler."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.patch(
             f"/api/v2/shows/{show.id}",
             {"description": "<img src=x onerror=alert('xss')>"},
             format="json",
@@ -324,10 +324,10 @@ class TestShowUpdateBusinessLogic:
             response.status_code == 403
         ), f"Expected 403, got {response.status_code}"
 
-    def test_patch_nonexistent_show(self, api_client, admin_user):
+    def test_patch_nonexistent_show(self, guest_client, admin_user):
         """Try to PATCH non-existent show."""
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.patch(
             "/api/v2/shows/99999",
             {"name": "Hacked"},
             format="json",
@@ -335,12 +335,12 @@ class TestShowUpdateBusinessLogic:
 
         assert response.status_code == 404
 
-    def test_empty_body_patch(self, api_client, admin_user):
+    def test_empty_body_patch(self, guest_client, admin_user):
         """Try PATCH with empty body."""
         show = baker.make("schedule.Show", name="Test Show")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.patch(
             f"/api/v2/shows/{show.id}",
             {},
             format="json",
@@ -349,13 +349,13 @@ class TestShowUpdateBusinessLogic:
         # Should return 200 with unchanged data
         assert response.status_code == 200
 
-    def test_patch_duplicate_name(self, api_client, admin_user):
+    def test_patch_duplicate_name(self, guest_client, admin_user):
         """Try to PATCH name to duplicate of existing show."""
         show1 = baker.make("schedule.Show", name="Existing Show")
         show2 = baker.make("schedule.Show", name="Another Show")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.patch(
             f"/api/v2/shows/{show2.id}",
             {"name": "Existing Show"},
             format="json",

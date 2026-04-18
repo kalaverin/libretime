@@ -37,7 +37,7 @@ class TestSmartBlockPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T448: BOLA - LIST shows all blocks without owner filtering",
     )
-    def test_bola_list_shows_all_users_blocks(self, api_client):
+    def test_bola_list_shows_all_users_blocks(self, guest_client):
         """BOLA: LIST endpoint should only show user's own blocks."""
         victim = baker.make(User, username="testred_victim")
         attacker = baker.make(User, username="testred_attacker")
@@ -52,7 +52,7 @@ class TestSmartBlockPermissionsRedTeam:
             )
 
         # Attacker lists blocks
-        response = api_client.get("/api/v2/smart-blocks")
+        response = guest_client.get("/api/v2/smart-blocks")
         assert response.status_code == 200
 
         data = response.json()
@@ -65,7 +65,7 @@ class TestSmartBlockPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T449: BOLA - RETRIEVE allows access to any block by ID",
     )
-    def test_bola_retrieve_other_users_private_block(self, api_client):
+    def test_bola_retrieve_other_users_private_block(self, guest_client):
         """BOLA: Should NOT be able to retrieve other user's private block."""
         victim = baker.make(User, username="testred_victim")
         private_block = baker.make(
@@ -75,14 +75,14 @@ class TestSmartBlockPermissionsRedTeam:
             owner=victim,
         )
 
-        response = api_client.get(f"/api/v2/smart-blocks/{private_block.id}")
+        response = guest_client.get(f"/api/v2/smart-blocks/{private_block.id}")
 
         assert (
             response.status_code == 403
         ), f"BOLA: Can retrieve victim's private block (got {response.status_code})"
 
     @pytest.mark.xfail(reason="T450: BOLA - can enumerate block IDs")
-    def test_bola_block_id_enumeration(self, api_client):
+    def test_bola_block_id_enumeration(self, guest_client):
         """BOLA: Sequential ID enumeration exposes all blocks."""
         # Create blocks with sequential IDs
         for i in range(100, 110):
@@ -99,7 +99,7 @@ class TestSmartBlockPermissionsRedTeam:
         # Try to enumerate
         found_blocks = []
         for i in range(1, 200):
-            response = api_client.get(f"/api/v2/smart-blocks/{i}")
+            response = guest_client.get(f"/api/v2/smart-blocks/{i}")
             if response.status_code == 200:
                 found_blocks.append(i)
 
@@ -115,10 +115,10 @@ class TestSmartBlockPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T451: BFLA - admin endpoints accessible to regular users",
     )
-    def test_bfla_admin_bulk_delete_accessible(self, api_client):
+    def test_bfla_admin_bulk_delete_accessible(self, guest_client):
         """BFLA: Bulk delete should require admin permissions."""
         # Try to access potential admin endpoint
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks/bulk-delete",
             json.dumps({"ids": [1, 2, 3]}),
             content_type="application/json",
@@ -130,9 +130,9 @@ class TestSmartBlockPermissionsRedTeam:
             403,
         ], f"BFLA: Bulk delete accessible with status {response.status_code}"
 
-    def test_bfla_admin_export_not_accessible(self, api_client):
+    def test_bfla_admin_export_not_accessible(self, guest_client):
         """BFLA: Admin export endpoint should not exist or be restricted."""
-        response = api_client.get("/api/v2/smart-blocks/export")
+        response = guest_client.get("/api/v2/smart-blocks/export")
 
         # 404 is acceptable (endpoint doesn't exist)
         # 403 would mean endpoint exists but is protected
@@ -144,9 +144,9 @@ class TestSmartBlockPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T453: BFLA - admin import accessible to regular users",
     )
-    def test_bfla_admin_import_accessible(self, api_client):
+    def test_bfla_admin_import_accessible(self, guest_client):
         """BFLA: Import endpoint should require admin permissions."""
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks/import",
             json.dumps({"blocks": [{"name": "Imported"}]}),
             content_type="application/json",
@@ -164,7 +164,7 @@ class TestSmartBlockPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T454: Privilege escalation - HOST role can do admin actions",
     )
-    def test_privesc_host_to_admin_actions(self, api_client):
+    def test_privesc_host_to_admin_actions(self, guest_client):
         """Privilege Escalation: HOST user attempting admin actions."""
         host_user = baker.make(
             User,
@@ -174,7 +174,7 @@ class TestSmartBlockPermissionsRedTeam:
 
         # Try to create blocks for other users (admin action)
         other_user = baker.make(User, username="testred_other")
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             json.dumps(
                 {
@@ -195,7 +195,7 @@ class TestSmartBlockPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T455: Privilege escalation - DJ role can bypass restrictions",
     )
-    def test_privesc_dj_role_bypass(self, api_client):
+    def test_privesc_dj_role_bypass(self, guest_client):
         """Privilege Escalation: DJ user trying to modify protected blocks."""
         dj_user = baker.make(
             User,
@@ -204,7 +204,7 @@ class TestSmartBlockPermissionsRedTeam:
         )
 
         # DJ tries to modify blocks (might be read-only)
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/smart-blocks",
             json.dumps(
                 {
@@ -225,7 +225,7 @@ class TestSmartBlockPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T456: Privilege escalation - Guest role has unexpected access",
     )
-    def test_privesc_guest_role_access(self, api_client):
+    def test_privesc_guest_role_access(self, guest_client):
         """Privilege Escalation: Guest user checking access levels."""
         guest_user = baker.make(
             User,
@@ -244,21 +244,21 @@ class TestSmartBlockPermissionsRedTeam:
 
         for method, url in endpoints:
             if method == "GET":
-                response = api_client.get(url)
+                response = guest_client.get(url)
             elif method == "POST":
-                response = api_client.post(
+                response = guest_client.post(
                     url,
                     json.dumps({"name": "Test"}),
                     content_type="application/json",
                 )
             elif method == "PATCH":
-                response = api_client.patch(
+                response = guest_client.patch(
                     url,
                     json.dumps({"name": "Test"}),
                     content_type="application/json",
                 )
             else:
-                response = api_client.delete(url)
+                response = guest_client.delete(url)
 
             # Guest should have very limited access
             assert response.status_code in [
@@ -271,10 +271,10 @@ class TestSmartBlockPermissionsRedTeam:
     # Authentication Bypass
     # ========================================================================
 
-    def test_auth_bypass_session_vs_api_key(self, api_client, client):
+    def test_auth_bypass_session_vs_api_key(self, guest_client, client):
         """Auth: Compare session auth vs API key behavior."""
-        # API key auth (via api_client fixture)
-        response_api = api_client.get("/api/v2/smart-blocks")
+        # API key auth (via guest_client fixture)
+        response_api = guest_client.get("/api/v2/smart-blocks")
 
         # No auth (via client fixture)
         response_no_auth = client.get("/api/v2/smart-blocks")
@@ -287,12 +287,12 @@ class TestSmartBlockPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T459: Auth bypass - case-insensitive authorization header accepted",
     )
-    def test_auth_bypass_case_insensitive_headers(self, api_client):
+    def test_auth_bypass_case_insensitive_headers(self, guest_client):
         """Auth: Case-insensitive authorization header - BUG T459.
 
         Lowercase 'authorization' header should be rejected same as 'Authorization'.
         """
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/smart-blocks",
             HTTP_authorization="invalid",
         )
@@ -306,7 +306,7 @@ class TestSmartBlockPermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T460: Auth bypass - empty/malformed tokens accepted",
     )
-    def test_auth_bypass_empty_token(self, api_client):
+    def test_auth_bypass_empty_token(self, guest_client):
         """Auth: Empty or malformed token - BUG T460."""
         malformed_tokens = [
             "",
@@ -319,7 +319,7 @@ class TestSmartBlockPermissionsRedTeam:
         ]
 
         for token in malformed_tokens:
-            response = api_client.get(
+            response = guest_client.get(
                 "/api/v2/smart-blocks",
                 HTTP_AUTHORIZATION=token,
             )
@@ -333,7 +333,7 @@ class TestSmartBlockPermissionsRedTeam:
     # Permission Enumeration
     # ========================================================================
 
-    def test_perm_enum_error_messages_consistent(self, api_client):
+    def test_perm_enum_error_messages_consistent(self, guest_client):
         """Permission Enumeration: Error messages should be consistent.
 
         Same error code for non-existent resources regardless of method.
@@ -347,15 +347,15 @@ class TestSmartBlockPermissionsRedTeam:
         statuses = []
         for method, url in operations:
             if method == "GET":
-                response = api_client.get(url)
+                response = guest_client.get(url)
             elif method == "PATCH":
-                response = api_client.patch(
+                response = guest_client.patch(
                     url,
                     json.dumps({}),
                     content_type="application/json",
                 )
             else:
-                response = api_client.delete(url)
+                response = guest_client.delete(url)
             statuses.append(response.status_code)
 
         # All should return 404 for non-existent resource
@@ -364,18 +364,18 @@ class TestSmartBlockPermissionsRedTeam:
             s == 404 for s in statuses
         ), f"Permission enumeration: different statuses {statuses}"
 
-    def test_perm_enum_via_timing(self, api_client):
+    def test_perm_enum_via_timing(self, guest_client):
         """Permission Enumeration: Timing differences leak permissions."""
         import time
 
         # Time request to existing resource (no permission)
         start = time.time()
-        response1 = api_client.get("/api/v2/smart-blocks/1")
+        response1 = guest_client.get("/api/v2/smart-blocks/1")
         time_no_perm = time.time() - start
 
         # Time request to non-existing resource
         start = time.time()
-        response2 = api_client.get("/api/v2/smart-blocks/999999")
+        response2 = guest_client.get("/api/v2/smart-blocks/999999")
         time_not_exist = time.time() - start
 
         # Should be similar timing to not leak info
@@ -388,9 +388,9 @@ class TestSmartBlockPermissionsRedTeam:
     # HTTP Parameter Pollution
     # ========================================================================
 
-    def test_hpp_duplicate_permission_params(self, api_client):
+    def test_hpp_duplicate_permission_params(self, guest_client):
         """HPP: Duplicate permission-related parameters."""
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/smart-blocks",
             {"owner": "user1", "owner": "user2"},
         )
@@ -401,9 +401,9 @@ class TestSmartBlockPermissionsRedTeam:
             400,
         ], f"HPP caused {response.status_code}"
 
-    def test_hpp_permission_override_via_query(self, api_client):
+    def test_hpp_permission_override_via_query(self, guest_client):
         """HPP: Query params trying to override permissions."""
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/smart-blocks?bypass_auth=true&admin=true",
         )
 
@@ -417,12 +417,12 @@ class TestSmartBlockPermissionsRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T458: Can escalate privileges via user update")
-    def test_perm_mass_assignment_role_escalation(self, api_client):
+    def test_perm_mass_assignment_role_escalation(self, guest_client):
         """Permission: Try to escalate role via update."""
         user = baker.make(User, username="testred_user", role=Role.DJ)
 
         # Try to update own role
-        response = api_client.patch(
+        response = guest_client.patch(
             "/api/v2/users/me",
             json.dumps({"role": Role.ADMIN}),
             content_type="application/json",
@@ -439,12 +439,12 @@ class TestSmartBlockPermissionsRedTeam:
     # API Version Bypass
     # ========================================================================
 
-    def test_api_version_unauthorized_access(self, api_client):
+    def test_api_version_unauthorized_access(self, guest_client):
         """API Version: Try deprecated/unauthorized versions."""
         versions = ["v1", "v3", "internal", "admin", "beta"]
 
         for version in versions:
-            response = api_client.get(f"/api/{version}/smart-blocks")
+            response = guest_client.get(f"/api/{version}/smart-blocks")
             # Should be 404 for non-existent versions
             assert response.status_code in [
                 404,
@@ -455,9 +455,9 @@ class TestSmartBlockPermissionsRedTeam:
     # Cross-Origin / CORS
     # ========================================================================
 
-    def test_cors_preflight_permissions(self, api_client):
+    def test_cors_preflight_permissions(self, guest_client):
         """CORS: Preflight request permissions."""
-        response = api_client.options(
+        response = guest_client.options(
             "/api/v2/smart-blocks",
             HTTP_ORIGIN="https://evil.com",
             HTTP_ACCESS_CONTROL_REQUEST_METHOD="DELETE",

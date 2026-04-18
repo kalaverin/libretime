@@ -15,9 +15,9 @@ class TestPodcastEpisodeViewSet:
     """Test PodcastEpisode LIST/CREATE/RETRIEVE/UPDATE/DELETE."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, api_client, admin_user):
+    def setup(self, guest_client, admin_user):
         """Set up test fixtures."""
-        self.api_client = api_client
+        self.guest_client = guest_client
         self.user = admin_user
         self.podcast = baker.make(
             Podcast,
@@ -37,14 +37,14 @@ class TestPodcastEpisodeViewSet:
         )
 
     def test_list_episodes(self):
-        response = self.api_client.get("/api/v2/podcast-episodes")
+        response = self.guest_client.get("/api/v2/podcast-episodes")
         assert response.status_code == 200
         data = response.json()
         assert len(data) >= 1
 
     def test_list_no_auth_fails(self):
-        self.api_client.logout()
-        response = self.api_client.get("/api/v2/podcast-episodes")
+        self.guest_client.logout()
+        response = self.guest_client.get("/api/v2/podcast-episodes")
         assert response.status_code == 403
 
     def test_create_episode_success(self):
@@ -57,7 +57,7 @@ class TestPodcastEpisodeViewSet:
             "episode_title": "New Episode",
             "episode_description": "New Description",
         }
-        response = self.api_client.post(
+        response = self.guest_client.post(
             "/api/v2/podcast-episodes",
             data,
             format="json",
@@ -67,9 +67,9 @@ class TestPodcastEpisodeViewSet:
         assert data["episode_title"] == "New Episode"
 
     def test_create_no_auth_fails(self):
-        self.api_client.logout()
+        self.guest_client.logout()
         data = {"podcast": self.podcast.id, "episode_title": "Test"}
-        response = self.api_client.post(
+        response = self.guest_client.post(
             "/api/v2/podcast-episodes",
             data,
             format="json",
@@ -77,7 +77,7 @@ class TestPodcastEpisodeViewSet:
         assert response.status_code == 403
 
     def test_retrieve_episode_success(self):
-        response = self.api_client.get(
+        response = self.guest_client.get(
             f"/api/v2/podcast-episodes/{self.episode.id}",
         )
         assert response.status_code == 200
@@ -94,7 +94,7 @@ class TestPodcastEpisodeViewSet:
             "episode_guid": self.episode.episode_guid,
             "published_at": format_datetime(now()),
         }
-        response = self.api_client.put(
+        response = self.guest_client.put(
             f"/api/v2/podcast-episodes/{self.episode.id}",
             data,
             format="json",
@@ -104,7 +104,7 @@ class TestPodcastEpisodeViewSet:
         assert data["episode_title"] == "Updated Title"
 
     def test_delete_episode_success(self):
-        response = self.api_client.delete(
+        response = self.guest_client.delete(
             f"/api/v2/podcast-episodes/{self.episode.id}",
         )
         assert response.status_code == 204

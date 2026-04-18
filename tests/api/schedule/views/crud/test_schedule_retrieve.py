@@ -22,8 +22,8 @@ class TestScheduleViewSetRetrieve:
     """Tests for Schedule retrieve endpoint."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, api_client, admin_user):
-        self.api_client = api_client
+    def setup(self, guest_client, admin_user):
+        self.guest_client = guest_client
         self.user = admin_user
         show = baker.make("schedule.Show", name="Test Show")
         instance_start = now()
@@ -54,7 +54,7 @@ class TestScheduleViewSetRetrieve:
             position=1,
             broadcasted=1,
         )
-        response = self.api_client.get(f"/api/v2/schedule/{schedule.id}")
+        response = self.guest_client.get(f"/api/v2/schedule/{schedule.id}")
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == schedule.id
@@ -81,7 +81,7 @@ class TestScheduleViewSetRetrieve:
             position=1,
             broadcasted=1,
         )
-        response = self.api_client.get(f"/api/v2/schedule/{schedule.id}")
+        response = self.guest_client.get(f"/api/v2/schedule/{schedule.id}")
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == schedule.id
@@ -104,7 +104,7 @@ class TestScheduleViewSetRetrieve:
             position=1,
             broadcasted=1,
         )
-        response = self.api_client.get(f"/api/v2/schedule/{schedule.id}")
+        response = self.guest_client.get(f"/api/v2/schedule/{schedule.id}")
         assert response.status_code == 200
         data = response.json()
         assert "cue_out" in data
@@ -122,17 +122,17 @@ class TestScheduleViewSetRetrieve:
             position=1,
             broadcasted=1,
         )
-        response = self.api_client.get(f"/api/v2/schedule/{schedule.id}")
+        response = self.guest_client.get(f"/api/v2/schedule/{schedule.id}")
         assert response.status_code == 200
         data = response.json()
         assert "ends_at" in data
 
     def test_retrieve_not_found(self):
-        response = self.api_client.get("/api/v2/schedule/99999")
+        response = self.guest_client.get("/api/v2/schedule/99999")
         assert response.status_code == 404
 
     def test_retrieve_no_auth_fails(self):
-        self.api_client.logout()
+        self.guest_client.logout()
         instance_start = self.show_instance.starts_at
         schedule = baker.make(
             Schedule,
@@ -145,7 +145,7 @@ class TestScheduleViewSetRetrieve:
             position=1,
             broadcasted=1,
         )
-        response = self.api_client.get(f"/api/v2/schedule/{schedule.id}")
+        response = self.guest_client.get(f"/api/v2/schedule/{schedule.id}")
         assert response.status_code == 403
 
     def test_retrieve_includes_all_fields(self):
@@ -164,7 +164,7 @@ class TestScheduleViewSetRetrieve:
             position=1,
             broadcasted=1,
         )
-        response = self.api_client.get(f"/api/v2/schedule/{schedule.id}")
+        response = self.guest_client.get(f"/api/v2/schedule/{schedule.id}")
         assert response.status_code == 200
         data = response.json()
         assert "id" in data
@@ -193,7 +193,7 @@ class TestScheduleViewSetRetrieve:
             position=1,
             broadcasted=1,
         )
-        response = self.api_client.get(f"/api/v2/schedule/{schedule.id}")
+        response = self.guest_client.get(f"/api/v2/schedule/{schedule.id}")
         assert response.status_code == 200
         data = response.json()
         assert "id" in data

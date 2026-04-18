@@ -20,7 +20,7 @@ from api.storage.models import File, Library
 class TestFileMetadataFields:
     """Test file metadata field storage and retrieval."""
 
-    def test_audio_metadata_storage(self, api_client):
+    def test_audio_metadata_storage(self, guest_client):
         """Audio metadata (bit_rate, sample_rate, channels) stored correctly."""
         user = baker.make(User, username="metadata_test")
         library = baker.make(
@@ -42,7 +42,7 @@ class TestFileMetadataFields:
             length=timedelta(minutes=3, seconds=30),
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
@@ -51,7 +51,7 @@ class TestFileMetadataFields:
         assert data["channels"] == 2
         assert data["length"] == "00:03:30"
 
-    def test_replay_gain_metadata(self, api_client):
+    def test_replay_gain_metadata(self, guest_client):
         """Replay gain metadata stored correctly."""
         user = baker.make(User, username="replay_test")
         library = baker.make(
@@ -70,13 +70,13 @@ class TestFileMetadataFields:
             replay_gain=Decimal("-2.50"),
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert Decimal(data["replay_gain"]) == Decimal("-2.50")
 
-    def test_musical_metadata(self, api_client):
+    def test_musical_metadata(self, guest_client):
         """Musical metadata (bpm, mood) stored correctly."""
         user = baker.make(User, username="music_test")
         library = baker.make(
@@ -96,14 +96,14 @@ class TestFileMetadataFields:
             mood="Energetic",
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
         assert data["bpm"] == 128
         assert data["mood"] == "Energetic"
 
-    def test_id3_metadata(self, api_client):
+    def test_id3_metadata(self, guest_client):
         """ID3 tags stored correctly."""
         user = baker.make(User, username="id3_test")
         library = baker.make(
@@ -127,7 +127,7 @@ class TestFileMetadataFields:
             date="2024",
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
@@ -138,7 +138,7 @@ class TestFileMetadataFields:
         assert data["genre"] == "Rock"
         assert data["date"] == "2024"
 
-    def test_full_metadata_retrieval(self, api_client):
+    def test_full_metadata_retrieval(self, guest_client):
         """All metadata fields retrieved in single request."""
         user = baker.make(User, username="full_test")
         library = baker.make(
@@ -173,7 +173,7 @@ class TestFileMetadataFields:
             date="2024",
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
@@ -197,7 +197,7 @@ class TestFileMetadataFields:
 class TestFileMetadataUpdate:
     """Test metadata field updates."""
 
-    def test_update_audio_metadata(self, api_client):
+    def test_update_audio_metadata(self, guest_client):
         """Update audio metadata fields."""
         import json
 
@@ -218,7 +218,7 @@ class TestFileMetadataUpdate:
             bit_rate=128000,
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/files/{file_obj.id}",
             json.dumps({"bit_rate": 320000}),
             content_type="application/json",
@@ -228,7 +228,7 @@ class TestFileMetadataUpdate:
         data = response.json()
         assert data["bit_rate"] == 320000
 
-    def test_update_id3_metadata(self, api_client):
+    def test_update_id3_metadata(self, guest_client):
         """Update ID3 metadata fields."""
         import json
 
@@ -250,7 +250,7 @@ class TestFileMetadataUpdate:
             artist_name="Old Artist",
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/files/{file_obj.id}",
             json.dumps(
                 {
@@ -266,7 +266,7 @@ class TestFileMetadataUpdate:
         assert data["track_title"] == "New Title"
         assert data["artist_name"] == "New Artist"
 
-    def test_clear_metadata_field(self, api_client):
+    def test_clear_metadata_field(self, guest_client):
         """Clear metadata field by setting to null."""
         import json
 
@@ -287,7 +287,7 @@ class TestFileMetadataUpdate:
             bpm=120,
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/files/{file_obj.id}",
             json.dumps({"bpm": None}),
             content_type="application/json",
@@ -302,7 +302,7 @@ class TestFileMetadataUpdate:
 class TestMetadataInListView:
     """Test metadata in list responses."""
 
-    def test_list_includes_key_metadata(self, api_client):
+    def test_list_includes_key_metadata(self, guest_client):
         """LIST includes key metadata fields."""
         user = baker.make(User, username="list_meta")
         library = baker.make(
@@ -323,7 +323,7 @@ class TestMetadataInListView:
             length=timedelta(minutes=3),
         )
 
-        response = api_client.get("/api/v2/files")
+        response = guest_client.get("/api/v2/files")
         assert response.status_code == 200
         data = response.json()
         assert len(data) > 0
@@ -333,7 +333,7 @@ class TestMetadataInListView:
         assert "artist_name" in data[0]
         assert "length" in data[0]
 
-    def test_list_metadata_consistency(self, api_client):
+    def test_list_metadata_consistency(self, guest_client):
         """LIST and RETRIEVE show same metadata."""
         user = baker.make(User, username="consistency")
         library = baker.make(
@@ -354,13 +354,13 @@ class TestMetadataInListView:
         )
 
         # Get from list
-        list_response = api_client.get("/api/v2/files")
+        list_response = guest_client.get("/api/v2/files")
         list_data = next(
             f for f in list_response.json() if f["id"] == file_obj.id
         )
 
         # Get from retrieve
-        retrieve_response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        retrieve_response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         retrieve_data = retrieve_response.json()
 
         # Metadata should match
@@ -372,7 +372,7 @@ class TestMetadataInListView:
 class TestMetadataEdgeCases:
     """Test metadata edge cases."""
 
-    def test_null_metadata_fields(self, api_client):
+    def test_null_metadata_fields(self, guest_client):
         """File with null metadata fields."""
         user = baker.make(User, username="null_test")
         library = baker.make(
@@ -394,7 +394,7 @@ class TestMetadataEdgeCases:
             bpm=None,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
@@ -403,7 +403,7 @@ class TestMetadataEdgeCases:
         assert data["bit_rate"] is None
         assert data["bpm"] is None
 
-    def test_unicode_metadata(self, api_client):
+    def test_unicode_metadata(self, guest_client):
         """Metadata with unicode characters."""
         user = baker.make(User, username="unicode_meta")
         library = baker.make(
@@ -424,7 +424,7 @@ class TestMetadataEdgeCases:
             album_title="Álbum Éspecial",
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
@@ -432,7 +432,7 @@ class TestMetadataEdgeCases:
         assert "Артист" in data["artist_name"]
         assert "Álbum" in data["album_title"]
 
-    def test_zero_values(self, api_client):
+    def test_zero_values(self, guest_client):
         """Metadata with zero values."""
         user = baker.make(User, username="zero_test")
         library = baker.make(
@@ -452,7 +452,7 @@ class TestMetadataEdgeCases:
             bpm=0,
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 
@@ -460,7 +460,7 @@ class TestMetadataEdgeCases:
         assert data["track_number"] == 0
         assert data["bpm"] == 0
 
-    def test_negative_replay_gain(self, api_client):
+    def test_negative_replay_gain(self, guest_client):
         """Negative replay gain values."""
         user = baker.make(User, username="negative_test")
         library = baker.make(
@@ -479,7 +479,7 @@ class TestMetadataEdgeCases:
             replay_gain=Decimal("-12.50"),
         )
 
-        response = api_client.get(f"/api/v2/files/{file_obj.id}")
+        response = guest_client.get(f"/api/v2/files/{file_obj.id}")
         assert response.status_code == 200
         data = response.json()
 

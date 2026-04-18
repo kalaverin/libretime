@@ -37,7 +37,7 @@ class TestPlaylistContentDeleteRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T420: BOLA - can delete other's content")
-    def test_bola_delete_other_users_content(self, api_client):
+    def test_bola_delete_other_users_content(self, guest_client):
         """BOLA: Should not delete another user's playlist content."""
         victim = baker.make(User, username="testred_victim")
         victim_playlist = baker.make(Playlist, name="Victim", owner=victim)
@@ -55,7 +55,7 @@ class TestPlaylistContentDeleteRedTeam:
             position=1,
         )
 
-        response = api_client.delete(f"/api/v2/playlist-contents/{content.id}")
+        response = guest_client.delete(f"/api/v2/playlist-contents/{content.id}")
 
         assert response.status_code in [
             403,
@@ -66,7 +66,7 @@ class TestPlaylistContentDeleteRedTeam:
         ).exists(), "BOLA: Victim's content was deleted"
 
     @pytest.mark.xfail(reason="T420: BOLA - mass delete other's content")
-    def test_bola_mass_delete_other_users_contents(self, api_client):
+    def test_bola_mass_delete_other_users_contents(self, guest_client):
         """BOLA: Mass delete victim's playlist contents."""
         victim = baker.make(User, username="testred_victim")
         victim_playlist = baker.make(Playlist, name="Victim", owner=victim)
@@ -91,7 +91,7 @@ class TestPlaylistContentDeleteRedTeam:
         # Try to delete all
         deleted = 0
         for c in contents:
-            r = api_client.delete(f"/api/v2/playlist-contents/{c.id}")
+            r = guest_client.delete(f"/api/v2/playlist-contents/{c.id}")
             if r.status_code == 204:
                 deleted += 1
 
@@ -101,7 +101,7 @@ class TestPlaylistContentDeleteRedTeam:
     # API6:2023 - Resource Consumption
     # ========================================================================
 
-    def test_delete_rapid_fire(self, api_client):
+    def test_delete_rapid_fire(self, guest_client):
         """Resource: Rapid delete should be rate limited."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -127,7 +127,7 @@ class TestPlaylistContentDeleteRedTeam:
         # Rapid delete
         start = time.time()
         for c in contents:
-            api_client.delete(f"/api/v2/playlist-contents/{c.id}")
+            guest_client.delete(f"/api/v2/playlist-contents/{c.id}")
         elapsed = time.time() - start
 
         if elapsed < 2:
@@ -137,7 +137,7 @@ class TestPlaylistContentDeleteRedTeam:
     # Race Conditions
     # ========================================================================
 
-    def test_race_double_delete(self, api_client):
+    def test_race_double_delete(self, guest_client):
         """Race: Concurrent delete attempts."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -156,7 +156,7 @@ class TestPlaylistContentDeleteRedTeam:
         )
 
         def delete():
-            return api_client.delete(f"/api/v2/playlist-contents/{content.id}")
+            return guest_client.delete(f"/api/v2/playlist-contents/{content.id}")
 
         with ThreadPoolExecutor(max_workers=2) as executor:
             f1 = executor.submit(delete)
@@ -170,12 +170,12 @@ class TestPlaylistContentDeleteRedTeam:
     # Edge Cases
     # ========================================================================
 
-    def test_delete_nonexistent(self, api_client):
+    def test_delete_nonexistent(self, guest_client):
         """Edge: Delete non-existent content."""
-        response = api_client.delete("/api/v2/playlist-contents/999999")
+        response = guest_client.delete("/api/v2/playlist-contents/999999")
         assert response.status_code == 404
 
-    def test_delete_already_deleted(self, api_client):
+    def test_delete_already_deleted(self, guest_client):
         """Edge: Double delete same content."""
         user = baker.make(User, username="testred_user")
         playlist = baker.make(Playlist, name="Test", owner=user)
@@ -193,12 +193,12 @@ class TestPlaylistContentDeleteRedTeam:
             position=1,
         )
 
-        api_client.delete(f"/api/v2/playlist-contents/{content.id}")
-        response = api_client.delete(f"/api/v2/playlist-contents/{content.id}")
+        guest_client.delete(f"/api/v2/playlist-contents/{content.id}")
+        response = guest_client.delete(f"/api/v2/playlist-contents/{content.id}")
 
         assert response.status_code == 404
 
-    def test_delete_sql_injection_id(self, api_client):
+    def test_delete_sql_injection_id(self, guest_client):
         """SQLi: Injection in content ID."""
         sqli_ids = [
             "1 OR 1=1",
@@ -207,7 +207,7 @@ class TestPlaylistContentDeleteRedTeam:
         ]
 
         for sqli_id in sqli_ids:
-            response = api_client.delete(
+            response = guest_client.delete(
                 f"/api/v2/playlist-contents/{sqli_id}",
             )
             assert response.status_code in [

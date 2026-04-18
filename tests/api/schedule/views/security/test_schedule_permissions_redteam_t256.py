@@ -45,7 +45,7 @@ class TestSchedulePermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T603: BOLA - Guest can modify other user's schedule",
     )
-    def test_bola_guest_modify_other_user_schedule(self, api_client, faker):
+    def test_bola_guest_modify_other_user_schedule(self, guest_client, faker):
         """BOLA: Guest user can modify another user's schedule."""
         # Create victim's schedule
         victim = baker.make(
@@ -81,9 +81,9 @@ class TestSchedulePermissionsRedTeam:
             username=f"testred_guest_{faker.user_name()}",
             role=Role.GUEST,
         )
-        api_client.force_authenticate(user=guest)
+        guest_client.force_authenticate(user=guest)
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/schedule/{schedule.id}",
             json.dumps({"position": 999}),
             content_type="application/json",
@@ -94,7 +94,7 @@ class TestSchedulePermissionsRedTeam:
         ), f"BOLA: Guest got {response.status_code}, expected 403"
 
     @pytest.mark.xfail(reason="T604: BOLA - Host can delete admin's schedule")
-    def test_bola_host_delete_admin_schedule(self, api_client, faker):
+    def test_bola_host_delete_admin_schedule(self, guest_client, faker):
         """BOLA: Host user can delete admin's schedule."""
         admin = baker.make(
             User,
@@ -129,9 +129,9 @@ class TestSchedulePermissionsRedTeam:
             username=f"testred_host_{faker.user_name()}",
             role=Role.HOST,
         )
-        api_client.force_authenticate(user=host)
+        guest_client.force_authenticate(user=host)
 
-        response = api_client.delete(f"/api/v2/schedule/{schedule.id}")
+        response = guest_client.delete(f"/api/v2/schedule/{schedule.id}")
         assert (
             response.status_code == 403
         ), f"BOLA: Host got {response.status_code}, expected 403"
@@ -147,20 +147,20 @@ class TestSchedulePermissionsRedTeam:
         # Skipping as API uses token auth
 
     @pytest.mark.xfail(reason="T606: Auth - Token reuse after logout")
-    def test_token_reuse_after_logout(self, api_client, admin_user, faker):
+    def test_token_reuse_after_logout(self, guest_client, admin_user, faker):
         """Broken Auth: Token should be invalidated after logout."""
         # Login
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         # Get valid response
-        response1 = api_client.get("/api/v2/schedule")
+        response1 = guest_client.get("/api/v2/schedule")
         assert response1.status_code == 200
 
         # Logout
-        api_client.logout()
+        guest_client.logout()
 
         # Try to use same token
-        response2 = api_client.get("/api/v2/schedule")
+        response2 = guest_client.get("/api/v2/schedule")
         # Token should be rejected after logout
         if response2.status_code == 200:
             pytest.fail("T606: Token still valid after logout")
@@ -172,7 +172,7 @@ class TestSchedulePermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T607: BOPLA - Can change owner via permission field",
     )
-    def test_bopla_permission_field_manipulation(self, api_client, faker):
+    def test_bopla_permission_field_manipulation(self, guest_client, faker):
         """BOPLA: Manipulating permission-related fields."""
         user = baker.make(User, username=f"testred_user_{faker.user_name()}")
         show = baker.make(Show, name=faker.catch_phrase())
@@ -198,7 +198,7 @@ class TestSchedulePermissionsRedTeam:
         )
 
         # Try to manipulate permission-related fields
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/schedule/{schedule.id}",
             json.dumps(
                 {
@@ -219,14 +219,14 @@ class TestSchedulePermissionsRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T608: BFLA - Guest can access admin endpoints")
-    def test_bfla_guest_admin_endpoints(self, api_client, faker):
+    def test_bfla_guest_admin_endpoints(self, guest_client, faker):
         """BFLA: Guest accessing admin-only endpoints."""
         guest = baker.make(
             User,
             username=f"testred_guest_{faker.user_name()}",
             role=Role.GUEST,
         )
-        api_client.force_authenticate(user=guest)
+        guest_client.force_authenticate(user=guest)
 
         # Try to access admin endpoints
         admin_endpoints = [
@@ -235,21 +235,21 @@ class TestSchedulePermissionsRedTeam:
         ]
 
         for endpoint in admin_endpoints:
-            response = api_client.get(endpoint)
+            response = guest_client.get(endpoint)
             assert response.status_code in [
                 404,
                 403,
             ], f"BFLA: Guest accessed {endpoint} with {response.status_code}"
 
     @pytest.mark.xfail(reason="T609: BFLA - Host can perform admin operations")
-    def test_bfla_host_admin_operations(self, api_client, faker):
+    def test_bfla_host_admin_operations(self, guest_client, faker):
         """BFLA: Host performing admin-only operations."""
         host = baker.make(
             User,
             username=f"testred_host_{faker.user_name()}",
             role=Role.HOST,
         )
-        api_client.force_authenticate(user=host)
+        guest_client.force_authenticate(user=host)
 
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
@@ -263,7 +263,7 @@ class TestSchedulePermissionsRedTeam:
         base_time = now()
 
         # Create schedule
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(
                 {
@@ -289,9 +289,9 @@ class TestSchedulePermissionsRedTeam:
     # API8:2023 - Security Misconfiguration
     # ========================================================================
 
-    def test_cors_permissions_endpoint(self, api_client, faker):
+    def test_cors_permissions_endpoint(self, guest_client, faker):
         """Misconfig: CORS on permissions-sensitive endpoints."""
-        response = api_client.options(
+        response = guest_client.options(
             "/api/v2/schedule",
             HTTP_ORIGIN="https://attacker.com",
             HTTP_ACCESS_CONTROL_REQUEST_METHOD="DELETE",
@@ -301,11 +301,11 @@ class TestSchedulePermissionsRedTeam:
         if allow_origin in ["*", "https://attacker.com"]:
             pytest.fail("CORS allows arbitrary origin for DELETE")
 
-    def test_verbose_permission_errors(self, api_client, guest_user, faker):
+    def test_verbose_permission_errors(self, guest_client, guest_user, faker):
         """Misconfig: Permission errors reveal too much info."""
-        api_client.force_authenticate(user=guest_user)
+        guest_client.force_authenticate(user=guest_user)
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps({"test": "data"}),
             content_type="application/json",
@@ -334,17 +334,17 @@ class TestSchedulePermissionsRedTeam:
     # Role-based Tests
     # ========================================================================
 
-    def test_role_guest_list_allowed(self, api_client, guest_user, faker):
+    def test_role_guest_list_allowed(self, guest_client, guest_user, faker):
         """Role: Guest can LIST schedules."""
-        api_client.force_authenticate(user=guest_user)
-        response = api_client.get("/api/v2/schedule")
+        guest_client.force_authenticate(user=guest_user)
+        response = guest_client.get("/api/v2/schedule")
         # Guest should be able to list
         assert response.status_code in [200, 403]
 
     @pytest.mark.xfail(reason="T610: Role - Guest can CREATE schedule")
-    def test_role_guest_create_denied(self, api_client, guest_user, faker):
+    def test_role_guest_create_denied(self, guest_client, guest_user, faker):
         """Role: Guest cannot CREATE schedule."""
-        api_client.force_authenticate(user=guest_user)
+        guest_client.force_authenticate(user=guest_user)
 
         show = baker.make(Show, name=faker.catch_phrase())
         instance = baker.make(ShowInstance, show=show)
@@ -355,7 +355,7 @@ class TestSchedulePermissionsRedTeam:
         )
 
         base_time = now()
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(
                 {
@@ -378,30 +378,30 @@ class TestSchedulePermissionsRedTeam:
             response.status_code == 403
         ), f"Guest CREATE returned {response.status_code}, expected 403"
 
-    def test_role_host_operations(self, api_client, faker):
+    def test_role_host_operations(self, guest_client, faker):
         """Role: Host user operations."""
         host = baker.make(
             User,
             username=f"testred_host_{faker.user_name()}",
             role=Role.HOST,
         )
-        api_client.force_authenticate(user=host)
+        guest_client.force_authenticate(user=host)
 
         # Host should be able to list
-        response = api_client.get("/api/v2/schedule")
+        response = guest_client.get("/api/v2/schedule")
         assert response.status_code == 200
 
-    def test_role_manager_operations(self, api_client, faker):
+    def test_role_manager_operations(self, guest_client, faker):
         """Role: Manager user operations."""
         manager = baker.make(
             User,
             username=f"testred_manager_{faker.user_name()}",
             role=Role.MANAGER,
         )
-        api_client.force_authenticate(user=manager)
+        guest_client.force_authenticate(user=manager)
 
         # Manager should be able to list
-        response = api_client.get("/api/v2/schedule")
+        response = guest_client.get("/api/v2/schedule")
         assert response.status_code == 200
 
     # ========================================================================
@@ -409,12 +409,12 @@ class TestSchedulePermissionsRedTeam:
     # ========================================================================
 
     @pytest.mark.xfail(reason="T611: PrivEsc - Can escalate role via API")
-    def test_privilege_escalation_via_api(self, api_client, guest_user, faker):
+    def test_privilege_escalation_via_api(self, guest_client, guest_user, faker):
         """PrivEsc: Attempting to escalate privileges via API."""
-        api_client.force_authenticate(user=guest_user)
+        guest_client.force_authenticate(user=guest_user)
 
         # Try to manipulate user role via schedule endpoint
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(
                 {
@@ -438,7 +438,7 @@ class TestSchedulePermissionsRedTeam:
     @pytest.mark.xfail(
         reason="T612: Cross-user - Can access schedules across instances",
     )
-    def test_cross_instance_access(self, api_client, faker):
+    def test_cross_instance_access(self, guest_client, faker):
         """Cross-user: Accessing schedules across different show instances."""
         user1 = baker.make(User, username=f"testred_user1_{faker.user_name()}")
         user2 = baker.make(User, username=f"testred_user2_{faker.user_name()}")
@@ -466,8 +466,8 @@ class TestSchedulePermissionsRedTeam:
         )
 
         # User2 tries to access user1's schedule
-        api_client.force_authenticate(user=user2)
-        response = api_client.get(f"/api/v2/schedule/{schedule.id}")
+        guest_client.force_authenticate(user=user2)
+        response = guest_client.get(f"/api/v2/schedule/{schedule.id}")
 
         assert (
             response.status_code == 403

@@ -27,7 +27,7 @@ class TestScheduleViewSetCreate:
         Show.objects.all().delete()
         User.objects.filter(username__startswith="testsched").delete()
 
-    def test_create_file_schedule_success(self, api_client):
+    def test_create_file_schedule_success(self, guest_client):
         user = baker.make(User, username="testsched_user")
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
@@ -38,7 +38,7 @@ class TestScheduleViewSetCreate:
             owner=user,
         )
         start_time = now()
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(
                 {
@@ -61,7 +61,7 @@ class TestScheduleViewSetCreate:
         assert data["file"] == file_obj.id
         assert data["instance"] == instance.id
 
-    def test_create_stream_schedule_success(self, api_client):
+    def test_create_stream_schedule_success(self, guest_client):
         user = baker.make(User, username="testsched_user")
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
@@ -72,7 +72,7 @@ class TestScheduleViewSetCreate:
             owner=user,
         )
         start_time = now()
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(
                 {
@@ -95,7 +95,7 @@ class TestScheduleViewSetCreate:
         assert data["stream"] == stream.id
         assert data["file"] is None
 
-    def test_create_with_cue_out_write_serializer(self, api_client):
+    def test_create_with_cue_out_write_serializer(self, guest_client):
         user = baker.make(User, username="testsched_user")
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
@@ -106,7 +106,7 @@ class TestScheduleViewSetCreate:
             owner=user,
         )
         start_time = now()
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(
                 {
@@ -126,7 +126,7 @@ class TestScheduleViewSetCreate:
         )
         assert response.status_code == 201
 
-    def test_create_missing_instance_fails(self, api_client):
+    def test_create_missing_instance_fails(self, guest_client):
         user = baker.make(User, username="testsched_user")
         file_obj = baker.make(
             File,
@@ -135,7 +135,7 @@ class TestScheduleViewSetCreate:
             owner=user,
         )
         start_time = now()
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(
                 {
@@ -154,11 +154,11 @@ class TestScheduleViewSetCreate:
         )
         assert response.status_code == 400
 
-    def test_create_missing_file_and_stream_fails(self, api_client):
+    def test_create_missing_file_and_stream_fails(self, guest_client):
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
         start_time = now()
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(
                 {
@@ -177,7 +177,7 @@ class TestScheduleViewSetCreate:
         )
         assert response.status_code == 400
 
-    def test_create_invalid_instance_fails(self, api_client):
+    def test_create_invalid_instance_fails(self, guest_client):
         user = baker.make(User, username="testsched_user")
         file_obj = baker.make(
             File,
@@ -186,7 +186,7 @@ class TestScheduleViewSetCreate:
             owner=user,
         )
         start_time = now()
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(
                 {
@@ -214,7 +214,7 @@ class TestScheduleViewSetCreate:
         )
         assert response.status_code == 403
 
-    def test_create_with_fade_times(self, api_client):
+    def test_create_with_fade_times(self, guest_client):
         user = baker.make(User, username="testsched_user")
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
@@ -225,7 +225,7 @@ class TestScheduleViewSetCreate:
             owner=user,
         )
         start_time = now()
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(
                 {

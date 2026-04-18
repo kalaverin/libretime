@@ -13,7 +13,7 @@ from api.storage.models import File, Library
 class TestFileViewSetRetrieve:
     """Test Files RETRIEVE endpoint - GET /api/v2/files/{id}."""
 
-    def test_retrieve_file_success(self, api_client):
+    def test_retrieve_file_success(self, guest_client):
         """RETRIEVE existing file should return 200 with full data."""
         file = baker.make(
             File,
@@ -22,12 +22,12 @@ class TestFileViewSetRetrieve:
             size=10_000_000,
             accessed=0,
         )
-        response = api_client.get(f"/api/v2/files/{file.id}")
+        response = guest_client.get(f"/api/v2/files/{file.id}")
         assert response.status_code == 200
         assert response.json()["id"] == file.id
         assert response.json()["name"] == "Test Track"
 
-    def test_retrieve_file_returns_json(self, api_client):
+    def test_retrieve_file_returns_json(self, guest_client):
         """RETRIEVE should return JSON response."""
         file = baker.make(
             File,
@@ -36,10 +36,10 @@ class TestFileViewSetRetrieve:
             size=1000,
             accessed=0,
         )
-        response = api_client.get(f"/api/v2/files/{file.id}")
+        response = guest_client.get(f"/api/v2/files/{file.id}")
         assert response["Content-Type"] == "application/json"
 
-    def test_retrieve_file_response_structure(self, api_client):
+    def test_retrieve_file_response_structure(self, guest_client):
         """RETRIEVE response should have all model fields."""
         file = baker.make(
             File,
@@ -52,7 +52,7 @@ class TestFileViewSetRetrieve:
             album_title="Album",
             genre="Rock",
         )
-        response = api_client.get(f"/api/v2/files/{file.id}")
+        response = guest_client.get(f"/api/v2/files/{file.id}")
         data = response.json()
 
         # Core fields
@@ -98,7 +98,7 @@ class TestFileViewSetRetrieve:
         assert "updated_at" in data
         assert "last_played_at" in data
 
-    def test_retrieve_file_all_field_values(self, api_client):
+    def test_retrieve_file_all_field_values(self, guest_client):
         """RETRIEVE should return correct values for all fields."""
         file = baker.make(
             File,
@@ -111,7 +111,7 @@ class TestFileViewSetRetrieve:
             genre="Jazz",
             import_status=File.ImportStatus.SUCCESS,
         )
-        response = api_client.get(f"/api/v2/files/{file.id}")
+        response = guest_client.get(f"/api/v2/files/{file.id}")
         data = response.json()
 
         assert data["name"] == "Specific Track"
@@ -123,7 +123,7 @@ class TestFileViewSetRetrieve:
         assert data["genre"] == "Jazz"
         assert data["import_status"] == File.ImportStatus.SUCCESS
 
-    def test_retrieve_file_with_library(self, api_client):
+    def test_retrieve_file_with_library(self, guest_client):
         """RETRIEVE should include library relation."""
         library = baker.make(
             Library,
@@ -139,29 +139,29 @@ class TestFileViewSetRetrieve:
             accessed=0,
             library=library,
         )
-        response = api_client.get(f"/api/v2/files/{file.id}")
+        response = guest_client.get(f"/api/v2/files/{file.id}")
         data = response.json()
 
         assert data["library"] == library.id
 
-    def test_retrieve_file_not_found(self, api_client):
+    def test_retrieve_file_not_found(self, guest_client):
         """RETRIEVE non-existent file should return 404."""
-        response = api_client.get("/api/v2/files/999999")
+        response = guest_client.get("/api/v2/files/999999")
         assert response.status_code == 404
 
-    def test_retrieve_file_invalid_id_format(self, api_client):
+    def test_retrieve_file_invalid_id_format(self, guest_client):
         """RETRIEVE with invalid id format should return 404."""
-        response = api_client.get("/api/v2/files/invalid")
+        response = guest_client.get("/api/v2/files/invalid")
         assert response.status_code == 404
 
-    def test_retrieve_file_negative_id(self, api_client):
+    def test_retrieve_file_negative_id(self, guest_client):
         """RETRIEVE with negative id should return 404."""
-        response = api_client.get("/api/v2/files/-1")
+        response = guest_client.get("/api/v2/files/-1")
         assert response.status_code == 404
 
-    def test_retrieve_file_zero_id(self, api_client):
+    def test_retrieve_file_zero_id(self, guest_client):
         """RETRIEVE with id=0 should return 404."""
-        response = api_client.get("/api/v2/files/0")
+        response = guest_client.get("/api/v2/files/0")
         assert response.status_code == 404
 
     def test_retrieve_file_no_auth_returns_403(self, client):
@@ -176,7 +176,7 @@ class TestFileViewSetRetrieve:
         response = client.get(f"/api/v2/files/{file.id}")
         assert response.status_code == 403
 
-    def test_retrieve_file_post_not_allowed(self, api_client):
+    def test_retrieve_file_post_not_allowed(self, guest_client):
         """POST on detail should not be allowed (returns 405)."""
         file = baker.make(
             File,
@@ -185,14 +185,14 @@ class TestFileViewSetRetrieve:
             size=1000,
             accessed=0,
         )
-        response = api_client.post(
+        response = guest_client.post(
             f"/api/v2/files/{file.id}",
             {},
             content_type="application/json",
         )
         assert response.status_code == 405
 
-    def test_retrieve_file_data_types(self, api_client):
+    def test_retrieve_file_data_types(self, guest_client):
         """RETRIEVE should return correct data types."""
         file = baker.make(
             File,
@@ -204,7 +204,7 @@ class TestFileViewSetRetrieve:
             bit_rate=320,
             import_status=File.ImportStatus.PENDING,
         )
-        response = api_client.get(f"/api/v2/files/{file.id}")
+        response = guest_client.get(f"/api/v2/files/{file.id}")
         data = response.json()
 
         assert isinstance(data["id"], int)
@@ -216,7 +216,7 @@ class TestFileViewSetRetrieve:
         assert isinstance(data["bit_rate"], (int, type(None)))
         assert isinstance(data["import_status"], int)
 
-    def test_retrieve_file_nullable_fields(self, api_client):
+    def test_retrieve_file_nullable_fields(self, guest_client):
         """RETRIEVE should handle nullable fields correctly."""
         file = baker.make(
             File,
@@ -229,7 +229,7 @@ class TestFileViewSetRetrieve:
             artist_name=None,
             genre=None,
         )
-        response = api_client.get(f"/api/v2/files/{file.id}")
+        response = guest_client.get(f"/api/v2/files/{file.id}")
         data = response.json()
 
         assert data["filepath"] is None
@@ -237,7 +237,7 @@ class TestFileViewSetRetrieve:
         assert data["artist_name"] is None
         assert data["genre"] is None
 
-    def test_retrieve_file_import_status_values(self, api_client):
+    def test_retrieve_file_import_status_values(self, guest_client):
         """RETRIEVE should return correct import_status for all values."""
         for status_val, status_name in File.ImportStatus.choices:
             file = baker.make(
@@ -248,13 +248,13 @@ class TestFileViewSetRetrieve:
                 accessed=0,
                 import_status=status_val,
             )
-            response = api_client.get(f"/api/v2/files/{file.id}")
+            response = guest_client.get(f"/api/v2/files/{file.id}")
             data = response.json()
             assert (
                 data["import_status"] == status_val
             ), f"Failed for {status_name}"
 
-    def test_retrieve_file_unicode_metadata(self, api_client):
+    def test_retrieve_file_unicode_metadata(self, guest_client):
         """RETRIEVE should handle unicode metadata correctly."""
         file = baker.make(
             File,
@@ -266,14 +266,14 @@ class TestFileViewSetRetrieve:
             track_title="タイトル",
             genre="J-Pop",
         )
-        response = api_client.get(f"/api/v2/files/{file.id}")
+        response = guest_client.get(f"/api/v2/files/{file.id}")
         data = response.json()
 
         assert data["name"] == "日本語トラック"
         assert data["artist_name"] == "アーティスト"
         assert data["track_title"] == "タイトル"
 
-    def test_retrieve_file_long_strings(self, api_client):
+    def test_retrieve_file_long_strings(self, guest_client):
         """RETRIEVE should handle long string values."""
         # name max_length=255, comment is TextField (no limit)
         long_name = "A" * 255
@@ -286,7 +286,7 @@ class TestFileViewSetRetrieve:
             accessed=0,
             comment=long_comment,
         )
-        response = api_client.get(f"/api/v2/files/{file.id}")
+        response = guest_client.get(f"/api/v2/files/{file.id}")
         data = response.json()
 
         assert data["name"] == long_name

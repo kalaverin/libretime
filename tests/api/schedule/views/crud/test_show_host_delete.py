@@ -18,27 +18,27 @@ class TestShowHostViewSetDelete:
         Show.objects.all().delete()
         User.objects.filter(username__startswith="testhost").delete()
 
-    def test_delete_show_host_success_returns_204(self, api_client):
+    def test_delete_show_host_success_returns_204(self, guest_client):
         """DELETE should return 204 on successful removal."""
         show = baker.make(Show, name="Test Show")
         user = baker.make(User, username="testhost1")
         show_host = baker.make(ShowHost, show=show, user=user)
 
-        response = api_client.delete(f"/api/v2/show-hosts/{show_host.id}")
+        response = guest_client.delete(f"/api/v2/show-hosts/{show_host.id}")
         assert response.status_code == 204
 
-    def test_delete_show_host_removes_from_db(self, api_client):
+    def test_delete_show_host_removes_from_db(self, guest_client):
         """DELETE should remove show host from database."""
         show = baker.make(Show, name="Test Show")
         user = baker.make(User, username="testhost1")
         show_host = baker.make(ShowHost, show=show, user=user)
 
-        api_client.delete(f"/api/v2/show-hosts/{show_host.id}")
+        guest_client.delete(f"/api/v2/show-hosts/{show_host.id}")
         assert ShowHost.objects.filter(id=show_host.id).count() == 0
 
-    def test_delete_show_host_not_found_returns_404(self, api_client):
+    def test_delete_show_host_not_found_returns_404(self, guest_client):
         """DELETE non-existent show host should return 404."""
-        response = api_client.delete("/api/v2/show-hosts/999999")
+        response = guest_client.delete("/api/v2/show-hosts/999999")
         assert response.status_code == 404
 
     def test_delete_show_host_no_auth_fails(self, client):
@@ -50,26 +50,26 @@ class TestShowHostViewSetDelete:
         response = client.delete(f"/api/v2/show-hosts/{show_host.id}")
         assert response.status_code == 403
 
-    def test_delete_show_host_double_delete_returns_404(self, api_client):
+    def test_delete_show_host_double_delete_returns_404(self, guest_client):
         """DELETE already deleted show host should return 404."""
         show = baker.make(Show, name="Test Show")
         user = baker.make(User, username="testhost1")
         show_host = baker.make(ShowHost, show=show, user=user)
 
-        api_client.delete(f"/api/v2/show-hosts/{show_host.id}")
-        response = api_client.delete(f"/api/v2/show-hosts/{show_host.id}")
+        guest_client.delete(f"/api/v2/show-hosts/{show_host.id}")
+        response = guest_client.delete(f"/api/v2/show-hosts/{show_host.id}")
         assert response.status_code == 404
 
-    def test_delete_show_host_returns_empty_body(self, api_client):
+    def test_delete_show_host_returns_empty_body(self, guest_client):
         """DELETE should return empty response body."""
         show = baker.make(Show, name="Test Show")
         user = baker.make(User, username="testhost1")
         show_host = baker.make(ShowHost, show=show, user=user)
 
-        response = api_client.delete(f"/api/v2/show-hosts/{show_host.id}")
+        response = guest_client.delete(f"/api/v2/show-hosts/{show_host.id}")
         assert response.content == b""
 
-    def test_delete_one_host_others_remain(self, api_client):
+    def test_delete_one_host_others_remain(self, guest_client):
         """DELETE one host should leave other hosts."""
         show = baker.make(Show, name="Test Show")
         user1 = baker.make(User, username="testhost1")
@@ -80,13 +80,13 @@ class TestShowHostViewSetDelete:
         show_host2 = baker.make(ShowHost, show=show, user=user2)
         show_host3 = baker.make(ShowHost, show=show, user=user3)
 
-        api_client.delete(f"/api/v2/show-hosts/{show_host2.id}")
+        guest_client.delete(f"/api/v2/show-hosts/{show_host2.id}")
 
         assert ShowHost.objects.filter(id=show_host1.id).exists()
         assert not ShowHost.objects.filter(id=show_host2.id).exists()
         assert ShowHost.objects.filter(id=show_host3.id).exists()
 
-    def test_delete_host_from_one_show_keeps_other_shows(self, api_client):
+    def test_delete_host_from_one_show_keeps_other_shows(self, guest_client):
         """DELETE host from one show should keep host on other shows."""
         user = baker.make(User, username="testhost1")
         show1 = baker.make(Show, name="Show 1")
@@ -97,23 +97,23 @@ class TestShowHostViewSetDelete:
         show_host2 = baker.make(ShowHost, show=show2, user=user)
         show_host3 = baker.make(ShowHost, show=show3, user=user)
 
-        api_client.delete(f"/api/v2/show-hosts/{show_host2.id}")
+        guest_client.delete(f"/api/v2/show-hosts/{show_host2.id}")
 
         assert ShowHost.objects.filter(id=show_host1.id).exists()
         assert not ShowHost.objects.filter(id=show_host2.id).exists()
         assert ShowHost.objects.filter(id=show_host3.id).exists()
 
-    def test_delete_show_host_id_zero_returns_404(self, api_client):
+    def test_delete_show_host_id_zero_returns_404(self, guest_client):
         """DELETE with id=0 should return 404."""
-        response = api_client.delete("/api/v2/show-hosts/0")
+        response = guest_client.delete("/api/v2/show-hosts/0")
         assert response.status_code == 404
 
-    def test_delete_show_host_negative_id_returns_404(self, api_client):
+    def test_delete_show_host_negative_id_returns_404(self, guest_client):
         """DELETE with negative id should return 404."""
-        response = api_client.delete("/api/v2/show-hosts/-1")
+        response = guest_client.delete("/api/v2/show-hosts/-1")
         assert response.status_code == 404
 
-    def test_delete_show_host_sql_injection_attempt(self, api_client):
+    def test_delete_show_host_sql_injection_attempt(self, guest_client):
         """DELETE with SQL injection in id should be handled safely."""
-        response = api_client.delete("/api/v2/show-hosts/1 OR 1=1")
+        response = guest_client.delete("/api/v2/show-hosts/1 OR 1=1")
         assert response.status_code == 404

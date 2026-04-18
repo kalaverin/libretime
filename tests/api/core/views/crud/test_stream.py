@@ -1,7 +1,6 @@
 from rest_framework.test import APIClient
 
 
-# pylint: disable=invalid-name,unused-argument
 def test_stream_preferences_get(db, api_client: APIClient):
     response = api_client.get("/api/v2/stream/preferences")
     assert response.status_code == 200
@@ -14,7 +13,6 @@ def test_stream_preferences_get(db, api_client: APIClient):
     }
 
 
-# pylint: disable=invalid-name,unused-argument
 def test_stream_state_get(db, api_client: APIClient):
     response = api_client.get("/api/v2/stream/state")
     assert response.status_code == 200

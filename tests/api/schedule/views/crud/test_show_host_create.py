@@ -20,7 +20,7 @@ class TestShowHostViewSetCreate:
         Show.objects.all().delete()
         User.objects.filter(username__startswith="testhost").delete()
 
-    def test_create_show_host_success(self, api_client):
+    def test_create_show_host_success(self, guest_client):
         """CREATE show host should succeed."""
         show = baker.make(Show, name="Test Show")
         user = baker.make(User, username="testhost1")
@@ -29,7 +29,7 @@ class TestShowHostViewSetCreate:
             "show": show.id,
             "user": user.id,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",
@@ -38,7 +38,7 @@ class TestShowHostViewSetCreate:
         assert response.json()["show"] == show.id
         assert response.json()["user"] == user.id
 
-    def test_create_show_host_multiple_hosts(self, api_client):
+    def test_create_show_host_multiple_hosts(self, guest_client):
         """CREATE multiple hosts for same show should succeed."""
         show = baker.make(Show, name="Test Show")
 
@@ -48,7 +48,7 @@ class TestShowHostViewSetCreate:
                 "show": show.id,
                 "user": user.id,
             }
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/show-hosts",
                 json.dumps(data),
                 content_type="application/json",
@@ -57,7 +57,7 @@ class TestShowHostViewSetCreate:
 
         assert ShowHost.objects.filter(show=show).count() == 3
 
-    def test_create_show_host_same_user_multiple_shows(self, api_client):
+    def test_create_show_host_same_user_multiple_shows(self, guest_client):
         """CREATE same user as host for multiple shows should succeed."""
         user = baker.make(User, username="testhost1")
 
@@ -67,7 +67,7 @@ class TestShowHostViewSetCreate:
                 "show": show.id,
                 "user": user.id,
             }
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/show-hosts",
                 json.dumps(data),
                 content_type="application/json",
@@ -79,7 +79,7 @@ class TestShowHostViewSetCreate:
     @pytest.mark.xfail(
         reason="BUG T320: Duplicate show-host entries allowed - no unique constraint",
     )
-    def test_create_show_host_duplicate_fails(self, api_client):
+    def test_create_show_host_duplicate_fails(self, guest_client):
         """CREATE duplicate show-host should fail."""
         show = baker.make(Show, name="Test Show")
         user = baker.make(User, username="testhost1")
@@ -89,14 +89,14 @@ class TestShowHostViewSetCreate:
             "show": show.id,
             "user": user.id,
         }
-        api_client.post(
+        guest_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",
         )
 
         # Second create should fail but doesn't
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",
@@ -106,35 +106,35 @@ class TestShowHostViewSetCreate:
             409,
         ]  # Should fail but returns 201
 
-    def test_create_show_host_missing_show_fails(self, api_client):
+    def test_create_show_host_missing_show_fails(self, guest_client):
         """CREATE without show should fail."""
         user = baker.make(User, username="testhost1")
 
         data = {
             "user": user.id,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",
         )
         assert response.status_code == 400
 
-    def test_create_show_host_missing_user_fails(self, api_client):
+    def test_create_show_host_missing_user_fails(self, guest_client):
         """CREATE without user should fail."""
         show = baker.make(Show, name="Test Show")
 
         data = {
             "show": show.id,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",
         )
         assert response.status_code == 400
 
-    def test_create_show_host_invalid_show_fails(self, api_client):
+    def test_create_show_host_invalid_show_fails(self, guest_client):
         """CREATE with invalid show should fail."""
         user = baker.make(User, username="testhost1")
 
@@ -142,14 +142,14 @@ class TestShowHostViewSetCreate:
             "show": 999999,
             "user": user.id,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",
         )
         assert response.status_code == 400
 
-    def test_create_show_host_invalid_user_fails(self, api_client):
+    def test_create_show_host_invalid_user_fails(self, guest_client):
         """CREATE with invalid user should fail."""
         show = baker.make(Show, name="Test Show")
 
@@ -157,14 +157,14 @@ class TestShowHostViewSetCreate:
             "show": show.id,
             "user": 999999,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",
         )
         assert response.status_code == 400
 
-    def test_create_show_host_returns_json(self, api_client):
+    def test_create_show_host_returns_json(self, guest_client):
         """CREATE should return JSON response."""
         show = baker.make(Show, name="Test Show")
         user = baker.make(User, username="testhost1")
@@ -173,7 +173,7 @@ class TestShowHostViewSetCreate:
             "show": show.id,
             "user": user.id,
         }
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/show-hosts",
             json.dumps(data),
             content_type="application/json",

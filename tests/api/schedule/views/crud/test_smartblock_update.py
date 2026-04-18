@@ -19,7 +19,7 @@ class TestSmartBlockViewSetUpdate:
         SmartBlock.objects.all().delete()
         User.objects.filter(username__startswith="testsb").delete()
 
-    def test_patch_update_name_success(self, api_client):
+    def test_patch_update_name_success(self, guest_client):
         """PATCH name should update block."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -29,7 +29,7 @@ class TestSmartBlockViewSetUpdate:
             owner=user,
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps({"name": "New Name"}),
             content_type="application/json",
@@ -37,7 +37,7 @@ class TestSmartBlockViewSetUpdate:
         assert response.status_code == 200
         assert response.json()["name"] == "New Name"
 
-    def test_patch_update_description(self, api_client):
+    def test_patch_update_description(self, guest_client):
         """PATCH description should update block."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -48,7 +48,7 @@ class TestSmartBlockViewSetUpdate:
             owner=user,
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps({"description": "New description"}),
             content_type="application/json",
@@ -56,7 +56,7 @@ class TestSmartBlockViewSetUpdate:
         assert response.status_code == 200
         assert response.json()["description"] == "New description"
 
-    def test_patch_clear_description(self, api_client):
+    def test_patch_clear_description(self, guest_client):
         """PATCH description to null should clear it."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -67,7 +67,7 @@ class TestSmartBlockViewSetUpdate:
             owner=user,
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps({"description": None}),
             content_type="application/json",
@@ -75,7 +75,7 @@ class TestSmartBlockViewSetUpdate:
         assert response.status_code == 200
         assert response.json()["description"] is None
 
-    def test_patch_partial_does_not_affect_other_fields(self, api_client):
+    def test_patch_partial_does_not_affect_other_fields(self, guest_client):
         """PATCH should only update specified fields."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -86,7 +86,7 @@ class TestSmartBlockViewSetUpdate:
             owner=user,
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps({"name": "Updated"}),
             content_type="application/json",
@@ -97,7 +97,7 @@ class TestSmartBlockViewSetUpdate:
         assert data["description"] == "Keep"
         assert data["kind"] == SmartBlock.Kind.STATIC
 
-    def test_put_full_update_success(self, api_client):
+    def test_put_full_update_success(self, guest_client):
         """PUT should update all fields."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -107,7 +107,7 @@ class TestSmartBlockViewSetUpdate:
             owner=user,
         )
 
-        response = api_client.put(
+        response = guest_client.put(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps(
                 {
@@ -124,9 +124,9 @@ class TestSmartBlockViewSetUpdate:
         assert data["kind"] == SmartBlock.Kind.DYNAMIC
         assert data["description"] == "Updated desc"
 
-    def test_update_not_found_returns_404(self, api_client):
+    def test_update_not_found_returns_404(self, guest_client):
         """UPDATE non-existent block should return 404."""
-        response = api_client.patch(
+        response = guest_client.patch(
             "/api/v2/smart-blocks/999999",
             json.dumps({"name": "New"}),
             content_type="application/json",
@@ -142,7 +142,7 @@ class TestSmartBlockViewSetUpdate:
         )
         assert response.status_code == 403
 
-    def test_update_empty_name_fails(self, api_client):
+    def test_update_empty_name_fails(self, guest_client):
         """UPDATE with empty name should fail."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -152,14 +152,14 @@ class TestSmartBlockViewSetUpdate:
             owner=user,
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps({"name": ""}),
             content_type="application/json",
         )
         assert response.status_code == 400
 
-    def test_update_unicode_values(self, api_client):
+    def test_update_unicode_values(self, guest_client):
         """UPDATE with unicode values should succeed."""
         user = baker.make(User, username="testsb_user")
         block = baker.make(
@@ -169,7 +169,7 @@ class TestSmartBlockViewSetUpdate:
             owner=user,
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/smart-blocks/{block.id}",
             json.dumps(
                 {

@@ -42,9 +42,11 @@ class TestPlayoutHistoryListRedTeamBOLA:
 
     def test_bola_admin_can_see_all_playout(
         self,
-        api_client,
+        guest_client,
         admin_user,
+        admin_client,
         manager_user,
+        manager_client,
         faker,
     ):
         """
@@ -64,7 +66,7 @@ class TestPlayoutHistoryListRedTeamBOLA:
         )
 
         # Admin requests LIST
-        response = api_client.get("/api/v2/playout-history")
+        response = admin_client.get("/api/v2/playout-history")
         assert response.status_code == 200
         data = response.json()
 
@@ -77,8 +79,7 @@ class TestPlayoutHistoryListRedTeamBOLA:
             pass  # Expected admin behavior
 
         # Now test with manager
-        api_client.force_authenticate(user=manager_user)
-        response = api_client.get("/api/v2/playout-history")
+        response = manager_client.get("/api/v2/playout-history")
 
         if response.status_code == 200:
             data = response.json()
@@ -90,7 +91,7 @@ class TestPlayoutHistoryListRedTeamBOLA:
 
     def test_bola_list_with_no_owner_field_in_model(
         self,
-        api_client,
+        guest_client,
         admin_user,
         faker,
     ):
@@ -117,7 +118,7 @@ class TestPlayoutHistoryListRedTeamBOLA:
 
     def test_bola_list_returns_all_data_no_filtering(
         self,
-        api_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -145,7 +146,7 @@ class TestPlayoutHistoryListRedTeamBOLA:
                 ends=now() + timedelta(minutes=5),
             )
 
-        response = api_client.get("/api/v2/playout-history")
+        response = admin_client.get("/api/v2/playout-history")
         assert response.status_code == 200
 
         data = response.json()
@@ -159,14 +160,14 @@ class TestPlayoutHistoryListRedTeamBOLA:
 class TestPlayoutHistoryListRedTeamBFLA:
     """API5:2023 Broken Function Level Authorization tests."""
 
-    def test_bfla_list_as_regular_user(self, api_client, regular_user, faker):
+    def test_bfla_list_as_regular_user(self, guest_client, regular_user, faker):
         """
         BFLA: Regular user can access LIST endpoint.
 
         Should regular users see playout history at all?
         Or should this be admin-only?
         """
-        api_client.force_authenticate(user=regular_user)
+        guest_client.force_authenticate(user=regular_user)
 
         # Create some data
         f = baker.make(File, mime="audio/mp3", owner=regular_user)
@@ -177,7 +178,7 @@ class TestPlayoutHistoryListRedTeamBFLA:
             ends=now() + timedelta(minutes=5),
         )
 
-        response = api_client.get("/api/v2/playout-history")
+        response = guest_client.get("/api/v2/playout-history")
 
         # Document current behavior
         if response.status_code == 200:
@@ -189,15 +190,15 @@ class TestPlayoutHistoryListRedTeamBFLA:
         else:
             pytest.xfail(f"Unexpected status code: {response.status_code}")
 
-    def test_bfla_list_as_guest_user(self, api_client, guest_user):
+    def test_bfla_list_as_guest_user(self, guest_client, guest_user):
         """
         BFLA: Guest user can access LIST endpoint.
 
         Guests should have minimal permissions.
         """
-        api_client.force_authenticate(user=guest_user)
+        guest_client.force_authenticate(user=guest_user)
 
-        response = api_client.get("/api/v2/playout-history")
+        response = guest_client.get("/api/v2/playout-history")
 
         # Guests should probably not access playout history
         if response.status_code == 200:
@@ -205,14 +206,14 @@ class TestPlayoutHistoryListRedTeamBFLA:
                 "T557: BFLA - Guest user can access playout history LIST",
             )
 
-    def test_bfla_list_unauthenticated(self, api_client):
+    def test_bfla_list_unauthenticated(self, guest_client):
         """
         BFLA: Unauthenticated access to LIST.
 
         Should return 403 for unauthenticated requests.
         """
-        api_client.logout()
-        response = api_client.get("/api/v2/playout-history")
+        guest_client.logout()
+        response = guest_client.get("/api/v2/playout-history")
 
         assert (
             response.status_code == 403
@@ -235,14 +236,14 @@ class TestPlayoutHistoryListRedTeamInjection:
         "1' WAITFOR DELAY '0:0:5'--",
     ]
 
-    def test_sqli_in_ordering_param(self, api_client, admin_user):
+    def test_sqli_in_ordering_param(self, guest_client, admin_user):
         """
         SQL Injection via ordering query parameter.
 
         DRF ordering filter passes directly to ORM - vulnerable if not sanitized.
         """
         for payload in self.SQLI_PAYLOADS:
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/playout-history?ordering={payload}",
             )
 
@@ -261,14 +262,14 @@ class TestPlayoutHistoryListRedTeamInjection:
                         f"T558: SQLi error disclosure in ordering: {payload[:30]}...",
                     )
 
-    def test_sqli_in_search_param(self, api_client, admin_user):
+    def test_sqli_in_search_param(self, guest_client, admin_user):
         """
         SQL Injection via search query parameter.
 
         If search filter is enabled, test for SQLi.
         """
         for payload in self.SQLI_PAYLOADS[:5]:  # Test subset
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/playout-history?search={payload}",
             )
 
@@ -277,7 +278,7 @@ class TestPlayoutHistoryListRedTeamInjection:
                     f"T558: SQLi in search param causes 500: {payload[:30]}...",
                 )
 
-    def test_nosql_injection_in_filter(self, api_client, admin_user):
+    def test_nosql_injection_in_filter(self, admin_client, admin_user):
         """
         NoSQL injection via filter parameters.
 
@@ -290,7 +291,7 @@ class TestPlayoutHistoryListRedTeamInjection:
         ]
 
         for payload in nosql_payloads:
-            response = api_client.get("/api/v2/playout-history", payload)
+            response = admin_client.get("/api/v2/playout-history", payload)
             # Just document behavior - Django ORM should be safe
             assert response.status_code in [200, 400]
 
@@ -299,7 +300,7 @@ class TestPlayoutHistoryListRedTeamInjection:
 class TestPlayoutHistoryListRedTeamResourceConsumption:
     """API4:2023 Unrestricted Resource Consumption tests."""
 
-    def test_pagination_page_size_abuse(self, api_client, admin_user, faker):
+    def test_pagination_page_size_abuse(self, guest_client, admin_user, faker):
         """
         Resource consumption via large page_size.
 
@@ -316,7 +317,7 @@ class TestPlayoutHistoryListRedTeamResourceConsumption:
             )
 
         # Request large page size
-        response = api_client.get("/api/v2/playout-history?page_size=10000")
+        response = guest_client.get("/api/v2/playout-history?page_size=10000")
 
         # Should be limited by max_page_size
         if response.status_code == 200:
@@ -326,19 +327,19 @@ class TestPlayoutHistoryListRedTeamResourceConsumption:
                     "T559: No pagination limit - can request huge datasets",
                 )
 
-    def test_pagination_offset_abuse(self, api_client, admin_user):
+    def test_pagination_offset_abuse(self, guest_client, admin_user):
         """
         Resource consumption via deep pagination.
 
         Large offsets are expensive in databases.
         """
-        response = api_client.get("/api/v2/playout-history?offset=999999999")
+        response = guest_client.get("/api/v2/playout-history?offset=999999999")
 
         # Deep pagination should be limited
         if response.status_code == 500:
             pytest.xfail("T559: Deep pagination causes server error")
 
-    def test_rapid_sequential_requests(self, api_client, admin_user):
+    def test_rapid_sequential_requests(self, guest_client, admin_user):
         """
         Rate limiting test via rapid sequential requests.
 
@@ -346,7 +347,7 @@ class TestPlayoutHistoryListRedTeamResourceConsumption:
         """
         responses = []
         for _ in range(20):
-            response = api_client.get("/api/v2/playout-history")
+            response = guest_client.get("/api/v2/playout-history")
             responses.append(response.status_code)
 
         success_count = responses.count(200)
@@ -361,14 +362,14 @@ class TestPlayoutHistoryListRedTeamResourceConsumption:
 class TestPlayoutHistoryListRedTeamInformationDisclosure:
     """API8:2023 Security Misconfiguration - Information Disclosure tests."""
 
-    def test_error_message_leaks_sql_structure(self, api_client, admin_user):
+    def test_error_message_leaks_sql_structure(self, guest_client, admin_user):
         """
         Error messages reveal database structure.
 
         500 errors should not expose SQL or table names.
         """
         # Trigger error with malformed ordering
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/playout-history?ordering=starts;DROP",
         )
 
@@ -385,28 +386,28 @@ class TestPlayoutHistoryListRedTeamInformationDisclosure:
             if any(kw in error_text for kw in leak_keywords):
                 pytest.xfail("T561: Error messages leak database structure")
 
-    def test_stack_trace_exposure(self, api_client, admin_user):
+    def test_stack_trace_exposure(self, guest_client, admin_user):
         """
         Stack traces exposed in error responses.
 
         Debug mode should be off in production.
         """
         # Trigger an error
-        response = api_client.get("/api/v2/playout-history?format=evil")
+        response = guest_client.get("/api/v2/playout-history?format=evil")
 
         if response.status_code >= 500:
             content = str(response.content)
             if "traceback" in content.lower() or "/app/" in content:
                 pytest.xfail("T561: Stack traces exposed in error responses")
 
-    def test_verbose_404_leaks_existence(self, api_client, admin_user):
+    def test_verbose_404_leaks_existence(self, guest_client, admin_user):
         """
         404 messages differ for existing vs non-existing resources.
 
         Can be used to enumerate valid IDs.
         """
         # Try to get non-existent playout
-        response = api_client.get("/api/v2/playout-history/99999999")
+        response = guest_client.get("/api/v2/playout-history/99999999")
 
         if response.status_code == 404:
             # Check if error message is generic
@@ -418,13 +419,13 @@ class TestPlayoutHistoryListRedTeamInformationDisclosure:
                 # This is actually OK for DRF - it confirms resource type
                 pass
 
-    def test_response_headers_disclose_stack(self, api_client, admin_user):
+    def test_response_headers_disclose_stack(self, guest_client, admin_user):
         """
         HTTP headers reveal server stack information.
 
         Check for X-Powered-By, Server headers with version info.
         """
-        response = api_client.get("/api/v2/playout-history")
+        response = guest_client.get("/api/v2/playout-history")
 
         # Check for information disclosure headers
         disclosive_headers = [
@@ -488,7 +489,7 @@ class TestPlayoutHistoryListRedTeamFuzzing:
         ("format", ["json", "api", "html", "xml", "csv", "evil"]),
     ]
 
-    def test_fuzzing_query_parameters(self, api_client, admin_user):
+    def test_fuzzing_query_parameters(self, guest_client, admin_user):
         """
         Fuzz all query parameters for crashes or unexpected behavior.
         """
@@ -497,7 +498,7 @@ class TestPlayoutHistoryListRedTeamFuzzing:
         for param, values in self.FUZZ_PARAMS:
             for value in values:
                 url = f"/api/v2/playout-history?{param}={value}"
-                response = api_client.get(url)
+                response = guest_client.get(url)
 
                 # Document 500 errors
                 if response.status_code == 500:
@@ -509,7 +510,7 @@ class TestPlayoutHistoryListRedTeamFuzzing:
                 f"T562: Fuzzing found {len(errors_found)} parameters causing 500 errors: {errors_found[:3]}",
             )
 
-    def test_fuzzing_unicode_in_params(self, api_client, admin_user):
+    def test_fuzzing_unicode_in_params(self, guest_client, admin_user):
         """
         Unicode fuzzing in query parameters.
 
@@ -526,7 +527,7 @@ class TestPlayoutHistoryListRedTeamFuzzing:
         ]
 
         for payload in unicode_payloads:
-            response = api_client.get(
+            response = guest_client.get(
                 f"/api/v2/playout-history?search={payload}",
             )
 
@@ -542,7 +543,7 @@ class TestPlayoutHistoryListRedTeamMassAssignment:
 
     def test_list_response_includes_all_fields(
         self,
-        api_client,
+        admin_client,
         admin_user,
         faker,
     ):
@@ -559,7 +560,7 @@ class TestPlayoutHistoryListRedTeamMassAssignment:
             ends=now() + timedelta(minutes=5),
         )
 
-        response = api_client.get("/api/v2/playout-history")
+        response = admin_client.get("/api/v2/playout-history")
         assert response.status_code == 200
 
         data = response.json()
@@ -575,7 +576,7 @@ class TestPlayoutHistoryListRedTeamMassAssignment:
                     f"T563: Sensitive fields exposed in LIST: {exposed_sensitive}",
                 )
 
-    def test_list_fields_review(self, api_client, admin_user, faker):
+    def test_list_fields_review(self, admin_client, admin_user, faker):
         """
         Document all fields returned by LIST for security review.
         """
@@ -587,7 +588,7 @@ class TestPlayoutHistoryListRedTeamMassAssignment:
             ends=now() + timedelta(minutes=5),
         )
 
-        response = api_client.get("/api/v2/playout-history")
+        response = admin_client.get("/api/v2/playout-history")
         data = response.json()
 
         if data:
@@ -606,7 +607,7 @@ class TestPlayoutHistoryListRedTeamMassAssignment:
 class TestPlayoutHistoryListRedTeamIDEnumeration:
     """ID enumeration and information leakage tests."""
 
-    def test_id_sequence_enumeration(self, api_client, admin_user, faker):
+    def test_id_sequence_enumeration(self, admin_client, admin_user, faker):
         """
         Sequential IDs allow enumeration of other records.
 
@@ -623,7 +624,7 @@ class TestPlayoutHistoryListRedTeamIDEnumeration:
             for i in range(5)
         ]
 
-        response = api_client.get("/api/v2/playout-history")
+        response = admin_client.get("/api/v2/playout-history")
         data = response.json()
 
         ids = [p["id"] for p in data]
@@ -635,7 +636,7 @@ class TestPlayoutHistoryListRedTeamIDEnumeration:
                 # Confirms sequential allocation
                 pass  # Document - this enables IDOR attacks
 
-    def test_id_gap_analysis(self, api_client, admin_user, faker):
+    def test_id_gap_analysis(self, admin_client, admin_user, faker):
         """
         ID gaps reveal deletion patterns.
 
@@ -665,13 +666,13 @@ class TestPlayoutHistoryListRedTeamIDEnumeration:
 class TestPlayoutHistoryListRedTeamHTTPMethodOverride:
     """HTTP method override and verb tampering tests."""
 
-    def test_method_override_post_to_list(self, api_client, admin_user):
+    def test_method_override_post_to_list(self, admin_client, admin_user):
         """
         Try to override POST to LIST endpoint.
 
         Some frameworks allow method override headers.
         """
-        response = api_client.post(
+        response = admin_client.post(
             "/api/v2/playout-history",
             data={},
             headers={"X-HTTP-Method-Override": "GET"},
@@ -681,14 +682,14 @@ class TestPlayoutHistoryListRedTeamHTTPMethodOverride:
         # Document behavior
         assert response.status_code in [201, 400, 405]
 
-    def test_http_method_tampering(self, api_client, admin_user):
+    def test_http_method_tampering(self, admin_client, admin_user):
         """
         Test various HTTP methods on LIST endpoint.
         """
         methods = ["PUT", "PATCH", "DELETE", "OPTIONS", "HEAD", "TRACE"]
 
         for method in methods:
-            response = getattr(api_client, method.lower())(
+            response = getattr(admin_client, method.lower())(
                 "/api/v2/playout-history",
             )
 

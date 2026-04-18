@@ -225,10 +225,10 @@ class TestShowAnonymousAccessComprehensive:
                 403,
             ], f"T378/T382/T384/T387: Anonymous {method} {url} returned {response.status_code}"
 
-    def test_authenticated_users_have_access(self, api_client):
+    def test_authenticated_users_have_access(self, guest_client):
         """Authenticated users (via API-Key) have proper access."""
         # LIST
-        response = api_client.get("/api/v2/shows")
+        response = guest_client.get("/api/v2/shows")
         assert response.status_code == 200, "Authenticated LIST should work"
 
         # CREATE
@@ -241,5 +241,5 @@ class TestShowAnonymousAccessComprehensive:
             "override_intro_playlist": False,
             "override_outro_playlist": False,
         }
-        response = api_client.post("/api/v2/shows", data, format="json")
+        response = guest_client.post("/api/v2/shows", data, format="json")
         assert response.status_code == 201, "Authenticated CREATE should work"

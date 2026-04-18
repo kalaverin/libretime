@@ -19,9 +19,9 @@ class TestPlayoutHistoryViewSetRUD:
     """Test PlayoutHistory RETRIEVE, UPDATE, DELETE endpoints."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, api_client, admin_user):
+    def setup(self, admin_client, admin_user):
         """Set up test fixtures."""
-        self.api_client = api_client
+        self.admin_client = admin_client
         self.user = admin_user
 
         # Create show and instance with aware datetime
@@ -54,7 +54,7 @@ class TestPlayoutHistoryViewSetRUD:
 
     def test_retrieve_file_playout_success(self):
         """Successfully retrieve file playout history."""
-        response = self.api_client.get(
+        response = self.admin_client.get(
             f"/api/v2/playout-history/{self.history.id}",
         )
 
@@ -71,20 +71,20 @@ class TestPlayoutHistoryViewSetRUD:
 
     def test_retrieve_not_found(self):
         """Return 404 for non-existent playout history."""
-        response = self.api_client.get("/api/v2/playout-history/99999")
+        response = self.admin_client.get("/api/v2/playout-history/99999")
         assert response.status_code == 404
 
     def test_retrieve_no_auth_fails(self):
         """Return 403 without authentication."""
-        self.api_client.logout()
-        response = self.api_client.get(
+        self.admin_client.logout()
+        response = self.admin_client.get(
             f"/api/v2/playout-history/{self.history.id}",
         )
         assert response.status_code == 403
 
     def test_retrieve_includes_all_fields(self):
         """Retrieve includes all playout history fields."""
-        response = self.api_client.get(
+        response = self.admin_client.get(
             f"/api/v2/playout-history/{self.history.id}",
         )
 
@@ -107,7 +107,7 @@ class TestPlayoutHistoryViewSetRUD:
             "ends": format_datetime(self.history_end),
         }
 
-        response = self.api_client.put(
+        response = self.admin_client.put(
             f"/api/v2/playout-history/{self.history.id}",
             data,
             format="json",
@@ -128,7 +128,7 @@ class TestPlayoutHistoryViewSetRUD:
             "ends": format_datetime(new_end),
         }
 
-        response = self.api_client.put(
+        response = self.admin_client.put(
             f"/api/v2/playout-history/{self.history.id}",
             data,
             format="json",
@@ -146,7 +146,7 @@ class TestPlayoutHistoryViewSetRUD:
             "ends": format_datetime(new_end),
         }
 
-        response = self.api_client.patch(
+        response = self.admin_client.patch(
             f"/api/v2/playout-history/{self.history.id}",
             data,
             format="json",
@@ -166,7 +166,7 @@ class TestPlayoutHistoryViewSetRUD:
             "ends": format_datetime(self.history_end),
         }
 
-        response = self.api_client.put(
+        response = self.admin_client.put(
             f"/api/v2/playout-history/{self.history.id}",
             data,
             format="json",
@@ -183,7 +183,7 @@ class TestPlayoutHistoryViewSetRUD:
             "ends": format_datetime(self.history_end),
         }
 
-        response = self.api_client.put(
+        response = self.admin_client.put(
             "/api/v2/playout-history/99999",
             data,
             format="json",
@@ -192,7 +192,7 @@ class TestPlayoutHistoryViewSetRUD:
 
     def test_update_no_auth_fails(self):
         """Update without authentication returns 403."""
-        self.api_client.logout()
+        self.admin_client.logout()
         data = {
             "file": self.file.id,
             "instance": self.show_instance.id,
@@ -200,7 +200,7 @@ class TestPlayoutHistoryViewSetRUD:
             "ends": format_datetime(self.history_end),
         }
 
-        response = self.api_client.put(
+        response = self.admin_client.put(
             f"/api/v2/playout-history/{self.history.id}",
             data,
             format="json",
@@ -212,7 +212,7 @@ class TestPlayoutHistoryViewSetRUD:
     def test_delete_playout_success(self):
         """Successfully delete playout history."""
         history_id = self.history.id
-        response = self.api_client.delete(
+        response = self.admin_client.delete(
             f"/api/v2/playout-history/{history_id}",
         )
 
@@ -221,13 +221,13 @@ class TestPlayoutHistoryViewSetRUD:
 
     def test_delete_not_found(self):
         """Delete non-existent playout returns 404."""
-        response = self.api_client.delete("/api/v2/playout-history/99999")
+        response = self.admin_client.delete("/api/v2/playout-history/99999")
         assert response.status_code == 404
 
     def test_delete_no_auth_fails(self):
         """Delete without authentication returns 403."""
-        self.api_client.logout()
-        response = self.api_client.delete(
+        self.admin_client.logout()
+        response = self.admin_client.delete(
             f"/api/v2/playout-history/{self.history.id}",
         )
         assert response.status_code == 403
@@ -242,7 +242,7 @@ class TestPlayoutHistoryViewSetRUD:
             ends=start_time + timedelta(minutes=5),
         )
 
-        response = self.api_client.delete(
+        response = self.admin_client.delete(
             f"/api/v2/playout-history/{self.history.id}",
         )
         assert response.status_code == 204

@@ -22,12 +22,12 @@ class TestShowInstanceRetrieveAuthentication:
     @pytest.mark.xfail(
         reason="T397: Anonymous RETRIEVE show instances allowed",
     )
-    def test_retrieve_without_auth(self, api_client):
+    def test_retrieve_without_auth(self, guest_client):
         """Anonymous RETRIEVE should fail."""
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
 
-        response = api_client.get(f"/api/v2/show-instances/{instance.id}")
+        response = guest_client.get(f"/api/v2/show-instances/{instance.id}")
         assert response.status_code in [
             401,
             403,
@@ -41,7 +41,7 @@ class TestShowInstanceRetrieveBOLA:
     @pytest.mark.xfail(reason="T398: No owner filtering on ShowInstance")
     def test_retrieve_other_user_instance(
         self,
-        api_client,
+        guest_client,
         regular_user,
         admin_user,
     ):
@@ -49,8 +49,8 @@ class TestShowInstanceRetrieveBOLA:
         show = baker.make(Show, name="Admin Show")
         instance = baker.make(ShowInstance, show=show)
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get(f"/api/v2/show-instances/{instance.id}")
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.get(f"/api/v2/show-instances/{instance.id}")
         assert response.status_code in [
             403,
             404,
@@ -61,9 +61,9 @@ class TestShowInstanceRetrieveBOLA:
 class TestShowInstanceRetrieveEnumeration:
     """ID enumeration attacks."""
 
-    def test_enumerate_sequential_ids(self, api_client, admin_user):
+    def test_enumerate_sequential_ids(self, guest_client, admin_user):
         """Test if sequential IDs allow enumeration."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         # Create a few instances
         show = baker.make(Show, name="Test Show")
@@ -73,16 +73,16 @@ class TestShowInstanceRetrieveEnumeration:
         max_id = max(i.id for i in instances)
 
         for test_id in [max_id + 1, max_id + 2, max_id + 100]:
-            response = api_client.get(f"/api/v2/show-instances/{test_id}")
+            response = guest_client.get(f"/api/v2/show-instances/{test_id}")
             assert (
                 response.status_code == 404
             ), f"ID enumeration possible at {test_id}"
 
-    def test_id_type_confusion(self, api_client, admin_user):
+    def test_id_type_confusion(self, guest_client, admin_user):
         """Test ID type confusion attacks."""
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         # Try various ID formats
         test_ids = [
@@ -94,7 +94,7 @@ class TestShowInstanceRetrieveEnumeration:
         ]
 
         for test_id in test_ids:
-            response = api_client.get(f"/api/v2/show-instances/{test_id}")
+            response = guest_client.get(f"/api/v2/show-instances/{test_id}")
             assert response.status_code in [
                 200,
                 404,
@@ -106,12 +106,12 @@ class TestShowInstanceRetrieveInformationDisclosure:
     """Information disclosure attacks."""
 
     @pytest.mark.xfail(reason="T400: 404 leaks query keyword")
-    def test_404_leakage(self, api_client, admin_user):
+    def test_404_leakage(self, guest_client, admin_user):
         """Check if 404 leaks information about existence."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         # Access non-existent ID
-        response = api_client.get("/api/v2/show-instances/99999")
+        response = guest_client.get("/api/v2/show-instances/99999")
 
         if response.status_code == 404:
             content = response.content.decode()
@@ -126,11 +126,11 @@ class TestShowInstanceRetrieveInformationDisclosure:
                 if term.lower() in content.lower():
                     pytest.fail(f"BUG: 404 leaks info: {term}")
 
-    def test_error_on_invalid_id_format(self, api_client, admin_user):
+    def test_error_on_invalid_id_format(self, guest_client, admin_user):
         """Check error handling for invalid ID format."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get(
+        response = guest_client.get(
             "/api/v2/show-instances/invalid'union select",
         )
 
@@ -147,13 +147,13 @@ class TestShowInstanceRetrieveInformationDisclosure:
 class TestShowInstanceRetrieveFields:
     """Field-level security tests."""
 
-    def test_retrieve_internal_fields(self, api_client, admin_user):
+    def test_retrieve_internal_fields(self, guest_client, admin_user):
         """Check if internal fields are exposed."""
         show = baker.make(Show, name="Test Show")
         instance = baker.make(ShowInstance, show=show)
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get(f"/api/v2/show-instances/{instance.id}")
+        response = guest_client.get(f"/api/v2/show-instances/{instance.id}")
         assert response.status_code == 200
 
         data = response.json()

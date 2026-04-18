@@ -16,9 +16,9 @@ class TestPlayoutHistoryMetadataViewSet:
     """Test PlayoutHistoryMetadata LIST/CREATE/RETRIEVE/UPDATE/DELETE."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, api_client, admin_user):
+    def setup(self, admin_client, admin_user):
         """Set up test fixtures."""
-        self.api_client = api_client
+        self.admin_client = admin_client
         self.user = admin_user
         self.file = baker.make(File, mime="audio/mp3", owner=self.user)
         start_time = now()
@@ -30,7 +30,7 @@ class TestPlayoutHistoryMetadataViewSet:
         )
 
     def test_list_empty_returns_200(self):
-        response = self.api_client.get("/api/v2/playout-history-metadata")
+        response = self.admin_client.get("/api/v2/playout-history-metadata")
         assert response.status_code == 200
         assert response.json() == []
 
@@ -41,7 +41,7 @@ class TestPlayoutHistoryMetadataViewSet:
             key="artist",
             value="Test Artist",
         )
-        response = self.api_client.get("/api/v2/playout-history-metadata")
+        response = self.admin_client.get("/api/v2/playout-history-metadata")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
@@ -62,14 +62,14 @@ class TestPlayoutHistoryMetadataViewSet:
             key="title",
             value="Song Title",
         )
-        response = self.api_client.get("/api/v2/playout-history-metadata")
+        response = self.admin_client.get("/api/v2/playout-history-metadata")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 2
 
     def test_list_no_auth_fails(self):
-        self.api_client.logout()
-        response = self.api_client.get("/api/v2/playout-history-metadata")
+        self.admin_client.logout()
+        response = self.admin_client.get("/api/v2/playout-history-metadata")
         assert response.status_code == 403
 
     def test_create_metadata_success(self):
@@ -78,7 +78,7 @@ class TestPlayoutHistoryMetadataViewSet:
             "key": "album",
             "value": "Test Album",
         }
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history-metadata",
             data,
             format="json",
@@ -91,7 +91,7 @@ class TestPlayoutHistoryMetadataViewSet:
 
     def test_create_missing_history_fails(self):
         data = {"key": "artist", "value": "Test"}
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history-metadata",
             data,
             format="json",
@@ -100,7 +100,7 @@ class TestPlayoutHistoryMetadataViewSet:
 
     def test_create_invalid_history_fails(self):
         data = {"history": 99999, "key": "artist", "value": "Test"}
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history-metadata",
             data,
             format="json",
@@ -108,9 +108,9 @@ class TestPlayoutHistoryMetadataViewSet:
         assert response.status_code == 400
 
     def test_create_no_auth_fails(self):
-        self.api_client.logout()
+        self.admin_client.logout()
         data = {"history": self.history.id, "key": "artist", "value": "Test"}
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history-metadata",
             data,
             format="json",
@@ -124,7 +124,7 @@ class TestPlayoutHistoryMetadataViewSet:
             key="genre",
             value="Rock",
         )
-        response = self.api_client.get(
+        response = self.admin_client.get(
             f"/api/v2/playout-history-metadata/{metadata.id}",
         )
         assert response.status_code == 200
@@ -134,7 +134,7 @@ class TestPlayoutHistoryMetadataViewSet:
         assert data["value"] == "Rock"
 
     def test_retrieve_not_found(self):
-        response = self.api_client.get(
+        response = self.admin_client.get(
             "/api/v2/playout-history-metadata/99999",
         )
         assert response.status_code == 404
@@ -151,7 +151,7 @@ class TestPlayoutHistoryMetadataViewSet:
             "key": "artist",
             "value": "New Artist",
         }
-        response = self.api_client.put(
+        response = self.admin_client.put(
             f"/api/v2/playout-history-metadata/{metadata.id}",
             data,
             format="json",
@@ -168,7 +168,7 @@ class TestPlayoutHistoryMetadataViewSet:
             value="Old Title",
         )
         data = {"value": "New Title"}
-        response = self.api_client.patch(
+        response = self.admin_client.patch(
             f"/api/v2/playout-history-metadata/{metadata.id}",
             data,
             format="json",
@@ -185,7 +185,7 @@ class TestPlayoutHistoryMetadataViewSet:
             key="temp",
             value="value",
         )
-        response = self.api_client.delete(
+        response = self.admin_client.delete(
             f"/api/v2/playout-history-metadata/{metadata.id}",
         )
         assert response.status_code == 204
@@ -194,7 +194,7 @@ class TestPlayoutHistoryMetadataViewSet:
         )
 
     def test_delete_not_found(self):
-        response = self.api_client.delete(
+        response = self.admin_client.delete(
             "/api/v2/playout-history-metadata/99999",
         )
         assert response.status_code == 404
@@ -206,8 +206,8 @@ class TestPlayoutHistoryMetadataViewSet:
             key="test",
             value="value",
         )
-        self.api_client.logout()
-        response = self.api_client.delete(
+        self.admin_client.logout()
+        response = self.admin_client.delete(
             f"/api/v2/playout-history-metadata/{metadata.id}",
         )
         assert response.status_code == 403

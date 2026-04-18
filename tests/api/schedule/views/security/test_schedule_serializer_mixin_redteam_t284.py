@@ -58,7 +58,7 @@ class TestSerializerMixinRedTeamBOPLA:
 
     def test_post_mass_assignment_extra_fields(
         self,
-        api_client,
+        guest_client,
         show_instance,
         test_file,
     ):
@@ -80,7 +80,7 @@ class TestSerializerMixinRedTeamBOPLA:
             "id": 99999,
         }
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(payload),
             content_type="application/json",
@@ -93,7 +93,7 @@ class TestSerializerMixinRedTeamBOPLA:
 
     def test_patch_mass_assignment_readonly_fields(
         self,
-        api_client,
+        guest_client,
         show_instance,
         test_file,
     ):
@@ -115,7 +115,7 @@ class TestSerializerMixinRedTeamBOPLA:
             broadcasted=1,
         )
 
-        response = api_client.patch(
+        response = guest_client.patch(
             f"/api/v2/schedule/{schedule.id}",
             json.dumps({"id": 88888}),
             content_type="application/json",
@@ -128,7 +128,7 @@ class TestSerializerMixinRedTeamBOPLA:
 
     def test_post_field_type_confusion(
         self,
-        api_client,
+        guest_client,
         show_instance,
         test_file,
     ):
@@ -156,7 +156,7 @@ class TestSerializerMixinRedTeamBOPLA:
             }
             payload.update(override)
 
-            response = api_client.post(
+            response = guest_client.post(
                 "/api/v2/schedule",
                 json.dumps(payload),
                 content_type="application/json",
@@ -205,14 +205,14 @@ class TestSerializerMixinRedTeamBypass:
             owner=user,
         )
 
-    def test_content_type_bypass(self, api_client, show_instance, test_file):
+    def test_content_type_bypass(self, guest_client, show_instance, test_file):
         """
         Try to bypass serializer validation with different Content-Type.
         """
         start = now()
         end = start + timedelta(minutes=30)
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             {
                 "instance": show_instance.id,
@@ -228,7 +228,7 @@ class TestSerializerMixinRedTeamBypass:
 
     def test_method_override_bypass(
         self,
-        api_client,
+        guest_client,
         show_instance,
         test_file,
     ):
@@ -250,7 +250,7 @@ class TestSerializerMixinRedTeamBypass:
             broadcasted=1,
         )
 
-        response = api_client.get(
+        response = guest_client.get(
             f"/api/v2/schedule/{schedule.id}",
             HTTP_X_HTTP_METHOD_OVERRIDE="POST",
         )
@@ -268,7 +268,7 @@ class TestSerializerMixinRedTeamBypass:
 class TestSerializerMixinRedTeamDoS:
     """DoS tests for serializers."""
 
-    def test_deeply_nested_json_post(self, api_client):
+    def test_deeply_nested_json_post(self, guest_client):
         """
         Deeply nested JSON may cause recursion in serializer.
         """
@@ -276,7 +276,7 @@ class TestSerializerMixinRedTeamDoS:
         for _ in range(100):
             nested = {"nested": nested}
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(nested),
             content_type="application/json",
@@ -315,7 +315,7 @@ class TestSerializerMixinRedTeamDoS:
 
     def test_very_long_string_fields(
         self,
-        api_client,
+        guest_client,
         show_instance,
         test_file,
     ):
@@ -336,7 +336,7 @@ class TestSerializerMixinRedTeamDoS:
             "broadcasted": 1,
         }
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(payload),
             content_type="application/json",
@@ -385,7 +385,7 @@ class TestSerializerMixinRedTeamInjection:
 
     def test_sqli_via_serializer_field(
         self,
-        api_client,
+        guest_client,
         show_instance,
         test_file,
     ):
@@ -405,7 +405,7 @@ class TestSerializerMixinRedTeamInjection:
             "broadcasted": 1,
         }
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             json.dumps(payload),
             content_type="application/json",

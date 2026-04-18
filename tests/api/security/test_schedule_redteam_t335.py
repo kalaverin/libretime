@@ -18,11 +18,11 @@ from model_bakery import baker
 class TestScheduleFilterInjection:
     """Filter parameter injection attacks."""
 
-    def test_filter_by_invalid_instance_id(self, api_client, admin_user):
+    def test_filter_by_invalid_instance_id(self, guest_client, admin_user):
         """Try to filter by invalid instance_id."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/schedule?instance=invalid")
+        response = guest_client.get("/api/v2/schedule?instance=invalid")
 
         if response.status_code == 500:
             pytest.fail(
@@ -30,9 +30,9 @@ class TestScheduleFilterInjection:
             )
         assert response.status_code in [200, 400]
 
-    def test_filter_by_sql_injection(self, api_client, admin_user):
+    def test_filter_by_sql_injection(self, guest_client, admin_user):
         """Try SQL injection in instance filter."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
         sqli_payloads = [
             "1' OR '1'='1",
@@ -41,23 +41,23 @@ class TestScheduleFilterInjection:
         ]
 
         for payload in sqli_payloads:
-            response = api_client.get(f"/api/v2/schedule?instance={payload}")
+            response = guest_client.get(f"/api/v2/schedule?instance={payload}")
 
             if response.status_code == 500:
                 pytest.fail(f"BUG: SQL injection causes 500: {payload}")
 
-    def test_filter_by_negative_instance_id(self, api_client, admin_user):
+    def test_filter_by_negative_instance_id(self, guest_client, admin_user):
         """Try to filter by negative instance_id."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/schedule?instance=-1")
+        response = guest_client.get("/api/v2/schedule?instance=-1")
         assert response.status_code in [200, 400]
 
-    def test_filter_by_float_instance_id(self, api_client, admin_user):
+    def test_filter_by_float_instance_id(self, guest_client, admin_user):
         """Try to filter by float instance_id."""
-        api_client.force_authenticate(user=admin_user)
+        guest_client.force_authenticate(user=admin_user)
 
-        response = api_client.get("/api/v2/schedule?instance=1.5")
+        response = guest_client.get("/api/v2/schedule?instance=1.5")
         assert response.status_code in [200, 400]
 
     def test_filter_without_auth(self, session_client):
@@ -71,12 +71,12 @@ class TestScheduleFilterInjection:
 class TestScheduleValidationBypass:
     """Validation bypass attacks."""
 
-    def test_create_with_null_file_and_stream(self, api_client, admin_user):
+    def test_create_with_null_file_and_stream(self, guest_client, admin_user):
         """Try to create with explicit null file and stream."""
         instance = baker.make("schedule.ShowInstance")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/schedule",
             {
                 "instance": instance.id,
@@ -91,14 +91,14 @@ class TestScheduleValidationBypass:
         if response.status_code == 201:
             pytest.fail("BUG: Accepts null file and null stream")
 
-    def test_create_with_both_file_and_stream(self, api_client, admin_user):
+    def test_create_with_both_file_and_stream(self, guest_client, admin_user):
         """Try to create with BOTH file and stream (should be exclusive)."""
         instance = baker.make("schedule.ShowInstance")
         file_obj = baker.make("storage.File", owner=admin_user)
         stream = baker.make("schedule.Webstream", owner=admin_user)
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/schedule",
             {
                 "instance": instance.id,
@@ -116,12 +116,12 @@ class TestScheduleValidationBypass:
                 "BUG: Accepts both file AND stream (should be exclusive)",
             )
 
-    def test_create_with_empty_string_file(self, api_client, admin_user):
+    def test_create_with_empty_string_file(self, guest_client, admin_user):
         """Try to create with empty string file."""
         instance = baker.make("schedule.ShowInstance")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/schedule",
             {
                 "instance": instance.id,
@@ -135,12 +135,12 @@ class TestScheduleValidationBypass:
         if response.status_code == 201:
             pytest.fail("BUG: Accepts empty string as file")
 
-    def test_create_with_zero_file_id(self, api_client, admin_user):
+    def test_create_with_zero_file_id(self, guest_client, admin_user):
         """Try to create with file=0."""
         instance = baker.make("schedule.ShowInstance")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/schedule",
             {
                 "instance": instance.id,
@@ -154,12 +154,12 @@ class TestScheduleValidationBypass:
         if response.status_code == 201:
             pytest.fail("BUG: Accepts file=0 as valid")
 
-    def test_create_with_nonexistent_file(self, api_client, admin_user):
+    def test_create_with_nonexistent_file(self, guest_client, admin_user):
         """Try to create with non-existent file ID."""
         instance = baker.make("schedule.ShowInstance")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/schedule",
             {
                 "instance": instance.id,
@@ -174,12 +174,12 @@ class TestScheduleValidationBypass:
         if response.status_code == 201:
             pytest.fail("BUG: Accepts non-existent file_id")
 
-    def test_create_with_nonexistent_stream(self, api_client, admin_user):
+    def test_create_with_nonexistent_stream(self, guest_client, admin_user):
         """Try to create with non-existent stream ID."""
         instance = baker.make("schedule.ShowInstance")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/schedule",
             {
                 "instance": instance.id,
@@ -198,13 +198,13 @@ class TestScheduleValidationBypass:
 class TestScheduleMassAssignment:
     """Mass assignment attacks."""
 
-    def test_create_with_id_field(self, api_client, admin_user):
+    def test_create_with_id_field(self, guest_client, admin_user):
         """Try to set id field during creation."""
         instance = baker.make("schedule.ShowInstance")
         file_obj = baker.make("storage.File", owner=admin_user)
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/schedule",
             {
                 "id": 99999,
@@ -221,7 +221,7 @@ class TestScheduleMassAssignment:
             if data.get("id") == 99999:
                 pytest.fail("BUG: Can set id field during creation")
 
-    def test_update_instance_field(self, api_client, admin_user):
+    def test_update_instance_field(self, guest_client, admin_user):
         """Try to change instance via PATCH."""
         instance1 = baker.make("schedule.ShowInstance")
         instance2 = baker.make("schedule.ShowInstance")
@@ -234,8 +234,8 @@ class TestScheduleMassAssignment:
             ends_at="2024-01-01T11:00:00Z",
         )
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.patch(
             f"/api/v2/schedule/{schedule.id}",
             {"instance": instance2.id},
             format="json",
@@ -253,7 +253,7 @@ class TestScheduleBOLA:
 
     def test_list_shows_only_own_schedules(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -279,8 +279,8 @@ class TestScheduleBOLA:
             ends_at="2024-01-02T11:00:00Z",
         )
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get("/api/v2/schedule")
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.get("/api/v2/schedule")
 
         assert response.status_code == 200
         data = response.json()
@@ -292,7 +292,7 @@ class TestScheduleBOLA:
 
     def test_access_other_user_schedule(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -307,8 +307,8 @@ class TestScheduleBOLA:
             ends_at="2024-01-01T11:00:00Z",
         )
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.get(f"/api/v2/schedule/{schedule.id}")
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.get(f"/api/v2/schedule/{schedule.id}")
 
         if response.status_code == 200:
             pytest.fail(
@@ -317,7 +317,7 @@ class TestScheduleBOLA:
 
     def test_update_other_user_schedule(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -332,8 +332,8 @@ class TestScheduleBOLA:
             ends_at="2024-01-01T11:00:00Z",
         )
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.patch(
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.patch(
             f"/api/v2/schedule/{schedule.id}",
             {"ends_at": "2024-01-01T12:00:00Z"},
             format="json",
@@ -346,7 +346,7 @@ class TestScheduleBOLA:
 
     def test_delete_other_user_schedule(
         self,
-        api_client,
+        guest_client,
         admin_user,
         regular_user,
     ):
@@ -361,8 +361,8 @@ class TestScheduleBOLA:
             ends_at="2024-01-01T11:00:00Z",
         )
 
-        api_client.force_authenticate(user=regular_user)
-        response = api_client.delete(f"/api/v2/schedule/{schedule.id}")
+        guest_client.force_authenticate(user=regular_user)
+        response = guest_client.delete(f"/api/v2/schedule/{schedule.id}")
 
         if response.status_code == 204:
             pytest.fail(
@@ -374,11 +374,11 @@ class TestScheduleBOLA:
 class TestScheduleBusinessLogic:
     """Business logic bypasses."""
 
-    def test_create_without_auth(self, api_client):
+    def test_create_without_auth(self, guest_client):
         """Try to create without authentication."""
         instance = baker.make("schedule.ShowInstance")
 
-        response = api_client.post(
+        response = guest_client.post(
             "/api/v2/schedule",
             {
                 "instance": instance.id,
@@ -391,13 +391,13 @@ class TestScheduleBusinessLogic:
         if response.status_code == 201:
             pytest.fail("CRITICAL BUG: Anonymous can create schedule")
 
-    def test_create_with_ends_before_starts(self, api_client, admin_user):
+    def test_create_with_ends_before_starts(self, guest_client, admin_user):
         """Try to create schedule where ends_at < starts_at."""
         instance = baker.make("schedule.ShowInstance")
         file_obj = baker.make("storage.File", owner=admin_user)
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/schedule",
             {
                 "instance": instance.id,
@@ -412,7 +412,7 @@ class TestScheduleBusinessLogic:
         if response.status_code == 201:
             pytest.fail("BUG: Accepts ends_at before starts_at")
 
-    def test_create_with_overlapping_schedule(self, api_client, admin_user):
+    def test_create_with_overlapping_schedule(self, guest_client, admin_user):
         """Try to create overlapping schedule for same instance."""
         instance = baker.make("schedule.ShowInstance")
         file1 = baker.make("storage.File", owner=admin_user)
@@ -428,8 +428,8 @@ class TestScheduleBusinessLogic:
         )
 
         # Try to create overlapping schedule
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/schedule",
             {
                 "instance": instance.id,

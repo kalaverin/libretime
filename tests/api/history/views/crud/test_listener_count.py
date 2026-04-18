@@ -16,9 +16,9 @@ class TestListenerCountViewSet:
     """Test ListenerCount LIST/CREATE/RETRIEVE/UPDATE/DELETE."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, api_client, admin_user):
+    def setup(self, admin_client, admin_user):
         """Set up test fixtures."""
-        self.api_client = api_client
+        self.admin_client = admin_client
         self.user = admin_user
         self.mount = baker.make(MountName, mount_name="/main")
         self.timestamp = baker.make(
@@ -27,7 +27,7 @@ class TestListenerCountViewSet:
         )
 
     def test_list_empty_returns_200(self):
-        response = self.api_client.get("/api/v2/listener-counts")
+        response = self.admin_client.get("/api/v2/listener-counts")
         assert response.status_code == 200
         assert response.json() == []
 
@@ -38,7 +38,7 @@ class TestListenerCountViewSet:
             mount_name=self.mount,
             listener_count=42,
         )
-        response = self.api_client.get("/api/v2/listener-counts")
+        response = self.admin_client.get("/api/v2/listener-counts")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
@@ -64,14 +64,14 @@ class TestListenerCountViewSet:
             mount_name=mount2,
             listener_count=100,
         )
-        response = self.api_client.get("/api/v2/listener-counts")
+        response = self.admin_client.get("/api/v2/listener-counts")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 2
 
     def test_list_no_auth_fails(self):
-        self.api_client.logout()
-        response = self.api_client.get("/api/v2/listener-counts")
+        self.admin_client.logout()
+        response = self.admin_client.get("/api/v2/listener-counts")
         assert response.status_code == 403
 
     def test_create_count_success(self):
@@ -80,7 +80,7 @@ class TestListenerCountViewSet:
             "mount_name": self.mount.id,
             "listener_count": 50,
         }
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/listener-counts",
             data,
             format="json",
@@ -93,7 +93,7 @@ class TestListenerCountViewSet:
 
     def test_create_missing_timestamp_fails(self):
         data = {"mount_name": self.mount.id, "listener_count": 50}
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/listener-counts",
             data,
             format="json",
@@ -102,7 +102,7 @@ class TestListenerCountViewSet:
 
     def test_create_missing_mount_fails(self):
         data = {"timestamp": self.timestamp.id, "listener_count": 50}
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/listener-counts",
             data,
             format="json",
@@ -115,7 +115,7 @@ class TestListenerCountViewSet:
             "mount_name": self.mount.id,
             "listener_count": -5,
         }
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/listener-counts",
             data,
             format="json",
@@ -123,13 +123,13 @@ class TestListenerCountViewSet:
         assert response.status_code == 201
 
     def test_create_no_auth_fails(self):
-        self.api_client.logout()
+        self.admin_client.logout()
         data = {
             "timestamp": self.timestamp.id,
             "mount_name": self.mount.id,
             "listener_count": 50,
         }
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/listener-counts",
             data,
             format="json",
@@ -143,14 +143,14 @@ class TestListenerCountViewSet:
             mount_name=self.mount,
             listener_count=75,
         )
-        response = self.api_client.get(f"/api/v2/listener-counts/{count.id}")
+        response = self.admin_client.get(f"/api/v2/listener-counts/{count.id}")
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == count.id
         assert data["listener_count"] == 75
 
     def test_retrieve_not_found(self):
-        response = self.api_client.get("/api/v2/listener-counts/99999")
+        response = self.admin_client.get("/api/v2/listener-counts/99999")
         assert response.status_code == 404
 
     def test_update_count_success(self):
@@ -165,7 +165,7 @@ class TestListenerCountViewSet:
             "mount_name": self.mount.id,
             "listener_count": 99,
         }
-        response = self.api_client.put(
+        response = self.admin_client.put(
             f"/api/v2/listener-counts/{count.id}",
             data,
             format="json",
@@ -182,7 +182,7 @@ class TestListenerCountViewSet:
             listener_count=10,
         )
         data = {"listener_count": 55}
-        response = self.api_client.patch(
+        response = self.admin_client.patch(
             f"/api/v2/listener-counts/{count.id}",
             data,
             format="json",
@@ -198,14 +198,14 @@ class TestListenerCountViewSet:
             mount_name=self.mount,
             listener_count=10,
         )
-        response = self.api_client.delete(
+        response = self.admin_client.delete(
             f"/api/v2/listener-counts/{count.id}",
         )
         assert response.status_code == 204
         assert ListenerCount.objects.filter(id=count.id).count() == 0
 
     def test_delete_not_found(self):
-        response = self.api_client.delete("/api/v2/listener-counts/99999")
+        response = self.admin_client.delete("/api/v2/listener-counts/99999")
         assert response.status_code == 404
 
     def test_delete_no_auth_fails(self):
@@ -215,8 +215,8 @@ class TestListenerCountViewSet:
             mount_name=self.mount,
             listener_count=10,
         )
-        self.api_client.logout()
-        response = self.api_client.delete(
+        self.admin_client.logout()
+        response = self.admin_client.delete(
             f"/api/v2/listener-counts/{count.id}",
         )
         assert response.status_code == 403

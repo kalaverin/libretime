@@ -17,7 +17,7 @@ from model_bakery import baker
 class TestShowLiveAuthExposure:
     """Live auth credential exposure attacks."""
 
-    def test_password_visible_in_list(self, api_client, admin_user):
+    def test_password_visible_in_list(self, guest_client, admin_user):
         """Check if live_auth_custom_password is visible in list."""
         show = baker.make(
             "schedule.Show",
@@ -28,8 +28,8 @@ class TestShowLiveAuthExposure:
             live_auth_custom_password="secret123",
         )
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.get("/api/v2/shows")
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.get("/api/v2/shows")
 
         assert response.status_code == 200
         data = response.json()
@@ -39,7 +39,7 @@ class TestShowLiveAuthExposure:
         if show_data:
             assert show_data.get("live_auth_custom_password") == "secret123"
 
-    def test_password_visible_in_detail(self, api_client, admin_user):
+    def test_password_visible_in_detail(self, guest_client, admin_user):
         """Check if live_auth_custom_password is visible in detail."""
         from api.schedule.models import ShowHost
 
@@ -53,8 +53,8 @@ class TestShowLiveAuthExposure:
         )
         baker.make(ShowHost, show=show, user=admin_user)
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.get(f"/api/v2/shows/{show.id}")
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.get(f"/api/v2/shows/{show.id}")
 
         assert response.status_code == 200
         data = response.json()
@@ -243,12 +243,12 @@ class TestShowLiveAuthValidation:
 
     def test_create_with_live_auth_but_no_password(
         self,
-        api_client,
+        guest_client,
         admin_user,
     ):
         """Try to create show with live_auth_custom=True but no password."""
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/shows",
             {
                 "name": "Test Show",
@@ -262,10 +262,10 @@ class TestShowLiveAuthValidation:
         # May accept or reject - documenting
         assert response.status_code in [201, 400]
 
-    def test_create_with_empty_password(self, api_client, admin_user):
+    def test_create_with_empty_password(self, guest_client, admin_user):
         """Try to create with empty password."""
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/shows",
             {
                 "name": "Test Show",
@@ -279,10 +279,10 @@ class TestShowLiveAuthValidation:
         # May accept or reject - documenting
         assert response.status_code in [201, 400]
 
-    def test_create_with_long_password(self, api_client, admin_user):
+    def test_create_with_long_password(self, guest_client, admin_user):
         """Try to create with very long password."""
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/shows",
             {
                 "name": "Test Show",
@@ -296,10 +296,10 @@ class TestShowLiveAuthValidation:
         # Should handle gracefully
         assert response.status_code in [201, 400]
 
-    def test_create_both_auth_types(self, api_client, admin_user):
+    def test_create_both_auth_types(self, guest_client, admin_user):
         """Try to create with both registered and custom auth."""
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/shows",
             {
                 "name": "Test Show",
@@ -332,12 +332,12 @@ class TestShowLiveAuthBusinessLogic:
             response.status_code == 403
         ), f"Expected 403, got {response.status_code}"
 
-    def test_create_duplicate_name(self, api_client, admin_user):
+    def test_create_duplicate_name(self, guest_client, admin_user):
         """Try to create show with duplicate name."""
         baker.make("schedule.Show", name="Unique Show")
 
-        api_client.force_authenticate(user=admin_user)
-        response = api_client.post(
+        guest_client.force_authenticate(user=admin_user)
+        response = guest_client.post(
             "/api/v2/shows",
             {"name": "Unique Show"},
             format="json",

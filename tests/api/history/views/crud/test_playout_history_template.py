@@ -12,16 +12,16 @@ class TestPlayoutHistoryTemplateViewSet:
     """Test PlayoutHistoryTemplate LIST/CREATE/RETRIEVE/UPDATE/DELETE."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, api_client, admin_user):
+    def setup(self, admin_client, admin_user):
         """Set up test fixtures."""
-        self.api_client = api_client
+        self.admin_client = admin_client
         self.user = admin_user
 
     # === LIST Tests ===
 
     def test_list_empty_returns_200(self):
         """LIST empty should return 200 with empty list."""
-        response = self.api_client.get("/api/v2/playout-history-templates")
+        response = self.admin_client.get("/api/v2/playout-history-templates")
         assert response.status_code == 200
         assert response.json() == []
 
@@ -33,7 +33,7 @@ class TestPlayoutHistoryTemplateViewSet:
             type="standard",
         )
 
-        response = self.api_client.get("/api/v2/playout-history-templates")
+        response = self.admin_client.get("/api/v2/playout-history-templates")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
@@ -45,15 +45,15 @@ class TestPlayoutHistoryTemplateViewSet:
         baker.make(PlayoutHistoryTemplate, name="Compact", type="minimal")
         baker.make(PlayoutHistoryTemplate, name="Detailed", type="full")
 
-        response = self.api_client.get("/api/v2/playout-history-templates")
+        response = self.admin_client.get("/api/v2/playout-history-templates")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 2
 
     def test_list_no_auth_fails(self):
         """LIST without auth should fail."""
-        self.api_client.logout()
-        response = self.api_client.get("/api/v2/playout-history-templates")
+        self.admin_client.logout()
+        response = self.admin_client.get("/api/v2/playout-history-templates")
         assert response.status_code == 403
 
     # === CREATE Tests ===
@@ -65,7 +65,7 @@ class TestPlayoutHistoryTemplateViewSet:
             "type": "custom",
         }
 
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history-templates",
             data,
             format="json",
@@ -82,7 +82,7 @@ class TestPlayoutHistoryTemplateViewSet:
             "type": "custom",
         }
 
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history-templates",
             data,
             format="json",
@@ -95,7 +95,7 @@ class TestPlayoutHistoryTemplateViewSet:
             "name": "Test",
         }
 
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history-templates",
             data,
             format="json",
@@ -111,7 +111,7 @@ class TestPlayoutHistoryTemplateViewSet:
             "type": "custom",
         }
 
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history-templates",
             data,
             format="json",
@@ -121,13 +121,13 @@ class TestPlayoutHistoryTemplateViewSet:
 
     def test_create_no_auth_fails(self):
         """Create without auth should fail."""
-        self.api_client.logout()
+        self.admin_client.logout()
         data = {
             "name": "Test",
             "type": "custom",
         }
 
-        response = self.api_client.post(
+        response = self.admin_client.post(
             "/api/v2/playout-history-templates",
             data,
             format="json",
@@ -144,7 +144,7 @@ class TestPlayoutHistoryTemplateViewSet:
             type="standard",
         )
 
-        response = self.api_client.get(
+        response = self.admin_client.get(
             f"/api/v2/playout-history-templates/{template.id}",
         )
 
@@ -156,7 +156,7 @@ class TestPlayoutHistoryTemplateViewSet:
 
     def test_retrieve_not_found(self):
         """Return 404 for non-existent template."""
-        response = self.api_client.get(
+        response = self.admin_client.get(
             "/api/v2/playout-history-templates/99999",
         )
         assert response.status_code == 404
@@ -176,7 +176,7 @@ class TestPlayoutHistoryTemplateViewSet:
             "type": "standard",
         }
 
-        response = self.api_client.put(
+        response = self.admin_client.put(
             f"/api/v2/playout-history-templates/{template.id}",
             data,
             format="json",
@@ -199,7 +199,7 @@ class TestPlayoutHistoryTemplateViewSet:
             "type": "custom",
         }
 
-        response = self.api_client.put(
+        response = self.admin_client.put(
             f"/api/v2/playout-history-templates/{template.id}",
             data,
             format="json",
@@ -219,7 +219,7 @@ class TestPlayoutHistoryTemplateViewSet:
 
         data = {"name": "New"}
 
-        response = self.api_client.patch(
+        response = self.admin_client.patch(
             f"/api/v2/playout-history-templates/{template.id}",
             data,
             format="json",
@@ -240,7 +240,7 @@ class TestPlayoutHistoryTemplateViewSet:
             type="standard",
         )
 
-        response = self.api_client.delete(
+        response = self.admin_client.delete(
             f"/api/v2/playout-history-templates/{template.id}",
         )
 
@@ -251,7 +251,7 @@ class TestPlayoutHistoryTemplateViewSet:
 
     def test_delete_not_found(self):
         """Delete non-existent returns 404."""
-        response = self.api_client.delete(
+        response = self.admin_client.delete(
             "/api/v2/playout-history-templates/99999",
         )
         assert response.status_code == 404
@@ -264,8 +264,8 @@ class TestPlayoutHistoryTemplateViewSet:
             type="standard",
         )
 
-        self.api_client.logout()
-        response = self.api_client.delete(
+        self.admin_client.logout()
+        response = self.admin_client.delete(
             f"/api/v2/playout-history-templates/{template.id}",
         )
         assert response.status_code == 403

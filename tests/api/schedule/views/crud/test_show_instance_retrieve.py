@@ -16,7 +16,7 @@ class TestShowInstanceViewSetRetrieve:
         ShowInstance.objects.all().delete()
         Show.objects.all().delete()
 
-    def test_retrieve_instance_success(self, api_client):
+    def test_retrieve_instance_success(self, guest_client):
         """RETRIEVE should return instance details."""
         from datetime import timedelta
 
@@ -30,11 +30,11 @@ class TestShowInstanceViewSetRetrieve:
             ends_at=now() + timedelta(hours=1),
         )
 
-        response = api_client.get(f"/api/v2/show-instances/{instance.id}")
+        response = guest_client.get(f"/api/v2/show-instances/{instance.id}")
         assert response.status_code == 200
         assert response.json()["id"] == instance.id
 
-    def test_retrieve_instance_contains_show(self, api_client):
+    def test_retrieve_instance_contains_show(self, guest_client):
         """RETRIEVE should include show reference."""
         from datetime import timedelta
 
@@ -48,10 +48,10 @@ class TestShowInstanceViewSetRetrieve:
             ends_at=now() + timedelta(hours=1),
         )
 
-        response = api_client.get(f"/api/v2/show-instances/{instance.id}")
+        response = guest_client.get(f"/api/v2/show-instances/{instance.id}")
         assert response.json()["show"] == show.id
 
-    def test_retrieve_instance_contains_starts_at(self, api_client):
+    def test_retrieve_instance_contains_starts_at(self, guest_client):
         """RETRIEVE should include starts_at datetime."""
         from datetime import timedelta
 
@@ -66,11 +66,11 @@ class TestShowInstanceViewSetRetrieve:
             ends_at=start_time + timedelta(hours=1),
         )
 
-        response = api_client.get(f"/api/v2/show-instances/{instance.id}")
+        response = guest_client.get(f"/api/v2/show-instances/{instance.id}")
         data = response.json()
         assert "starts_at" in data
 
-    def test_retrieve_instance_contains_ends_at(self, api_client):
+    def test_retrieve_instance_contains_ends_at(self, guest_client):
         """RETRIEVE should include ends_at datetime."""
         from datetime import timedelta
 
@@ -85,11 +85,11 @@ class TestShowInstanceViewSetRetrieve:
             ends_at=start_time + timedelta(hours=1),
         )
 
-        response = api_client.get(f"/api/v2/show-instances/{instance.id}")
+        response = guest_client.get(f"/api/v2/show-instances/{instance.id}")
         data = response.json()
         assert "ends_at" in data
 
-    def test_retrieve_instance_contains_filled_time(self, api_client):
+    def test_retrieve_instance_contains_filled_time(self, guest_client):
         """RETRIEVE should include filled_time."""
         from datetime import timedelta
 
@@ -104,11 +104,11 @@ class TestShowInstanceViewSetRetrieve:
             filled_time=timedelta(minutes=45),
         )
 
-        response = api_client.get(f"/api/v2/show-instances/{instance.id}")
+        response = guest_client.get(f"/api/v2/show-instances/{instance.id}")
         data = response.json()
         assert "filled_time" in data
 
-    def test_retrieve_instance_null_filled_time(self, api_client):
+    def test_retrieve_instance_null_filled_time(self, guest_client):
         """RETRIEVE should handle null filled_time."""
         from datetime import timedelta
 
@@ -123,10 +123,10 @@ class TestShowInstanceViewSetRetrieve:
             filled_time=None,
         )
 
-        response = api_client.get(f"/api/v2/show-instances/{instance.id}")
+        response = guest_client.get(f"/api/v2/show-instances/{instance.id}")
         assert response.json()["filled_time"] is None
 
-    def test_retrieve_instance_contains_description(self, api_client):
+    def test_retrieve_instance_contains_description(self, guest_client):
         """RETRIEVE should include description."""
         from datetime import timedelta
 
@@ -141,10 +141,10 @@ class TestShowInstanceViewSetRetrieve:
             description="Special episode",
         )
 
-        response = api_client.get(f"/api/v2/show-instances/{instance.id}")
+        response = guest_client.get(f"/api/v2/show-instances/{instance.id}")
         assert response.json()["description"] == "Special episode"
 
-    def test_retrieve_instance_contains_modified(self, api_client):
+    def test_retrieve_instance_contains_modified(self, guest_client):
         """RETRIEVE should include modified flag."""
         from datetime import timedelta
 
@@ -159,10 +159,10 @@ class TestShowInstanceViewSetRetrieve:
             modified=True,
         )
 
-        response = api_client.get(f"/api/v2/show-instances/{instance.id}")
+        response = guest_client.get(f"/api/v2/show-instances/{instance.id}")
         assert response.json()["modified"] is True
 
-    def test_retrieve_instance_modified_false(self, api_client):
+    def test_retrieve_instance_modified_false(self, guest_client):
         """RETRIEVE should show modified=false."""
         from datetime import timedelta
 
@@ -177,10 +177,10 @@ class TestShowInstanceViewSetRetrieve:
             modified=False,
         )
 
-        response = api_client.get(f"/api/v2/show-instances/{instance.id}")
+        response = guest_client.get(f"/api/v2/show-instances/{instance.id}")
         assert response.json()["modified"] is False
 
-    def test_retrieve_instance_contains_rebroadcast(self, api_client):
+    def test_retrieve_instance_contains_rebroadcast(self, guest_client):
         """RETRIEVE should include rebroadcast flag."""
         from datetime import timedelta
 
@@ -195,10 +195,10 @@ class TestShowInstanceViewSetRetrieve:
             rebroadcast=1,
         )
 
-        response = api_client.get(f"/api/v2/show-instances/{instance.id}")
+        response = guest_client.get(f"/api/v2/show-instances/{instance.id}")
         assert response.json()["rebroadcast"] == 1
 
-    def test_retrieve_instance_contains_auto_playlist_built(self, api_client):
+    def test_retrieve_instance_contains_auto_playlist_built(self, guest_client):
         """RETRIEVE should include auto_playlist_built flag."""
         from datetime import timedelta
 
@@ -213,10 +213,10 @@ class TestShowInstanceViewSetRetrieve:
             auto_playlist_built=True,
         )
 
-        response = api_client.get(f"/api/v2/show-instances/{instance.id}")
+        response = guest_client.get(f"/api/v2/show-instances/{instance.id}")
         assert response.json()["auto_playlist_built"] is True
 
-    def test_retrieve_instance_contains_last_scheduled_at(self, api_client):
+    def test_retrieve_instance_contains_last_scheduled_at(self, guest_client):
         """RETRIEVE should include last_scheduled_at."""
         from datetime import timedelta
 
@@ -232,11 +232,11 @@ class TestShowInstanceViewSetRetrieve:
             last_scheduled_at=last_scheduled,
         )
 
-        response = api_client.get(f"/api/v2/show-instances/{instance.id}")
+        response = guest_client.get(f"/api/v2/show-instances/{instance.id}")
         data = response.json()
         assert "last_scheduled_at" in data
 
-    def test_retrieve_instance_null_last_scheduled_at(self, api_client):
+    def test_retrieve_instance_null_last_scheduled_at(self, guest_client):
         """RETRIEVE should handle null last_scheduled_at."""
         from datetime import timedelta
 
@@ -251,10 +251,10 @@ class TestShowInstanceViewSetRetrieve:
             last_scheduled_at=None,
         )
 
-        response = api_client.get(f"/api/v2/show-instances/{instance.id}")
+        response = guest_client.get(f"/api/v2/show-instances/{instance.id}")
         assert response.json()["last_scheduled_at"] is None
 
-    def test_retrieve_instance_contains_record_enabled(self, api_client):
+    def test_retrieve_instance_contains_record_enabled(self, guest_client):
         """RETRIEVE should include record_enabled."""
         from datetime import timedelta
 
@@ -270,13 +270,13 @@ class TestShowInstanceViewSetRetrieve:
             record_enabled=Record.YES,
         )
 
-        response = api_client.get(f"/api/v2/show-instances/{instance.id}")
+        response = guest_client.get(f"/api/v2/show-instances/{instance.id}")
         data = response.json()
         assert "record_enabled" in data
 
-    def test_retrieve_instance_not_found_returns_404(self, api_client):
+    def test_retrieve_instance_not_found_returns_404(self, guest_client):
         """RETRIEVE non-existent instance should return 404."""
-        response = api_client.get("/api/v2/show-instances/999999")
+        response = guest_client.get("/api/v2/show-instances/999999")
         assert response.status_code == 404
 
     def test_retrieve_instance_no_auth_fails(self, client):
@@ -296,7 +296,7 @@ class TestShowInstanceViewSetRetrieve:
         response = client.get(f"/api/v2/show-instances/{instance.id}")
         assert response.status_code == 403
 
-    def test_retrieve_instance_invalid_id_returns_404(self, api_client):
+    def test_retrieve_instance_invalid_id_returns_404(self, guest_client):
         """RETRIEVE with invalid id should return 404."""
-        response = api_client.get("/api/v2/show-instances/abc")
+        response = guest_client.get("/api/v2/show-instances/abc")
         assert response.status_code == 404

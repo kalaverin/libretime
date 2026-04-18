@@ -21,7 +21,7 @@ class TestFileUniqueConstraints:
     def test_library(self):
         return baker.make(Library, name="Test Library", description="Test")
 
-    def test_file_no_unique_constraint_on_filepath(self, api_client):
+    def test_file_no_unique_constraint_on_filepath(self, guest_client):
         """File model allows duplicate filepaths (no unique constraint)."""
         user = baker.make(User, username="file_test")
         library = baker.make(Library, name="Test Lib", description="Test")
@@ -50,7 +50,7 @@ class TestFileUniqueConstraints:
         assert file1.id != file2.id
         assert file1.filepath == file2.filepath
 
-    def test_file_no_unique_constraint_on_name(self, api_client):
+    def test_file_no_unique_constraint_on_name(self, guest_client):
         """File model allows duplicate names (no unique constraint)."""
         user = baker.make(User, username="file_test")
         library = baker.make(Library, name="Test Lib", description="Test")
@@ -76,7 +76,7 @@ class TestFileUniqueConstraints:
         assert file1.id != file2.id
         assert file1.name == file2.name
 
-    def test_file_allows_same_name_different_library(self, api_client):
+    def test_file_allows_same_name_different_library(self, guest_client):
         """Same filename in different libraries is allowed."""
         user = baker.make(User, username="file_test")
         lib1 = baker.make(Library, name="Lib1", description="Test")
@@ -103,7 +103,7 @@ class TestFileUniqueConstraints:
         assert file1.name == file2.name
         assert file1.library != file2.library
 
-    def test_file_allows_same_name_same_library(self, api_client):
+    def test_file_allows_same_name_same_library(self, guest_client):
         """Duplicate filenames in same library are allowed."""
         user = baker.make(User, username="file_test")
         library = baker.make(Library, name="Test Lib", description="Test")
@@ -130,7 +130,7 @@ class TestFileUniqueConstraints:
         assert file1.name == file2.name
         assert file1.library == file2.library
 
-    def test_file_no_unique_together_on_library_name(self, api_client):
+    def test_file_no_unique_together_on_library_name(self, guest_client):
         """No unique_together constraint on (library, name)."""
         user = baker.make(User, username="file_test")
         library = baker.make(Library, name="Test Lib", description="Test")

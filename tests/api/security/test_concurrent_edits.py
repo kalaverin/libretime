@@ -22,7 +22,7 @@ from sdk import now
 class TestConcurrentPlaylistUpdates:
     """Test concurrent updates to same playlist."""
 
-    def test_concurrent_name_updates_last_write_wins(self, api_client):
+    def test_concurrent_name_updates_last_write_wins(self, guest_client):
         """Two concurrent name updates - last write wins."""
         import json
 
@@ -34,14 +34,14 @@ class TestConcurrentPlaylistUpdates:
             description="Test",
         )
 
-        response1 = api_client.patch(
+        response1 = guest_client.patch(
             f"/api/v2/playlists/{playlist.id}",
             json.dumps({"name": "First Update"}),
             content_type="application/json",
         )
         assert response1.status_code == 200
 
-        response2 = api_client.patch(
+        response2 = guest_client.patch(
             f"/api/v2/playlists/{playlist.id}",
             json.dumps({"name": "Second Update"}),
             content_type="application/json",
@@ -51,7 +51,7 @@ class TestConcurrentPlaylistUpdates:
         playlist.refresh_from_db()
         assert playlist.name == "Second Update"
 
-    def test_concurrent_description_updates(self, api_client):
+    def test_concurrent_description_updates(self, guest_client):
         """Concurrent description updates - last write wins."""
         import json
 
@@ -65,7 +65,7 @@ class TestConcurrentPlaylistUpdates:
 
         updates = ["Update A", "Update B", "Update C"]
         for update in updates:
-            response = api_client.patch(
+            response = guest_client.patch(
                 f"/api/v2/playlists/{playlist.id}",
                 json.dumps({"description": update}),
                 content_type="application/json",
@@ -75,7 +75,7 @@ class TestConcurrentPlaylistUpdates:
         playlist.refresh_from_db()
         assert playlist.description == "Update C"
 
-    def test_concurrent_length_updates(self, api_client):
+    def test_concurrent_length_updates(self, guest_client):
         """Concurrent length field updates."""
         import json
 
@@ -89,7 +89,7 @@ class TestConcurrentPlaylistUpdates:
 
         lengths = ["00:05:00", "00:15:00", "00:30:00", "01:00:00"]
         for length in lengths:
-            response = api_client.patch(
+            response = guest_client.patch(
                 f"/api/v2/playlists/{playlist.id}",
                 json.dumps({"length": length}),
                 content_type="application/json",
@@ -104,7 +104,7 @@ class TestConcurrentPlaylistUpdates:
 class TestConcurrentContentModifications:
     """Test concurrent playlist content modifications."""
 
-    def test_concurrent_content_additions(self, api_client):
+    def test_concurrent_content_additions(self, guest_client):
         """Multiple content additions to same playlist."""
         user = baker.make(User, username="content_test", role=Role.HOST)
         library = baker.make(
@@ -139,7 +139,7 @@ class TestConcurrentContentModifications:
         contents = PlaylistContent.objects.filter(playlist=playlist)
         assert contents.count() == 5
 
-    def test_concurrent_position_updates(self, api_client):
+    def test_concurrent_position_updates(self, guest_client):
         """Concurrent position updates - verify ordering."""
         user = baker.make(User, username="position_test", role=Role.HOST)
         library = baker.make(
@@ -174,7 +174,7 @@ class TestConcurrentContentModifications:
         content.refresh_from_db()
         assert content.position == 10
 
-    def test_consecutive_cue_point_updates(self, api_client):
+    def test_consecutive_cue_point_updates(self, guest_client):
         """Consecutive cue point modifications."""
         user = baker.make(User, username="cue_test", role=Role.HOST)
         library = baker.make(
@@ -223,7 +223,7 @@ class TestConcurrentContentModifications:
 class TestConcurrentShowInstanceUpdates:
     """Test concurrent show instance modifications."""
 
-    def test_concurrent_instance_time_updates(self, api_client):
+    def test_concurrent_instance_time_updates(self, guest_client):
         """Concurrent instance start/end time updates."""
         show = baker.make(Show, name="Time Test Show")
         base_time = now()
@@ -256,7 +256,7 @@ class TestConcurrentShowInstanceUpdates:
 class TestDataIntegrityAfterConcurrentOperations:
     """Verify data integrity after concurrent-like operations."""
 
-    def test_playlist_content_count_integrity(self, api_client):
+    def test_playlist_content_count_integrity(self, guest_client):
         """Verify content count matches actual contents after multiple ops."""
         user = baker.make(User, username="integrity_test", role=Role.HOST)
         library = baker.make(
@@ -295,7 +295,7 @@ class TestDataIntegrityAfterConcurrentOperations:
         )
         assert len(positions) == len(set(positions))
 
-    def test_file_ownership_integrity(self, api_client):
+    def test_file_ownership_integrity(self, guest_client):
         """Verify file ownership after concurrent user updates."""
         library = baker.make(
             Library,
@@ -322,7 +322,7 @@ class TestDataIntegrityAfterConcurrentOperations:
         file_obj.refresh_from_db()
         assert file_obj.owner_id == user1.id
 
-    def test_schedule_integrity_after_multiple_updates(self, api_client):
+    def test_schedule_integrity_after_multiple_updates(self, guest_client):
         """Verify schedule integrity after multiple rapid updates."""
         from api.schedule.models import Schedule
 
@@ -373,7 +373,7 @@ class TestDataIntegrityAfterConcurrentOperations:
 class TestConcurrentAPICalls:
     """Test concurrent API call scenarios."""
 
-    def test_multiple_retrieve_calls_consistency(self, api_client):
+    def test_multiple_retrieve_calls_consistency(self, guest_client):
         """Multiple retrieve calls return consistent data."""
         user = baker.make(User, username="api_test", role=Role.HOST)
         playlist = baker.make(
@@ -385,7 +385,7 @@ class TestConcurrentAPICalls:
 
         responses = []
         for _ in range(10):
-            response = api_client.get(f"/api/v2/playlists/{playlist.id}")
+            response = guest_client.get(f"/api/v2/playlists/{playlist.id}")
             assert response.status_code == 200
             responses.append(response.json())
 
@@ -395,16 +395,16 @@ class TestConcurrentAPICalls:
             assert resp["name"] == first["name"]
             assert resp["description"] == first["description"]
 
-    def test_list_and_retrieve_consistency(self, api_client):
+    def test_list_and_retrieve_consistency(self, guest_client):
         """LIST and RETRIEVE return consistent data."""
         user = baker.make(User, username="api_test2", role=Role.HOST)
         playlist = baker.make(Playlist, name="List/Retrieve Test", owner=user)
 
-        list_response = api_client.get("/api/v2/playlists")
+        list_response = guest_client.get("/api/v2/playlists")
         list_data = list_response.json()
         list_item = next(p for p in list_data if p["id"] == playlist.id)
 
-        retrieve_response = api_client.get(f"/api/v2/playlists/{playlist.id}")
+        retrieve_response = guest_client.get(f"/api/v2/playlists/{playlist.id}")
         retrieve_data = retrieve_response.json()
 
         assert list_item["id"] == retrieve_data["id"]

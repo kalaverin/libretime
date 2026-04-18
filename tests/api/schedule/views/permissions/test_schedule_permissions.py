@@ -19,8 +19,8 @@ class TestScheduleViewSetPermissions:
     """Tests for Schedule permission checks."""
 
     @pytest.fixture(autouse=True)
-    def setup(self, api_client, admin_user, host_client):
-        self.api_client = api_client
+    def setup(self, guest_client, admin_user, host_client):
+        self.guest_client = guest_client
         self.admin_user = admin_user
         self.host_client = host_client
         show = baker.make("schedule.Show", name="Test Show")
@@ -69,7 +69,7 @@ class TestScheduleViewSetPermissions:
             "position": 1,
             "broadcasted": 1,
         }
-        response = self.api_client.post(
+        response = self.guest_client.post(
             "/api/v2/schedule",
             data,
             format="json",
@@ -109,7 +109,7 @@ class TestScheduleViewSetPermissions:
             position=1,
             broadcasted=1,
         )
-        response = self.api_client.delete(f"/api/v2/schedule/{schedule.id}")
+        response = self.guest_client.delete(f"/api/v2/schedule/{schedule.id}")
         assert response.status_code == 204
 
     def test_list_admin_sees_all_schedules(self):
@@ -137,7 +137,7 @@ class TestScheduleViewSetPermissions:
             position=2,
             broadcasted=1,
         )
-        response = self.api_client.get("/api/v2/schedule")
+        response = self.guest_client.get("/api/v2/schedule")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 2

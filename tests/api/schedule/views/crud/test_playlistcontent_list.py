@@ -27,13 +27,13 @@ class TestPlaylistContentViewSetList:
         SmartBlock.objects.all().delete()
         User.objects.filter(username__startswith="testpc").delete()
 
-    def test_list_empty_returns_200(self, api_client):
+    def test_list_empty_returns_200(self, guest_client):
         """LIST empty should return 200 with empty list."""
-        response = api_client.get("/api/v2/playlist-contents")
+        response = guest_client.get("/api/v2/playlist-contents")
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_list_single_file_content(self, api_client):
+    def test_list_single_file_content(self, guest_client):
         """LIST should return file content with correct fields."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -52,7 +52,7 @@ class TestPlaylistContentViewSetList:
             position=1,
         )
 
-        response = api_client.get("/api/v2/playlist-contents")
+        response = guest_client.get("/api/v2/playlist-contents")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
@@ -61,7 +61,7 @@ class TestPlaylistContentViewSetList:
         assert data[0]["playlist"] == playlist.id
         assert data[0]["position"] == 1
 
-    def test_list_single_stream_content(self, api_client):
+    def test_list_single_stream_content(self, guest_client):
         """LIST should return stream content with correct fields."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -80,14 +80,14 @@ class TestPlaylistContentViewSetList:
             position=1,
         )
 
-        response = api_client.get("/api/v2/playlist-contents")
+        response = guest_client.get("/api/v2/playlist-contents")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
         assert data[0]["kind"] == PlaylistContent.Kind.STREAM
         assert data[0]["stream"] == stream.id
 
-    def test_list_single_block_content(self, api_client):
+    def test_list_single_block_content(self, guest_client):
         """LIST should return block content with correct fields."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -101,14 +101,14 @@ class TestPlaylistContentViewSetList:
             position=1,
         )
 
-        response = api_client.get("/api/v2/playlist-contents")
+        response = guest_client.get("/api/v2/playlist-contents")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
         assert data[0]["kind"] == PlaylistContent.Kind.BLOCK
         assert data[0]["block"] == block.id
 
-    def test_list_multiple_contents(self, api_client):
+    def test_list_multiple_contents(self, guest_client):
         """LIST should return multiple contents."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -140,11 +140,11 @@ class TestPlaylistContentViewSetList:
             position=2,
         )
 
-        response = api_client.get("/api/v2/playlist-contents")
+        response = guest_client.get("/api/v2/playlist-contents")
         assert response.status_code == 200
         assert len(response.json()) == 2
 
-    def test_list_filter_by_playlist(self, api_client):
+    def test_list_filter_by_playlist(self, guest_client):
         """LIST should filter by playlist parameter."""
         user = baker.make(User, username="testpc_user")
         playlist1 = baker.make(Playlist, name="Playlist 1", owner=user)
@@ -177,7 +177,7 @@ class TestPlaylistContentViewSetList:
             position=1,
         )
 
-        response = api_client.get(
+        response = guest_client.get(
             f"/api/v2/playlist-contents?playlist={playlist1.id}",
         )
         assert response.status_code == 200
@@ -185,7 +185,7 @@ class TestPlaylistContentViewSetList:
         assert len(data) == 1
         assert data[0]["playlist"] == playlist1.id
 
-    def test_list_contents_ordered_by_position(self, api_client):
+    def test_list_contents_ordered_by_position(self, guest_client):
         """LIST should be ordered by position."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -230,7 +230,7 @@ class TestPlaylistContentViewSetList:
             position=2,
         )
 
-        response = api_client.get("/api/v2/playlist-contents")
+        response = guest_client.get("/api/v2/playlist-contents")
         assert response.status_code == 200
         positions = [item["position"] for item in response.json()]
         assert positions == [1, 2, 3]
@@ -240,7 +240,7 @@ class TestPlaylistContentViewSetList:
         response = client.get("/api/v2/playlist-contents")
         assert response.status_code == 403
 
-    def test_list_returns_all_fields(self, api_client):
+    def test_list_returns_all_fields(self, guest_client):
         """LIST should return all serializer fields."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -262,7 +262,7 @@ class TestPlaylistContentViewSetList:
             cue_out="00:03:30",
         )
 
-        response = api_client.get("/api/v2/playlist-contents")
+        response = guest_client.get("/api/v2/playlist-contents")
         assert response.status_code == 200
         data = response.json()[0]
         expected_fields = {
@@ -282,7 +282,7 @@ class TestPlaylistContentViewSetList:
         }
         assert set(data.keys()) == expected_fields
 
-    def test_list_null_relations_for_different_kinds(self, api_client):
+    def test_list_null_relations_for_different_kinds(self, guest_client):
         """LIST should show null for unused relations based on kind."""
         user = baker.make(User, username="testpc_user")
         playlist = baker.make(Playlist, name="Test Playlist", owner=user)
@@ -303,7 +303,7 @@ class TestPlaylistContentViewSetList:
             position=1,
         )
 
-        response = api_client.get("/api/v2/playlist-contents")
+        response = guest_client.get("/api/v2/playlist-contents")
         data = response.json()[0]
         assert data["file"] == file_obj.id
         assert data["stream"] is None
