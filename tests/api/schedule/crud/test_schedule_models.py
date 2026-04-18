@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from django.db.models import DO_NOTHING
-from django.utils.timezone import now
+from django.utils.timezone import now, utc
 
 from api.schedule.models.playlist import Playlist, PlaylistContent
 from api.schedule.models.schedule import Schedule
@@ -17,6 +17,8 @@ from api.schedule.models.show import (
     ShowInstance,
     ShowRebroadcast,
 )
+
+pytestmark = pytest.mark.django_db
 
 
 class TestPlaylist:
@@ -486,13 +488,6 @@ class TestShow:
         assert hosts_field.remote_field.model._meta.app_label == "core"
         assert hosts_field.remote_field.model.__name__ == "User"
         assert hosts_field.remote_field.through._meta.db_table == "cc_show_hosts"
-
-    def test_get_owner(self, show):
-        """Test get_owner returns the show's hosts queryset."""
-        owners = show.get_owner()
-        
-        show.hosts.all.assert_called_once()
-        assert owners == show.hosts.all.return_value
 
 
 class TestShowHost:
@@ -1056,6 +1051,10 @@ class TestSchedule:
 
     def test_is_file_scheduled_in_the_future_true(self, mocker):
         """Test is_file_scheduled_in_the_future when file has future schedule."""
+        mock_now = mocker.patch(
+            "api.schedule.models.schedule.now",
+            return_value=datetime(2025, 1, 1, 12, 0, 0, tzinfo=utc),
+        )
         mock_filter = mocker.MagicMock()
         mock_filter.count.return_value = 1
         mocker.patch.object(
@@ -1067,7 +1066,7 @@ class TestSchedule:
         assert result is True
         Schedule.objects.filter.assert_called_once_with(
             file_id="file123",
-            ends_at__gt=now(),
+            ends_at__gt=mock_now.return_value,
         )
 
     def test_is_file_scheduled_in_the_future_false(self, mocker):

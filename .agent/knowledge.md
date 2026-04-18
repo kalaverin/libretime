@@ -2282,3 +2282,54 @@ bola_prevention:
 - `compute_silences` pairs starts with ends and appends `inf` for trailing unclosed start (no exception on mismatch)
 - `make_step` mocks for `organise_file` must accept 4 positional args (`audio_file_path, import_directory, original_filename, metadata`)
 
+
+
+## K-TEST-STRUCTURE — tests/ directory layout after refactor T926
+
+- `tests/api/<component>/` — API tests per Django app (`core`, `schedule`, `storage`, `history`, `podcasts`, `legacy`)
+  - `crud/` — model-level unit tests (formerly `models/` or `tests/unit/api/`)
+  - `views/crud/` — viewset CRUD integration tests
+  - `views/permissions/` — role-based permission matrix tests
+  - `views/security/` — redteam / security tests
+- `tests/analyzer/unit/` — analyzer pipeline unit tests (deduplicated; `pipeline/unit/` removed)
+- `tests/api-client/`, `tests/worker/`, `tests/playout/` — component test suites
+- Cross-cutting dirs `tests/api/security/`, `tests/api/permissions/`, `tests/api/crud/` — **removed**
+- `tests/unit/api/` — **removed** (contents moved into `tests/api/<component>/crud/`)
+
+## K-DJANGO-MOCK-FK — Django 4.2 ForeignKey Mock assignment in pure unit tests
+
+Django 4.2 validates FK assignments; `instance.fk = Mock()` raises `ValueError` or triggers DB query.
+Fix: patch descriptors in conftest autouse fixture:
+```python
+from unittest.mock import Mock, MagicMock
+from django.db.models.fields.related_descriptors import (
+    ForwardManyToOneDescriptor, ReverseManyToOneDescriptor,
+)
+_original_fk_set = ForwardManyToOneDescriptor.__set__
+def _patched_fk_set(self, instance, value):
+    if isinstance(value, (Mock, MagicMock)):
+        instance.__dict__[self.field.attname] = getattr(value, 'pk', 1)
+        instance._state.fields_cache[self.field] = value
+        return
+    return _original_fk_set(self, instance, value)
+ForwardManyToOneDescriptor.__set__ = _patched_fk_set
+```
+Same pattern for `ReverseManyToOneDescriptor.__set__`.
+File: `tests/api/conftest.py` (applies to all API tests).
+
+## K-DJANGO-M2M-MOCK — ManyToMany direct assignment prohibition
+
+Django forbids `show.hosts = mock_hosts` on M2M. Use `show.hosts.set([...])` or avoid assignment.
+Alternatively, patch `ManyToManyDescriptor.__set__` if pure unit tests require it.
+
+## K-LIQUIDSOAP-PATH — LIQUIDSOAP_PATH env var breaks analyzer tests
+
+Dev env sets `LIQUIDSOAP_PATH=/Users/.../dev/liquidsoap` (absolute path).
+Tests hardcoding binary name `"liquidsoap"` fail when env var overrides.
+Fix: patch `analyzer.pipeline._liquidsoap.LIQUIDSOAP` directly in tests.
+
+## K-TEST-FIXTURE-RECIPES — model_bakery recipes import path
+
+Recipes live in `tests/api/core/crud/recipes.py`.
+Import: `from tests.api.crud.recipes import *` (via `tests/api/fixtures/__init__.py` re-export).
+Previously broken path: `api.tests.fixtures.recipes`.

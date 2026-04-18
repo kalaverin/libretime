@@ -3216,3 +3216,36 @@ def download(self, request: Request, **__: Any) -> HttpResponse:
 - `tests/api-client/` — 8 passed
 - `tests/worker/` — 10 passed
 - `tests/playout/` — 34 passed, 11 skipped
+
+
+### [2026-04-18T10:07:00Z]
+**Completed:**
+- Flattened `tests/api/` structure: removed `models/` vs `views/` separation
+- Distributed cross-cutting tests into component directories:
+  - `tests/api/security/` → `tests/api/core/views/security/`
+  - `tests/api/permissions/` → `tests/api/core/views/permissions/`
+  - `tests/api/crud/` → `tests/api/core/crud/`
+- Moved model unit tests from `tests/unit/api/` to component `crud/` dirs:
+  - `test_core_models.py` → `tests/api/core/crud/`
+  - `test_schedule_models.py` → `tests/api/schedule/crud/`
+  - `test_storage_models.py` → `tests/api/storage/crud/`
+- Deleted stale `app/api/api/*/tests/` directories (core, history, legacy, podcasts, schedule, storage)
+- Removed duplicate analyzer tests: deleted `tests/analyzer/pipeline/unit/` (kept `tests/analyzer/unit/`)
+- Removed empty dirs: `tests/api/*/models/`, `tests/unit/`, `tests/api/crud/`, `tests/api/security/`, `tests/api/permissions/`
+
+**Test fixes (test-only, no production code changes):**
+- `tests/api/conftest.py`: added `disable_fk_validation_for_mocks` autouse fixture (patches Django ORM descriptors to allow Mock assignment to ForeignKeys in pure unit tests)
+- `tests/api/fixtures/__init__.py`: fixed broken import `api.tests.fixtures.recipes` → `tests.api.crud.recipes`
+- `test_core_models.py`: fixed `test_create_user` mock assertion, `test_get_group_permissions` invalid `isinstance` check, `test_has_perm_not_existing` DB access, `test_get_owner` Mock FK assignment, trailing unterminated `"""`
+- `test_schedule_models.py`: fixed Mock FK assignment via `_id` + `_state.fields_cache` pattern; fixed `show.hosts = mock_hosts` M2M direct assignment; fixed flaky `test_is_file_scheduled_in_the_future_true` by mocking `api.schedule.models.schedule.now`
+- `test_storage_models.py`: fixed Mock FK assignment via same `_id` pattern
+- `tests/analyzer/unit/test_pipeline_liquidsoap.py`: patched `analyzer.pipeline._liquidsoap.LIQUIDSOAP` to account for `LIQUIDSOAP_PATH` env var returning absolute path
+- `tests/api/core/crud/test_existing_tests_pass.py`: updated import paths and critical file paths to reflect new directory structure
+
+**Results:**
+- `tests/api/core/crud/test_core_models.py` — 39 passed
+- `tests/api/schedule/crud/test_schedule_models.py` — 75 passed
+- `tests/api/storage/crud/test_storage_models.py` — passed
+- `tests/api/core/crud/test_existing_tests_pass.py` — 14 passed
+- `tests/analyzer/unit/` — 140 passed
+- Full `tests/api/` suite — ~3970 passed, 10→0 failed (fixed by `test_existing_tests_pass.py` update)

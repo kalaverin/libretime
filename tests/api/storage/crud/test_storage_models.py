@@ -9,6 +9,8 @@ from django.db.models import DO_NOTHING
 
 from api.storage.models.file import File
 
+pytestmark = pytest.mark.django_db
+
 
 class TestFile:
     """Tests for File model."""

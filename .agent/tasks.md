@@ -6411,3 +6411,23 @@ Summary: |
   - T850, T851 (File read) - Works as designed (public metadata)
   This is intentional for broadcast schedule system. Anonymous gets 403.
 
+
+
+## [DONE] refactor T926 — Reorganize tests/ directory structure and fix broken unit tests
+Status: DONE
+Completed: 2026-04-18T10:07:00Z
+Scope: tests/
+Summary: |
+  Flattened tests/api/ hierarchy: removed models/ vs views/ split, distributed
+  cross-cutting security/permissions/crud tests into component directories.
+  Moved unit tests from tests/unit/api/ into tests/api/<component>/crud/.
+  Deleted stale app/api/api/*/tests/ and duplicate tests/analyzer/pipeline/unit/.
+  Fixed Django ORM Mock assignment crashes in pure unit tests via autouse fixture
+  patching ForwardManyToOneDescriptor.__set__ and ReverseManyToOneDescriptor.__set__.
+  Fixed broken imports, mock assertions, microsecond flakiness, liquidsoap env-var
+  issues. Updated meta-test paths in test_existing_tests_pass.py.
+
+  Structure after:
+  - tests/api/<component>/{crud,views/crud,views/permissions,views/security}/
+  - tests/analyzer/unit/
+  - tests/api-client/, tests/worker/, tests/playout/

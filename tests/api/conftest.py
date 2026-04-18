@@ -290,3 +290,34 @@ def api_client() -> APIClient:
 
 
 
+
+
+# Allow Mock/MagicMock assignment to ForeignKey/ManyToMany fields in unit tests
+from unittest.mock import Mock, MagicMock
+from django.db.models.fields.related_descriptors import (
+    ForwardManyToOneDescriptor,
+    ReverseManyToOneDescriptor,
+)
+
+
+@pytest.fixture(autouse=True)
+def disable_fk_validation_for_mocks(mocker):
+    """Disable FK/M2M validation when Mock/MagicMock is assigned."""
+    _original_fwd = ForwardManyToOneDescriptor.__set__
+    _original_rev = ReverseManyToOneDescriptor.__set__
+
+    def _fwd_set(self, instance, value):
+        if isinstance(value, (Mock, MagicMock)):
+            instance.__dict__[self.field.attname] = 1
+            instance._state.fields_cache[self.field.get_cache_name()] = value
+            return
+        return _original_fwd(self, instance, value)
+
+    def _rev_set(self, instance, value):
+        if isinstance(value, (Mock, MagicMock)):
+            instance.__dict__[self.field.name] = value
+            return
+        return _original_rev(self, instance, value)
+
+    mocker.patch.object(ForwardManyToOneDescriptor, "__set__", _fwd_set)
+    mocker.patch.object(ReverseManyToOneDescriptor, "__set__", _rev_set)

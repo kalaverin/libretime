@@ -258,3 +258,32 @@ Observation:
 - `Pipeline.run_analysis` raises `UnplayableFileError` without `queue.put`; do not assert `queue.get()` after
 - `compute_silences` appends `inf` for trailing unclosed start; returns partial results instead of raising
 Applies_to: `tests/unit/sdk/`, `tests/unit/analyzer/`
+
+
+## S11 — Django ORM Mock assignment patterns for pure unit tests
+Status: ACTIVE
+Created: 2026-04-18T10:07:00Z
+Last touched: 2026-04-18T10:07:00Z
+Refs: `tests/api/conftest.py`, `tests/api/core/crud/test_core_models.py`, `tests/api/schedule/crud/test_schedule_models.py`
+Observation:
+- Django 4.2 validates ForeignKey assignments; `instance.fk = Mock()` raises `ValueError` or triggers DB query
+- Use autouse fixture patching `ForwardManyToOneDescriptor.__set__` to intercept Mock/MagicMock:
+  - Write `instance.__dict__[field.attname] = getattr(mock, 'pk', 1)`
+  - Cache mock in `instance._state.fields_cache[field] = value`
+- Same pattern for `ReverseManyToOneDescriptor.__set__`
+- ManyToMany direct assignment `obj.m2m = [...]` is prohibited; use `obj.m2m.set([...])` or patch descriptor
+- For schedule model flakiness with `now()`, mock the module-level `now` function imported in the model file, not `django.utils.timezone.now`
+Applies_to: `tests/api/**/crud/test_*_models.py`
+
+## S12 — Test directory layout convention
+Status: ACTIVE
+Created: 2026-04-18T10:07:00Z
+Last touched: 2026-04-18T10:07:00Z
+Refs: `tests/api/`, `tests/analyzer/`
+Observation:
+- API tests organized per Django app component: `tests/api/<app>/{crud,views/crud,views/permissions,views/security}/`
+- Model unit tests live in `crud/` alongside integration CRUD tests (flat hierarchy)
+- Cross-cutting `security/` and `permissions/` tests distributed into respective component dirs
+- Analyzer unit tests consolidated under `tests/analyzer/unit/`; no `pipeline/unit/` duplication
+- Component-level `conftest.py` provides fixtures scoped to that subtree
+Applies_to: `tests/`

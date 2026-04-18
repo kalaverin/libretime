@@ -155,6 +155,9 @@ These should then be added to `.agent/decisions.md` for long-term tracking.
 | 2026-04-11T03:00:00Z | Centralize security validators in `api/validators/` | Single location for path traversal, SSRF, XSS validation; promotes reuse and consistent security posture | ACTIVE | - |
 | 2026-04-11T03:00:00Z | Use regex-based XSS detection at API boundary | Block XSS payloads in serializers, not template layer; fail-fast with 400 error | ACTIVE | - |
 | 2026-04-11T03:00:00Z | Use SecureModelSerializer as base for all model serializers | Built-in mass assignment protection (id, owner, timestamps blocked); consistent security across API | ACTIVE | - |
+| 2026-04-18T10:07:00Z | Flatten tests/api/ into component dirs with crud/permissions/security subdirs | Cross-cutting test dirs (security/, permissions/, crud/) at api/ root were unmaintainable; distributing into core/schedule/storage/history/podcasts mirrors Django app structure | ACTIVE | - |
+| 2026-04-18T10:07:00Z | Patch Django ORM descriptors in test conftest for Mock FK assignment | Django 4.2 prohibits Mock assignment to ForeignKeys in pure unit tests; autouse fixture patching ForwardManyToOneDescriptor.__set__ avoids boilerplate in every model test | ACTIVE | - |
+| 2026-04-18T10:07:00Z | Keep analyzer tests in tests/analyzer/unit/ only | tests/analyzer/pipeline/unit/ contained duplicated stub tests; larger canonical versions live in tests/analyzer/unit/ | ACTIVE | - |
 
 <!--
 Format:
