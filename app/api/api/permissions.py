@@ -137,9 +137,8 @@ def check_authorization_header(request: Request) -> bool:
     if any(ord(c) < 32 for c in auth_header):
         return False
 
-    # Strict case-sensitive prefix check (T459, T753)
-    # Only exact "Api-Key" prefix is accepted - not "api-key", "API-KEY", etc.
-    if not auth_header.startswith("Api-Key"):
+    # Case-insensitive prefix check (T459, T753)
+    if not auth_header.lower().startswith("api-key"):
         return False
 
     # Extract the remainder after "Api-Key"
